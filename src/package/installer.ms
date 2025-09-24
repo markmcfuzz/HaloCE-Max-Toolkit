@@ -2,7 +2,6 @@ try(DestroyDialog Installer_RO)catch()
 
 version = "v1.0.0"
 
-
 rollout Installer_RO "Halo CE Max ToolKit" width:400 height:160
 (
     group "INFO"
@@ -14,8 +13,19 @@ rollout Installer_RO "Halo CE Max ToolKit" width:400 height:160
     )
     button btn_install " Install Halo CE Max ToolKit " width:155 height:40 align:#left across:2
     button btn_uninstall " Uninstall Halo CE Max ToolKit " width:155 height:40 align:#right
+
     fn RemoveFiles =
     (
+        -- Remove menu using the simple delete script
+        tempDir = ((getdir #temp) + @"\" + "package" + @"\" )
+        try (
+            filein (tempDir + @"ui\halo_ce_toolkit_menu.ms")
+            removeHaloCEToolkitMenu()
+        ) catch (
+            print "Could not remove menu (delete script not accessible)"
+        )
+        
+        -- Remove files
         hiddenDOSCommand ("rmdir /s /q \"" + ((getDir #userscripts) + @"\halo\") + "\"")
         hiddenDOSCommand ("del \"" +(( getdir #userMacros ) + @"\Macro_HaloCEMaxToolKit.mcr") + "\"")
     )
@@ -26,19 +36,23 @@ rollout Installer_RO "Halo CE Max ToolKit" width:400 height:160
         
         copyMacroscriptsFolder = ("xcopy " + "\"" + tempDir + "macroScripts" + "\"" + " " + "\"" + (getdir #userMacros) + @"\" + "\"" + " /E")
         copyScriptsFolder = ("xcopy " + "\"" + tempDir + "scripts" + "\"" + " " + "\"" + (getDir #userscripts) + @"\" +  "\""  + " /E")
-        
+
         hiddenDOSCommand copyMacroscriptsFolder
         hiddenDOSCommand copyScriptsFolder
-        
+
         colorMan.reInitIcons()
         filein (( getdir #userMacros ) + @"\Macro_HaloCEMaxToolKit.mcr")
+
+        -- Install menu using the simple create script
+        filein (tempDir + @"ui\halo_ce_toolkit_menu.ms")
+        createHaloCEToolkitMenu()
     )
 
     on btn_install pressed do
     (
         RemoveFiles()
         InstallFiles()
-        
+
         messageBox "Halo CE Max ToolKit has been succesfully installed! \n Enjoy!"
         DestroyDialog Installer_RO
     )
