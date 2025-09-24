@@ -24,29 +24,28 @@ After installation, the new **Halo CE Toolkit** menu will appear automatically.
 
 ## Screenshots
 ### Installer UI
-![Installer](docs/images\installer_dialog.png)
+![Installer](docs/images/installer_dialog.png)
 
 ### Halo CE Toolkit Menu 
-![Installer](docs/images\toolkit_menu.png)
+![Installer](docs/images/toolkit_menu.png)
 
 ### Import Options 
-![Installer](docs/images\import_menu.png)
+![Installer](docs/images/import_menu.png)
 
 ### Export Options 
-![Installer](docs/images\export_menu.png)
+![Installer](docs/images/export_menu.png)
 
-## FAQ / Troubleshooting
+## FAQ / Troubleshooting  
 
-Q: The Halo CE Toolkit menu does not appear after installing.
-A: Make sure 3ds Max is restarted. If it still does not appear, run the installer again or check that HaloCE_Toolbar.cuix was copied to your \UI folder.
+- **Will there be more tools in the future?**  
+  > Yes! New tools and features are planned based on user feedback and project needs. Stay tuned for updates via the repository or official release channels.
 
-Q: The script says “file not found”.
-A: Check that the scripts/halo folder exists in your \userscripts directory.
+- **I can't drag and drop the .mzp to install the toolkit**  
+  > Make sure you are dragging the **`.mzp`** file into the **3ds Max viewport** (the 3D view), not the toolbar or other UI areas. If nothing happens, go to **Scripting → Run Script**, then select the **`.mzp`** file manually. Also check that 3ds Max has write permissions to your user script folders.
 
-Q: Can I install this in older versions of 3ds Max?
-A: The toolkit is built for 3ds Max 2023 and later, but may work on older versions (2020+)
+- **Can I install this in older versions of 3ds Max?**  
+  > The toolkit is built for **3ds Max 2023** and later, but may work on older versions **(2019+)**.
 
 ## Credits
 
-- Original scripts from BlueStreak
-- Adapted, improved and integrated by MarkMcFuzz
+- Original scripts from [BlueStreak](https://github.com/Sledmine/bluestreak/tree/main)
