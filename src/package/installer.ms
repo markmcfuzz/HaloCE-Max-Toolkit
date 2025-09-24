@@ -16,7 +16,7 @@ rollout Installer_RO "Halo CE Max ToolKit" width:400 height:160
     button btn_uninstall " Uninstall Halo CE Max ToolKit " width:155 height:40 align:#right
     fn RemoveFiles =
     (
-        hiddenDOSCommand ("rmdir /s /q \"" + ((getDir #userscripts) + @"\package\") + "\"")
+        hiddenDOSCommand ("rmdir /s /q \"" + ((getDir #userscripts) + @"\halo\") + "\"")
         hiddenDOSCommand ("del \"" +(( getdir #userMacros ) + @"\Macro_HaloCEMaxToolKit.mcr") + "\"")
     )
 
@@ -30,7 +30,7 @@ rollout Installer_RO "Halo CE Max ToolKit" width:400 height:160
         hiddenDOSCommand copyMacroscriptsFolder
         hiddenDOSCommand copyScriptsFolder
         
-        --colorMan.reInitIcons()
+        colorMan.reInitIcons()
         filein (( getdir #userMacros ) + @"\Macro_HaloCEMaxToolKit.mcr")
     )
 
@@ -41,7 +41,6 @@ rollout Installer_RO "Halo CE Max ToolKit" width:400 height:160
         
         messageBox "Halo CE Max ToolKit has been succesfully installed! \n Enjoy!"
         DestroyDialog Installer_RO
-        --filein ((getdir #userscripts) + "\HaloCEMaxToolKit\HaloCEMaxToolKitInit.ms")
     )
 
     on btn_uninstall pressed do
@@ -50,7 +49,7 @@ rollout Installer_RO "Halo CE Max ToolKit" width:400 height:160
         messageBox "Halo CE Max ToolKit is removed from your computer."
     )
 
-    on Installer_RO close do
+    on Installer_RO oktoclose do
     (
         hiddenDOSCommand ("rmdir /s /q \"" + ((getDir #temp) + @"\package\") + "\"")
         hiddenDOSCommand ("del \"" +(( getdir #temp ) + @"\mzp.run") + "\"")
