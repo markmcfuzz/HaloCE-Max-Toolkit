@@ -1,0 +1,9 @@
+name "Halo CE Max ToolKit"
+
+extract to $temp
+
+run "package\installer.ms" 
+drop "package\installer.ms"
+
+clear temp on MAX exit
+clear temp on reset
