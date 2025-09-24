@@ -1,7 +1,7 @@
 macroScript ImportGBX
     category: "Halo CE"
     toolTip: "GBX-Model Tag"
-    buttonText:"Import model tag from Halo CE"
+    --buttonText:"Import model tag from Halo CE"
 (
     on execute do 
     (
@@ -21,7 +21,7 @@ macroScript ImportGBX
 macroScript ImportCameraTrack
     category: "Halo CE"
     toolTip: "Camera Track Tag"
-    buttonText:"Import camera track from Halo CE"
+    --buttonText:"Import camera track from Halo CE"
 (
     on execute do 
     (
@@ -41,7 +41,7 @@ macroScript ImportCameraTrack
 macroScript ImportAnimationData
     category: "Halo CE"
     toolTip: "Jointed Model Animation (JMA)"
-
+    --buttonText:"Import animation data from Halo CE"
 (
     on execute do 
     (
@@ -64,7 +64,7 @@ macroScript ImportAnimationData
 macroScript ExportJointedModelAnimation
     category: "Halo CE"
     toolTip: "Jointed Model Animation (JMA)"
-    buttonText:"Export Jointed Model Animation"
+    --buttonText:"Export Jointed Model Animation"
 (
     on execute do 
     (
@@ -84,7 +84,7 @@ macroScript ExportJointedModelAnimation
 macroScript ExportJMS
     category: "Halo CE"
     toolTip: "Jointed Model Skeleton (JMS)"
-    buttonText:"Export Jointed Model Skeleton"
+    --buttonText:"Export Jointed Model Skeleton"
 (
     on execute do 
     (
@@ -104,7 +104,7 @@ macroScript ExportJMS
 macroScript ExportCameraTrack
     category: "Halo CE"
     toolTip: "Camera Track Tag"
-    buttonText:"Export camera track to Halo CE"
+    --buttonText:"Export camera track to Halo CE"
 (
     on execute do 
     (
