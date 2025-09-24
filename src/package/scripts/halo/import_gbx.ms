@@ -111,6 +111,7 @@ u_scale = 1.0
 v_scale = 1.0
 ceRoot = ""
 tagLoc = ""
+global tagName = ""
 
 v = maxVersion()
 maxVer = (v[1] / 1000.0) as string
