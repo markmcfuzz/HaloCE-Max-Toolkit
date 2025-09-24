@@ -19,8 +19,7 @@ rollout Installer_RO "Halo CE Max ToolKit" width:400 height:160
         -- Remove menu using the simple delete script
         tempDir = ((getdir #temp) + @"\" + "package" + @"\" )
         try (
-            filein (tempDir + @"ui\halo_ce_toolkit_menu.ms")
-            removeHaloCEToolkitMenu()
+            filein (tempDir + @"ui\remove_menu.ms")
         ) catch (
             print "Could not remove menu (delete script not accessible)"
         )
@@ -44,8 +43,7 @@ rollout Installer_RO "Halo CE Max ToolKit" width:400 height:160
         filein (( getdir #userMacros ) + @"\Macro_HaloCEMaxToolKit.mcr")
 
         -- Install menu using the simple create script
-        filein (tempDir + @"ui\halo_ce_toolkit_menu.ms")
-        createHaloCEToolkitMenu()
+        filein (tempDir + @"ui\create_menu.ms")
     )
 
     on btn_install pressed do
