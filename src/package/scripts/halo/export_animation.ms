@@ -161,14 +161,16 @@ fn indexNodes =
 					local childClass = classOf childNode
 					local childBaseClass = classOf childNode.baseObject
 					
+					-- Skip validation for editable mesh, editable poly objects, and markers (names starting with '#')
 					if (childClass != Editable_mesh and childClass != Editable_Poly and 
-						childBaseClass != Editable_mesh and childBaseClass != Editable_Poly) then (
+						childBaseClass != Editable_mesh and childBaseClass != Editable_Poly and
+						((substring childNodeName 1 1 as name) != ("#" as name))) then (
 						-- Check if child has invalid name (not following the naming convention)
 						if (((substring childNodeName 1 2 as name) != ("b_" as name)) and
 							((substring childNodeName 1 5 as name) != ("bip01" as name)) and
 							((substring childNodeName 1 5 as name) != ("frame" as name))) then (
 							failed = true
-							messageBox ("Invalid child node found:\n\nParent: " + currentNodeName + "\nChild: " + childNodeName + "\n\nAll nodes must have names starting with 'frame', 'bip01', or 'b_'\n\n(Editable mesh/poly objects are excluded from this check)\n") title:"Export Error"
+							messageBox ("Invalid child node found:\n\nParent: " + currentNodeName + "\nChild: " + childNodeName + "\n\nAll nodes must have names starting with 'frame', 'bip01', or 'b_'\n\n(Editable mesh/poly objects and markers are excluded from this check)\n") title:"Export Error"
 							exit
 						)
 					)
@@ -188,19 +190,20 @@ fn indexNodes =
 						((substring parentName 1 5 as name) == ("bip01" as name)) or
 						((substring parentName 1 5 as name) == ("frame" as name))) then (
 						
-						-- Skip validation for editable mesh and editable poly objects
+						-- Skip validation for editable mesh, editable poly objects, and markers (names starting with '#')
 						local objClass = classOf obj
 						local objBaseClass = classOf obj.baseObject
 						
 						if (objClass != Editable_mesh and objClass != Editable_Poly and 
-							objBaseClass != Editable_mesh and objBaseClass != Editable_Poly) then (
+							objBaseClass != Editable_mesh and objBaseClass != Editable_Poly and
+							((substring obj.name 1 1 as name) != ("#" as name))) then (
 							-- Parent is animation node, check if child follows naming convention
 							childName = obj.name
 							if (((substring childName 1 2 as name) != ("b_" as name)) and
 								((substring childName 1 5 as name) != ("bip01" as name)) and
 								((substring childName 1 5 as name) != ("frame" as name))) then (
 								failed = true
-								messageBox ("Invalid object linked to animation hierarchy:\n\nAnimation Parent: " + parentName + "\nInvalid Child: " + childName + "\n\nAll objects linked to animation nodes must follow the naming convention (frame*, bip01*, b_*).\n(Editable mesh/poly objects are excluded from this check)\n\nPlease unlink this object or rename it properly.") title:"Export Error"
+								messageBox ("Invalid object linked to animation hierarchy:\n\nAnimation Parent: " + parentName + "\nInvalid Child: " + childName + "\n\nAll objects linked to animation nodes must follow the naming convention (frame*, bip01*, b_*).\n(Editable mesh/poly objects and markers are excluded from this check)\n\nPlease unlink this object or rename it properly.") title:"Export Error"
 								exit
 							)
 						)
