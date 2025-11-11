@@ -1,5 +1,7 @@
 # HALO CE MAX TOOLKIT
 
+![icon](docs/images/icon.png)
+
 A toolkit for Autodesk 3ds Max that allows you to **IMPORT AND EXPORT SOURCE AND TAG FILES** for Halo Custom Edition.
 
 This toolkit is mostly based on some [BlueStreak](https://github.com/Sledmine/bluestreak/tree/main) scripts, also [Mozarilla](https://github.com/Sigmmma/mozzarilla) tools, but introduces improvements and quality-of-life features.
@@ -20,7 +22,7 @@ This toolkit is mostly based on some [BlueStreak](https://github.com/Sledmine/bl
 ## Installation  
 
 1. Download the latest package from the [**Releases**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/releases) page.  
-2. In 3ds Max, go to **Scripting → Run Script**, select the `.mzp` file.  
+2. In 3ds Max, go to **Scripting > Run Script**, select the `.mzp` file.  
 3. Follow the installer dialog to install the toolkit.  
 
 After installation, the new **Halo CE Toolkit** menu will appear automatically.  
