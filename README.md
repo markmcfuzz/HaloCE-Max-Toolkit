@@ -1,6 +1,6 @@
 # HALO CE MAX TOOLKIT
 
-![icon](docs/images/icon.png)
+![icon](docs/images/banner.png)
 
 A toolkit for Autodesk 3ds Max that allows you to **IMPORT AND EXPORT SOURCE AND TAG FILES** for Halo Custom Edition.
 
