@@ -459,18 +459,80 @@ rollout collisionUltimateImporter "Collision Params" width:485 height:240
                 print "Loading GBX importer for silent import..."
                 fileIn gbxImporterPath
                 
+                -- Give MaxScript time to process the loaded functions
+                windows.processPostedMessages()
+                sleep 0.1  -- Additional delay to ensure function registration
+                
+                -- Try to get the function reference with retries
+                local importGBXFileSilently = undefined
+                local retries = 5
+                for i = 1 to retries do
+                (
+                    try
+                    (
+                        -- Try to get the actual function reference
+                        importGBXFileSilently = execute "importGBXFileSilently"
+                        if importGBXFileSilently != undefined then
+                        (
+                            print ("Silent import function loaded successfully on attempt " + i as string)
+                            exit
+                        )
+                        else
+                        (
+                            print ("Function not loaded, retry " + i as string + "/" + retries as string)
+                            windows.processPostedMessages()
+                            sleep 0.2  -- Longer delay between retries
+                        )
+                    )
+                    catch
+                    (
+                        print ("Function loading failed, retry " + i as string + "/" + retries as string)
+                        windows.processPostedMessages()
+                        sleep 0.2
+                    )
+                )
+                
                 -- Try silent import first, fallback to normal if needed
                 local importSuccess = false
-                if execute "importGBXFileSilently != undefined" then
+                if importGBXFileSilently != undefined then
                 (
                     print "Using silent import with user options..."
-                    -- Pass the actual user options to the silent import function
-                    importSuccess = importGBXFileSilently gbxOutputPath useBones:chk_bones.checked attachParts:chk_attach.checked importWeights:chk_weights.checked reuseBones:chk_use_existing_nodes.checked createMaterials:chk_create_materials.checked
+                    
+                    -- Call silent import function - don't use try/catch since it works but may throw undefined after success
+                    local silentResult = importGBXFileSilently gbxOutputPath useBones:chk_bones.checked attachParts:chk_attach.checked importWeights:chk_weights.checked reuseBones:chk_use_existing_nodes.checked createMaterials:chk_create_materials.checked
+                    
+                    -- Check the result (the function correctly returns true/false)
+                    if silentResult == true then
+                    (
+                        print "Silent import function returned success!"
+                        importSuccess = true
+                    )
+                    else
+                    (
+                        print ("Silent import function returned: " + (silentResult as string) + ", trying fallback...")
+                        try
+                        (
+                            importSuccess = importGBXModel gbxOutputPath
+                        )
+                        catch (fallbackError)
+                        (
+                            print ("Fallback import also failed: " + (fallbackError as string))
+                            importSuccess = false
+                        )
+                    )
                 )
                 else
                 (
-                    print "Silent import function not available, using fallback..."
-                    importSuccess = importGBXModel gbxOutputPath
+                    print "Silent import function not available after retries, using fallback..."
+                    try
+                    (
+                        importSuccess = importGBXModel gbxOutputPath
+                    )
+                    catch (errorMsg)
+                    (
+                        print ("Fallback import also failed: " + (errorMsg as string))
+                        importSuccess = false
+                    )
                 )
                 
                 if importSuccess then
@@ -513,6 +575,24 @@ rollout collisionUltimateImporter "Collision Params" width:485 height:240
                 else
                 (
                     print "GBX import failed"
+                    
+                    -- Cleanup temporary file even on failure
+                    if chk_cleanup.checked then
+                    (
+                        print "Cleaning up temporary file after import failure..."
+                        try
+                        (
+                            if doesFileExist gbxOutputPath then
+                            (
+                                deleteFile gbxOutputPath
+                                print "Temporary GBX file deleted after failure"
+                            )
+                        )
+                        catch (cleanupError)
+                        (
+                            print ("Cleanup failed: " + (cleanupError as string))
+                        )
+                    )
                 )
             )
             else
