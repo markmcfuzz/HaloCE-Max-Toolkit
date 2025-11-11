@@ -1,0 +1,1 @@
+# Minimal binilla mock for collision converter
