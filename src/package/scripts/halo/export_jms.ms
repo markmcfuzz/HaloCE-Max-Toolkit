@@ -154,7 +154,7 @@ fn validateObjectNames allObjects allNames =
 		processedNames[i] = processedName
 	)
 	
-	-- Check for duplicates in processed names
+	-- Check for duplicates in processed node names
 	for i = 1 to (processedNames.count - 1) do
 	(
 		for j = (i + 1) to processedNames.count do
