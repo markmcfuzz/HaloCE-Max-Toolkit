@@ -1,5 +1,4 @@
--- Ultimate Collision Importer for 3ds Max
--- Uses Python collision_converter.py + existing GBX importer
+-- Collision Geometry Importer for 3ds Max
 -- Provides full bone hierarchy, materials, and complex geometry support
 
 
@@ -7,7 +6,7 @@ global collisionUltimateImporter
 
 rollout collisionUltimateImporter "Collision Params" width:485 height:240
 (
-    local scriptVersion = "v1.0.0"
+    local scriptVersion = "v1.1.0"
     local aboutString = "Import Halo CE Collision Geometry\n" +
                         "Version: " + scriptVersion + "\n\n" +
                         "This tool allows you to import Halo CE collision geometry files into 3ds Max.\n\n" +
