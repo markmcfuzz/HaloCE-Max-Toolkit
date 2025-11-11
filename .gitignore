@@ -32,6 +32,7 @@ luac.out
 manifest.json
 simple_mzp.lua
 *.mzp
+*.tif
 
 # Shared objects (inc. Windows DLLs)
 *.dll
