@@ -28,9 +28,10 @@ luac.out
 # Folders
 *.vscode/
 
-# Helper Files
-analyze_dependencies.py
-extract_minimal.py
+# Files
+manifest.json
+simple_mzp.lua
+*.mzp
 
 # Shared objects (inc. Windows DLLs)
 *.dll
