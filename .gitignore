@@ -25,6 +25,13 @@ luac.out
 *.def
 *.exp
 
+# Folders
+*.vscode/
+
+# Helper Files
+analyze_dependencies.py
+extract_minimal.py
+
 # Shared objects (inc. Windows DLLs)
 *.dll
 *.so
