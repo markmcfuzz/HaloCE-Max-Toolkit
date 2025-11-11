@@ -17,6 +17,44 @@ macroScript ImportGBX
     )
 )
 
+macroScript ImportCollisionGeometry
+    category: "Halo CE"
+    toolTip: "Collision Geometry Tag"
+(
+    on execute do 
+    (
+        local scriptsDir = GetDir #userscripts
+        local scriptPath = scriptsDir + "\\halo\\import_collision.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
+
+macroScript ImportPhysics
+    category: "Halo CE"
+    toolTip: "Physics Tag"
+(
+    on execute do 
+    (
+        local scriptsDir = GetDir #userscripts
+        local scriptPath = scriptsDir + "\\halo\\import_physics.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
+
 macroScript ImportCameraTrack
     category: "Halo CE"
     toolTip: "Camera Track Tag"
