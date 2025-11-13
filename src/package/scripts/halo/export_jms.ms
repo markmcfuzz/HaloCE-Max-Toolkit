@@ -217,6 +217,10 @@ fn exportJMSFile exportWeights: true addTurnToMesh: false saveToJMS: true =
 	geom_object_has_skin = #()
 	geom_object_has_tverts = #()
 	geom_mesh_faces = #()
+	
+	-- Arrays to track objects converted from Editable_Poly and their modifiers for restoration
+	polyObjectsToRestore = #()
+	polyObjectModifiers = #()  -- Array of arrays containing modifiers for each converted object
 
 	face_verts = #()
 	face_matID = #()
@@ -601,21 +605,180 @@ fn exportJMSFile exportWeights: true addTurnToMesh: false saveToJMS: true =
 			modPanel.setCurrentObject geometry_objects[g].baseObject
 			if( addTurnToMesh == true ) then
 			(				
-				if geometry_objects[g].modifiers[#'Turn_to_Mesh'] == undefined then
+				if geometry_objects[g].modifiers[#'turn_to_mesh'] == undefined then
 				(					
 					addModifier geometry_objects[g] (turn_to_mesh())
 				)
 			)
 			else
 			(				
-				-- Validate object type
-				-- Check if object is an editable mesh or poly
+				-- Validate object type and convert Editable_Poly to Editable_mesh if needed
 				local meshClass = classOf geometry_objects[g].baseObject as string
-				if meshClass != "Editable_mesh" and meshClass != "Editable_Poly" then
+				if meshClass == "Editable_Poly" then
+				(
+					print ("Converting " + geometry_objects[g].name + " from Editable_Poly to Editable_mesh for export...")
+					
+					-- Handle modifiers during conversion - store modifier data for reconstruction
+					local objectModifiers = #()
+					local hadModifiers = (geometry_objects[g].modifiers.count > 0)
+					
+					if hadModifiers then
+					(
+						print ("Found " + (geometry_objects[g].modifiers.count as string) + " modifiers on " + geometry_objects[g].name + ", storing for reconstruction...")
+						-- Store modifier information for later reconstruction
+						for m = 1 to geometry_objects[g].modifiers.count do
+						(
+							local modData = #()
+							local mod = geometry_objects[g].modifiers[m]
+							modData[1] = classOf mod  -- Store modifier class
+							print ("Storing modifier: " + (classOf mod as string))
+							
+							-- For Skin modifier, store bone data
+							if classOf mod == Skin then
+							(
+								print ("Detected Skin modifier - storing bone assignments...")
+								local skinData = #()
+								skinData[1] = skinOps.getNumberBones mod
+								skinData[2] = #()  -- bone names array
+								
+								-- Store bone names
+								for b = 1 to skinData[1] do
+								(
+									skinData[2][b] = skinOps.getBoneName mod b 0
+								)
+								
+								-- Store vertex weights (this is the critical part) - get actual assigned weights only
+								skinData[3] = #()  -- vertex weights array
+								local numVerts = getNumVerts geometry_objects[g]
+								for v = 1 to numVerts do
+								(
+									local vertWeights = #()
+									local weightCount = skinOps.getVertexWeightCount mod v
+									-- Store only actually assigned weights
+									for w = 1 to weightCount do
+									(
+										try
+										(
+											local boneID = skinOps.getVertexWeightBoneID mod v w
+											local weight = skinOps.getVertexWeight mod v w
+											if weight > 0.0 then  -- only store non-zero weights
+											(
+												append vertWeights #(boneID, weight)
+											)
+										)
+										catch
+										(
+											print ("Warning: Could not get weight " + w as string + " for vertex " + v as string)
+										)
+									)
+									skinData[3][v] = vertWeights
+								)
+								
+								modData[2] = skinData
+								print ("Stored vertex weights for " + (numVerts as string) + " vertices")
+							)
+							
+							append objectModifiers modData
+						)
+						print ("All modifier data stored for " + geometry_objects[g].name)
+					)
+					
+					-- Track this object and its modifier data for restoration later  
+					append polyObjectsToRestore geometry_objects[g]
+					append polyObjectModifiers objectModifiers
+					
+					-- Convert to Editable_mesh (this will destroy modifiers)
+					convertToMesh geometry_objects[g]
+					meshClass = "Editable_mesh"  -- Update class for validation
+					
+					print ("Conversion to mesh completed for " + geometry_objects[g].name)
+					
+					-- Recreate modifiers on the mesh immediately for export processing
+					if hadModifiers then
+					(
+						print ("Recreating modifiers on mesh for export processing...")
+						select geometry_objects[g]
+						max modify mode
+						
+						for m = 1 to objectModifiers.count do
+						(
+							local modClass = objectModifiers[m][1]
+							print ("Recreating modifier on mesh: " + (modClass as string))
+							
+							if modClass == Skin then
+							(
+								-- Recreate Skin modifier on the mesh
+								local newSkin = Skin()
+								addModifier geometry_objects[g] newSkin
+								
+								-- Configure for Halo CE - set bone affect limit to 2
+								newSkin.bone_Limit = 2
+								print ("Set Skin modifier bone affect limit to 2 for Halo CE compatibility")
+								
+								-- Restore skin data
+								local skinData = objectModifiers[m][2]
+								local numBones = skinData[1]
+								local boneNames = skinData[2]
+								local vertWeights = skinData[3]
+								
+								print ("Recreating Skin modifier on mesh with " + (numBones as string) + " bones...")
+								
+								-- Add bones back to skin modifier
+								for b = 1 to numBones do
+								(
+									local boneNode = getNodeByName boneNames[b]
+									if boneNode != undefined then
+									(
+										skinOps.addBone newSkin boneNode 1
+										print ("Added bone to mesh: " + boneNames[b])
+									)
+								)
+								
+								-- Restore vertex weights
+								print ("Restoring vertex weights on mesh...")
+								for v = 1 to vertWeights.count do
+								(
+									if vertWeights[v].count > 0 then
+									(
+										local boneIDs = #()
+										local weights = #()
+										for w = 1 to vertWeights[v].count do
+										(
+											local boneID = vertWeights[v][w][1]
+											local weight = vertWeights[v][w][2]
+											append boneIDs boneID
+											append weights weight
+										)
+										-- Set all weights for this vertex at once
+										skinOps.setVertexWeights newSkin v boneIDs weights
+									)
+								)
+								
+								print ("Skin modifier recreated on mesh: " + geometry_objects[g].name + " - ready for export")
+							)
+							else
+							(
+								-- For other modifier types, create a new instance
+								try
+								(
+									local newMod = modClass()
+									addModifier geometry_objects[g] newMod
+									print ("Added " + (modClass as string) + " modifier to mesh")
+								)
+								catch
+								(
+									print ("Warning: Could not recreate " + (modClass as string) + " modifier on mesh")
+								)
+							)
+						)
+					)
+				)
+				else if meshClass != "Editable_mesh" then
 				(					
 					print (meshClass + " is not an editable mesh or poly.")
-					return messageBox ("Object " + geometry_objects[g].name + " is not an editable mesh, poly or bone.") title: "BlueStreak Error: 7"
+					return messageBox ("Object " + geometry_objects[g].name + " is not an editable mesh or poly.") title: "BlueStreak Error: 7"
 				)
+				
 				for r = 1 to geometry_objects[g].faces.selSetNames.count do
 				(					
 					if findItem geom_regions geometry_objects[g].faces.selSetNames[r] == 0 then
@@ -943,12 +1106,215 @@ fn exportJMSFile exportWeights: true addTurnToMesh: false saveToJMS: true =
 		-- end check for valid export method
 	)
 	-- end check for export failed
+	
+	-- Restore Editable_Poly objects and recreate their modifiers after successful export
+	if exportFailed != true and polyObjectsToRestore.count > 0 then
+	(
+		print ("Restoring " + (polyObjectsToRestore.count as string) + " objects back to Editable_Poly...")
+		for p = 1 to polyObjectsToRestore.count do
+		(
+			local objectModifiers = polyObjectModifiers[p]
+			local hadModifiers = (objectModifiers.count > 0)
+			
+			print ("Converting " + polyObjectsToRestore[p].name + " back to Editable_Poly")
+			
+			-- Convert back to Editable_Poly 
+			convertToPoly polyObjectsToRestore[p]
+			
+			-- Recreate modifiers if there were any
+			if hadModifiers then
+			(
+				print ("Recreating " + (objectModifiers.count as string) + " modifiers for " + polyObjectsToRestore[p].name + "...")
+				select polyObjectsToRestore[p]
+				max modify mode
+				
+				for m = 1 to objectModifiers.count do
+				(
+					local modClass = objectModifiers[m][1]
+					print ("Recreating modifier: " + (modClass as string))
+					
+					if modClass == Skin then
+					(
+						-- Recreate Skin modifier
+						local newSkin = Skin()
+						addModifier polyObjectsToRestore[p] newSkin
+						
+						-- Configure for Halo CE - set bone affect limit to 2
+						newSkin.bone_Limit = 2
+						
+						-- Restore skin data
+						local skinData = objectModifiers[m][2]
+						local numBones = skinData[1]
+						local boneNames = skinData[2]
+						local vertWeights = skinData[3]
+						
+						print ("Restoring Skin modifier with " + (numBones as string) + " bones...")
+						
+						-- Add bones back to skin modifier
+						for b = 1 to numBones do
+						(
+							local boneNode = getNodeByName boneNames[b]
+							if boneNode != undefined then
+							(
+								skinOps.addBone newSkin boneNode 1
+								print ("Added bone: " + boneNames[b])
+							)
+						)
+						
+						-- Restore vertex weights
+						print ("Restoring vertex weights...")
+						for v = 1 to vertWeights.count do
+						(
+							if vertWeights[v].count > 0 then
+							(
+								local boneIDs = #()
+								local weights = #()
+								for w = 1 to vertWeights[v].count do
+								(
+									local boneID = vertWeights[v][w][1]
+									local weight = vertWeights[v][w][2]
+									append boneIDs boneID
+									append weights weight
+								)
+								-- Set all weights for this vertex at once
+								skinOps.setVertexWeights newSkin v boneIDs weights
+							)
+						)
+						
+						print ("Skin modifier fully restored for " + polyObjectsToRestore[p].name)
+					)
+					else
+					(
+						-- For other modifier types, create a new instance
+						try
+						(
+							local newMod = modClass()
+							addModifier polyObjectsToRestore[p] newMod
+							print ("Added " + (modClass as string) + " modifier")
+						)
+						catch
+						(
+							print ("Warning: Could not recreate " + (modClass as string) + " modifier")
+						)
+					)
+				)
+				
+				print ("All modifiers recreated - " + polyObjectsToRestore[p].name + " now has " + (polyObjectsToRestore[p].modifiers.count as string) + " modifiers")
+			)
+		)
+		polyObjectsToRestore = #()  -- Clear the arrays
+		polyObjectModifiers = #()
+		print "All objects and modifiers restored to Editable_Poly format."
+	)
+	
 	if exportFailed then
 	(		
 		messageBox "Model export was cancelled!" title: "Export Failed"
 		for a = 1 to all_objects_array.count do
 		(			
 			all_objects_array[a].name = all_object_names[a]
+		)
+		
+		-- Restore Editable_Poly objects and recreate their modifiers in case of export failure
+		if polyObjectsToRestore.count > 0 then
+		(
+			print ("Export failed - Restoring " + (polyObjectsToRestore.count as string) + " objects back to Editable_Poly...")
+			for p = 1 to polyObjectsToRestore.count do
+			(
+				try
+				(
+					local objectModifiers = polyObjectModifiers[p]
+					local hadModifiers = (objectModifiers.count > 0)
+					
+					print ("Export failed - Converting " + polyObjectsToRestore[p].name + " back to Editable_Poly")
+					
+					-- Convert back to Editable_Poly 
+					convertToPoly polyObjectsToRestore[p]
+					
+					-- Recreate modifiers if there were any
+					if hadModifiers then
+					(
+						print ("Export failed - Recreating " + (objectModifiers.count as string) + " modifiers for " + polyObjectsToRestore[p].name + "...")
+						select polyObjectsToRestore[p]
+						max modify mode
+						
+						for m = 1 to objectModifiers.count do
+						(
+							local modClass = objectModifiers[m][1]
+							print ("Recreating modifier: " + (modClass as string))
+							
+							if modClass == Skin then
+							(
+								-- Recreate Skin modifier
+								local newSkin = Skin()
+								addModifier polyObjectsToRestore[p] newSkin
+								
+								-- Configure for Halo CE - set bone affect limit to 2
+								newSkin.bone_Limit = 2
+								
+								-- Restore skin data
+								local skinData = objectModifiers[m][2]
+								local numBones = skinData[1]
+								local boneNames = skinData[2]
+								local vertWeights = skinData[3]
+								
+								print ("Restoring Skin modifier with " + (numBones as string) + " bones...")
+								
+								-- Add bones back to skin modifier
+								for b = 1 to numBones do
+								(
+									local boneNode = getNodeByName boneNames[b]
+									if boneNode != undefined then
+									(
+										skinOps.addBone newSkin boneNode 1
+									)
+								)
+								
+								-- Restore vertex weights
+								for v = 1 to vertWeights.count do
+								(
+									if vertWeights[v].count > 0 then
+									(
+										local boneIDs = #()
+										local weights = #()
+										for w = 1 to vertWeights[v].count do
+										(
+											local boneID = vertWeights[v][w][1]
+											local weight = vertWeights[v][w][2]
+											append boneIDs boneID
+											append weights weight
+										)
+										-- Set all weights for this vertex at once
+										skinOps.setVertexWeights newSkin v boneIDs weights
+									)
+								)
+								
+								print ("Skin modifier restored after export failure")
+							)
+							else
+							(
+								-- For other modifier types, create a new instance
+								try
+								(
+									local newMod = modClass()
+									addModifier polyObjectsToRestore[p] newMod
+								)
+								catch
+								(
+									print ("Warning: Could not recreate " + (modClass as string) + " modifier")
+								)
+							)
+						)
+					)
+				)
+				catch
+				(
+					print ("Warning: Could not restore " + polyObjectsToRestore[p].name + " to Editable_Poly")
+				)
+			)
+			polyObjectsToRestore = #()  -- Clear the arrays
+			polyObjectModifiers = #()
+			print "Attempted to restore all objects and modifiers to Editable_Poly format after export failure."
 		)
 	)
 	return not exportFailed
