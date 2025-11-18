@@ -27,6 +27,7 @@ luac.out
 
 # Folders
 *.vscode/
+*release/
 
 # Files
 manifest.json
