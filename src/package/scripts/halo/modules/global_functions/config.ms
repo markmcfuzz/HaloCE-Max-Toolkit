@@ -4,13 +4,13 @@
 -- Logger Configuration (must be defined FIRST)
 ------------------------------------------------------------
 -- Logger output control flags
-global loggerDebug = false        -- Debug messages
+global loggerDebug = true        -- Debug messages
 global loggerInfo = true         -- Info messages
 global loggerWarning = true      -- Warning messages
 global loggerError = true        -- Error messages
 global loggerSuccess = false     -- Success messages
 global loggerDefault = true      -- Default messages
-global loggerTimestamp = true   -- Timestamp messages
+global loggerTimestamp = false   -- Timestamp messages
 
 fn logger text params:#() logType:#default =
 (
@@ -87,7 +87,7 @@ fn initDefaultGlobal name defaultValue forceUpdate:false =
 
     if current == undefined then
     (
-        logger "Config: Initializing % to %\n" params:#(name, defaultValue) logType:#debug
+        logger "Config: Initializing % to %\n" params:#(name, defaultValue) logType:#success
         setGlobalValue name defaultValue
     )
     else if forceUpdate or current != defaultValue then
@@ -95,12 +95,12 @@ fn initDefaultGlobal name defaultValue forceUpdate:false =
         -- Convert values to strings for proper display
         local currentStr = current as string
         local defaultStr = defaultValue as string
-        logger "Config: Updating % from (%) to (%)\n" params:#(name, currentStr, defaultStr) logType:#debug
+        logger "Config: Updating % from (%) to (%)\n" params:#(name, currentStr, defaultStr) logType:#success
         setGlobalValue name defaultValue
     )
     else
     (
-        logger "Config: % already exists as (%).\n" params:#(name, current) logType:#debug
+        logger "Config: % already exists as (%).\n" params:#(name, current) logType:#success
     )
 )
 
