@@ -93,7 +93,7 @@ fn readGeometry =
     -- Parts reflexive at offset 36
     local partsReflex = read.reflexive()
     
-    -- format "[DEBUG] readGeometry() raw parts reflexive: count=%, pointer=%, id=%\n" \
+    -- --format"[DEBUG] readGeometry() raw parts reflexive: count=%, pointer=%, id=%\n" \
     --     partsReflex[1] partsReflex[2] partsReflex[3]
     
     return #(partsReflex)
@@ -117,10 +117,10 @@ fn isGarbagePartHeader partHeader =
 -- Process all geometries: read parts, skip vertex/triangle data, reach shader block
 fn processAllGeometries geometriesArray currentOffset shadersArray =
 (
-    --format "\n╔════════════════════════════════════════════════════════════════════════════════╗\n"
-    --format "║                        PROCESSING ALL GEOMETRIES                               ║\n"
-    --format "╚════════════════════════════════════════════════════════════════════════════════╝\n"
-    --format "Starting position: %\n" currentOffset
+    --format"\n╔════════════════════════════════════════════════════════════════════════════════╗\n"
+    --format"║                        PROCESSING ALL GEOMETRIES                               ║\n"
+    --format"╚════════════════════════════════════════════════════════════════════════════════╝\n"
+    --format"Starting position: %\n" currentOffset
     
     local allPartsData = #() -- Store all valid part headers for later use
     local geometryFailed = false
@@ -132,14 +132,14 @@ fn processAllGeometries geometriesArray currentOffset shadersArray =
         local partCount = partsReflex[1]
         local partsPointer = partsReflex[2]
         
-        --format "\n\n╔═══════════════════════════════════════╗\n"
-        --format "║     GEOMETRY [%]                       ║\n" (geomIdx - 1)
-        --format "╚═══════════════════════════════════════╝\n"
+        --format"\n\n╔═══════════════════════════════════════╗\n"
+        --format"║     GEOMETRY [%]                       ║\n" (geomIdx - 1)
+        --format"╚═══════════════════════════════════════╝\n"
         
         -- Check if we need to seek to an absolute position for this geometry's parts
         if partsPointer > 0 then
         (
-            --format "Parts at absolute position: %\n" partsPointer
+            --format"Parts at absolute position: %\n" partsPointer
             seekToPosition partsPointer
             needsInitialSeek = false
         )
@@ -148,7 +148,7 @@ fn processAllGeometries geometriesArray currentOffset shadersArray =
             -- Parts follow sequentially
             if needsInitialSeek then
             (
-                --format "Seeking to initial position: %\n" currentOffset
+                --format"Seeking to initial position: %\n" currentOffset
                 seekToPosition currentOffset
                 needsInitialSeek = false
             )
@@ -162,16 +162,16 @@ fn processAllGeometries geometriesArray currentOffset shadersArray =
         -- We need to read at least 1 part and check if more exist
         if partCount == 0 and partsPointer == 0 then
         (
-            --format "Parts reflexive count=0, will read parts until finding next section\n"
+            --format"Parts reflexive count=0, will read parts until finding next section\n"
             partCount = 99999 -- Sentinel value - will read until we detect end
         )
         else if partCount == 0 then
         (
-            --format "Geometry has 0 parts (skipping)\n"
+            --format"Geometry has 0 parts (skipping)\n"
             continue
         )
         
-        --format "Reading up to % parts\n" partCount
+        --format"Reading up to % parts\n" partCount
         
         -- Read part headers for THIS geometry
         local geometryParts = #()
@@ -185,7 +185,7 @@ fn processAllGeometries geometriesArray currentOffset shadersArray =
             -- Check if this looks like garbage (vertex data or next section)
             if isGarbagePartHeader partHeader then
             (
-                --format "Hit non-part data at % (read % valid parts so far)\n" readPos geometryParts.count
+                --format"Hit non-part data at % (read % valid parts so far)\n" readPos geometryParts.count
                 -- Rewind to before this read
                 fseek fileHandle readPos #seek_set
                 exit
@@ -196,13 +196,13 @@ fn processAllGeometries geometriesArray currentOffset shadersArray =
         
         if geometryParts.count == 0 then
         (
-            --format "[WARNING] Geometry %: No valid parts found\n" (geomIdx - 1)
+            --format"[WARNING] Geometry %: No valid parts found\n" (geomIdx - 1)
             
             -- If we hit non-part data and haven't found any parts yet, we've likely reached
             -- the shader block or another section. Stop processing further geometries.
             if geomIdx > 1 then
             (
-                --format "[WARNING] Reached non-geometry data after geometry %. Stopping geometry processing.\n" (geomIdx - 2)
+                --format"[WARNING] Reached non-geometry data after geometry %. Stopping geometry processing.\n" (geomIdx - 2)
                 geometryFailed = false -- Not a failure, just end of geometry data
                 exit
             )
@@ -225,17 +225,17 @@ fn processAllGeometries geometriesArray currentOffset shadersArray =
             local trisReflex = partHeader[4]
             local flags = partHeader[5]
             
-            --format "\n  ┌───────────────────────────────────┐\n"
-            --format "  │   PART [%]                         │\n" (partIdx - 1)
-            --format "  └───────────────────────────────────┘\n"
-            --format "    Flags: %\n" flags
-            --format "    Shader Index: %\n" shaderIndex
+            --format"\n  ┌───────────────────────────────────┐\n"
+            --format"  │   PART [%]                         │\n" (partIdx - 1)
+            --format"  └───────────────────────────────────┘\n"
+            --format"    Flags: %\n" flags
+            --format"    Shader Index: %\n" shaderIndex
             
             -- Get shader name if available
             if shadersArray != undefined and shaderIndex >= 0 and shaderIndex < shadersArray.count then
             (
                 local shaderName = shadersArray[shaderIndex + 1][1]
-                format "    Shader Name: '%'\n" shaderName
+                --format"    Shader Name: '%'\n" shaderName
             )
             
             -- Calculate indexCount from triangle count (model_meta_info is often empty/unused)
@@ -248,9 +248,9 @@ fn processAllGeometries geometriesArray currentOffset shadersArray =
             local trisPos = compVertPos + (compVertReflex[1] * 32)
             
             -- Log uncompressed vertices
-            --format "\n    ┌─ UNCOMPRESSED VERTICES ─┐\n"
-            --format "    │ Count: %\n" uncompVertReflex[1]
-            --format "    │ File Position: %\n" uncompVertPos
+            --format"\n    ┌─ UNCOMPRESSED VERTICES ─┐\n"
+            --format"    │ Count: %\n" uncompVertReflex[1]
+            --format"    │ File Position: %\n" uncompVertPos
             
             if uncompVertReflex[1] > 0 and readVertexDataLogger == true and USE_COMPRESSED_ONLY != true then
             (
@@ -260,45 +260,45 @@ fn processAllGeometries geometriesArray currentOffset shadersArray =
                 
                 for vIdx = 1 to uncompVertReflex[1] do
                 (
-                    --format "    │   [Vertex %]\n" (vIdx - 1)
+                    --format"    │   [Vertex %]\n" (vIdx - 1)
                     
                     -- Position (12 bytes)
                     local px = read.floatB()
                     local py = read.floatB()
                     local pz = read.floatB()
-                    --format "    │     Position: [%, %, %]\n" px py pz
+                    --format"    │     Position: [%, %, %]\n" px py pz
                     
                     -- Normal (12 bytes)
                     local nx = read.floatB()
                     local ny = read.floatB()
                     local nz = read.floatB()
-                    --format "    │     Normal: [%, %, %]\n" nx ny nz
+                    --format"    │     Normal: [%, %, %]\n" nx ny nz
                     
                     -- Binormal (12 bytes)
                     local bnx = read.floatB()
                     local bny = read.floatB()
                     local bnz = read.floatB()
-                    --format "    │     Binormal: [%, %, %]\n" bnx bny bnz
+                    --format"    │     Binormal: [%, %, %]\n" bnx bny bnz
                     
                     -- Tangent (12 bytes)
                     local tx = read.floatB()
                     local ty = read.floatB()
                     local tz = read.floatB()
-                    --format "    │     Tangent: [%, %, %]\n" tx ty tz
+                    --format"    │     Tangent: [%, %, %]\n" tx ty tz
                     
                     -- UV (8 bytes)
                     local u = read.floatB()
                     local v = read.floatB()
-                    --format "    │     UV: [%, %]\n" u v
+                    --format"    │     UV: [%, %]\n" u v
                     
                     -- Node indices and weights (12 bytes)
                     local node0Idx = read.shortB "#signed"
                     local node1Idx = read.shortB "#signed"
                     local node0Weight = read.floatB()
                     local node1Weight = read.floatB()
-                    --format "    │     Node0: Index=%, Weight=%\n" node0Idx node0Weight
-                    --format "    │     Node1: Index=%, Weight=%\n" node1Idx node1Weight
-                    --format "    │\n"
+                    --format"    │     Node0: Index=%, Weight=%\n" node0Idx node0Weight
+                    --format"    │     Node1: Index=%, Weight=%\n" node1Idx node1Weight
+                    --format"    │\n"
                 )
                 
                 -- Restore file position
@@ -306,14 +306,14 @@ fn processAllGeometries geometriesArray currentOffset shadersArray =
             )
             else if uncompVertReflex[1] > 0 and USE_COMPRESSED_ONLY == true then
             (
-                --format "    │ (Skipped - USE_COMPRESSED_ONLY enabled)\n"
+                --format"    │ (Skipped - USE_COMPRESSED_ONLY enabled)\n"
             )
-            --format "    └─────────────────────────┘\n"
+            --format"    └─────────────────────────┘\n"
             
             -- Log compressed vertices
-            --format "\n    ┌─ COMPRESSED VERTICES ─┐\n"
-            --format "    │ Count: %\n" compVertReflex[1]
-            --format "    │ File Position: %\n" compVertPos
+            --format"\n    ┌─ COMPRESSED VERTICES ─┐\n"
+            --format"    │ Count: %\n" compVertReflex[1]
+            --format"    │ File Position: %\n" compVertPos
             
             if compVertReflex[1] > 0 and readVertexDataLogger == true then
             (
@@ -323,53 +323,53 @@ fn processAllGeometries geometriesArray currentOffset shadersArray =
                 
                 for vIdx = 1 to compVertReflex[1] do
                 (
-                    --format "    │   [Vertex %]\n" (vIdx - 1)
+                    --format"    │   [Vertex %]\n" (vIdx - 1)
                     
                     -- Position (12 bytes)
                     local px = read.floatB()
                     local py = read.floatB()
                     local pz = read.floatB()
-                    --format "    │     Position: [%, %, %]\n" px py pz
+                    --format"    │     Position: [%, %, %]\n" px py pz
                     
                     -- Compressed normal (4 bytes)
                     local normal = read.longB "#unsigned"
-                    --format "    │     Normal (compressed): %\n" normal
+                    --format"    │     Normal (compressed): %\n" normal
                     
                     -- Compressed binormal (4 bytes)
                     local binormal = read.longB "#unsigned"
-                    --format "    │     Binormal (compressed): %\n" binormal
+                    --format"    │     Binormal (compressed): %\n" binormal
                     
                     -- Compressed tangent (4 bytes)
                     local tangent = read.longB "#unsigned"
-                    --format "    │     Tangent (compressed): %\n" tangent
+                    --format"    │     Tangent (compressed): %\n" tangent
                     
                     -- UV (4 bytes)
                     local u = read.shortB "#signed"
                     local v = read.shortB "#signed"
-                    --format "    │     UV (compressed): [%, %]\n" u v
+                    --format"    │     UV (compressed): [%, %]\n" u v
                     
                     -- Node indices (2 bytes)
                     local node0Idx = readByte fileHandle "#signed"
                     local node1Idx = readByte fileHandle "#signed"
-                    --format "    │     Node0 Index: %\n" node0Idx
-                    --format "    │     Node1 Index: %\n" node1Idx
+                    --format"    │     Node0 Index: %\n" node0Idx
+                    --format"    │     Node1 Index: %\n" node1Idx
                     
                     -- Node weight (2 bytes)
                     local node0Weight = read.shortB "#signed"
-                    --format "    │     Node0 Weight (compressed): %\n" node0Weight
-                    --format "    │\n"
+                    --format"    │     Node0 Weight (compressed): %\n" node0Weight
+                    --format"    │\n"
                 )
                 
                 -- Restore file position
                 fseek fileHandle savedPos #seek_set
             )
-            --format "    └───────────────────────┘\n"
+            --format"    └───────────────────────┘\n"
             
             -- Log triangles
-            --format "\n    ┌─ TRIANGLES ─┐\n"
-            --format "    │ Count: %\n" trisReflex[1]
-            --format "    │ Index Count: %\n" indexCount
-            --format "    │ File Position: %\n" trisPos
+            --format"\n    ┌─ TRIANGLES ─┐\n"
+            --format"    │ Count: %\n" trisReflex[1]
+            --format"    │ Index Count: %\n" indexCount
+            --format"    │ File Position: %\n" trisPos
             
             if indexCount > 0 and readTriangleDataLogger == true then
             (
@@ -390,7 +390,7 @@ fn processAllGeometries geometriesArray currentOffset shadersArray =
                 -- Restore file position
                 fseek fileHandle savedPos #seek_set
             )
-            --format "    └─────────────┘\n"
+            --format"    └─────────────┘\n"
             
             -- Add positions to part data: #(shaderIndex, uncompReflex, compReflex, trisReflex, flags, uncompVertPos, compVertPos, trisPos, indexCount)
             local partWithPos = #(shaderIndex, uncompVertReflex, compVertReflex, trisReflex, flags, uncompVertPos, compVertPos, trisPos, indexCount)
@@ -456,22 +456,22 @@ fn processAllGeometries geometriesArray currentOffset shadersArray =
                 local partTotalSkip = uncompVertSize + compVertSize + trisSize
                 skipBytes partTotalSkip
                 totalSkipped += partTotalSkip
-                -- format "[DEBUG]     Part %: skipped % bytes (uc:%+%+%)\n" \
-                --     partIdx partTotalSkip uncompVertSize compVertSize trisSize
+                --format"[DEBUG]     Part %: skipped % bytes (uc:%+%+%)\n" \
+                --    partIdx partTotalSkip uncompVertSize compVertSize trisSize
             )
-            else
-            (
-                -- format "[DEBUG]     Part %: data at absolute positions (ptr: uc=%, c=%, t=%)\n" \
-                --     partIdx uncompVertPtr compVertPtr trisPtr
-            )
+            --else
+            --(
+            --    --format"[DEBUG]     Part %: data at absolute positions (ptr: uc=%, c=%, t=%)\n" \
+            --        partIdx uncompVertPtr compVertPtr trisPtr
+            --)
         )
         
-        -- format "[DEBUG] Geometry %: skipped % bytes total\n" geomIdx totalSkipped
+        --format"[DEBUG] Geometry %: skipped % bytes total\n" geomIdx totalSkipped
     )
     
     if geometryFailed then
     (
-        format "[ERROR] Failed to process all geometries. Cannot read shaders.\n"
+        --format"[ERROR] Failed to process all geometries. Cannot read shaders.\n"
         return #(false, undefined)
     )
     
@@ -479,13 +479,13 @@ fn processAllGeometries geometriesArray currentOffset shadersArray =
     local fileHandle = getCurrentFileHandle()
     local shadersOffset = ftell fileHandle
     
-    --format "\n╔════════════════════════════════════════════════════════════════════════════════╗\n"
-    --format "║                   ALL GEOMETRIES PROCESSED SUCCESSFULLY                        ║\n"
-    --format "╚════════════════════════════════════════════════════════════════════════════════╝\n"
-    --format "Shader block starts at: %\n" shadersOffset
-    --format "Total geometries processed: %\n\n" allPartsData.count
+    --format"\n╔════════════════════════════════════════════════════════════════════════════════╗\n"
+    --format"║                   ALL GEOMETRIES PROCESSED SUCCESSFULLY                        ║\n"
+    --format"╚════════════════════════════════════════════════════════════════════════════════╝\n"
+    --format"Shader block starts at: %\n" shadersOffset
+    --format"Total geometries processed: %\n\n" allPartsData.count
     
     return #(true, allPartsData)
 )
 
-format "Gbxmodel Geometry Tag Reader module loaded.\n"
+logger "Geometry Tag Reader loaded.\n" logtype:#success
