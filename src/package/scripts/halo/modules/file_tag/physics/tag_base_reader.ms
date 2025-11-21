@@ -13,11 +13,11 @@ fn readTagHeader =
     
     -- Seek to tag class (offset 36 in header)
     seekToPosition 36
-    local tagClass = readLongB "#unsigned"
+    local tagClass = read.longB "#unsigned"
     
     -- Seek to version (offset 56 in header)  
     seekToPosition 56
-    local version = readShortB "#unsigned"
+    local version = read.shortB "#unsigned"
     
     -- Validate tag class
     local expectedCollFourcc = getFourccByTagName "phys"
@@ -53,27 +53,27 @@ fn readPhysicsTag physicsFilePath =
 	seekToPosition 64
 	
 	-- Read main physics tag data structure (128 bytes total)
-	local tagRadius = readFloatB()				-- offset 0
-	local tagMomentScale = readFloatB()			-- offset 4
-	local tagMass = readFloatB()				-- offset 8
-	local centerOfMass = readPoint3B()			-- offset 12 (12 bytes)
-	local tagDensity = readFloatB()				-- offset 24
-	local tagGravityScale = readFloatB()		-- offset 28
-	local tagGroundFriction = readFloatB()		-- offset 32
-	local tagGroundDepth = readFloatB()			-- offset 36
-	local tagGroundDampFraction = readFloatB()	-- offset 40
-	local tagGroundNormalK1 = readFloatB()		-- offset 44
-	local tagGroundNormalK0 = readFloatB()		-- offset 48
+	local tagRadius = read.floatB()				-- offset 0
+	local tagMomentScale = read.floatB()			-- offset 4
+	local tagMass = read.floatB()				-- offset 8
+	local centerOfMass = math.readPoint3()			-- offset 12 (12 bytes)
+	local tagDensity = read.floatB()				-- offset 24
+	local tagGravityScale = read.floatB()		-- offset 28
+	local tagGroundFriction = read.floatB()		-- offset 32
+	local tagGroundDepth = read.floatB()			-- offset 36
+	local tagGroundDampFraction = read.floatB()	-- offset 40
+	local tagGroundNormalK1 = read.floatB()		-- offset 44
+	local tagGroundNormalK0 = read.floatB()		-- offset 48
 	
 	-- Read tag block reflexive counts
 	seekToPosition (64 + 92)	-- inertia_matrices reflexive
-	local inertiaMatricesCount = readLongB "#signed"
+	local inertiaMatricesCount = read.longB "#signed"
 	
 	seekToPosition (64 + 104)	-- powered_mass_points reflexive
-	local poweredMassPointsCount = readLongB "#signed"
+	local poweredMassPointsCount = read.longB "#signed"
 	
 	seekToPosition (64 + 116)	-- mass_points reflexive
-	local massPointsCount = readLongB "#signed"
+	local massPointsCount = read.longB "#signed"
 	
 	format "Tag Mass: %\n" tagMass
 	format "Tag Density: %\n" tagDensity
@@ -95,7 +95,7 @@ fn readPhysicsTag physicsFilePath =
 		
 		for i = 1 to poweredMassPointsCount do
 		(
-			local poweredMpName = readFixedString 32
+			local poweredMpName = read.tagString 32
 			append poweredMassPoints poweredMpName
 			
 			-- Skip remaining powered mass point data (96 bytes)
@@ -113,22 +113,22 @@ fn readPhysicsTag physicsFilePath =
 	for i = 1 to massPointsCount do
 	(
 		-- Read mass point data structure
-		local mpName = readFixedString 32				-- offset 0
-		local poweredMassPoint = readShortB "#signed"	-- offset 32
-		local modelNode = readShortB "#signed"			-- offset 34
-		local flags = readLongB "#unsigned"				-- offset 36
-		local relativeMass = readFloatB()				-- offset 40
-		local mass = readFloatB()						-- offset 44
-		local relativeDensity = readFloatB()			-- offset 48
-		local density = readFloatB()					-- offset 52
-		local position = readPoint3B()					-- offset 56 (12 bytes)
-		local forward = readVector3B()					-- offset 68 (12 bytes)
-		local up = readVector3B()						-- offset 80 (12 bytes)
-		local frictionType = readShortB "#signed"		-- offset 92
+		local mpName = read.tagString 32				-- offset 0
+		local poweredMassPoint = read.shortB "#signed"	-- offset 32
+		local modelNode = read.shortB "#signed"			-- offset 34
+		local flags = read.longB "#unsigned"		    -- offset 36
+		local relativeMass = read.floatB()				-- offset 40
+		local mass = read.floatB()						-- offset 44
+		local relativeDensity = read.floatB()			-- offset 48
+		local density = read.floatB()					-- offset 52
+		local position = math.readPoint3()				-- offset 56 (12 bytes)
+		local forward = math.readPoint3()				-- offset 68 (12 bytes)
+		local up = math.readPoint3()					-- offset 80 (12 bytes)
+		local frictionType = read.shortB "#signed"		-- offset 92
 		skipBytes 2										-- padding
-		local frictionParallel = readFloatB()			-- offset 96
-		local frictionPerpendicular = readFloatB()		-- offset 100
-		local mpRadius = readFloatB()					-- offset 104
+		local frictionParallel = read.floatB()			-- offset 96
+		local frictionPerpendicular = read.floatB()		-- offset 100
+		local mpRadius = read.floatB()					-- offset 104
 		
 		-- Create mass point struct
 		local massPoint = physicsMassPoints()
