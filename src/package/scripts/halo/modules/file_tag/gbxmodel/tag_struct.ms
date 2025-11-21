@@ -35,10 +35,33 @@ struct gbxmodelTag (
     shaders_tag_block = undefined
 )
 
-struct gbxmodelFlags (
-    blend_shared_normals = 0,
-    parts_have_local_nodes = 1,
-    ignore_skinning = 2
+struct gbxmodelTagHeader (
+    tag_class = undefined,
+    checksum = 0,
+    header_size = 0,
+    flags = 0,
+    version = 0,
+    integrity0 = 0,
+    integrity1 = 0,
+    engine_id = 0
+)
+
+fn gbxmodelFlags baseFlags =
+(
+    case baseFlags of
+    (
+        0: "blend_shared_normals";
+        1: "parts_have_local_nodes";
+        2: "ignore_skinning";
+        default: ("unknown_flag_" + (flags as string))
+    )
+)
+
+fn getGbxmodelFlagNames =
+(
+    local flags = #()
+    for i = 0 to 2 do append flags (gbxmodelFlags i)
+    flags
 )
 
 struct gbxmodelMarkers (
@@ -62,7 +85,7 @@ struct gbxmodelNodes (
     first_child_node = 0,
     parent_node = 0,
     translation = #(0.0, 0.0, 0.0),
-    rotation = #(0.0, 0.0, 0.0),
+    rotation = #(0.0, 0.0, 0.0, 0.0),
     distance_from_parent = 0,
     unknown = 0,
     rot_jj_kk = #(0.0, 0.0, 0.0),
@@ -97,7 +120,7 @@ struct regionPermutationsFlags (
 struct permutationLocalMarkers (
     name = "",
     node_index = 0,
-    rotation = #(0.0, 0.0, 0.0),
+    rotation = #(0.0, 0.0, 0.0, 0.0),
     translation = #(0.0, 0.0, 0.0)
 )
 
@@ -128,7 +151,7 @@ struct geometriesParts (
     local_nodes = array 22
 )
 
-struct geometriesFlags (
+struct partsFlags (
     stripped = 0, -- Internal
     zoner = 1
 )
@@ -197,14 +220,15 @@ struct vertexTypeEnum (
 
 ---Check if this struct is valid, compare with "mod2_def.txt"
 struct gbxmodelShaders (
-    shader = 0, undefined,
+    shader = 0, 
+    shader_path = "",
     permutation = 0
 )
 
 
-fn shaderTypes funcType =
+fn shaderTypes enum =
 (
-	case funcType of
+	case enum of
 	(
 		1936221298: "shader";
         1936027254: "shader_environment";
@@ -217,6 +241,8 @@ fn shaderTypes funcType =
         1936747617: "shader_transparent_plasma";
         1937203572: "shader_transparent_water";
         4294967295: "NONE";
-		default: ("unknown_" + (funcType as string))
+		default: ("unknown_" + (enum as string))
 	)
 )
+
+logger "Tag Structure loaded.\n" logType:#success
