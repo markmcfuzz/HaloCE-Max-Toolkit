@@ -34,7 +34,7 @@ fn orientMassPointSphere sphereObj forwardVec upVec =
 )
 
 -------------------------------------------------------
--- Mass Point Custom Attributes
+-- Mass Point Custom Attributes UI
 -------------------------------------------------------
 
 -- Custom attributes for mass point data display in Modify panel
@@ -142,7 +142,7 @@ fn createMassPointSpheres massPointsArray poweredMassPointsArray =
 	for mp in massPointsArray do
 	(
 		-- Convert world units to 3ds Max units (1 world unit = 100 3ds Max units)
-		local spherePos = mp.position * 100
+		local spherePos = (Point3 mp.position[1] mp.position[2] mp.position[3]) * 100
 		local sphereRadius = mp.radius * 100
 
 		-- Create sphere with # prefix in name
@@ -154,7 +154,7 @@ fn createMassPointSpheres massPointsArray poweredMassPointsArray =
 		-- Set sphere color based on friction type for visual distinction
 		local sphereColor = case mp.friction_type of
 		(
-			0: (color 255 19 10)       --#ff130a | Orange - point friction (most common)
+			0: (color 255 82 13)       --#ff5210 | Orange - point friction (most common)
 			1: (color 48 255 203)      --#30ffcb | Cyan - forward friction (wheels/treads)
 			2: (color 255 111 133)     --#ff6f85 | Rose - left friction (side forces)
 			3: (color 129 255 110)     --#81ff6e | Green - up friction (vertical forces)
