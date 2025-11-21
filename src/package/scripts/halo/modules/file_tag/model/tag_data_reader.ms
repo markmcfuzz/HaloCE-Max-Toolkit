@@ -16,10 +16,6 @@ fn readAllModelShaders shadersReflex geometriesArray currentOffset =
     
     if shadersReflex[1] > 0 then
     (
-        --format "\n=== READING SHADERS ===\n"
-        -- format "[DEBUG] Shaders reflexive: count=%, pointer=%, id=%\n" \
-        --     shadersReflex[1] shadersReflex[2] shadersReflex[3]
-        
         -- ALWAYS process geometries first (even if shader pointer > 0)
         -- This populates geometriesArray with actual part data
         local processResult = processAllModelGeometries geometriesArray newOffset
@@ -46,13 +42,13 @@ fn readAllModelShaders shadersReflex geometriesArray currentOffset =
             local shaderHeaderPos = ftell fileHandle
             
             -- Shader type (4 bytes enum)
-            local shaderType = readLongB "#unsigned"
+            local shaderType = read.longB "#unsigned"
             
             -- Shader path pointer (4 bytes)
-            local shaderPathPtr = readLongB "#unsigned"
+            local shaderPathPtr = read.longB "#unsigned"
             
             -- Shader path length (4 bytes)
-            local shaderPathLen = readLongB "#unsigned"
+            local shaderPathLen = read.longB "#unsigned"
             
             -- Skip remaining header data (20 bytes)
             skipBytes 20
@@ -61,18 +57,16 @@ fn readAllModelShaders shadersReflex geometriesArray currentOffset =
             local shaderData = #(#(shaderType, shaderPathPtr, shaderPathLen, shaderHeaderPos + 32))
             append shaderHeaders shaderData
             
-            -- format "[DEBUG] Shader % header at %LL: type='%' (%), pathPtr=%, pathLen=%\n" \
-            --     i shaderHeaderPos ("unknown_" + (shaderType as string)) shaderType shaderPathPtr shaderPathLen
         )
         newOffset += (shadersReflex[1] * 32)
         
         -- Now read shader paths (sequential null-terminated strings, NOT fixed blocks)
         local fileHandle = getCurrentFileHandle()
-        -- format "[DEBUG] Now reading shader paths at position %LL\n" (ftell fileHandle)
+
         for i = 1 to shaderHeaders.count do
         (
             -- Read shader path - just use null-terminated reader, no skipping needed
-            local shaderPath = readNullTerminatedString()
+            local shaderPath = read.nullTerminatedString()
             
             -- Extract shader type from header
             local shaderHeader = shaderHeaders[i][1]
@@ -104,8 +98,6 @@ fn readAllModelShaders shadersReflex geometriesArray currentOffset =
             local shaderData = #(shaderHeader, shaderPath, shaderName, shaderTypeName)
             append shadersArray shaderData
             
-            --format "Shader %: name='%', type='%', path='%' (permutation=%)\n" \
-            --    i shaderName shaderTypeName shaderPath permutationNum
         )
         -- Note: newOffset is approximate since paths are variable-length
     )

@@ -13,17 +13,17 @@ fn readModelTagHeader =
     
     -- Seek to tag class (offset 36 in header)
     seekToPosition 36
-    local tagClass = readLongB "#unsigned"
+    local tagClass = read.longB "#unsigned"
     
     -- Seek to checksum (offset 40)
-    local checksum = readLongB "#unsigned"
+    local checksum = read.longB "#unsigned"
     
     -- Header size (offset 44)
-    local headerSize = readLongB "#unsigned"
+    local headerSize = read.longB "#unsigned"
     
     -- Seek to version (offset 56 in header)  
     seekToPosition 56
-    local version = readShortB "#unsigned"
+    local version = read.shortB "#unsigned"
     
     -- Validate tag class
     local expectedModelFourcc = getFourccByTagName "mode"
@@ -53,31 +53,31 @@ fn readModelMainTagdata =
     
     -- Flags (offset 0 in tagdata, offset 64 in file)
     -- model has only blend_shared_normals flag
-    local flags = readLongB "#unsigned"
+    local flags = read.longB "#unsigned"
     
     -- Node list checksum (offset 4)
-    local nodeListChecksum = readLongB "#signed"
+    local nodeListChecksum = read.longB "#signed"
     
     -- LOD cutoffs (offsets 8-24) - MODEL ORDER: superlow → low → medium → high → superhigh
-    local superlowLodCutoff = readFloatB()
-    local lowLodCutoff = readFloatB()
-    local mediumLodCutoff = readFloatB()
-    local highLodCutoff = readFloatB()
-    local superhighLodCutoff = readFloatB()
+    local superlowLodCutoff = read.floatB()
+    local lowLodCutoff = read.floatB()
+    local mediumLodCutoff = read.floatB()
+    local highLodCutoff = read.floatB()
+    local superhighLodCutoff = read.floatB()
     
     -- LOD node counts (offsets 28-36) - same order as cutoffs
-    local superlowLodNodes = readShortB "#signed"
-    local lowLodNodes = readShortB "#signed"
-    local mediumLodNodes = readShortB "#signed"
-    local highLodNodes = readShortB "#signed"
-    local superhighLodNodes = readShortB "#signed"
+    local superlowLodNodes = read.shortB "#signed"
+    local lowLodNodes = read.shortB "#signed"
+    local mediumLodNodes = read.shortB "#signed"
+    local highLodNodes = read.shortB "#signed"
+    local superhighLodNodes = read.shortB "#signed"
     
     -- Skip padding (offsets 38-47 = 10 bytes)
     skipBytes 10
     
     -- Base map scales (offsets 48-55)
-    local baseMapUScale = readFloatB()
-    local baseMapVScale = readFloatB()
+    local baseMapUScale = read.floatB()
+    local baseMapVScale = read.floatB()
     
     -- Skip padding (offsets 56-171 = 116 bytes)
     skipBytes 116
@@ -85,23 +85,23 @@ fn readModelMainTagdata =
     -- Reflexive blocks start at offset 172 (file offset 236)
     
     -- Markers reflexive (offset 172)
-    local markersReflex = readReflexive()
+    local markersReflex = read.reflexive()
     --format "Markers: count=%, pointer=%\n" markersReflex[1] markersReflex[2]
     
     -- Nodes reflexive (offset 184)
-    local nodesReflex = readReflexive()
+    local nodesReflex = read.reflexive()
     --format "Nodes: count=%, pointer=%\n" nodesReflex[1] nodesReflex[2]
     
     -- Regions reflexive (offset 196)
-    local regionsReflex = readReflexive()
+    local regionsReflex = read.reflexive()
     --format "Regions: count=%, pointer=%\n" regionsReflex[1] regionsReflex[2]
     
     -- Geometries reflexive (offset 208)
-    local geometriesReflex = readReflexive()
+    local geometriesReflex = read.reflexive()
     --format "Geometries: count=%, pointer=%\n" geometriesReflex[1] geometriesReflex[2]
     
     -- Shaders reflexive (offset 220)
-    local shadersReflex = readReflexive()
+    local shadersReflex = read.reflexive()
     --format "Shaders: count=%, pointer=%\n" shadersReflex[1] shadersReflex[2]
     
     return #(flags, nodeListChecksum, 
@@ -164,7 +164,7 @@ fn readModelTag modelFilePath =
     local nodesArray = nodesResult[1]
     currentOffset = nodesResult[2]
     
-    local regionsResult = readAllRegions regionsReflex currentOffset
+    local regionsResult = readAllRegions regionsReflex currentOffset nodesArray
     local regionsArray = regionsResult[1]
     currentOffset = regionsResult[2]
     local totalLocalMarkers = regionsResult[3]
