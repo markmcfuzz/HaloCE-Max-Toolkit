@@ -25,9 +25,16 @@
 -- Get script directory
 scriptDir = getFilenamePath (getThisScriptFilename())
 
+-- Clear listener
+clearListener()
+
+-- Force garbage collection to clear old structs from memory
+gc light:true
+
 -- Load required modules
-filein (scriptDir + "modules\\global_functions\\read_utils.ms")
-filein (scriptDir + "modules\\global_functions\\tag_classes.ms")
+filein (scriptDir + "modules\\global_functions\\config.ms")
+filein (scriptDir + "modules\\global_functions\\utils.ms")
+filein (scriptDir + "modules\\global_functions\\tag_metadata.ms")
 filein (scriptDir + "modules\\file_tag\\physics\\tag_struct.ms")
 filein (scriptDir + "modules\\file_tag\\physics\\tag_base_reader.ms")
 filein (scriptDir + "modules\\file_tag\\physics\\build_mesh.ms")
@@ -84,6 +91,8 @@ fn ImportPhysicsGeometry =
 		messageBox "Failed to build mass point spheres in scene!" title:"Import Failed"
 	)
 	
+	clearListener()
+
 	return success
 )
 
