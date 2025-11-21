@@ -29,8 +29,9 @@ fn buildModelGeometryMesh geometryIndex partIndex partData geometriesArray model
 	local compVertCount = compVertReflex[1]
 	local triangleCount = trisReflex[1]
 	
-	-- Determine which vertex format to use (uncompressed has priority if count > 0)
-	local useUncompressed = (uncompVertCount > 0)
+	-- Determine which vertex format to use - respect USE_COMPRESSED_ONLY flag
+	-- Uncompressed has priority if count > 0, unless USE_COMPRESSED_ONLY is enabled
+	local useUncompressed = (uncompVertCount > 0 and USE_COMPRESSED_ONLY != true)
 	local vertexCount = if useUncompressed then uncompVertCount else compVertCount
 	local vertexSize = if useUncompressed then 68 else 32
 	
@@ -71,41 +72,39 @@ fn buildModelGeometryMesh geometryIndex partIndex partData geometriesArray model
 		for v = 1 to vertexCount do
 		(
 			-- Position (12 bytes: 3 floats)
-			local px = readFloatB()
-			local py = readFloatB()
-			local pz = readFloatB()
+			local px = read.floatB()
+			local py = read.floatB()
+			local pz = read.floatB()
 			local pos = [px, py, pz] * HALO_SCALE
 			append vertexPositions pos
 			
 			-- Normal (12 bytes: 3 floats)
-			local nx = readFloatB()
-			local ny = readFloatB()
-			local nz = readFloatB()
+			local nx = read.floatB()
+			local ny = read.floatB()
+			local nz = read.floatB()
 			append normals [nx, ny, nz]
 			
 			-- Binormal (12 bytes: 3 floats) - skip for now
-			local skipB1 = readFloatB()
-			local skipB2 = readFloatB()
-			local skipB3 = readFloatB()
+			local skipB1 = read.floatB()
+			local skipB2 = read.floatB()
+			local skipB3 = read.floatB()
 			
 			-- Tangent (12 bytes: 3 floats) - skip for now
-			local skipT1 = readFloatB()
-			local skipT2 = readFloatB()
-			local skipT3 = readFloatB()
+			local skipT1 = read.floatB()
+			local skipT2 = read.floatB()
+			local skipT3 = read.floatB()
 			
-			-- UV coordinates (8 bytes: 2 floats)
-			local u = readFloatB()
-			local v = readFloatB()
-			-- Apply UV scaling and invert V-coordinate
-			u = u * uScale
-			v = 1.0 - (v * vScale)
-			append uvCoords [u, v, 0]
-			
-			-- Node indices and weights (12 bytes total)
-			local node0Index = readShortB "#signed"  -- 2 bytes
-			local node1Index = readShortB "#signed"  -- 2 bytes
-			local node0Weight = readFloatB()         -- 4 bytes
-			local node1Weight = readFloatB()         -- 4 bytes
+		-- UV coordinates (8 bytes: 2 floats)
+		local uCoord = read.floatB()
+		local vCoord = read.floatB()
+		-- Apply UV scaling and invert V-coordinate
+		uCoord = uCoord * uScale
+		vCoord = 1.0 - (vCoord * vScale)
+		append uvCoords [uCoord, vCoord, 0]			-- Node indices and weights (12 bytes total)
+			local node0Index = read.shortB "#signed"  -- 2 bytes
+			local node1Index = read.shortB "#signed"  -- 2 bytes
+			local node0Weight = read.floatB()         -- 4 bytes
+			local node1Weight = read.floatB()         -- 4 bytes
 			
 			-- Convert to 1-based indices (add 1)
 			append nodeIndices #(node0Index + 1, node1Index + 1)
@@ -119,14 +118,14 @@ fn buildModelGeometryMesh geometryIndex partIndex partData geometriesArray model
 		for v = 1 to vertexCount do
 		(
 			-- Position (12 bytes: 3 floats)
-			local px = readFloatB()
-			local py = readFloatB()
-			local pz = readFloatB()
+			local px = read.floatB()
+			local py = read.floatB()
+			local pz = read.floatB()
 			local pos = [px, py, pz] * HALO_SCALE
 			append vertexPositions pos
 			
 			-- Compressed normal (4 bytes: 1 unsigned int32)
-			local normalPacked = readLongB "#unsigned"
+			local normalPacked = read.longB "#unsigned"
 			-- Decompress normal from packed format (11-11-10 bit)
 			local nx = (bit.and (bit.shift normalPacked -21) 0x7FF) / 1023.0 * 2.0 - 1.0
 			local ny = (bit.and (bit.shift normalPacked -10) 0x7FF) / 1023.0 * 2.0 - 1.0
@@ -134,31 +133,31 @@ fn buildModelGeometryMesh geometryIndex partIndex partData geometriesArray model
 			append normals [nx, ny, nz]
 			
 			-- Compressed binormal, tangent (8 bytes) - skip for now
-			local skipC2 = readLongB "#unsigned"
-			local skipC3 = readLongB "#unsigned"
+			local skipC2 = read.longB "#unsigned"
+			local skipC3 = read.longB "#unsigned"
 			
 			-- UV coordinates (4 bytes: 2 signed shorts)
-			local u16 = readShortB "#signed"
-			local v16 = readShortB "#signed"
-			local u = u16 / 32767.0
-			local v = v16 / 32767.0
+			local u16 = read.shortB "#signed"
+			local v16 = read.shortB "#signed"
+			local uCoord = u16 / 32767.0
+			local vCoord = v16 / 32767.0
 			-- Apply UV scaling and invert V-coordinate
-			u = u * uScale
-			v = 1.0 - (v * vScale)
-			append uvCoords [u, v, 0]
+			uCoord = uCoord * uScale
+			vCoord = 1.0 - (vCoord * vScale)
+			append uvCoords [uCoord, vCoord, 0]
 			
-			-- Node indices and weight (4 bytes total)
-			local node0Index = readByteB "#signed"  -- 1 byte
-			local node1Index = readByteB "#signed"  -- 1 byte
-			local node0WeightRaw = readShortB "#signed"  -- 2 bytes (signed short)
-			
+		-- Node indices and weight (4 bytes total)
+		-- Decompress node indices: compressed format stores them * 3
+		-- Must divide by 3 to get actual node index
+		local node0IndexRaw = readByte fileHandle "#signed"  -- 1 byte
+		local node1IndexRaw = readByte fileHandle "#signed"  -- 1 byte
+		local node0WeightRaw = read.shortB "#signed"  -- 2 bytes (signed short)
 			-- Decompress weight: signed short to float (0.0 to 1.0)
 			local node0Weight = node0WeightRaw / 32767.0
 			local node1Weight = 1.0 - node0Weight
-			
-			-- Convert to 1-based indices (add 1)
-			append nodeIndices #(node0Index + 1, node1Index + 1)
-			append nodeWeights #(node0Weight, node1Weight)
+			-- Decompress node indices by dividing by 3, then convert to 1-based
+			nodeIndices[V] = #((node0IndexRaw / 3) + 1, (node1IndexRaw / 3) + 1)
+			nodeWeights[V] = #(node0Weight, node1Weight)
 		)
 	)
 	
@@ -168,18 +167,20 @@ fn buildModelGeometryMesh geometryIndex partIndex partData geometriesArray model
 	local vertexOrder = #()
 	for i = 1 to indexCount do
 	(
-		local idx = readShortB "#unsigned"  -- Read raw value (0-based)
-		-- 0xFFFF (65535) is a special strip restart marker - skip it
-		if idx != 65535 then
-		(
-			append vertexOrder (idx + 1)  -- Convert to 1-based and add
-		)
+		local idx = read.shortB "#unsigned"  -- Read raw value (0-based)
+		-- Don't skip 65535 here - it will become a degenerate triangle later
+		append vertexOrder (idx + 1)  -- Convert to 1-based immediately
 	)
 	
-	-- Remove trailing zeros (used to terminate strips)
-	while vertexOrder.count > 0 and vertexOrder[vertexOrder.count] == 1 do
+	-- Remove trailing zeros in 1-based indices (would have been -1 or 0 in file, padding bytes)
+	local vo_count = vertexOrder.count
+	if vo_count > 0 and vertexOrder[vo_count] == 0 do
 	(
-		deleteItem vertexOrder vertexOrder.count
+		deleteItem vertexOrder vo_count
+	)
+	if vo_count > 1 and vertexOrder[vo_count-1] == 0 do
+	(
+		deleteItem vertexOrder (vo_count-1)
 	)
 	
 	-- Convert triangle strip to individual triangles
@@ -188,21 +189,24 @@ fn buildModelGeometryMesh geometryIndex partIndex partData geometriesArray model
 		append triangleIndices [vertexOrder[w], vertexOrder[w+1], vertexOrder[w+2]]
 	)
 	
-	-- Flip winding order for every other triangle (triangle strip convention)
+	-- Fix winding order for triangle strip (reverse odd triangles: 1, 3, 5...)
 	for r = 1 to triangleIndices.count by 2 do
 	(
-		local a = triangleIndices[r][1]
+		-- Reverse the entire triangle array [v0,v1,v2] -> [v2,v1,v0]
+		local temp = triangleIndices[r][1]
 		triangleIndices[r][1] = triangleIndices[r][3]
-		triangleIndices[r][3] = a
+		triangleIndices[r][3] = temp
 	)
 	
-	-- Remove degenerate triangles (where any two vertices are the same)
-	for d = triangleIndices.count to 1 by -1 do
+	-- Remove degenerate triangles (including those with invalid vertex indices like 65536)
+	for i = triangleIndices.count to 1 by -1 do
 	(
-		local tri = triangleIndices[d]
-		if (tri[1] == tri[2]) or (tri[2] == tri[3]) or (tri[1] == tri[3]) then
+		local tri = triangleIndices[i]
+		-- Check for duplicate vertices OR invalid indices beyond vertex count
+		if tri[1] == tri[2] or tri[2] == tri[3] or tri[1] == tri[3] or \
+		   tri[1] > vertexPositions.count or tri[2] > vertexPositions.count or tri[3] > vertexPositions.count then
 		(
-			deleteItem triangleIndices d
+			deleteItem triangleIndices i
 		)
 	)
 	
