@@ -2,38 +2,43 @@
 -- Reads main tag structure (header and tagdata)
 -- Reflexive data reading is in tag_data_reader.ms
 
+
 -------------------------------------------------------
 -- Tag Header (64 bytes)
 -------------------------------------------------------
 
 fn readTagHeader =
 (
-    --format "=== READING TAG HEADER ===\n"
-    
     -- Seek to tag class (offset 36 in header)
     seekToPosition 36
-    local tagClass = readLongB "#unsigned"
-    
+    local tagClass = read.longB "#unsigned"
     -- Seek to checksum (offset 40)
-    local checksum = readLongB "#unsigned"
-    
-    -- Header size (offset 44)
-    local headerSize = readLongB "#unsigned"
-    
+    seekToPosition 40
+    local checksum = read.longB "#unsigned"
     -- Seek to version (offset 56 in header)  
     seekToPosition 56
-    local version = readShortB "#unsigned"
-    
+    local version = read.shortB "#unsigned"
+    -- Seek to engine_id (offset 60 in header)
+    seekToPosition 60
+    local engineId = read.longB "#unsigned"
     -- Validate tag class
     local expectedGbxFourcc = getFourccByTagName "mod2"
     if tagClass != expectedGbxFourcc then
     (
-        format "[ERROR] Invalid tag class. Expected: %, Found: %\n" expectedGbxFourcc tagClass
+        logger "Invalid tag class. Expected: %, Found: %\n" params:#(expectedGbxFourcc, tagClass) logType:#error
         return undefined
     )
     
+    if tagHeaderLogger then
+    (
+        logger "\n=== READING TAG HEADER ===\n"
+        logger "Tag Class: %\n" params:#(getTagClassInfo tagClass) logType:#debug
+        logger "Checksum: %\n" params:#(checksum) logType:#debug
+        logger "Version: %\n" params:#(version) logType:#debug
+        logger "Engine ID: %\n" params:#(getEngineIdInfo engineId) logType:#debug
+    )
     --format "Valid gbxmodel tag: version %\n" version
-    return #(tagClass, version, checksum, headerSize)
+    return #(tagClass, checksum, version, engineId)
 )
 
 -------------------------------------------------------
@@ -48,62 +53,72 @@ fn readMainTagdata =
     seekToPosition 64
     
     -- Flags (offset 0 in tagdata, offset 64 in file)
-    local flags = readLongB "#unsigned"
+    local flags = read.longB "#unsigned"
     
     -- Node list checksum (offset 4)
-    local nodeListChecksum = readLongB "#signed"
+    local nodeListChecksum = read.longB "#signed"
     
     -- LOD cutoffs (offsets 8-24)
-    local superhighLodCutoff = readFloatB()
-    local highLodCutoff = readFloatB()
-    local mediumLodCutoff = readFloatB()
-    local lowLodCutoff = readFloatB()
-    local superlowLodCutoff = readFloatB()
+    local superhighLodCutoff = read.floatB()
+    local highLodCutoff = read.floatB()
+    local mediumLodCutoff = read.floatB()
+    local lowLodCutoff = read.floatB()
+    local superlowLodCutoff = read.floatB()
     
     -- LOD node counts (offsets 28-36)
-    local superhighLodNodes = readShortB "#signed"
-    local highLodNodes = readShortB "#signed"
-    local mediumLodNodes = readShortB "#signed"
-    local lowLodNodes = readShortB "#signed"
-    local superlowLodNodes = readShortB "#signed"
+    local superhighLodNodes = read.shortB "#signed"
+    local highLodNodes = read.shortB "#signed"
+    local mediumLodNodes = read.shortB "#signed"
+    local lowLodNodes = read.shortB "#signed"
+    local superlowLodNodes = read.shortB "#signed"
     
     -- Skip padding (offsets 38-47 = 10 bytes)
     skipBytes 10
     
     -- Base map scales (offsets 48-55)
-    local baseMapUScale = readFloatB()
-    local baseMapVScale = readFloatB()
+    local baseMapUScale = read.floatB()
+    local baseMapVScale = read.floatB()
     
     -- Skip padding (offsets 56-171 = 116 bytes)
     skipBytes 116
-    
     -- Reflexive blocks start at offset 172 (file offset 236)
-    
     -- Markers reflexive (offset 172)
-    local markersReflex = readReflexive()
-    --format "Markers: count=%, pointer=%\n" markersReflex[1] markersReflex[2]
-    
+    local markersReflex = read.reflexive()
     -- Nodes reflexive (offset 184)
-    local nodesReflex = readReflexive()
-    --format "Nodes: count=%, pointer=%\n" nodesReflex[1] nodesReflex[2]
-    
+    local nodesReflex = read.reflexive()
     -- Regions reflexive (offset 196)
-    local regionsReflex = readReflexive()
-    --format "Regions: count=%, pointer=%\n" regionsReflex[1] regionsReflex[2]
-    
+    local regionsReflex = read.reflexive()
     -- Geometries reflexive (offset 208)
-    local geometriesReflex = readReflexive()
-    --format "Geometries: count=%, pointer=%\n" geometriesReflex[1] geometriesReflex[2]
-    
+    local geometriesReflex = read.reflexive()
     -- Shaders reflexive (offset 220)
-    local shadersReflex = readReflexive()
-    --format "Shaders: count=%, pointer=%\n" shadersReflex[1] shadersReflex[2]
+    local shadersReflex = read.reflexive()
     
-    return #(flags, nodeListChecksum, 
-             superhighLodCutoff, highLodCutoff, mediumLodCutoff, lowLodCutoff, superlowLodCutoff,
-             superhighLodNodes, highLodNodes, mediumLodNodes, lowLodNodes, superlowLodNodes,
-             baseMapUScale, baseMapVScale,
-             markersReflex, nodesReflex, regionsReflex, geometriesReflex, shadersReflex)
+    if tagMainDataLogger then
+    (
+        logger "\n=== MAIN TAGDATA ===\n"
+        logger "Flags: %\n" params:#(flags) logType:#debug
+        logger "Node List Checksum: %\n" params:#(nodeListChecksum) logType:#debug
+        logger "Super High Cutoff: %\n" params:#(superhighLodCutoff) logType:#debug
+        logger "High Cutoff: %\n" params:#(highLodCutoff) logType:#debug
+        logger "Medium Cutoff: %\n" params:#(mediumLodCutoff) logType:#debug
+        logger "Low Cutoff: %\n" params:#(lowLodCutoff) logType:#debug
+        logger "Super Low Cutoff: %\n" params:#(superlowLodCutoff) logType:#debug
+        logger "Super High LOD Nodes: %\n" params:#(superhighLodNodes) logType:#debug
+        logger "High LOD Nodes: %\n" params:#(highLodNodes) logType:#debug
+        logger "Medium LOD Nodes: %\n" params:#(mediumLodNodes) logType:#debug
+        logger "Low LOD Nodes: %\n" params:#(lowLodNodes) logType:#debug
+        logger "Super Low LOD Nodes: %\n" params:#(superlowLodNodes) logType:#debug
+        logger "Base Map U-Scale: %\n" params:#(baseMapUScale) logType:#debug
+        logger "Base Map V-Scale: %\n" params:#(baseMapVScale) logType:#debug
+    )
+
+    return #(
+        flags, nodeListChecksum, superhighLodCutoff, highLodCutoff,
+        mediumLodCutoff, lowLodCutoff, superlowLodCutoff, superhighLodNodes,
+        highLodNodes, mediumLodNodes, lowLodNodes, superlowLodNodes,
+        baseMapUScale, baseMapVScale, markersReflex, nodesReflex, regionsReflex, 
+        geometriesReflex, shadersReflex
+    )
 )
 
 -------------------------------------------------------
@@ -151,27 +166,35 @@ fn readGbxmodelTag gbxmodelFilePath =
     local currentOffset = dataBlockStart
     
     -- Read all tag blocks using dedicated functions
-    local markersResult = readAllMarkers markersReflex currentOffset
-    local markersArray = markersResult[1]
-    currentOffset = markersResult[2]
+    --local markersResult = readAllMarkers markersReflex currentOffset
+    --local markersArray = markersResult[1]
+    --currentOffset = markersResult[2]
     
+    local t1 = timestamp()
     local nodesResult = readAllNodes nodesReflex currentOffset
     local nodesArray = nodesResult[1]
     currentOffset = nodesResult[2]
+    logger "Nodes read: % ms\n" params:#((timestamp() - t1)) logType:#timestamp
     
-    local regionsResult = readAllRegions regionsReflex currentOffset
+    local t2 = timestamp()
+    local regionsResult = readAllRegions regionsReflex currentOffset nodesArray
     local regionsArray = regionsResult[1]
     currentOffset = regionsResult[2]
     local totalLocalMarkers = regionsResult[3]
+    logger "Regions read: % ms\n" params:#((timestamp() - t2)) logType:#timestamp
     
+    local t3 = timestamp()
     local geometriesResult = readAllGeometries geometriesReflex currentOffset
     local geometriesArray = geometriesResult[1]
     currentOffset = geometriesResult[2]
+    logger "Geometries read: % ms\n" params:#((timestamp() - t3)) logType:#timestamp
     
+    local t4 = timestamp()
     local shadersResult = readAllShaders shadersReflex geometriesArray currentOffset
     local shadersArray = shadersResult[1]
     currentOffset = shadersResult[2]
     local updatedGeometriesArray = shadersResult[3]
+    logger "Shaders read: % ms\n" params:#((timestamp() - t4)) logType:#timestamp
     
     -- Use updated geometries array if available (contains actual part data)
     if updatedGeometriesArray != undefined then
@@ -184,4 +207,4 @@ fn readGbxmodelTag gbxmodelFilePath =
     return #(headerData, tagdata, markersArray, nodesArray, regionsArray, geometriesArray, shadersArray, totalLocalMarkers)
 )
 
-format "Gbxmodel Base Tag Reader loaded successfully.\n"
+logger "Base tag reader loaded.\n" logType:#success
