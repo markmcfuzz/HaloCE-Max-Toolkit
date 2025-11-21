@@ -12,11 +12,11 @@ fn readTagHeader =
     
     -- Seek to tag class (offset 36 in header)
     seekToPosition 36
-    local tagClass = readLongB "#unsigned"
+    local tagClass = read.longB "#unsigned"
     
     -- Seek to version (offset 56 in header)  
     seekToPosition 56
-    local version = readShortB "#unsigned"
+    local version = read.shortB "#unsigned"
     
     -- Validate tag class
     local expectedCollFourcc = getFourccByTagName "coll"
@@ -42,7 +42,7 @@ fn readMainFlags =
     seekToPosition 64
     
     -- Read flags (4 bytes)
-    local flagsValue = readLongB "#unsigned"
+    local flagsValue = read.longB "#unsigned"
     local flagNames = #(
         "takes_shield_damage_for_children",
         "takes_body_damage_for_children",
@@ -56,7 +56,7 @@ fn readMainFlags =
     local activeFlags = decodeFlagBits flagsValue flagNames
     
     -- Read indirect damage material (2 bytes)
-    local indirectDamageMaterial = readShortB "#signed"
+    local indirectDamageMaterial = read.shortB "#signed"
     
     -- Skip padding (2 bytes)
     skipBytes 2
@@ -80,39 +80,39 @@ fn readBodySection =
     -- format "Reading body at position: %\n" currentPos
     
     -- Read maximum body vitality (offset 0 in body)
-    local maxBodyVitality = readFloatB()
+    local maxBodyVitality = read.floatB()
     
     -- Read body system shock (offset 4 in body) 
-    local bodySystemShock = readFloatB()
+    local bodySystemShock = read.floatB()
     
     -- Skip to friendly damage resistance (offset 60 in body)
     skipBytes 52  -- Skip from offset 8 to 60
-    local friendlyDamageResistance = readFloatB()
+    local friendlyDamageResistance = read.floatB()
     
     -- Skip to localized damage effect (offset 104 in body)
     skipBytes 40  -- Skip from offset 64 to 104
-    local localizedDamageEffect = readTagRef()
+    local localizedDamageEffect = read.tagRef()
     
     -- Read area damage threshold (offset 120 in body)
-    local areaDamageThreshold = readFloatB()
+    local areaDamageThreshold = read.floatB()
     
     -- Read area damage effect (offset 124 in body)
-    local areaDamageEffect = readTagRef()
+    local areaDamageEffect = read.tagRef()
     
     -- Read body damaged threshold (offset 140 in body)
-    local bodyDamagedThreshold = readFloatB()
+    local bodyDamagedThreshold = read.floatB()
     
     -- Read body damaged effect (offset 144 in body)
-    local bodyDamagedEffect = readTagRef()
+    local bodyDamagedEffect = read.tagRef()
     
     -- Read body depleted effect (offset 160 in body)
-    local bodyDepletedEffect = readTagRef()
+    local bodyDepletedEffect = read.tagRef()
     
     -- Read body destroyed threshold (offset 176 in body)
-    local bodyDestroyedThreshold = readFloatB()
+    local bodyDestroyedThreshold = read.floatB()
     
     -- Read body destroyed effect (offset 180 in body)
-    local bodyDestroyedEffect = readTagRef()
+    local bodyDestroyedEffect = read.tagRef()
     
     -- Display results
     -- format "Maximum Body Vitality: %\n" maxBodyVitality
@@ -152,49 +152,49 @@ fn readShieldSection =
     -- format "Reading shield at position: %\n" currentPos
     
     -- Read maximum shield vitality (offset 0 in shield)
-    local maxShieldVitality = readFloatB()
+    local maxShieldVitality = read.floatB()
     
     -- Skip to shield material type (offset 6 in shield) 
     skipBytes 2
-    local shieldMaterialType = readShortB "#signed"
+    local shieldMaterialType = read.shortB "#signed"
     
     -- Skip to shield failure function (offset 32 in shield)
     skipBytes 24  -- Skip from offset 8 to 32
-    local shieldFailureFunction = readShortB "#signed"
+    local shieldFailureFunction = read.shortB "#signed"
     
     -- Read shield failure threshold (offset 36 in shield)
     skipBytes 2
-    local shieldFailureThreshold = readFloatB()
+    local shieldFailureThreshold = read.floatB()
     
     -- Read shield failing leak fraction (offset 40 in shield)
-    local shieldFailingLeakFraction = readFloatB()
+    local shieldFailingLeakFraction = read.floatB()
     
     -- Skip to minimum stun damage (offset 60 in shield)
     skipBytes 16  -- Skip from offset 44 to 60  
-    local minStunDamage = readFloatB()
+    local minStunDamage = read.floatB()
     
     -- Read stun time (offset 64 in shield)
-    local stunTime = readFloatB()
+    local stunTime = read.floatB()
     
     -- Read recharge time (offset 68 in shield)
-    local rechargeTime = readFloatB()
+    local rechargeTime = read.floatB()
     
     -- Skip to shield damaged threshold (offset 184 in shield)
     skipBytes 112  -- Skip from offset 72 to 184
-    local shieldDamagedThreshold = readFloatB()
+    local shieldDamagedThreshold = read.floatB()
     
     -- Read shield damaged effect (offset 188 in shield)
-    local shieldDamagedEffect = readTagRef()
+    local shieldDamagedEffect = read.tagRef()
     
     -- Read shield depleted effect (offset 204 in shield)
-    local shieldDepletedEffect = readTagRef()
+    local shieldDepletedEffect = read.tagRef()
     
     -- Read shield recharging effect (offset 220 in shield)
-    local shieldRechargingEffect = readTagRef()
+    local shieldRechargingEffect = read.tagRef()
     
     -- Read shield recharge rate (offset 244 in shield)
     skipBytes 8
-    local shieldRechargeRate = readFloatB()
+    local shieldRechargeRate = read.floatB()
     
     -- Display results
     -- format "Maximum Shield Vitality: %\n" maxShieldVitality
@@ -238,15 +238,15 @@ fn readReflexiveHeaders =
     seekToPosition actualReflexiveStart
     
     -- Read materials reflexive (offset 564 in tagdata)
-    local materialsReflexive = readReflexive()
+    local materialsReflexive = read.reflexive()
     -- format "[DEBUG] Materials reflexive: count=%, pointer=%\n" materialsReflexive[1] materialsReflexive[2]
     
     -- Read regions reflexive (offset 576 in tagdata)
-    local regionsReflexive = readReflexive()
+    local regionsReflexive = read.reflexive()
     -- format "[DEBUG] Regions reflexive: count=%, pointer=%\n" regionsReflexive[1] regionsReflexive[2]
     
     -- Read modifiers reflexive (offset 588 in tagdata)
-    local modifiersReflexive = readReflexive()
+    local modifiersReflexive = read.reflexive()
     -- format "[DEBUG] Modifiers reflexive: count=%, pointer=%\n" modifiersReflexive[1] modifiersReflexive[2]
     
     -- Current position should be 628 + 12 + 12 + 12 = 664
@@ -259,19 +259,19 @@ fn readReflexiveHeaders =
     seekToPosition (64 + 616)
     
     -- Read pathfinding box (24 bytes)
-    local pathfindingBoxXFrom = readFloatB()
-    local pathfindingBoxXTo = readFloatB()
-    local pathfindingBoxYFrom = readFloatB()
-    local pathfindingBoxYTo = readFloatB()
-    local pathfindingBoxZFrom = readFloatB()
-    local pathfindingBoxZTo = readFloatB()
+    local pathfindingBoxXFrom = read.floatB()
+    local pathfindingBoxXTo = read.floatB()
+    local pathfindingBoxYFrom = read.floatB()
+    local pathfindingBoxYTo = read.floatB()
+    local pathfindingBoxZFrom = read.floatB()
+    local pathfindingBoxZTo = read.floatB()
     
     -- Read pathfinding spheres reflexive (offset 640 in tagdata, absolute 640 + 64 = 704)
-    local pathfindingSpheresReflexive = readReflexive()
+    local pathfindingSpheresReflexive = read.reflexive()
     -- format "[DEBUG] Pathfinding spheres reflexive: count=%, pointer=%\n" pathfindingSpheresReflexive[1] pathfindingSpheresReflexive[2]
     
     -- Read nodes reflexive (offset 652 in tagdata, absolute 652 + 64 = 716)
-    local nodesReflexive = readReflexive()
+    local nodesReflexive = read.reflexive()
     -- format "[DEBUG] Nodes reflexive: count=%, pointer=%\n" nodesReflexive[1] nodesReflexive[2]
     
     -- Display results
