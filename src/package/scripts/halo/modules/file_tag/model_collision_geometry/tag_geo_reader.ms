@@ -31,30 +31,30 @@ fn readNodeBSPsData nodeIndex nodeName bspsReflexive bspsDataOffset =
 		local bsp = permutationBSP()
 		
 		-- Read BSP3D nodes reflexive (12 bytes at offset 0)
-		bsp.bsp3d_nodes_tag_block = readReflexive()
+		bsp.bsp3d_nodes_tag_block = read.reflexive()
 		local afterPos = getFilePosition()
 		--format "  [DEBUG] After BSP3D reflexive, position=%, reflexive=%\n" (if afterPos != undefined then afterPos else "UNKNOWN") bsp.bsp3d_nodes_tag_block
 		
 		-- Read planes reflexive (12 bytes at offset 12)
-		bsp.planes_tag_block = readReflexive()
+		bsp.planes_tag_block = read.reflexive()
 		
 		-- Read leaves reflexive (12 bytes at offset 24)
-		bsp.leaves_tag_block = readReflexive()
+		bsp.leaves_tag_block = read.reflexive()
 		
 		-- Read BSP2D references reflexive (12 bytes at offset 36)
-		bsp.bsp2d_references_tag_block = readReflexive()
+		bsp.bsp2d_references_tag_block = read.reflexive()
 		
 		-- Read BSP2D nodes reflexive (12 bytes at offset 48)
-		bsp.bsp2d_nodes_tag_block = readReflexive()
+		bsp.bsp2d_nodes_tag_block = read.reflexive()
 		
 		-- Read surfaces reflexive (12 bytes at offset 60)
-		bsp.surfaces_tag_block = readReflexive()
+		bsp.surfaces_tag_block = read.reflexive()
 		
 		-- Read edges reflexive (12 bytes at offset 72)
-		bsp.edges_tag_block = readReflexive()
+		bsp.edges_tag_block = read.reflexive()
 		
 		-- Read vertices reflexive (12 bytes at offset 84)
-		bsp.vertices_tag_block = readReflexive()
+		bsp.vertices_tag_block = read.reflexive()
 		
 		append bsps bsp
 		
@@ -86,9 +86,9 @@ fn readBSP3DNodes bsp3dNodesReflexive dataOffset =
 	for i = 1 to count do
 	(
 		local node = bspsBSP3DNodes()
-		node.plane = readLongB "#signed"
-		node.back_child = readLongB "#signed"
-		node.front_child = readLongB "#signed"
+		node.plane = read.longB "#signed"
+		node.back_child = read.longB "#signed"
+		node.front_child = read.longB "#signed"
 		append nodes node
 	)
 	
@@ -111,10 +111,10 @@ fn readPlanes planesReflexive dataOffset =
 	for i = 1 to count do
 	(
 		local plane = bspsPlanes()
-		plane.i = readFloatB()
-		plane.j = readFloatB()
-		plane.k = readFloatB()
-		plane.d = readFloatB()
+		plane.i = read.floatB()
+		plane.j = read.floatB()
+		plane.k = read.floatB()
+		plane.d = read.floatB()
 		append planes plane
 	)
 	
@@ -137,10 +137,10 @@ fn readLeaves leavesReflexive dataOffset =
 	for i = 1 to count do
 	(
 		local leaf = bspsLeaves()
-		local flagsValue = readShortB "#unsigned"
+		local flagsValue = read.shortB "#unsigned"
 		leaf.flags = if (bit.get flagsValue 1) then #("contains_double_sided_surfaces") else #("none")
-		leaf.bsp2d_reference_count = readShortB "#signed"
-		leaf.first_bsp2d_reference = readLongB "#signed"
+		leaf.bsp2d_reference_count = read.shortB "#signed"
+		leaf.first_bsp2d_reference = read.longB "#signed"
 		append leaves leaf
 	)
 	
@@ -163,8 +163,8 @@ fn readBSP2DReferences bsp2dRefsReflexive dataOffset =
 	for i = 1 to count do
 	(
 		local ref = bspsBSP2DReference()
-		ref.plane = readLongB "#signed"
-		ref.bsp2d_node = readLongB "#signed"
+		ref.plane = read.longB "#signed"
+		ref.bsp2d_node = read.longB "#signed"
 		append refs ref
 	)
 	
@@ -187,11 +187,11 @@ fn readBSP2DNodes bsp2dNodesReflexive dataOffset =
 	for i = 1 to count do
 	(
 		local node = bspsBSP2DNode()
-		node.plane_i = readFloatB()
-		node.plane_j = readFloatB()
-		node.plane_d = readFloatB()
-		node.left_child = readLongB "#signed"
-		node.right_child = readLongB "#signed"
+		node.plane_i = read.floatB()
+		node.plane_j = read.floatB()
+		node.plane_d = read.floatB()
+		node.left_child = read.longB "#signed"
+		node.right_child = read.longB "#signed"
 		append nodes node
 	)
 	
@@ -214,8 +214,8 @@ fn readSurfaces surfacesReflexive dataOffset =
 	for i = 1 to count do
 	(
 		local surface = bspsSurface()
-		surface.plane = readLongB "#signed"
-		surface.first_edge = readLongB "#signed"
+		surface.plane = read.longB "#signed"
+		surface.first_edge = read.longB "#signed"
 		
 		-- Read flags (1 byte)
 		local fileHandle = getCurrentFileHandle()
@@ -224,7 +224,7 @@ fn readSurfaces surfacesReflexive dataOffset =
 		surface.flags = decodeFlagBits flagsValue surfaceFlagNames
 		
 		surface.breakable_surface = readByte fileHandle #signed
-		surface.material = readShortB "#signed"
+		surface.material = read.shortB "#signed"
 		
 		append surfaces surface
 	)
@@ -248,12 +248,12 @@ fn readEdges edgesReflexive dataOffset =
 	for i = 1 to count do
 	(
 		local edge = bspsEdge()
-		edge.start_vertex = readLongB "#signed"
-		edge.end_vertex = readLongB "#signed"
-		edge.forward_edge = readLongB "#signed"
-		edge.reverse_edge = readLongB "#signed"
-		edge.left_surface = readLongB "#signed"
-		edge.right_surface = readLongB "#signed"
+		edge.start_vertex = read.longB "#signed"
+		edge.end_vertex = read.longB "#signed"
+		edge.forward_edge = read.longB "#signed"
+		edge.reverse_edge = read.longB "#signed"
+		edge.left_surface = read.longB "#signed"
+		edge.right_surface = read.longB "#signed"
 		append edges edge
 	)
 	
@@ -276,11 +276,11 @@ fn readVertices verticesReflexive dataOffset =
 	for i = 1 to count do
 	(
 		local vertex = bspsVertices()
-		local x = readFloatB()
-		local y = readFloatB()
-		local z = readFloatB()
+		local x = read.floatB()
+		local y = read.floatB()
+		local z = read.floatB()
 		vertex.point = [x, y, z]
-		vertex.first_edge = readLongB "#signed"
+		vertex.first_edge = read.longB "#signed"
 		append vertices vertex
 	)
 	
