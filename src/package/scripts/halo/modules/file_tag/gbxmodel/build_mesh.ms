@@ -18,7 +18,8 @@ fn readPartVerticesDirectly partData fileHandle uScale vScale vertexOffset nodeI
 	local uncompVertCount = uncompVertReflex[1]
 	local compVertCount = compVertReflex[1]
 	
-	local useUncompressed = (uncompVertCount > 0)
+	-- Respect USE_COMPRESSED_ONLY flag - skip uncompressed even if available
+	local useUncompressed = (uncompVertCount > 0 and USE_COMPRESSED_ONLY != true)
 	local vertexCount = if useUncompressed then uncompVertCount else compVertCount
 	
 	if vertexCount == 0 then return 0
@@ -31,29 +32,29 @@ fn readPartVerticesDirectly partData fileHandle uScale vScale vertexOffset nodeI
 		for v = 1 to vertexCount do
 		(
 			local idx = vertexOffset + v
-			local px = readFloatB()
-			local py = readFloatB()
-			local pz = readFloatB()
+			local px = read.floatB()
+			local py = read.floatB()
+			local pz = read.floatB()
 			verticesArray[idx] = [px, py, pz] * HALO_SCALE
 			
-			local nx = readFloatB()
-			local ny = readFloatB()
-			local nz = readFloatB()
+			local nx = read.floatB()
+			local ny = read.floatB()
+			local nz = read.floatB()
 			normalsArray[idx] = [nx, ny, nz]
 			
 			-- Skip binormal and tangent (12 bytes each = 24 bytes total)
 			fseek fileHandle 24 #seek_cur
 			
-			local u = readFloatB()
-			local v_coord = readFloatB()
+			local u = read.floatB()
+			local v_coord = read.floatB()
 			u = u * uScale
 			v_coord = 1.0 - (v_coord * vScale)
 			uvsArray[idx] = [u, v_coord, 0]
 			
-			local node0Index = readShortB "#signed" + 1
-			local node1Index = readShortB "#signed" + 1
-			local node0Weight = readFloatB()
-			local node1Weight = readFloatB()
+			local node0Index = read.shortB "#signed" + 1
+			local node1Index = read.shortB "#signed" + 1
+			local node0Weight = read.floatB()
+			local node1Weight = read.floatB()
 			nodeIndicesArray[idx] = #(node0Index, node1Index)
 			nodeWeightsArray[idx] = #(node0Weight, node1Weight)
 		)
@@ -64,12 +65,12 @@ fn readPartVerticesDirectly partData fileHandle uScale vScale vertexOffset nodeI
 		for v = 1 to vertexCount do
 		(
 			local idx = vertexOffset + v
-			local px = readFloatB()
-			local py = readFloatB()
-			local pz = readFloatB()
+			local px = read.floatB()
+			local py = read.floatB()
+			local pz = read.floatB()
 			verticesArray[idx] = [px, py, pz] * HALO_SCALE
 			
-			local normalPacked = readLongB "#unsigned"
+			local normalPacked = read.longB "#unsigned"
 			-- @vscode-ignore
 			local nx = (bit.and (bit.shift normalPacked -21) 0x7FF) / 1023.0 * 2.0 - 1.0
 			local ny = (bit.and (bit.shift normalPacked -10) 0x7FF) / 1023.0 * 2.0 - 1.0
@@ -80,16 +81,24 @@ fn readPartVerticesDirectly partData fileHandle uScale vScale vertexOffset nodeI
 			-- Skip compressed binormal and tangent (8 bytes total)
 			fseek fileHandle 8 #seek_cur
 			
-			local u16 = readShortB "#signed"
-			local v16 = readShortB "#signed"
+			local u16 = read.shortB "#signed"
+			local v16 = read.shortB "#signed"
 			local u = (u16 / 32767.0) * uScale
 			local v_coord = 1.0 - ((v16 / 32767.0) * vScale)
 			uvsArray[idx] = [u, v_coord, 0]
 			
-			local node0Index = readByteB "#signed" + 1
-			local node1Index = readByteB "#signed" + 1
-			local node0WeightRaw = readShortB "#signed"
+			-- Decompress node indices: compressed format stores them * 3
+			-- Must divide by 3 to get actual node index
+			local node0IndexRaw = readByte fileHandle "#signed"
+			local node1IndexRaw = readByte fileHandle "#signed"
+			local node0Index = (node0IndexRaw / 3) + 1
+			local node1Index = (node1IndexRaw / 3) + 1
+			
+			-- Decompress weight: compressed weight is stored as signed 16-bit integer
+			-- but represents unsigned range 0-32767 mapped to 0.0-1.0
+			local node0WeightRaw = read.shortB "#signed"
 			local node0Weight = node0WeightRaw / 32767.0
+			
 			nodeIndicesArray[idx] = #(node0Index, node1Index)
 			nodeWeightsArray[idx] = #(node0Weight, 1.0 - node0Weight)
 		)
@@ -117,8 +126,8 @@ fn buildGeometryMesh geometryIndex partIndex partData geometriesArray gbxmodelFi
 	local uncompVertCount = uncompVertReflex[1]
 	local compVertCount = compVertReflex[1]
 	local triangleCount = trisReflex[1]
-	-- Determine which vertex format to use (uncompressed has priority if count > 0)
-	local useUncompressed = (uncompVertCount > 0)
+	-- Determine which vertex format to use - respect USE_COMPRESSED_ONLY flag
+	local useUncompressed = (uncompVertCount > 0 and USE_COMPRESSED_ONLY != true)
 	local vertexCount = if useUncompressed then uncompVertCount else compVertCount
 	local vertexSize = if useUncompressed then 68 else 32
 	if vertexCount == 0 or triangleCount == 0 then
@@ -158,35 +167,35 @@ fn buildGeometryMesh geometryIndex partIndex partData geometriesArray gbxmodelFi
 		for v = 1 to vertexCount do
 		(
 			-- Position (12 bytes: 3 floats)
-			local px = readFloatB()
-			local py = readFloatB()
-			local pz = readFloatB()
+			local px = read.floatB()
+			local py = read.floatB()
+			local pz = read.floatB()
 			vertexPositions[v] = [px, py, pz] * HALO_SCALE
 			-- Normal (12 bytes: 3 floats)
-			local nx = readFloatB()
-			local ny = readFloatB()
-			local nz = readFloatB()
+			local nx = read.floatB()
+			local ny = read.floatB()
+			local nz = read.floatB()
 			normals[v] = [nx, ny, nz]
 			-- Binormal (12 bytes: 3 floats) - skip for now
-			local skipB1 = readFloatB()
-			local skipB2 = readFloatB()
-			local skipB3 = readFloatB()
+			local skipB1 = read.floatB()
+			local skipB2 = read.floatB()
+			local skipB3 = read.floatB()
 			-- Tangent (12 bytes: 3 floats) - skip for now
-			local skipT1 = readFloatB()
-			local skipT2 = readFloatB()
-			local skipT3 = readFloatB()
+			local skipT1 = read.floatB()
+			local skipT2 = read.floatB()
+			local skipT3 = read.floatB()
             -- UV coordinates (8 bytes: 2 floats)
-            local u = readFloatB()
-            local v_coord = readFloatB()
+            local u = read.floatB()
+            local v_coord = read.floatB()
             -- Apply UV scaling and invert V-coordinate
             u = u * uScale
             v_coord = 1.0 - (v_coord * vScale)
             uvCoords[v] = [u, v_coord, 0]
 			-- Node indices and weights (12 bytes total)
-			local node0Index = readShortB "#signed"  -- 2 bytes
-			local node1Index = readShortB "#signed"  -- 2 bytes
-			local node0Weight = readFloatB()         -- 4 bytes
-			local node1Weight = readFloatB()         -- 4 bytes
+			local node0Index = read.shortB "#signed"  -- 2 bytes
+			local node1Index = read.shortB "#signed"  -- 2 bytes
+			local node0Weight = read.floatB()         -- 4 bytes
+			local node1Weight = read.floatB()         -- 4 bytes
 			-- Convert to 1-based indices (add 1)
 			nodeIndices[v] = #(node0Index + 1, node1Index + 1)
 			nodeWeights[v] = #(node0Weight, node1Weight)
@@ -199,23 +208,23 @@ fn buildGeometryMesh geometryIndex partIndex partData geometriesArray gbxmodelFi
 		for v = 1 to vertexCount do
 		(
 			-- Position (12 bytes: 3 floats)
-			local px = readFloatB()
-			local py = readFloatB()
-			local pz = readFloatB()
+			local px = read.floatB()
+			local py = read.floatB()
+			local pz = read.floatB()
 			vertexPositions[v] = [px, py, pz] * HALO_SCALE
 			-- Compressed normal (4 bytes: 1 unsigned int32)
-			local normalPacked = readLongB "#unsigned"
+			local normalPacked = read.longB "#unsigned"
 			-- Decompress normal from packed format (11-11-10 bit)
 			local nx = (bit.and (bit.shift normalPacked -21) 0x7FF) / 1023.0 * 2.0 - 1.0
 			local ny = (bit.and (bit.shift normalPacked -10) 0x7FF) / 1023.0 * 2.0 - 1.0
 			local nz = (bit.and normalPacked 0x3FF) / 511.0 * 2.0 - 1.0
 			normals[v] = [nx, ny, nz]
 			-- Compressed binormal, tangent (8 bytes) - skip for now
-			local skipC2 = readLongB "#unsigned"
-			local skipC3 = readLongB "#unsigned"
+			local skipC2 = read.longB "#unsigned"
+			local skipC3 = read.longB "#unsigned"
 			-- UV coordinates (4 bytes: 2 signed shorts)
-			local u16 = readShortB "#signed"
-			local v16 = readShortB "#signed"
+			local u16 = read.shortB "#signed"
+			local v16 = read.shortB "#signed"
 			local u = u16 / 32767.0
 			local v_coord = v16 / 32767.0
 			-- Apply UV scaling and invert V-coordinate
@@ -223,14 +232,14 @@ fn buildGeometryMesh geometryIndex partIndex partData geometriesArray gbxmodelFi
 			v_coord = 1.0 - (v_coord * vScale)
 			uvCoords[v] = [u, v_coord, 0]
 			-- Node indices and weight (4 bytes total)
-			local node0Index = readByteB "#signed"  -- 1 byte
-			local node1Index = readByteB "#signed"  -- 1 byte
-			local node0WeightRaw = readShortB "#signed"  -- 2 bytes (signed short)
+			local node0IndexRaw = readByte fileHandle "#signed"  -- 1 byte
+			local node1IndexRaw = readByte fileHandle "#signed"  -- 1 byte
+			local node0WeightRaw = read.shortB "#signed"  -- 2 bytes (signed short)
 			-- Decompress weight: signed short to float (0.0 to 1.0)
 			local node0Weight = node0WeightRaw / 32767.0
 			local node1Weight = 1.0 - node0Weight
-			-- Convert to 1-based indices (add 1)
-			nodeIndices[v] = #(node0Index + 1, node1Index + 1)
+			-- Decompress node indices by dividing by 3, then convert to 1-based
+			nodeIndices[v] = #((node0IndexRaw / 3) + 1, (node1IndexRaw / 3) + 1)
 			nodeWeights[v] = #(node0Weight, node1Weight)
 		)
 	)
@@ -240,7 +249,7 @@ fn buildGeometryMesh geometryIndex partIndex partData geometriesArray gbxmodelFi
 	local vertexOrder = #()
 	for i = 1 to indexCount do
 	(
-		local idx = readShortB "#unsigned"  -- Read raw value (0-based)
+		local idx = read.shortB "#unsigned"  -- Read raw value (0-based)
 		-- 0xFFFF (65535) is a special strip restart marker - skip it
 		if idx != 65535 then
 		(
@@ -365,6 +374,11 @@ fn buildGeometryByRegions regionsArray geometriesArray gbxmodelFile materialObj 
 	)
 	--format "\n=== BUILDING GEOMETRY BY REGIONS ===\n"
 	local createdMeshes = #()
+	
+	-- Track which geometry indices have been imported to avoid duplicates
+	-- Key: geometryIndex, Value: LOD name that imported it
+	local importedGeometryIndices = #()
+	
 	-- Iterate through regions
 	for r = 1 to regionsArray.count do
 	(
@@ -379,13 +393,13 @@ fn buildGeometryByRegions regionsArray geometriesArray gbxmodelFile materialObj 
 			local permInfo = permData[1]  -- #(name, flags, superlowGeo, lowGeo, mediumGeo, highGeo, superhighGeo, localMarkersReflex)
 			local permName = permInfo[1]
 			
-			-- Import all available LOD levels
+			-- Import all available LOD levels (process superhigh first to give it priority)
 			local lodLevels = #(
-				#("superlow", permInfo[3]),   -- superlowGeo
-				#("low", permInfo[4]),        -- lowGeo
-				#("medium", permInfo[5]),     -- mediumGeo
+				#("superhigh", permInfo[7]),  -- superhighGeo (highest priority)
 				#("high", permInfo[6]),       -- highGeo
-				#("superhigh", permInfo[7])   -- superhighGeo
+				#("medium", permInfo[5]),     -- mediumGeo
+				#("low", permInfo[4]),        -- lowGeo
+				#("superlow", permInfo[3])    -- superlowGeo (lowest priority)
 			)
 			
 			-- Process each LOD level
@@ -398,6 +412,13 @@ fn buildGeometryByRegions regionsArray geometriesArray gbxmodelFile materialObj 
 				(
 					-- Convert to 1-based index
 					local geometryIndex = geoIndex + 1
+					
+					-- Check if this geometry index was already imported
+					if findItem importedGeometryIndices geometryIndex > 0 then
+					(
+						-- Skip duplicate geometry (already imported by higher priority LOD)
+						continue
+					)
 				if geometryIndex <= geometriesArray.count then
 				(
 					local geometryData = geometriesArray[geometryIndex]
@@ -554,6 +575,9 @@ fn buildGeometryByRegions regionsArray geometriesArray gbxmodelFile materialObj 
 					
 					-- Store mesh reference
 					append createdMeshes combinedMesh
+					
+					-- Mark this geometry index as imported to prevent duplicates
+					append importedGeometryIndices geometryIndex
 					
 				-- Assign mesh to "Geometry Model" layer
 				local geometryLayer = LayerManager.getLayerFromName "Geometry Model"
