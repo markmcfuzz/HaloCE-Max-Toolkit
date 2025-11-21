@@ -62,7 +62,7 @@ fn readMaterialsBlock materialsReflexive regionsReflexive pathfindingSpheresRefl
 	(
 		fseek fileHandle offset #seek_set
 		fseek fileHandle 8 #seek_cur -- Skip to path_length field
-		local pathLength = readLongB "#signed"
+		local pathLength = read.longB "#signed"
 		if pathLength > 0 then
 		(
 			-- path_length does NOT include null terminator - add 1
@@ -79,7 +79,7 @@ fn readMaterialsBlock materialsReflexive regionsReflexive pathfindingSpheresRefl
 	(
 		fseek fileHandle offset #seek_set
 		fseek fileHandle 8 #seek_cur -- Skip to path_length field
-		local pathLength = readLongB "#signed"
+		local pathLength = read.longB "#signed"
 		if pathLength > 0 then
 		(
 			-- path_length does NOT include null terminator - add 1
@@ -140,29 +140,29 @@ fn readMaterialsBlock materialsReflexive regionsReflexive pathfindingSpheresRefl
 		local material = collisionMaterials()
 		
 		-- Read material name (32 bytes at offset 0)
-		material.name = readStringFromFile 32
+		material.name = read.tagString 32
 		
 		-- Read flags (4 bytes at offset 32)
-		local flagsValue = readLongB "#unsigned"
+		local flagsValue = read.longB "#unsigned"
 		material.flags = if flagsValue == 1 then #("head") else #("none")
 		
 		-- Read material type (2 bytes at offset 36)
-		material.material_type = readShortB "#signed"
+		material.material_type = read.shortB "#signed"
 		
 		-- Skip 2 bytes padding (offset 38-39)
 		skipBytes 2
 		
 		-- Read shield leak percentage (4 bytes at offset 40)
-		material.shield_leak_percentage = readFloatB()
+		material.shield_leak_percentage = read.floatB()
 		
 		-- Read shield damage multiplier (4 bytes at offset 44)
-		material.shield_damage_multiplier = readFloatB()
+		material.shield_damage_multiplier = read.floatB()
 		
 		-- Skip 12 bytes (offset 48-59) to reach body_damage_multiplier at offset 60
 		skipBytes 12
 		
 		-- Read body damage multiplier (4 bytes at offset 60)
-		material.body_damage_multiplier = readFloatB()
+		material.body_damage_multiplier = read.floatB()
 		
 		-- Skip remaining 8 bytes to complete 72-byte structure (offset 64-71)
 		skipBytes 8
@@ -219,10 +219,10 @@ fn readRegionsBlock regionsReflexive materialsReflexive materialsDataOffset =
 		local region = collisionRegions()
 		
 		-- Read region name (32 bytes at offset 0)
-		region.name = readStringFromFile 32
+		region.name = read.tagString 32
 		
 		-- Read flags (4 bytes at offset 32)
-		local flagsValue = readLongB "#unsigned"
+		local flagsValue = read.longB "#unsigned"
 		local regionFlagNames = #(
 			"lives_until_object_dies",
 			"forces_object_to_die",
@@ -242,16 +242,16 @@ fn readRegionsBlock regionsReflexive materialsReflexive materialsDataOffset =
 		skipBytes 4
 		
 		-- Read damage threshold (4 bytes at offset 40)
-		region.damage_threshold = readFloatB()
+		region.damage_threshold = read.floatB()
 		
 		-- Skip 12 bytes (offset 44-55) to reach destroyed_effect at offset 56
 		skipBytes 12
 		
 		-- Read destroyed_effect TagRef (16 bytes at offset 56)
-		region.destroyed_effect = readTagRef()
+		region.destroyed_effect = read.tagRef()
 		
 		-- Read permutations reflexive (12 bytes at offset 72)
-		local permutationsReflexive = readReflexive()
+		local permutationsReflexive = read.reflexive()
 		append allPermutationsReflexives permutationsReflexive
 		
 		-- Store region
@@ -292,7 +292,7 @@ fn readRegionsBlock regionsReflexive materialsReflexive materialsDataOffset =
 		(
 			local permutation = regionPermutations()
 			-- Read permutation name (32 bytes)
-			permutation.name = readStringFromFile 32
+			permutation.name = read.tagString 32
 			append permutations permutation
 		)
 		
@@ -366,19 +366,19 @@ fn readPathfindingSpheresBlock pathfindingSpheresReflexive modifiersEndOffset =
 		local sphere = collisionPathfindingSpheres()
 		
 		-- Read node index (2 bytes at offset 0)
-		sphere.node = readShortB "#signed"
+		sphere.node = read.shortB "#signed"
 		
 		-- Skip 14 bytes (offset 2-15) to reach center at offset 16
 		skipBytes 14
 		
 		-- Read center point (12 bytes at offset 16: x, y, z)
-		local centerX = readFloatB()
-		local centerY = readFloatB()
-		local centerZ = readFloatB()
+		local centerX = read.floatB()
+		local centerY = read.floatB()
+		local centerZ = read.floatB()
 		sphere.center = [centerX, centerY, centerZ]
 		
 		-- Read radius (4 bytes at offset 28)
-		sphere.radius = readFloatB()
+		sphere.radius = read.floatB()
 		
 		-- Store sphere
 		append spheres sphere
@@ -431,29 +431,29 @@ fn readNodesBlock nodesReflexive spheresEndOffset =
 		local node = collisionNodes()
 		
 		-- Read node name (32 bytes at offset 0)
-		node.name = readStringFromFile 32
+		node.name = read.tagString 32
 		
 		-- Read region index (2 bytes at offset 32)
-		node.region = readShortB "#signed"
+		node.region = read.shortB "#signed"
 		
 		-- Read parent node (2 bytes at offset 34)
-		node.parent_node = readShortB "#signed"
+		node.parent_node = read.shortB "#signed"
 		
 		-- Read next sibling node (2 bytes at offset 36)
-		node.next_sibling_node = readShortB "#signed"
+		node.next_sibling_node = read.shortB "#signed"
 		
 		-- Read first child node (2 bytes at offset 38)
-		node.first_child_node = readShortB "#signed"
+		node.first_child_node = read.shortB "#signed"
 		
 		-- Skip 8 bytes (offset 40-47) to reach unknown fields at offset 48
 		skipBytes 8
 		
 		-- Read unknown fields (4 bytes at offset 48-51)
-		node.unknown0 = readShortB "#signed"
-		node.unknown1 = readShortB "#signed"
+		node.unknown0 = read.shortB "#signed"
+		node.unknown1 = read.shortB "#signed"
 		
 		-- Read BSPs reflexive (12 bytes at offset 52)
-		local bspsReflexive = readReflexive()
+		local bspsReflexive = read.reflexive()
 		node.bsps_tag_block = bspsReflexive
 		append allBSPsReflexives bspsReflexive
 		
