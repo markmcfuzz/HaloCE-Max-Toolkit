@@ -147,7 +147,7 @@ struct read (
 	),
 	
 	-- Read a string from the file (Latin1 encoding)
-	fn string size =
+	fn tagString size =
 	(
 		local fileHandle = getCurrentFileHandle()
 		local str = ""
