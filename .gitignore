@@ -28,6 +28,7 @@ luac.out
 # Folders
 *.vscode/
 *release/
+*hek_defs/
 
 # Files
 manifest.json
