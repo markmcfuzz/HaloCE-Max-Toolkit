@@ -26,9 +26,16 @@
 -- Get script directory
 scriptDir = getFilenamePath (getThisScriptFilename())
 
+-- Clear listener
+clearListener()
+
+-- Force garbage collection to clear old structs from memory
+gc light:true
+
 -- Load required modules
-filein (scriptDir + "modules\\global_functions\\read_utils.ms")
-filein (scriptDir + "modules\\global_functions\\tag_classes.ms")
+filein (scriptDir + "modules\\global_functions\\config.ms")
+filein (scriptDir + "modules\\global_functions\\utils.ms")
+filein (scriptDir + "modules\\global_functions\\tag_metadata.ms")
 filein (scriptDir + "modules\\file_tag\\model_collision_geometry\\tag_struct.ms")
 filein (scriptDir + "modules\\file_tag\\model_collision_geometry\\tag_geo_reader.ms")
 filein (scriptDir + "modules\\file_tag\\model_collision_geometry\\tag_data_reader.ms")
@@ -91,6 +98,8 @@ fn importCollisionGeometry =
 		messageBox "Failed to build collision mesh in scene!" title:"Import Failed"
 	)
 	
+	clearListener()
+
 	return success
 )
 
