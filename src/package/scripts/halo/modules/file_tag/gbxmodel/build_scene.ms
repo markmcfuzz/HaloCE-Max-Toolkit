@@ -50,7 +50,7 @@ fn createGbxmodelNode nodeData nodeIndex allNodeData =
 		nodesLayer = LayerManager.newLayerFromName "Nodes"
 	nodesLayer.addNode nodeObj
 	
-	--format "[✓] Created sphere: '%'\n" nodeName
+	--format "Created sphere: '%'\n" nodeName
 	
 	return nodeObj
 )
@@ -92,11 +92,12 @@ fn linkNodeHierarchy createdNodes nodeDataArray =
 		local rotation = nodeData[6]  -- Quaternion: #(i, j, k, w)
 		
 		-- Scale translation from Halo units to 3ds Max units
-		local scaledTranslation = translation * HALO_SCALE
+		local scaledTranslation = [translation[1], translation[2], translation[3]] * HALO_SCALE
 		
 		-- Convert quaternion to 3ds Max quat format and NEGATE x,y,z components
 		-- This is critical for correct bone orientation in 3ds Max
-		local rotQuat = quat (-rotation[1]) (-rotation[2]) (-rotation[3]) rotation[4]
+		-- MUST normalize the quaternion for correct rotations
+		local rotQuat = normalize (quat (-rotation[1]) (-rotation[2]) (-rotation[3]) rotation[4])
 		
 		-- Apply transform in parent-local space (separate statements match old script)
 		in coordsys parent nodeObj.rotation = rotQuat
@@ -219,7 +220,7 @@ fn linkNodeHierarchy createdNodes nodeDataArray =
 			)
 			
 			-- Re-apply transforms (matches old script lines 1063-1064 exactly)
-			local scaledTranslation = translation * HALO_SCALE
+			local scaledTranslation = [translation[1], translation[2], translation[3]] * HALO_SCALE
 			local rotQuat = normalize (quat (-rotation[1]) (-rotation[2]) (-rotation[3]) rotation[4])
 			in coordsys parent myBone.rotation = rotQuat
 			in coordsys parent myBone.pos = scaledTranslation
@@ -241,6 +242,34 @@ fn linkNodeHierarchy createdNodes nodeDataArray =
 	)
 	
 	--format "[✓] Bone conversion complete\n"
+)
+
+-- Create all nodes from gbxmodel data
+fn createAllNodes nodesArray =
+(
+	--format "\n=== CREATING NODES ===\n"
+	--format "Total nodes to create: %\n" nodesArray.count
+	
+	local createdNodes = #()
+	
+	-- First pass: create all nodes
+	for i = 1 to nodesArray.count do
+	(
+		local nodeData = nodesArray[i]
+		local nodeObj = createGbxmodelNode nodeData i nodesArray
+		
+		if nodeObj != undefined then
+			append createdNodes nodeObj
+		else
+			append createdNodes undefined  -- Keep array indices aligned
+	)
+	
+	-- Second pass: link hierarchy
+	linkNodeHierarchy createdNodes nodesArray
+	
+	--format "\n[✓] Created % nodes successfully\n" createdNodes.count
+	
+	return createdNodes
 )
 
 -------------------------------------------------------
@@ -296,7 +325,7 @@ fn createMarkers markersArray nodesArray createdNodes =
 			
 			in coordsys parent (
 				markerObj.rotation = rotQuat
-				markerObj.pos = translation * HALO_SCALE
+				markerObj.pos = [translation[1], translation[2], translation[3]] * HALO_SCALE
 			)
 			
 			--format "  Created marker '%' linked to '%'\n" markerObj.name parentNode.name
@@ -365,36 +394,5 @@ fn createMaterial shadersArray materialName:"Gbxmodel Materials" =
 	return multiMat
 )
 
--------------------------------------------------------
--- NODE CREATION (MAIN ENTRY POINT)
--------------------------------------------------------
 
--- Create all nodes from gbxmodel data
-fn createAllNodes nodesArray =
-(
-	--format "\n=== CREATING NODES ===\n"
-	--format "Total nodes to create: %\n" nodesArray.count
-	
-	local createdNodes = #()
-	
-	-- First pass: create all nodes
-	for i = 1 to nodesArray.count do
-	(
-		local nodeData = nodesArray[i]
-		local nodeObj = createGbxmodelNode nodeData i nodesArray
-		
-		if nodeObj != undefined then
-			append createdNodes nodeObj
-		else
-			append createdNodes undefined  -- Keep array indices aligned
-	)
-	
-	-- Second pass: link hierarchy
-	linkNodeHierarchy createdNodes nodesArray
-	
-	--format "\n[✓] Created % nodes successfully\n" createdNodes.count
-	
-	return createdNodes
-)
-
-format "Gbxmodel Scene Builder loaded successfully.\n"
+logger "Scene Builder loaded.\n" logType:#success
