@@ -377,8 +377,6 @@ fn readAllShaders shadersReflex geometriesArray currentOffset =
     
     if shadersReflex[1] > 0 then
     (
-        --format "\n=== READING SHADERS ===\n"
-        -- format "[DEBUG] Shaders reflexive: count=%, pointer=%, id=%\n" shadersReflex[1] shadersReflex[2] shadersReflex[3]
         if readShadersLogger then
         (
             logger "\n=========================================\n"
@@ -404,7 +402,6 @@ fn readAllShaders shadersReflex geometriesArray currentOffset =
             (
                 return #(#(), currentOffset, geometriesArray)
             )
-            
             -- Update geometriesArray with actual part data
             if allPartsData != undefined and allPartsData.count > 0 then
             (
@@ -463,15 +460,10 @@ fn readAllShaders shadersReflex geometriesArray currentOffset =
             if shaderPathLen > 0 and shaderPathLen < 10000 then
             (
                 if shaderPathPtr == 0 then
-                (
-                    shaderPath = read.nullTerminatedString()
-                )
+                (shaderPath = read.nullTerminatedString())
                 else
-                (
-                    shaderPath = readShaderPathString shaderPathPtr shaderPathLen
-                )
+                (shaderPath = readShaderPathString shaderPathPtr shaderPathLen)
             )
-            
             if shaderPath == "" then
                 shaderPath = "<no path>"
             
