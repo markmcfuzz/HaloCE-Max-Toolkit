@@ -250,36 +250,45 @@ fn buildGeometryMesh geometryIndex partIndex partData geometriesArray gbxmodelFi
 	for i = 1 to indexCount do
 	(
 		local idx = read.shortB "#unsigned"  -- Read raw value (0-based)
-		-- 0xFFFF (65535) is a special strip restart marker - skip it
-		if idx != 65535 then
-		(
-			append vertexOrder (idx + 1)  -- Convert to 1-based and add
-		)
+		-- Don't skip 65535 here - it will become a degenerate triangle later
+		append vertexOrder (idx + 1)  -- Convert to 1-based immediately
 	)
-	-- Remove trailing zeros (used to terminate strips)
-	while vertexOrder.count > 0 and vertexOrder[vertexOrder.count] == 1 do
+	
+	-- Remove trailing zeros in 1-based indices (would have been -1 or 0 in file, padding bytes)
+	local vo_count = vertexOrder.count
+	if vo_count > 0 and vertexOrder[vo_count] == 0 do
 	(
-		deleteItem vertexOrder vertexOrder.count
+		deleteItem vertexOrder vo_count
 	)
+	if vo_count > 1 and vertexOrder[vo_count-1] == 0 do
+	(
+		deleteItem vertexOrder (vo_count-1)
+	)
+	
 	-- Convert triangle strip to individual triangles
 	for w = 1 to (vertexOrder.count - 2) do
 	(
 		append triangleIndices [vertexOrder[w], vertexOrder[w+1], vertexOrder[w+2]]
 	)
-	-- Flip winding order for every other triangle (triangle strip convention)
+	
+	-- Fix winding order for triangle strip (reverse odd triangles: 1, 3, 5...)
 	for r = 1 to triangleIndices.count by 2 do
 	(
-		local a = triangleIndices[r][1]
+		-- Reverse the entire triangle array [v0,v1,v2] -> [v2,v1,v0]
+		local temp = triangleIndices[r][1]
 		triangleIndices[r][1] = triangleIndices[r][3]
-		triangleIndices[r][3] = a
+		triangleIndices[r][3] = temp
 	)
-	-- Remove degenerate triangles (where any two vertices are the same)
-	for d = triangleIndices.count to 1 by -1 do
+	
+	-- Remove degenerate triangles (including those with invalid vertex indices like 65536)
+	for i = triangleIndices.count to 1 by -1 do
 	(
-		local tri = triangleIndices[d]
-		if (tri[1] == tri[2]) or (tri[2] == tri[3]) or (tri[1] == tri[3]) then
+		local tri = triangleIndices[i]
+		-- Check for duplicate vertices OR invalid indices beyond vertex count
+		if tri[1] == tri[2] or tri[2] == tri[3] or tri[1] == tri[3] or \
+		   tri[1] > vertexPositions.count or tri[2] > vertexPositions.count or tri[3] > vertexPositions.count then
 		(
-			deleteItem triangleIndices d
+			deleteItem triangleIndices i
 		)
 	)
 	fclose fileHandle
@@ -337,6 +346,7 @@ fn buildGeometryMesh geometryIndex partIndex partData geometriesArray gbxmodelFi
 	-- Return mesh object along with weight data: #(meshObj, nodeIndices, nodeWeights)
 	return #(meshObj, nodeIndices, nodeWeights)
 )
+
 -- Build all geometry meshes from geometries array
 fn buildAllGeometry geometriesArray gbxmodelFile materialObj =
 (
@@ -364,239 +374,183 @@ fn buildAllGeometry geometriesArray gbxmodelFile materialObj =
 	--format "Created % mesh objects\n" createdMeshes.count
 	return createdMeshes
 )
+
 -- Build geometry organized by regions (merges all parts for each region permutation)
 fn buildGeometryByRegions regionsArray geometriesArray gbxmodelFile materialObj nodesArray createdNodes uScale:1.0 vScale:1.0 =
 (
-	if regionsArray.count == 0 then
-	(
-		format "\n[i] No regions to build\n"
-		return #()
-	)
-	--format "\n=== BUILDING GEOMETRY BY REGIONS ===\n"
-	local createdMeshes = #()
-	
-	-- Track which geometry indices have been imported to avoid duplicates
-	-- Key: geometryIndex, Value: LOD name that imported it
-	local importedGeometryIndices = #()
-	
-	-- Iterate through regions
-	for r = 1 to regionsArray.count do
-	(
-		local regionData = regionsArray[r]
-		local regionInfo = regionData[1]  -- #(regionName, permutationsReflex)
-		local regionName = regionInfo[1]
-		local permutations = regionData[2]  -- Array of permutations
-		-- Iterate through permutations in this region
-		for p = 1 to permutations.count do
-		(
-			local permData = permutations[p]
-			local permInfo = permData[1]  -- #(name, flags, superlowGeo, lowGeo, mediumGeo, highGeo, superhighGeo, localMarkersReflex)
-			local permName = permInfo[1]
-			
-			-- Import all available LOD levels (process superhigh first to give it priority)
-			local lodLevels = #(
-				#("superhigh", permInfo[7]),  -- superhighGeo (highest priority)
-				#("high", permInfo[6]),       -- highGeo
-				#("medium", permInfo[5]),     -- mediumGeo
-				#("low", permInfo[4]),        -- lowGeo
-				#("superlow", permInfo[3])    -- superlowGeo (lowest priority)
-			)
-			
-			-- Process each LOD level
-			for lodEntry in lodLevels do
-			(
-				local lodName = lodEntry[1]
-				local geoIndex = lodEntry[2]
-				
-				if geoIndex >= 0 then
-				(
-					-- Convert to 1-based index
-					local geometryIndex = geoIndex + 1
-					
-					-- Check if this geometry index was already imported
-					if findItem importedGeometryIndices geometryIndex > 0 then
-					(
-						-- Skip duplicate geometry (already imported by higher priority LOD)
-						continue
-					)
-				if geometryIndex <= geometriesArray.count then
-				(
-					local geometryData = geometriesArray[geometryIndex]
-					local partsArray = geometryData[1]
-					
-					-- Check if this geometry actually has part data (not just reflexive count)
-					-- Valid part data: partsArray[1] is an array like #(shaderIdx, vertReflex, ...)
-					-- Reflexive count: partsArray[1] is just an integer
-					local hasValidParts = (partsArray.count > 0 and classOf partsArray[1] == Array)
-					
-                    if not hasValidParts then
-                    (
-                        --format "[SKIP] Geometry % has no part data (still contains reflexive count structure)\n" geometryIndex
+    if regionsArray.count == 0 then
+    (
+        format "\n[i] No regions to build\n"
+        return #()
+    )
+    local createdMeshes = #()
+    local importedGeometryIndices = #()
+    for r = 1 to regionsArray.count do
+    (
+        local regionData = regionsArray[r]
+        local regionInfo = regionData[1]
+        local regionName = regionInfo[1]
+        local permutations = regionData[2]
+        for p = 1 to permutations.count do
+        (
+            local permData = permutations[p]
+            local permInfo = permData[1]
+            local permName = permInfo[1]
+            local lodLevels = #(
+                #( "superhigh", permInfo[7] ),
+                #( "high",      permInfo[6] ),
+                #( "medium",    permInfo[5] ),
+                #( "low",       permInfo[4] ),
+                #( "superlow",  permInfo[3] )
+            )
+            for lodEntry in lodLevels do
+            (
+                local lodName = lodEntry[1]
+                local geoIndex = lodEntry[2]
+                if geoIndex >= 0 then
+                (
+                    local geometryIndex = geoIndex + 1
+                    if findItem importedGeometryIndices geometryIndex > 0 then
                         continue
-                    )					-- Build mesh name from region + permutation + LOD
-					local meshName = regionName + " " + permName + " " + lodName
-					--format "Building '%': region '%', permutation '%', geometry % (% parts)\n" \
-					--	meshName regionName permName geometryIndex partsArray.count
-					
-			-- Collect all vertices, UVs, and faces from all parts
-			local allVertices = #()
-			local allUVs = #()
-			local allNormals = #()
-			local allFaces = #()
-			local allMatIDs = #()
-			local allNodeIndices = #()
-			local allNodeWeights = #()
-			local vertexOffset = 0
-			
-			for partIdx = 1 to partsArray.count do
-			(
-				local partData = partsArray[partIdx]
-				local partResult = buildGeometryMesh geometryIndex partIdx partData geometriesArray gbxmodelFile materialObj uScale:uScale vScale:vScale
-				
-				if partResult != undefined then
-				(
-					local tempMesh = partResult[1]       -- Mesh object
-					local partNodeIndices = partResult[2] -- Node indices array
-					local partNodeWeights = partResult[3] -- Node weights array
-					
-					local numVerts = tempMesh.numVerts
-					local numFaces = tempMesh.numFaces
-					
-					-- Copy vertices
-					for v = 1 to numVerts do
-						append allVertices (getVert tempMesh v)
-					
-					-- Copy normals
-					for v = 1 to numVerts do
-						append allNormals (getNormal tempMesh v)
-					
-					-- Copy UVs
-					for v = 1 to numVerts do
-					(
-						local extractedUV = getTVert tempMesh v
-						append allUVs extractedUV
-					)
-					
-					-- Copy weight data
-					for v = 1 to numVerts do
-					(
-						append allNodeIndices partNodeIndices[v]
-						append allNodeWeights partNodeWeights[v]
-					)
-					
-					-- Copy faces with vertex offset
-					for f = 1 to numFaces do
-					(
-						local face = getFace tempMesh f
-						append allFaces [face[1] + vertexOffset, face[2] + vertexOffset, face[3] + vertexOffset]
-						append allMatIDs (getFaceMatID tempMesh f)
-					)
-					
-					vertexOffset += numVerts
-					
-					-- Delete temporary mesh
-					delete tempMesh
-				)
-			)
-			
-			-- Create combined mesh from collected data
-			if allFaces.count > 0 then
-			(
-				local combinedMesh = mesh vertices:allVertices faces:allFaces materialIDs:allMatIDs
-				combinedMesh.name = meshName
-				combinedMesh.material = materialObj
-				
-				-- Apply UVs
-				if allUVs.count > 0 then
-				(
-					setNumTVerts combinedMesh allUVs.count
-					buildTVFaces combinedMesh
-					
-					-- Set texture vertices
-					for i = 1 to allUVs.count do
-						setTVert combinedMesh i allUVs[i]
-					
-					-- Set texture faces (1:1 mapping with geometry faces)
-					for f = 1 to allFaces.count do
-						setTVFace combinedMesh f allFaces[f]
-				)
-				
-				-- Force mesh update
-			update combinedMesh
-			
-			-- Apply Skin modifier with vertex weights
-			if allNodeIndices.count > 0 and createdNodes.count > 0 then
-					(
-						local skinMod = Skin()
-						addModifier combinedMesh skinMod
-						
-						-- Set bone affect limit to 2 (Halo CE limitation)
-						skinMod.bone_Limit = 2
-						
-						-- Add all bones to skin modifier
-						for n = 1 to createdNodes.count do
-						(
-							skinOps.addBone skinMod createdNodes[n] 1
-						)
-						
-						-- Apply vertex weights
-						for v = 1 to allNodeIndices.count do
-						(
-							local node0Idx = allNodeIndices[v][1]
-							local node1Idx = allNodeIndices[v][2]
-							local node0Weight = allNodeWeights[v][1]
-							local node1Weight = allNodeWeights[v][2]
+                    if geometryIndex <= geometriesArray.count then
+                    (
+                        local geometryData = geometriesArray[geometryIndex]
+                        local partsArray = geometryData[1]
+                        local hasValidParts = (partsArray.count > 0 and classOf partsArray[1] == Array)
+                        if not hasValidParts then continue
+                        local meshName = regionName + " " + permName + " " + lodName
+                        local allVertices = #()
+                        local allUVs = #()
+                        local allNormals = #()
+                        local allFaces = #()
+                        local allMatIDs = #()
+                        local allNodeIndices = #()
+                        local allNodeWeights = #()
+                        local vertexOffset = 0
+
+                        local tPartsStart = timestamp()
+                        for partIdx = 1 to partsArray.count do
+                        (
+                            local partData = partsArray[partIdx]
+                            local partResult = buildGeometryMesh geometryIndex partIdx partData geometriesArray gbxmodelFile materialObj uScale:uScale vScale:vScale
+                            if partResult != undefined then
+                            (
+                                local tempMesh = partResult[1]
+                                local partNodeIndices = partResult[2]
+                                local partNodeWeights = partResult[3]
+                                local numVerts = tempMesh.numVerts
+                                local numFaces = tempMesh.numFaces
+                                local tCopyStart = timestamp()
+                                for v = 1 to numVerts do append allVertices (getVert tempMesh v)
+                                for v = 1 to numVerts do append allNormals (getNormal tempMesh v)
+                                for v = 1 to numVerts do
+                                (
+                                    local extractedUV = getTVert tempMesh v
+                                    append allUVs extractedUV
+                                )
+                                for v = 1 to numVerts do
+                                (
+                                    append allNodeIndices partNodeIndices[v]
+                                    append allNodeWeights partNodeWeights[v]
+                                )
+                                for f = 1 to numFaces do
+                                (
+                                    local face = getFace tempMesh f
+                                    append allFaces [face[1] + vertexOffset, face[2] + vertexOffset, face[3] + vertexOffset]
+                                    append allMatIDs (getFaceMatID tempMesh f)
+                                )
+                                vertexOffset += numVerts
+								if timeStampLogger then
+									logger "  [Part %] Data copy: % ms\n" params:#(partIdx, (timestamp() - tCopyStart)) logType:#timestamp
+                                delete tempMesh
+                            )
+                        )
+						if timeStampLogger then
+							logger "  [Total] Parts processing: % ms\n" params:#((timestamp() - tPartsStart)) logType:#timestamp
+                        local tMeshCreate = timestamp()
+                        if allFaces.count > 0 then
+                        (
+                            local combinedMesh = mesh vertices:allVertices faces:allFaces materialIDs:allMatIDs
+                            combinedMesh.name = meshName
+                            combinedMesh.material = materialObj
 							
-							-- Handle different weight scenarios
-							if node1Idx <= 0 or node1Idx > createdNodes.count then
-							(
-								-- Only node0 is valid
-								if node0Idx > 0 and node0Idx <= createdNodes.count then
-								skinOps.ReplaceVertexWeights skinMod v node0Idx 1.0
-						)
-						else if node0Idx <= 0 or node0Idx > createdNodes.count then
-						(
-							-- Only node1 is valid
-							if node1Idx > 0 and node1Idx <= createdNodes.count then
-								skinOps.ReplaceVertexWeights skinMod v node1Idx 1.0
+							if timeStampLogger then (
+								logger "  [Mesh] Creation: % ms\n" params:#((timestamp() - tMeshCreate)) logType:#timestamp
 							)
-							else if node0Idx == node1Idx then
-							(
-								-- Both indices same - full weight to one bone
-								skinOps.ReplaceVertexWeights skinMod v node0Idx 1.0
+                            local tUVStart = timestamp()
+                            if allUVs.count > 0 then
+                            (
+                                setNumTVerts combinedMesh allUVs.count
+                                buildTVFaces combinedMesh
+                                for i = 1 to allUVs.count do setTVert combinedMesh i allUVs[i]
+                                for f = 1 to allFaces.count do setTVFace combinedMesh f allFaces[f]
+                            )
+							if timeStampLogger then (
+								logger "  [UV] Application: % ms\n" params:#((timestamp() - tUVStart)) logType:#timestamp
 							)
-							else
-							(
-								-- Both nodes valid and different - apply both weights
-								skinOps.ReplaceVertexWeights skinMod v #(node0Idx, node1Idx) #(node0Weight, node1Weight)
-							)
-						)
-					)
-					
-					-- Store mesh reference
-					append createdMeshes combinedMesh
-					
-					-- Mark this geometry index as imported to prevent duplicates
-					append importedGeometryIndices geometryIndex
-					
-				-- Assign mesh to "Geometry Model" layer
-				local geometryLayer = LayerManager.getLayerFromName "Geometry Model"
-				if geometryLayer == undefined then
-					geometryLayer = LayerManager.newLayerFromName "Geometry Model"
-				geometryLayer.addNode combinedMesh
-				
-				-- Link mesh to first node (root bone) if nodes exist
-				if createdNodes.count > 0 and createdNodes[1] != undefined then
-				(
-					combinedMesh.parent = createdNodes[1]
-				)
-			)
-		)  -- End if geometryIndex <= geometriesArray.count
-		)  -- End if geoIndex >= 0
-	)  -- End LOD loop
-	)  -- End permutation loop
-	)  -- End region loop
-	--format "Created % region meshes\n" createdMeshes.count
+                            update combinedMesh
+                            local tSkinStart = timestamp()
+                            if allNodeIndices.count > 0 and createdNodes.count > 0 then
+                            (
+                                local skinMod = Skin()
+                                addModifier combinedMesh skinMod
+                                skinMod.bone_Limit = 2
+                                
+                                local tBonesStart = timestamp()
+                                for n = 1 to createdNodes.count do
+                                    skinOps.addBone skinMod createdNodes[n] 1
+                                
+                                if timeStampLogger then
+                                    logger "  [Skin] Add bones: % ms\n" params:#((timestamp() - tBonesStart)) logType:#timestamp
+                                
+                                local tWeightsStart = timestamp()
+                                for v = 1 to allNodeIndices.count do
+                                (
+                                    local node0Idx = allNodeIndices[v][1]
+                                    local node1Idx = allNodeIndices[v][2]
+                                    local node0Weight = allNodeWeights[v][1]
+                                    local node1Weight = allNodeWeights[v][2]
+                                    if node1Idx <= 0 or node1Idx > createdNodes.count then
+                                    (
+                                        if node0Idx > 0 and node0Idx <= createdNodes.count then
+                                            skinOps.ReplaceVertexWeights skinMod v node0Idx 1.0
+                                    )
+                                    else if node0Idx <= 0 or node0Idx > createdNodes.count then
+                                    (
+                                        if node1Idx > 0 and node1Idx <= createdNodes.count then
+                                            skinOps.ReplaceVertexWeights skinMod v node1Idx 1.0
+                                    )
+                                    else if node0Idx == node1Idx then
+                                    (
+                                        skinOps.ReplaceVertexWeights skinMod v node0Idx 1.0
+                                    )
+                                    else
+                                    (
+                                        skinOps.ReplaceVertexWeights skinMod v #(node0Idx, node1Idx) #(node0Weight, node1Weight)
+                                    )
+                                )
+                                
+                                if timeStampLogger then
+                                    logger "  [Skin] Apply weights: % ms\n" params:#((timestamp() - tWeightsStart)) logType:#timestamp
+                            )
+                            
+                            if timeStampLogger then
+                                logger "  [Skin] Total: % ms\n" params:#((timestamp() - tSkinStart)) logType:#timestamp
+                            
+                            append createdMeshes combinedMesh
+                            append importedGeometryIndices geometryIndex
+                            local geometryLayer = LayerManager.getLayerFromName "Geometry Model"
+                            if geometryLayer == undefined then
+                                geometryLayer = LayerManager.newLayerFromName "Geometry Model"
+                            geometryLayer.addNode combinedMesh
+                            if createdNodes.count > 0 and createdNodes[1] != undefined then
+                                combinedMesh.parent = createdNodes[1]
+                        )
+                    )
+                )
+            )
+        )
+    )
 	return createdMeshes
 )
 format "Gbxmodel Mesh Builder loaded successfully.\n"
