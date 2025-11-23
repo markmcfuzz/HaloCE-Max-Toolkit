@@ -6,11 +6,15 @@
 -- Logger output control flags
 global loggerDebug = true        -- Debug messages
 global loggerInfo = true         -- Info messages
-global loggerWarning = true      -- Warning messages
+global loggerWarning = false      -- Warning messages
 global loggerError = true        -- Error messages
-global loggerSuccess = false     -- Success messages
+global loggerSuccess = true     -- Success messages
 global loggerDefault = true      -- Default messages
 global loggerTimestamp = false   -- Timestamp messages
+
+-- File logging
+global enableFileLogging = false  -- Set to true to enable log file output
+global logFile = undefined        -- Will hold the file handle when logging to file
 
 fn logger text params:#() logType:#default =
 (
@@ -61,6 +65,27 @@ fn logger text params:#() logType:#default =
             10: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] actualParams[5] actualParams[6] actualParams[7] actualParams[8] actualParams[9] actualParams[10]
             default: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] actualParams[5] actualParams[6] actualParams[7] actualParams[8] actualParams[9] actualParams[10] actualParams[11]
         )
+        
+        -- Write to log file if enabled
+        if enableFileLogging and logFile != undefined do
+        (
+            case actualParams.count of
+            (
+                0: format fullText to:logFile
+                1: format fullText actualParams[1] to:logFile
+                2: format fullText actualParams[1] actualParams[2] to:logFile
+                3: format fullText actualParams[1] actualParams[2] actualParams[3] to:logFile
+                4: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] to:logFile
+                5: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] actualParams[5] to:logFile
+                6: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] actualParams[5] actualParams[6] to:logFile
+                7: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] actualParams[5] actualParams[6] actualParams[7] to:logFile
+                8: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] actualParams[5] actualParams[6] actualParams[7] actualParams[8] to:logFile
+                9: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] actualParams[5] actualParams[6] actualParams[7] actualParams[8] actualParams[9] to:logFile
+                10: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] actualParams[5] actualParams[6] actualParams[7] actualParams[8] actualParams[9] actualParams[10] to:logFile
+                default: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] actualParams[5] actualParams[6] actualParams[7] actualParams[8] actualParams[9] actualParams[10] actualParams[11] to:logFile
+            )
+            flush logFile  -- Ensure it writes immediately
+        )
     )
 )
 
@@ -87,7 +112,7 @@ fn initDefaultGlobal name defaultValue forceUpdate:false =
 
     if current == undefined then
     (
-        logger "Config: Initializing % to %\n" params:#(name, defaultValue) logType:#success
+        logger "Config: Initializing % to %\n" params:#(name, defaultValue) logType:#warning
         setGlobalValue name defaultValue
     )
     else if forceUpdate or current != defaultValue then
@@ -95,12 +120,12 @@ fn initDefaultGlobal name defaultValue forceUpdate:false =
         -- Convert values to strings for proper display
         local currentStr = current as string
         local defaultStr = defaultValue as string
-        logger "Config: Updating % from (%) to (%)\n" params:#(name, currentStr, defaultStr) logType:#success
+        logger "Config: Updating % from (%) to (%)\n" params:#(name, currentStr, defaultStr) logType:#warning
         setGlobalValue name defaultValue
     )
     else
     (
-        logger "Config: % already exists as (%).\n" params:#(name, current) logType:#success
+        logger "Config: % already exists as (%).\n" params:#(name, current) logType:#warning
     )
 )
 
@@ -138,7 +163,7 @@ fn initConfig =
     -- When true, vertices are read once and cached in memory (faster but uses more RAM)
     initDefaultGlobal "CACHE_VERTEX_DATA" cacheVertexData
 
-    local tagBaseDebug = false
+    local tagBaseDebug = true
     -- Enable detailed logging for tag base reading
     initDefaultGlobal "tagHeaderLogger" tagBaseDebug
     initDefaultGlobal "tagMainDataLogger" tagBaseDebug
