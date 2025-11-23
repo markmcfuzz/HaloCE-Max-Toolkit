@@ -3,9 +3,20 @@
 "Shared utility functions for reading binary tag data"
 */
 
+
+-------------------------------------------------------
+-- File management functions
+-------------------------------------------------------
+
 -- Global file handles (will be set by importing scripts)
 global halo_file_handle = undefined
 global in_file = undefined
+
+-- Set the global file handle (call this before using any read functions)
+fn setFileHandle fileHandle =
+(
+	halo_file_handle = fileHandle
+)
 
 -- Get the current file handle (check both global variables for compatibility)
 fn getCurrentFileHandle =
@@ -29,6 +40,24 @@ fn getFilePosition =
 	)
 	else
 		undefined
+)
+
+-- Get current file position
+fn getCurrentFilePosition = 
+(
+	local fileHandle = getCurrentFileHandle()
+	if fileHandle != undefined then
+		ftell fileHandle
+	else
+		-1
+)
+
+-- Seek to specific position in file
+fn seekToPosition position seekMode:#seek_set =
+(
+	local fileHandle = getCurrentFileHandle()
+	if fileHandle != undefined then
+		fseek fileHandle position seekMode
 )
 
 -------------------------------------------------------
@@ -181,7 +210,7 @@ struct read (
 		local pathPtr = read.longB "#signed"
 		local pathLen = read.longB "#signed"
 		local tagID = read.longB "#unsigned"
-		#(tagClass, pathPtr, pathLen, tagID)
+		tagRefData tagClass pathPtr pathLen tagID
 	),
 
 	-- Read reflexive structure (12 bytes)
@@ -191,7 +220,32 @@ struct read (
 		local pointer = read.longB "#unsigned"
 		local id = read.longB "#unsigned"
 		#(count, pointer, id)
+	),
+
+	-- Read reflexive structure (12 bytes)
+	fn reflex =
+	(
+		local count = read.longB "#signed"
+		local pointer = read.longB "#unsigned"
+		local id = read.longB "#unsigned"
+		reflexiveData count pointer id
 	)
+)
+
+struct tagRefData
+(
+    tagClass,
+    pathPtr,
+    pathLen,
+    tagID,
+    path  -- Optional: stores the path string when read from file
+)
+
+struct reflexiveData
+(
+    count,
+    pointer,
+    id
 )
 
 -------------------------------------------------------
@@ -258,7 +312,6 @@ fn skipBytes count =
 -- Halo-specific structure reading functions
 -------------------------------------------------------
 
-
 fn readEnum =
 (
 	local enumValue = readShortB "#signed"
@@ -279,9 +332,15 @@ fn decodeFlagBits flagValue flagNames =
 		if bit.get flagValue i then
 			append activeFlagsArray flagNames[i]
 	)
+	-- Return formatted string with each flag on its own line
 	if activeFlagsArray.count == 0 then
-		activeFlagsArray = #("none")
-	activeFlagsArray
+		return "none"
+	local result = ""
+	for flag in activeFlagsArray do
+	(
+		result += "\n  - (" + flag + ")"
+	)
+	result
 )
 
 -- Get the flag array for a given number (legacy function)
@@ -296,32 +355,47 @@ fn getFlagArray num =
 	myBitArray
 )
 
--------------------------------------------------------
--- File management functions
--------------------------------------------------------
-
--- Set the global file handle (call this before using any read functions)
-fn setFileHandle fileHandle =
+-- Material Type Enum
+-- Convert material type enum to string
+fn materialTypeToString matType =
 (
-	halo_file_handle = fileHandle
-)
-
--- Get current file position
-fn getCurrentFilePosition =
-(
-	local fileHandle = getCurrentFileHandle()
-	if fileHandle != undefined then
-		ftell fileHandle
-	else
-		-1
-)
-
--- Seek to specific position in file
-fn seekToPosition position seekMode:#seek_set =
-(
-	local fileHandle = getCurrentFileHandle()
-	if fileHandle != undefined then
-		fseek fileHandle position seekMode
+	case matType of
+	(
+		0: "dirt";
+        1: "sand";
+        2: "stone";
+        3: "snow";
+        4: "wood";
+		5: "metal hollow";
+        6: "metal thin";
+        7: "metal thick";
+        8: "rubber";
+        9: "glass";
+		10: "force field";
+        11: "grunt"; 
+        12: "hunter armor";
+        13: "hunter skin"; 
+        14: "elite";
+		15: "jackal";
+        16: "jackal energy shield";
+        17: "engineer skin";
+        18: "engineer force field";
+		19: "flood combat form";
+        20: "flood carrier form";
+        21: "cyborg armor";
+        22: "cyborg energy shield";
+		23: "human armor";
+        24: "human skin";
+        25: "sentinel";
+        26: "monitor";
+        27: "plastic";
+		28: "water";
+        29: "leaves";
+        30: "elite energy shield";
+        31: "ice";
+        32: "hunter shield";
+		default: ("unknown_" + (matType as string))
+	)
 )
 
 --------------------------------------------------------
@@ -344,6 +418,62 @@ fn seekToPosition position seekMode:#seek_set =
 --    
 --    return [x, y, z]
 --)
+
+-------------------------------------------------------
+-- Tag Reference Path Reader
+-------------------------------------------------------
+
+-- Read tag reference path string from file
+fn readTagRefPath pathPtr pathLen =
+(
+    if pathPtr == 0 or pathLen <= 0 then
+        return ""
+    
+    -- Save current position
+    local fileHandle = getCurrentFileHandle()
+    local savedPos = ftell fileHandle
+    
+    -- Seek to path location
+    seekToPosition pathPtr
+    
+    -- Read path string
+    local pathString = read.tagString pathLen
+    
+    -- Restore position
+    fseek fileHandle savedPos #seek_set
+    
+    return pathString
+)
+
+-- Format tag reference for display
+fn formatTagRef tagRef useFullName:true =
+(
+    if tagRef == undefined then
+        return "NULL"
+    
+    local tagClass = tagRef.tagClass
+    local pathPtr = tagRef.pathPtr
+    local pathLen = tagRef.pathLen
+    
+    -- Get tag class name (full name by default)
+    local tagClassName = tagClassToString tagClass returnFullName:useFullName
+    
+    -- Read path if available
+    local tagPath = "NULL"
+    if pathLen > 0 and pathLen < 10000 then
+    (
+        -- Check if path was already read and stored
+        if tagRef.path != undefined then
+            tagPath = tagRef.path
+        else if pathPtr > 0 then
+            tagPath = readTagRefPath pathPtr pathLen
+    )
+    
+    if tagPath == "" or tagPath == undefined then
+        tagPath = "NULL"
+    
+    return "{" + tagClassName + "}" + " (" + tagPath + ")"
+)
 
 -- Instantiate global structs
 read = read()
