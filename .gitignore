@@ -29,12 +29,14 @@ luac.out
 *.vscode/
 *release/
 *hek_defs/
+*tags/
 
 # Files
 manifest.json
 simple_mzp.lua
 *.mzp
 *.tif
+*.7z
 
 # Shared objects (inc. Windows DLLs)
 *.dll
