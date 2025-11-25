@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modularized MaxScript codebase for better organization and maintainability.
 - **Physics Importer:** Various improvements and refactoring for better performance and maintainability.
 
-## [3.1.0] - 2025-11-14
+## [3.1.0] - 2025-11-16
 ### Added
 - **Physics Importer:** Clears the MaxScript listener before and after import for better visibility of messages.
 - **Physics Importer:** Garbage Collection before loading modules to clear old structs from memory.
@@ -64,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **global_functions:** Renamed read_utils.ms to utils.ms and tag_classes.ms to tag_metadata.ms
 - **Utils:** Move general utilities in a global struct for better organization.
 
-## [3.5.0] - 2025-11-15
+## [3.5.0] - 2025-11-25
 ### Added
 - New implemented tag reader for **Shader Model** tags.
 - **GBX/Model Importer:** Added support for automatic texture application to materials on imported geometries.
