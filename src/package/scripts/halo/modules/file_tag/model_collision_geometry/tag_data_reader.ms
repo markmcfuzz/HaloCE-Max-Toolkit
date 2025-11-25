@@ -1,188 +1,124 @@
--------------------------------------------------------
--- REFLEXIVE DATA READERS (CORRECTED VERSION)
--- Reads actual reflexive data using robust pointer system
--------------------------------------------------------
-
+------------------------------------------------------------------------------------------------
+--	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
+--	license is available at http://www.gnu.org/licenses/gpl.txt.
+------------------------------------------------------------------------------------------------
 
 -------------------------------------------------------
 -- Materials Tag Block
 -------------------------------------------------------
 
--- Materials block reader following robust pointer system
 fn readMaterialsBlock materialsReflexive regionsReflexive pathfindingSpheresReflexive nodesReflexive =
 (
-	--format "\n=== READING MATERIALS BLOCK ===\n"
-	
-	-- Unpack reflexive info
-	local materialsCount = if materialsReflexive != undefined and materialsReflexive.count > 0 then materialsReflexive[1] else 0
-	local materialsPointer = if materialsReflexive != undefined and materialsReflexive.count > 1 then materialsReflexive[2] else 0
-	
-	--format "Materials count: %\n" materialsCount
-	--format "Materials pointer: %\n" materialsPointer
-	
-	if materialsCount == 0 then (
-		--format "No materials to read.\n"
-		return #()
-	)
-	
-	local materials = #()
-	local materialsDataOffset = 0
-	
-	-- Follow proper Halo tag pointer system
-	if materialsPointer > 0 then
-	(
-		-- Absolute pointer - seek directly to materials data
-		--format "[DEBUG] Using absolute pointer: %\n" materialsPointer
-		materialsDataOffset = materialsPointer
-	)
-	else
-	(
-		-- Pointer = 0: data laid out sequentially after main tagdata struct
-		-- Main tagdata struct ends at: 64 (blam_header) + 664 (tagdata) = 728
-		local dataBlockStart = 728
-		
-		-- Calculate total size of all TagRef path strings in the file
-		-- These strings are stored between the main struct and the reflexive data
-		-- Path length includes null terminator, and paths are padded to 4-byte alignment
-		-- EXCEPT the last path string which may not be padded
-		local totalTagRefPathSize = 0
-		local allPathLengths = #()
-		
-		-- Scan through the body section TagRefs (5 TagRefs at specific offsets)
-		local fileHandle = getCurrentFileHandle()
-		local savedPos = ftell fileHandle
-		
-		-- Body section TagRefs (offsets relative to body start at 72):
-		-- localized_damage_effect at 72+104=176, area_damage_effect at 72+124=196,
-		-- body_damaged_effect at 72+144=216, body_depleted_effect at 72+160=232,
-		-- body_destroyed_effect at 72+180=252
-		local bodyTagRefOffsets = #(176, 196, 216, 232, 252)
-		
-	for offset in bodyTagRefOffsets do
-	(
-		fseek fileHandle offset #seek_set
-		fseek fileHandle 8 #seek_cur -- Skip to path_length field
-		local pathLength = read.longB "#signed"
-		if pathLength > 0 then
-		(
-			-- path_length does NOT include null terminator - add 1
-			local actualLength = pathLength + 1
-			--format "[DEBUG] TagRef at offset %: path_length=%, actual=%\n" offset pathLength actualLength
-			append allPathLengths actualLength
-		)
-	)		-- Shield section TagRefs (offsets relative to shield start at 268):
-		-- shield_damaged_effect at 268+188=456, shield_depleted_effect at 268+204=472,
-		-- shield_recharging_effect at 268+220=488
-		local shieldTagRefOffsets = #(456, 472, 488)
-		
-	for offset in shieldTagRefOffsets do
-	(
-		fseek fileHandle offset #seek_set
-		fseek fileHandle 8 #seek_cur -- Skip to path_length field
-		local pathLength = read.longB "#signed"
-		if pathLength > 0 then
-		(
-			-- path_length does NOT include null terminator - add 1
-			local actualLength = pathLength + 1
-			--format "[DEBUG] TagRef at offset %: path_length=%, actual=%\n" offset pathLength actualLength
-			append allPathLengths actualLength
-		)
-	)		-- Check if all paths have the same length
-		local allSameLength = true
-		if allPathLengths.count > 1 then
-		(
-			local firstLength = allPathLengths[1]
-			for i = 2 to allPathLengths.count do
-			(
-				if allPathLengths[i] != firstLength then
-				(
-					allSameLength = false
-					exit
-				)
-			)
-		)
-		
-	-- Calculate total size
-	-- Paths are stored consecutively WITHOUT padding
-	for i = 1 to allPathLengths.count do
-	(
-		local pathLength = allPathLengths[i]
-		totalTagRefPathSize += pathLength
-		--format "[DEBUG] Path %: length=%\n" i pathLength
-	)		-- DEBUG: Read hex bytes at data block start to verify what's there
-		fseek fileHandle dataBlockStart #seek_set
-		local hexDump = ""
-		for i = 1 to 80 do (
-			local b = readByte fileHandle #unsigned
-			hexDump += (formattedPrint b format:"02X ")
-			if (mod i 16) == 0 then hexDump += "\n"
-		)
-		--format "[DEBUG] First 80 bytes at dataBlockStart (%): \n%\n" dataBlockStart hexDump
-		
-	-- Restore file position
-	fseek fileHandle savedPos #seek_set
-	
-	-- Materials start immediately after paths (no alignment)
-	materialsDataOffset = dataBlockStart + totalTagRefPathSize
-	--format "[DEBUG] Materials offset: % (paths total %)\n" materialsDataOffset totalTagRefPathSize
-	
-	fseek fileHandle savedPos #seek_set
-	--format "[DEBUG] Final materials offset: %\n" materialsDataOffset
+    -------------------------------------------------------------------
+    -- Unpack reflexive struct
+    -------------------------------------------------------------------
+    local materialsCount   = if materialsReflexive != undefined then materialsReflexive.count   else 0
+    local materialsPointer = if materialsReflexive != undefined then materialsReflexive.pointer else 0
+
+    if materialsCount == 0 then
+    (
+        local result = materialsBlockResult()
+        result.materials = #()
+        result.endOffset = 0
+        return result
     )
 
-    -- Seek to the calculated start of the materials data
-    --format "[DEBUG] Final materials offset: %\n" materialsDataOffset
-	seekToPosition materialsDataOffset
-	
-	-- Read each material (72 bytes each)
-	for i = 1 to materialsCount do
-	(
-		local material = collisionMaterials()
-		
-		-- Read material name (32 bytes at offset 0)
-		material.name = read.tagString 32
-		
-		-- Read flags (4 bytes at offset 32)
-		local flagsValue = read.longB "#unsigned"
-		material.flags = if flagsValue == 1 then #("head") else #("none")
-		
-		-- Read material type (2 bytes at offset 36)
-		material.material_type = read.shortB "#signed"
-		
-		-- Skip 2 bytes padding (offset 38-39)
-		skipBytes 2
-		
-		-- Read shield leak percentage (4 bytes at offset 40)
-		material.shield_leak_percentage = read.floatB()
-		
-		-- Read shield damage multiplier (4 bytes at offset 44)
-		material.shield_damage_multiplier = read.floatB()
-		
-		-- Skip 12 bytes (offset 48-59) to reach body_damage_multiplier at offset 60
-		skipBytes 12
-		
-		-- Read body damage multiplier (4 bytes at offset 60)
-		material.body_damage_multiplier = read.floatB()
-		
-		-- Skip remaining 8 bytes to complete 72-byte structure (offset 64-71)
-		skipBytes 8
-		
-		-- Store material
-		append materials material
-		
-		-- Display material info
-		--format "[%] Name: '%'\n" (i - 1) material.name
-		--format "Type: '%' (%)\n" (materialTypeToString material.material_type) material.material_type
-		--format "Flags: %\n" material.flags
-		--format "Shield Leak: %\n" material.shield_leak_percentage
-		--format "Shield Damage Multiplier: %\n" material.shield_damage_multiplier
-		--format "Body Damage Multiplier: %\n" material.body_damage_multiplier
-		--format "\n"n"
-	)
-	
-	--format "Successfully read % materials\n" materials.count
-	-- Return both materials array and the offset where materials data started
-	return #(materials, materialsDataOffset)
+    local materials = #()
+    local materialsDataOffset = 0
+    -------------------------------------------------------------------
+    -- Follow proper pointer interpretation
+    -------------------------------------------------------------------
+    if materialsPointer > 0 then
+    (
+        materialsDataOffset = materialsPointer
+    )
+    else
+    (
+        local dataBlockStart = 728
+        local totalTagRefPathSize = 0
+        local allPathLengths = #()
+        local fileHandle = getCurrentFileHandle()
+        local savedPos = ftell fileHandle
+        -------------------------------------------------------------------
+        -- Body TagRefs
+        -------------------------------------------------------------------
+        local bodyTagRefOffsets = #(176, 196, 216, 232, 252)
+        for offset in bodyTagRefOffsets do
+        (
+			seekToPosition offset seekMode:#seek_set
+			skipBytes 8
+            local pathLength = read.longB "#signed"
+            if pathLength > 0 then 
+			append allPathLengths (pathLength + 1)
+        )
+        -------------------------------------------------------------------
+        -- Shield TagRefs
+        -------------------------------------------------------------------
+        local shieldTagRefOffsets = #(456, 472, 488)
+        for offset in shieldTagRefOffsets do
+        (
+			seekToPosition offset seekMode:#seek_set
+			skipBytes 8
+            local pathLength = read.longB "#signed"
+            if pathLength > 0 then 
+			append allPathLengths (pathLength + 1)
+        )
+        -------------------------------------------------------------------
+        -- Compute total size of path strings
+        -------------------------------------------------------------------
+        for i = 1 to allPathLengths.count do
+        (
+            totalTagRefPathSize += allPathLengths[i]
+        )
+        materialsDataOffset = dataBlockStart + totalTagRefPathSize
+        fseek fileHandle savedPos #seek_set
+    )
+    -------------------------------------------------------------------
+    -- Read material block
+    -------------------------------------------------------------------
+    seekToPosition materialsDataOffset
+    for i = 1 to materialsCount do
+    (
+        local name = read.tagString 32
+        
+        local flagsValue = read.longB "#unsigned"
+        local flags = if flagsValue == 1 then ("head") else ("none")
+        
+        local materialType = read.shortB "#signed"
+        
+        skipBytes 2
+        
+        local shieldLeakPercentage = read.floatB()
+        local shieldDamageMultiplier = read.floatB()
+        
+        skipBytes 12
+        
+        local bodyDamageMultiplier = read.floatB()
+        
+        skipBytes 8
+        
+		local material = returnMaterials()
+		material.name = name
+		material.flags = flags
+		material.materialType = materialType
+		material.shieldLeakPercentage = shieldLeakPercentage
+		material.shieldDamageMultiplier = shieldDamageMultiplier
+		material.bodyDamageMultiplier = bodyDamageMultiplier
+
+        append materials material
+    )
+
+    local result = materialsBlockResult()
+    result.materials = materials
+    result.endOffset = materialsDataOffset
+    return result
 )
 
 -------------------------------------------------------
@@ -191,24 +127,18 @@ fn readMaterialsBlock materialsReflexive regionsReflexive pathfindingSpheresRefl
 
 fn readRegionsBlock regionsReflexive materialsReflexive materialsDataOffset =
 (
-	local regionsCount = regionsReflexive[1]
-	local materialsCount = materialsReflexive[1]
+	local regionsCount = regionsReflexive.count
+	local materialsCount = materialsReflexive.count
 	
 	if regionsCount == 0 then
 	(
-		format "\n=== NO REGIONS TO READ ===\n"
-		return #()
+		local result = regionsBlockResult()
+		result.regions = #()
+		result.endOffset = materialsDataOffset
+		return result
 	)
-	
-	--format "\n=== READING REGIONS BLOCK ===\n"
-	--format "Regions count: %\n" regionsCount
-	
-	-- Calculate regions offset: materials end + regions data
-	-- Each material is 72 bytes
 	local regionsDataOffset = materialsDataOffset + (materialsCount * 72)
-	--format "[DEBUG] Regions offset: %\n" regionsDataOffset
-	
-	-- Seek to regions data
+
 	seekToPosition regionsDataOffset
 	
 	local regions = #()
@@ -216,12 +146,7 @@ fn readRegionsBlock regionsReflexive materialsReflexive materialsDataOffset =
 	
 	for i = 1 to regionsCount do
 	(
-		local region = collisionRegions()
-		
-		-- Read region name (32 bytes at offset 0)
-		region.name = read.tagString 32
-		
-		-- Read flags (4 bytes at offset 32)
+		local name = read.tagString 32
 		local flagsValue = read.longB "#unsigned"
 		local regionFlagNames = #(
 			"lives_until_object_dies",
@@ -235,249 +160,190 @@ fn readRegionsBlock regionsReflexive materialsReflexive materialsDataOffset =
 			"forces_drop_weapon",
 			"causes_head_maimed_scream"
 		)
-		
-		region.flags = decodeFlagBits flagsValue regionFlagNames
-		
-		-- Skip 4 bytes (offset 36-39) to reach damage_threshold at offset 40
+		local flags = decodeFlagBits flagsValue regionFlagNames
 		skipBytes 4
-		
-		-- Read damage threshold (4 bytes at offset 40)
-		region.damage_threshold = read.floatB()
-		
-		-- Skip 12 bytes (offset 44-55) to reach destroyed_effect at offset 56
+		local damageThreshold = read.floatB()
 		skipBytes 12
-		
-		-- Read destroyed_effect TagRef (16 bytes at offset 56)
-		region.destroyed_effect = read.tagRef()
-		
-		-- Read permutations reflexive (12 bytes at offset 72)
-		local permutationsReflexive = read.reflexive()
+		local destroyedEffect = read.tagRef()
+		local permutationsReflexive = read.reflex()
 		append allPermutationsReflexives permutationsReflexive
+		local region = returnRegions()
+		region.name = name
+		region.flags = flags
+		region.damageThreshold = damageThreshold
+		region.destroyedEffect = destroyedEffect
+		region.permutations = #()
 		
-		-- Store region
 		append regions region
 	)
-	
-	-- Now read all permutations data (comes after all regions AND their TagRef paths)
-	-- Calculate permutations offset: regions end + TagRef path strings
-	-- Each region is 84 bytes
 	local regionsStructEnd = regionsDataOffset + (regionsCount * 84)
+	local pathsStartOffset = regionsDataOffset + (regionsCount * 84)
+	seekToPosition pathsStartOffset
 	
-	-- Calculate total size of TagRef path strings for all regions
-	-- Each region has one destroyed_effect TagRef
-	local totalPathBytes = 0
+	local fh = getCurrentFileHandle()
+	
 	for i = 1 to regionsCount do
 	(
-		local destroyedEffectRef = regions[i].destroyed_effect
-		if destroyedEffectRef != undefined and destroyedEffectRef.count >= 3 then
+		local tagRef = regions[i].destroyedEffect
+		
+		if tagRef != undefined and tagRef.pathPtr == 0 and tagRef.pathLen > 0 then
 		(
-			local pathLength = destroyedEffectRef[3]
-			if pathLength > 0 then
-				totalPathBytes += (pathLength + 1)  -- +1 for null terminator
+			local pathString = read.nullTerminatedString()
+			if pathString.count > 0 then
+				regions[i].destroyedEffect.path = pathString
+		)
+		local permutationsReflex = allPermutationsReflexives[i]
+		if permutationsReflex != undefined then
+		(
+			local permCount = permutationsReflex.count
+			local permutations = #()
+			for p = 1 to permCount do
+			(
+				local permName = read.tagString 32
+				local permutation = returnPermutation name:permName
+				append permutations permutation
+			)
+			
+			regions[i].permutations = permutations
 		)
 	)
-	
-	local permutationsDataOffset = regionsStructEnd + totalPathBytes
-	--format "[DEBUG] Permutations offset: % (regions end: %, paths: %)\n" permutationsDataOffset regionsStructEnd totalPathBytes
-	
-	seekToPosition permutationsDataOffset
-	
-	-- Read permutations for each region
-	for i = 1 to regionsCount do
-	(
-		local permutationsCount = allPermutationsReflexives[i][1]
-		local permutations = #()
-		
-		for j = 1 to permutationsCount do
-		(
-			local permutation = regionPermutations()
-			-- Read permutation name (32 bytes)
-			permutation.name = read.tagString 32
-			append permutations permutation
-		)
-		
-		regions[i].permutations = permutations
-	)
-	
-	-- Display region info
-	--for i = 1 to regions.count do
-	--(
-	--	local region = regions[i]
-	--	format "[%] Name: '%'\n" (i - 1) region.name
-	--	format "Flags: %\n" region.flags
-	--	format "Damage Threshold: %\n" region.damage_threshold
-	--	format "Permutations: %\n" region.permutations.count
-	--	if region.permutations.count > 0 then
-	--	(
-	--		for p = 1 to region.permutations.count do
-	--			format "  [%] '%'\n" (p - 1) region.permutations[p].name
-	--	)
-	--	format "\n"
-	--)
-	
-		--	format "\n"
-	--)
-	
-	--format "Successfully read % regions\n" regions.count
-	
-	-- Calculate total permutations read for offset calculation
-	
-	-- Calculate total permutations read for offset calculation
-	local totalPermutations = 0
-	for i = 1 to regions.count do
-		totalPermutations += regions[i].permutations.count
-	
-	-- Calculate end offset: permutations data end
-	-- Each permutation is 32 bytes
-	local regionsEndOffset = permutationsDataOffset + (totalPermutations * 32)
-	
-	-- Return regions array and end offset for next block
-	return #(regions, regionsEndOffset)
+	local currentPos = getCurrentFilePosition()
+	local result = regionsBlockResult()
+	result.regions = regions
+	result.endOffset = currentPos
+	return result
 )
 
 -------------------------------------------------------
 -- Pathfinding Spheres Tag Block
 -------------------------------------------------------
 
-fn readPathfindingSpheresBlock pathfindingSpheresReflexive modifiersEndOffset =
+fn readPathfindingSpheresBlock pathfindingSpheresReflexive modifiersEndOffset nodes:#() =
 (
-	local spheresCount = pathfindingSpheresReflexive[1]
+	local spheresCount = pathfindingSpheresReflexive.count
 	
 	if spheresCount == 0 then
 	(
-		format "\n=== NO PATHFINDING SPHERES TO READ ===\n"
-		return #()
+		local result = spheresBlockResult()
+		result.spheres = #()
+		result.endOffset = modifiersEndOffset
+		return result
 	)
 	
-	--format "\n=== READING PATHFINDING SPHERES BLOCK ===\n"
-	--format "Pathfinding Spheres count: %\n" spheresCount
-	
-	-- Pathfinding spheres start after modifiers
 	local spheresDataOffset = modifiersEndOffset
-	--format "[DEBUG] Pathfinding Spheres offset: %\n" spheresDataOffset
-	
-	-- Seek to spheres data
+
 	seekToPosition spheresDataOffset
 	
 	local spheres = #()
-	
 	for i = 1 to spheresCount do
 	(
-		local sphere = collisionPathfindingSpheres()
-		
-		-- Read node index (2 bytes at offset 0)
-		sphere.node = read.shortB "#signed"
-		
-		-- Skip 14 bytes (offset 2-15) to reach center at offset 16
+		local node = read.shortB "#signed"
 		skipBytes 14
-		
-		-- Read center point (12 bytes at offset 16: x, y, z)
 		local centerX = read.floatB()
 		local centerY = read.floatB()
 		local centerZ = read.floatB()
-		sphere.center = [centerX, centerY, centerZ]
+		local center = [centerX, centerY, centerZ]
+		local radius = read.floatB()
+		local sphere = returnPathfindingSpheres()
+		sphere.node = node
+		sphere.center = center
+		sphere.radius = radius
 		
-		-- Read radius (4 bytes at offset 28)
-		sphere.radius = read.floatB()
-		
-		-- Store sphere
 		append spheres sphere
-		
-		-- Display sphere info
-		--format "[%] Node: %\n" (i - 1) sphere.node -- Sphere indices are zero-based
-		--format "Center: [%, %, %]\n" sphere.center.x sphere.center.y sphere.center.z
-		--format "Radius: %\n" sphere.radius
-		--format "\n"
 	)
-	
-	--format "Successfully read % pathfinding spheres\n" spheres.count
-	
-	-- Calculate end offset for next block
-	-- Each sphere is 32 bytes
+	for sphere in spheres do
+	(
+		try
+		(
+			if sphere.node == -1 then
+				sphere.nodeName = "NULL"
+			else if nodes != undefined and nodes.count > 0 and sphere.node >= 0 and sphere.node < nodes.count then
+				sphere.nodeName = nodes[sphere.node + 1].name  -- +1 for 1-based indexing
+			else if nodes != undefined and nodes.count > 0 then
+				sphere.nodeName = "INVALID(" + (sphere.node as string) + ")"
+			else
+				sphere.nodeName = "[" + (sphere.node as string) + "]"
+		)
+		catch
+		(
+			sphere.nodeName = "[" + (sphere.node as string) + "]"
+		)
+	)
 	local spheresEndOffset = spheresDataOffset + (spheresCount * 32)
 	
-	return #(spheres, spheresEndOffset)
+	local result = spheresBlockResult()
+	result.spheres = spheres
+	result.endOffset = spheresEndOffset
+	return result
 )
 
 -------------------------------------------------------
 -- Nodes Tag Block
 -------------------------------------------------------
 
-fn readNodesBlock nodesReflexive spheresEndOffset =
+fn readNodesBlock nodesReflexive spheresEndOffset regions:#() =
 (
-	local nodesCount = nodesReflexive[1]
+	local nodesCount = nodesReflexive.count
 	
 	if nodesCount == 0 then
 	(
-		format "\n=== NO NODES TO READ ===\n"
 		return #()
 	)
-	
-	--format "\n=== READING NODES BLOCK ===\n"
-	--format "Nodes count: %\n" nodesCount
-	
-	-- Nodes start after pathfinding spheres
 	local nodesDataOffset = spheresEndOffset
-	--format "[DEBUG] Nodes offset: %\n" nodesDataOffset
 	
-	-- Seek to nodes data
 	seekToPosition nodesDataOffset
 	
 	local nodes = #()
-	local allBSPsReflexives = #()  -- Store BSP reflexives for later reading
-	
+	local allBSPsReflexives = #()
 	for i = 1 to nodesCount do
 	(
-		local node = collisionNodes()
+		local nodeName = read.tagString 32
+		local region = read.shortB "#signed"
+		local parentNode = read.shortB "#signed"
+		local nextSiblingNode = read.shortB "#signed"
+		local firstChildNode = read.shortB "#signed"
 		
-		-- Read node name (32 bytes at offset 0)
-		node.name = read.tagString 32
-		
-		-- Read region index (2 bytes at offset 32)
-		node.region = read.shortB "#signed"
-		
-		-- Read parent node (2 bytes at offset 34)
-		node.parent_node = read.shortB "#signed"
-		
-		-- Read next sibling node (2 bytes at offset 36)
-		node.next_sibling_node = read.shortB "#signed"
-		
-		-- Read first child node (2 bytes at offset 38)
-		node.first_child_node = read.shortB "#signed"
-		
-		-- Skip 8 bytes (offset 40-47) to reach unknown fields at offset 48
 		skipBytes 8
 		
-		-- Read unknown fields (4 bytes at offset 48-51)
-		node.unknown0 = read.shortB "#signed"
-		node.unknown1 = read.shortB "#signed"
+		local unknown0 = read.shortB "#signed"
+		local unknown1 = read.shortB "#signed"
+		local bspsReflexive = read.reflex()
 		
-		-- Read BSPs reflexive (12 bytes at offset 52)
-		local bspsReflexive = read.reflexive()
-		node.bsps_tag_block = bspsReflexive
 		append allBSPsReflexives bspsReflexive
+
+		local node = returnNodes()
+		node.name = nodeName
+		node.region = region
+		node.parentNode = parentNode
+		node.nextSiblingNode = nextSiblingNode
+		node.firstChildNode = firstChildNode
+		node.unknown0 = unknown0
+		node.unknown1 = unknown1
+		node.bspsReflexive = bspsReflexive
 		
-		-- Store node
 		append nodes node
-		
-		-- Display node info
-		--format "[%] Name: '%'\n" (i - 1) node.name -- Node indices are zero-based
-		--format "Region: %\n" node.region
-		--format "Parent: %\n" node.parent_node
-        --format "Next Sibling: %\n" node.next_sibling_node
-        --format "First Child: %\n" node.first_child_node
-        --format "BSPs: %\n" bspsReflexive[1]
-		--format "\n"
 	)
-	
-	--format "Successfully read % nodes\n" nodes.count
-	
-	-- Calculate nodes end offset (each node is 64 bytes)
+	for node in nodes do
+	(
+		try
+		(
+			if node.region == -1 then
+				node.regionName = "NULL"
+			else if regions != undefined and regions.count > 0 and node.region >= 0 and node.region < regions.count then
+				node.regionName = regions[node.region + 1].name  -- +1 for 1-based indexing
+			else if regions != undefined and regions.count > 0 then
+				node.regionName = "INVALID(" + (node.region as string) + ")"
+			else
+				node.regionName = "[" + (node.region as string) + "]"
+		)
+		catch
+		(
+			node.regionName = "[" + (node.region as string) + "]"
+		)
+	)
 	local nodesEndOffset = nodesDataOffset + (nodesCount * 64)
-	
-	-- Now read BSP geometry data for all nodes
-	--format "\n=== READING BSP GEOMETRY FOR ALL NODES ===\n"
 	nodes = readAllNodesBSPGeometry nodes nodesDataOffset
-	
 	return nodes
 )
+
+logger "Data tag reader loaded.\n" logType:#success
