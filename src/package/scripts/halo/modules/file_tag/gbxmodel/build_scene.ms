@@ -31,7 +31,7 @@ fn isFrameNode nodeName =
 -- ALL nodes created as spheres initially - will convert to bones later
 fn createGbxmodelNode nodeData nodeIndex allNodeData =
 (
-	local nodeName = nodeData[1]
+	local nodeName = nodeData.name
 	
 	-- Create ALL nodes as spheres at origin (matches old script approach)
 	-- Bone nodes will be converted to actual bones in a later pass
@@ -65,7 +65,7 @@ fn linkNodeHierarchy createdNodes nodeDataArray =
 	(
 		local nodeObj = createdNodes[i]
 		local nodeData = nodeDataArray[i]
-		local parentIndex = nodeData[4]  -- Parent node index (-1 = no parent)
+		local parentIndex = nodeData.parentNode  -- Parent node index (-1 = no parent)
 		
 		if parentIndex >= 0 and parentIndex < createdNodes.count then
 		(
@@ -87,9 +87,9 @@ fn linkNodeHierarchy createdNodes nodeDataArray =
 		if nodeObj == undefined then continue
 		
 		local nodeData = nodeDataArray[i]
-		local nodeName = nodeData[1]
-		local translation = nodeData[5]
-		local rotation = nodeData[6]  -- Quaternion: #(i, j, k, w)
+		local nodeName = nodeData.name
+		local translation = nodeData.translation
+		local rotation = nodeData.rotation  -- Quaternion: #(i, j, k, w)
 		
 		-- Scale translation from Halo units to 3ds Max units
 		local scaledTranslation = [translation[1], translation[2], translation[3]] * HALO_SCALE
@@ -117,11 +117,11 @@ fn linkNodeHierarchy createdNodes nodeDataArray =
 		if nodeObj == undefined then continue
 		
 		local nodeData = nodeDataArray[i]
-		local nodeName = nodeData[1]
-		local firstChild = nodeData[3]
-		local parentIndex = nodeData[4]
-		local translation = nodeData[5]
-		local rotation = nodeData[6]
+		local nodeName = nodeData.name
+		local firstChild = nodeData.firstChildNode
+		local parentIndex = nodeData.parentNode
+		local translation = nodeData.translation
+		local rotation = nodeData.rotation
 		
 		if isBoneNode nodeName then
 		(
@@ -295,10 +295,10 @@ fn createMarkers markersArray nodesArray createdNodes =
 	for i = 1 to markersArray.count do
 	(
 		local markerData = markersArray[i]
-		local markerName = markerData[1]
-		local nodeIndex = markerData[2]  -- Node index this marker is attached to
-		local rotation = markerData[3]   -- Quaternion: #(i, j, k, w)
-		local translation = markerData[4] -- Position relative to node
+		local markerName = markerData.name
+		local nodeIndex = markerData.nodeIndex  -- Node index this marker is attached to
+		local rotation = markerData.rotation   -- Quaternion: #(i, j, k, w)
+		local translation = markerData.translation -- Position relative to node
 		
 		-- Create marker as sphere with "#" prefix
 		local markerObj = sphere radius:markerSize
@@ -371,7 +371,7 @@ fn createMaterial shadersArray materialName:"Gbxmodel Materials" =
 	for i = 1 to shadersArray.count do
 	(
 		local shaderData = shadersArray[i]
-		local shaderName = shaderData[3]  -- Shader name (extracted from path)
+		local shaderName = shaderData.shaderName  -- Shader name (extracted from path)
 		
 		-- Create a standard material for this shader
 		local mat = StandardMaterial()
@@ -390,6 +390,91 @@ fn createMaterial shadersArray materialName:"Gbxmodel Materials" =
 	meditMaterials[1] = multiMat
 	
 	--format "[✓] Created Multi/Sub-Object material with % sub-materials\n" shadersArray.count
+	
+	return multiMat
+)
+
+-------------------------------------------------------
+-- Create Multi/Sub-Object material with textures resolved from shader tags
+fn createMaterialWithTextures gbxmodelPath shadersArray materialName:"Gbxmodel Materials" =
+(
+	if shadersArray.count == 0 then
+	(
+		format "\n[i] No shaders to create materials from\n"
+		return undefined
+	)
+	
+	-- Resolve shader textures
+	local textureResults = resolveAllShaderTextures gbxmodelPath shadersArray
+	
+	-- If shader module loading failed, textureResults will be empty
+	-- Create dummy results so material creation can continue
+	if textureResults.count == 0 and shadersArray.count > 0 then
+	(
+		logger "Shader texture resolution failed, using fallback materials\n" logType:#warning
+		for i = 1 to shadersArray.count do
+		(
+			struct DummyResult (shaderIndex, shaderName, shaderType, shaderPath, shaderFilePath, baseMapPath, textureFilePath, success = false)
+			local dummy = DummyResult()
+			dummy.shaderIndex = i - 1
+			dummy.shaderName = shadersArray[i].shaderName
+			append textureResults dummy
+		)
+	)
+	
+	-- Create Multi/Sub-Object material
+	local multiMat = MultiMaterial numsubs:shadersArray.count
+	multiMat.name = materialName
+	
+	for i = 1 to shadersArray.count do
+	(
+		local shaderData = shadersArray[i]
+		local shaderName = shaderData.shaderName
+		
+		-- Find the corresponding texture result by shader index (not array position)
+		local textureResult = undefined
+		for result in textureResults where result != undefined and result.shaderIndex == (i - 1) do
+		(
+			textureResult = result
+			exit
+		)
+		
+		-- Create a standard material for this shader
+		local mat = StandardMaterial()
+		mat.name = shaderName
+		mat.showInViewport = true
+		
+		-- Apply diffuse texture if resolved successfully
+		if textureResult != undefined and textureResult.success and doesFileExist textureResult.textureFilePath then
+		(
+			local diffuseMap = Bitmaptexture fileName:textureResult.textureFilePath
+			mat.diffusemap = diffuseMap
+			mat.showInViewport = true
+			
+			--logger "Applied texture to material '%': %\n" params:#(shaderName, textureResult.textureFilePath) logType:#success
+		)
+		else
+		(
+			-- Apply checker pattern for missing textures
+			local checkerMap = Checker()
+			checkerMap.color1 = color 25 25 25    --#191919
+			checkerMap.color2 = color 136 136 136  --#888888
+			checkerMap.coordinates.U_Tiling = 10.0
+			checkerMap.coordinates.V_Tiling = 10.0
+			
+			mat.diffusemap = checkerMap
+			mat.showInViewport = true
+						--logger "Applied checker pattern to material '%' (texture not found)\n" params:#(shaderName) logType:#info
+		)
+		
+		-- Set material in Multi/Sub-Object
+		multiMat.materialList[i] = mat
+		multiMat.names[i] = shaderName
+		multiMat.materialIDList[i] = i
+	)
+	
+	-- Assign to meditMaterials slot 1 (Material Editor)
+	meditMaterials[1] = multiMat
 	
 	return multiMat
 )
