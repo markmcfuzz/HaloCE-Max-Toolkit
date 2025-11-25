@@ -1,7 +1,14 @@
-/*
-Halo CE Physics Tag Reader
-Uses global read utilities from read_utils.ms
-*/
+------------------------------------------------------------------------------------------------
+--	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
+--	license is available at http://www.gnu.org/licenses/gpl.txt.
+------------------------------------------------------------------------------------------------
 
 -------------------------------------------------------
 -- Tag Header (64 bytes)
@@ -9,26 +16,294 @@ Uses global read utilities from read_utils.ms
 
 fn readTagHeader =
 (
-    -- format "=== READING TAG HEADER ===\n"
-    
-    -- Seek to tag class (offset 36 in header)
     seekToPosition 36
     local tagClass = read.longB "#unsigned"
     
-    -- Seek to version (offset 56 in header)  
+    seekToPosition 40
+    local checksum = read.longB "#unsigned"
+    
     seekToPosition 56
     local version = read.shortB "#unsigned"
     
-    -- Validate tag class
-    local expectedCollFourcc = getFourccByTagName "phys"
-    if tagClass != expectedCollFourcc then
+    seekToPosition 60
+    local engineId = read.longB "#unsigned"
+    
+    local expectedGbxFourcc = getFourccByTagName "phys"
+    if tagClass != expectedGbxFourcc then
     (
-        format "[ERROR] Invalid tag class. Expected: %, Found: %\n" expectedCollFourcc tagClass
+        logger "Invalid tag class. Expected: %, Found: %\n" params:#(expectedGbxFourcc, tagClass) logType:#error
         return undefined
     )
+    local header = returnHeader()
+    header.tagClass = tagClass
+    header.checksum = checksum
+    header.version = version
+    header.engineId = engineId
+
+    return header
+)
+
+-------------------------------------------------------
+-- Read Physics Tag Base
+-------------------------------------------------------
+
+fn readBaseTag =
+(
+	seekToPosition 64
+	
+	local radius = read.floatB()
+	local momentScale = read.floatB()
+	local mass = read.floatB()
+	local centerOfMass = math.readPoint3()
+	local density = read.floatB()
+	local gravityScale = read.floatB()
+	local groundFriction = read.floatB()
+	local groundDepth = read.floatB()
+	local groundDampFraction = read.floatB()
+	local groundNormalK1 = read.floatB()
+	local groundNormalK0 = read.floatB()
+
+	skipBytes 4
+
+	local waterFriction = read.floatB()
+	local waterDepth = read.floatB()
+	local waterDensity = read.floatB()
+
+	skipBytes 4
+
+	local airFriction = read.floatB()
+
+	skipBytes 4
+
+	local xxMoment = read.floatB()
+	local yyMoment = read.floatB()
+	local zzMoment = read.floatB()
+
+	local physics = returnTagBase()
+	physics.radius = radius
+	physics.momentScale = momentScale
+	physics.mass = mass
+	physics.centerOfMass = centerOfMass
+	physics.density = density
+	physics.gravityScale = gravityScale
+	physics.groundFriction = groundFriction
+	physics.groundDepth = groundDepth
+	physics.groundDampFraction = groundDampFraction
+	physics.groundNormalK1 = groundNormalK1
+	physics.groundNormalK0 = groundNormalK0
+	physics.waterFriction = waterFriction
+	physics.waterDepth = waterDepth
+	physics.waterDensity = waterDensity
+	physics.airFriction = airFriction
+	physics.xxMoment = xxMoment
+	physics.yyMoment = yyMoment
+	physics.zzMoment = zzMoment
+
+	return physics
+)
+
+-------------------------------------------------------
+-- Reflexive Headers Reading (at offset 156)
+-------------------------------------------------------
+
+fn readReflexiveHeaders =
+(
+	local actualReflexiveStart = 156
+	seekToPosition actualReflexiveStart
+	
+	local inertiaMatricesReflexive = read.reflex()
+	local pMassPointsReflexive = read.reflex()
+	local massPointsReflexive = read.reflex()
+	
+	local reflexives = returnReflexives()
+	reflexives.inertiaMatrices = inertiaMatricesReflexive
+	reflexives.poweredMassPoints = pMassPointsReflexive
+	reflexives.massPoints = massPointsReflexive
+	return reflexives
+)
+
+-------------------------------------------------------
+-- Read Inertia Matrices
+-------------------------------------------------------
+
+fn readInertiaMatrices inertiaMatricesReflex =
+(
+    local count = inertiaMatricesReflex.count
+    if count == 0 then
+    (
+        local result = inertiaMatricesBlockResult()
+        result.inertialMatrices = #()
+        result.endOffset = 64 + 128
+        return result
+    )
+    local dataOffset = if inertiaMatricesReflex.pointer == 0 then (64 + 128) else inertiaMatricesReflex.pointer
+    seekToPosition dataOffset
     
-    format "Valid physics tag: version %\n" version
-    return #(tagClass, version)
+    local inertiaMatrices = #()
+    local pairCount = count / 2
+    for i = 1 to pairCount do
+    (
+        local yyZz = math.readPoint3()
+        local zzXx = math.readPoint3()
+        local xxYy = math.readPoint3()
+        
+        local inertialMatrix = returnInertialMatrix()
+        inertialMatrix.yyZz = yyZz
+        inertialMatrix.zzXx = zzXx
+        inertialMatrix.xxYy = xxYy
+        
+        local yyZzInv = math.readPoint3()
+        local zzXxInv = math.readPoint3()
+        local xxYyInv = math.readPoint3()
+        
+        local inertialMatrixInverse = returnInertialMatrixInverse()
+        inertialMatrixInverse.yyZz = yyZzInv
+        inertialMatrixInverse.zzXx = zzXxInv
+        inertialMatrixInverse.xxYy = xxYyInv
+        
+        local matrixPair = returnInertiaMatrices()
+        matrixPair.inertialMatrix = inertialMatrix
+        matrixPair.inertialMatrixInverse = inertialMatrixInverse
+        
+        append inertiaMatrices matrixPair
+    )
+    local endOffset = dataOffset + (pairCount * 72)
+    
+    local result = inertiaMatricesBlockResult()
+    result.inertialMatrices = inertiaMatrices
+    result.endOffset = endOffset
+    
+    return result
+)
+
+-------------------------------------------------------
+-- Read Powered Mass Points
+-------------------------------------------------------
+
+fn readPoweredMassPoints pMassPointReflexive iMinvEndOffset =
+(
+	local pMassPointsCount = pMassPointReflexive.count
+	
+	if pMassPointsCount == 0 then	
+	(
+		local result = poweredMassPointsBlockResult()
+		result.poweredMassPoints = #()
+		result.endOffset = iMinvEndOffset
+		return result
+	)
+	local pMpDataOffset = if pMassPointReflexive.pointer == 0 then iMinvEndOffset else pMassPointReflexive.pointer
+	seekToPosition pMpDataOffset
+
+	local poweredMassPoints = #()
+	for i = 1 to pMassPointsCount do
+	(
+		local name = read.tagString 32
+		local flagsValue = read.longB "#unsigned"
+		local flagNames = #(
+			"ground friction",
+			"water friction",
+			"air friction",
+			"water lift",
+			"air lift",
+			"thrust",
+			"antigrav"
+		)
+		local flags = decodeFlagBits flagsValue flagNames
+		local antigravStrength = read.floatB()
+		local antigravOffset = read.floatB()
+		local antigravHeight = read.floatB()
+		local antigravDampFraction = read.floatB()
+		local antigravNormalK1 = read.floatB()
+		local antigravNormalK0 = read.floatB()
+		
+		skipBytes 68
+
+		local pMassPoint = returnPoweredMassPoints()
+		pMassPoint.name = name
+		pMassPoint.flags = flags
+		pMassPoint.antigravStrength = antigravStrength
+		pMassPoint.antigravOffset = antigravOffset
+		pMassPoint.antigravHeight = antigravHeight
+		pMassPoint.antigravDampFraction = antigravDampFraction
+		pMassPoint.antigravNormalK1 = antigravNormalK1
+		pMassPoint.antigravNormalK0 = antigravNormalK0
+
+		append poweredMassPoints pMassPoint
+	)
+	local pMassPointEndOffset = pMpDataOffset + (pMassPointsCount * 128)
+
+	local result = poweredMassPointsBlockResult()
+	result.poweredMassPoints = poweredMassPoints
+	result.endOffset = pMassPointEndOffset
+	return result
+)
+
+-------------------------------------------------------
+-- Read Mass Points
+-------------------------------------------------------
+
+fn readMassPoints massPointsReflexive pMassPointEndOffset =
+(
+	local massPointsCount = massPointsReflexive.count
+	if massPointsCount == 0 then	
+	(
+		local result = massPointsBlockResult()
+		result.massPoints = #()
+		result.endOffset = pMassPointEndOffset
+		return result
+	)
+	local mpDataOffset = if massPointsReflexive.pointer == 0 then pMassPointEndOffset else massPointsReflexive.pointer
+
+	seekToPosition mpDataOffset
+
+	local massPoints = #()
+	for i = 1 to massPointsCount do
+	(
+		local name = read.tagString 32
+		local poweredMassPoint = read.shortB "#signed"
+		local modelNode = read.shortB "#signed"
+		local flagsValue = read.longB "#unsigned"
+		local flags = if flagsValue == 1 then ("metallic") else ("none")
+		local relativeMass = read.floatB()
+		local massValue = read.floatB()
+		local relativeDensity = read.floatB()
+		local densityValue = read.floatB()
+		local position = math.readPoint3()
+		local forward = math.readPoint3()
+		local up = math.readPoint3()
+		local frictionType = read.shortB "#signed"
+		skipBytes 2
+		local frictionParallel = read.floatB()
+		local frictionPerpendicular = read.floatB()
+		local radiusValue = read.floatB()
+		
+		skipBytes 20
+		
+		local massPoint = returnMassPoints()
+		massPoint.name = name
+		massPoint.poweredMassPoint = poweredMassPoint
+		massPoint.modelNode = modelNode
+		massPoint.flags = flags
+		massPoint.relativeMass = relativeMass
+		massPoint.mass = massValue
+		massPoint.relativeDensity = relativeDensity
+		massPoint.density = densityValue
+		massPoint.position = position
+		massPoint.forward = forward
+		massPoint.up = up
+		massPoint.frictionType = frictionType
+		massPoint.frictionParallelScale = frictionParallel
+		massPoint.frictionPerpendicularScale = frictionPerpendicular
+		massPoint.radius = radiusValue
+
+		append massPoints massPoint
+	)
+	local mpEndOffset = mpDataOffset + (massPointsCount * 128)
+
+	local result = massPointsBlockResult()
+	result.massPoints = massPoints
+	result.endOffset = mpEndOffset
+	return result
 )
 
 -------------------------------------------------------
@@ -37,169 +312,62 @@ fn readTagHeader =
 
 fn readPhysicsTag physicsFilePath =
 (
-	-- Open file and set global handle
-	global halo_file_handle = fopen physicsFilePath "rb"
-	
-	if halo_file_handle == undefined then
-	(
-		format "[ERROR] Could not open file: %\n" physicsFilePath
-		return undefined
-	)
-	
-	format "\n=== READING PHYSICS TAG ===\n"
-	format "File: %\n" (filenameFromPath physicsFilePath)
-
-	-- Skip 64-byte header and read main physics data
-	seekToPosition 64
-	
-	-- Read main physics tag data structure (128 bytes total)
-	local tagRadius = read.floatB()				-- offset 0
-	local tagMomentScale = read.floatB()			-- offset 4
-	local tagMass = read.floatB()				-- offset 8
-	local centerOfMass = math.readPoint3()			-- offset 12 (12 bytes)
-	local tagDensity = read.floatB()				-- offset 24
-	local tagGravityScale = read.floatB()		-- offset 28
-	local tagGroundFriction = read.floatB()		-- offset 32
-	local tagGroundDepth = read.floatB()			-- offset 36
-	local tagGroundDampFraction = read.floatB()	-- offset 40
-	local tagGroundNormalK1 = read.floatB()		-- offset 44
-	local tagGroundNormalK0 = read.floatB()		-- offset 48
-	
-	-- Read tag block reflexive counts
-	seekToPosition (64 + 92)	-- inertia_matrices reflexive
-	local inertiaMatricesCount = read.longB "#signed"
-	
-	seekToPosition (64 + 104)	-- powered_mass_points reflexive
-	local poweredMassPointsCount = read.longB "#signed"
-	
-	seekToPosition (64 + 116)	-- mass_points reflexive
-	local massPointsCount = read.longB "#signed"
-	
-	format "Tag Mass: %\n" tagMass
-	format "Tag Density: %\n" tagDensity
-	format "Mass Points: %\n" massPointsCount
-	
-	if massPointsCount == 0 then
-	(
-		fclose halo_file_handle
-		format "[WARNING] No mass points found in physics tag\n"
-		return undefined
-	)
-	
-	-- Read powered mass points (if any)
-	local poweredMassPoints = #()
-	if poweredMassPointsCount > 0 then
-	(
-		local poweredMpOffset = 64 + 128 + (inertiaMatricesCount * 36)
-		seekToPosition poweredMpOffset
-		
-		for i = 1 to poweredMassPointsCount do
-		(
-			local poweredMpName = read.tagString 32
-			append poweredMassPoints poweredMpName
-			
-			-- Skip remaining powered mass point data (96 bytes)
-			skipBytes 96
-		)
-	)
-	
-	-- Calculate mass points data offset
-	-- Structure: Header(64) + TagData(128) + InertialMatrices(N*36) + PoweredMPs(N*128) + MassPoints(N*128)
-	local massPointsOffset = 64 + 128 + (inertiaMatricesCount * 36) + (poweredMassPointsCount * 128)
-	seekToPosition massPointsOffset
-	
-	-- Read mass points (each is 128 bytes)
-	local massPoints = #()
-	for i = 1 to massPointsCount do
-	(
-		-- Read mass point data structure
-		local mpName = read.tagString 32				-- offset 0
-		local poweredMassPoint = read.shortB "#signed"	-- offset 32
-		local modelNode = read.shortB "#signed"			-- offset 34
-		local flags = read.longB "#unsigned"		    -- offset 36
-		local relativeMass = read.floatB()				-- offset 40
-		local mass = read.floatB()						-- offset 44
-		local relativeDensity = read.floatB()			-- offset 48
-		local density = read.floatB()					-- offset 52
-		local position = math.readPoint3()				-- offset 56 (12 bytes)
-		local forward = math.readPoint3()				-- offset 68 (12 bytes)
-		local up = math.readPoint3()					-- offset 80 (12 bytes)
-		local frictionType = read.shortB "#signed"		-- offset 92
-		skipBytes 2										-- padding
-		local frictionParallel = read.floatB()			-- offset 96
-		local frictionPerpendicular = read.floatB()		-- offset 100
-		local mpRadius = read.floatB()					-- offset 104
-		
-		-- Create mass point struct
-		local massPoint = physicsMassPoints()
-		massPoint.name = mpName
-		massPoint.powered_mass_point = poweredMassPoint
-		massPoint.model_node = modelNode
-		massPoint.flags = flags
-		massPoint.relative_mass = relativeMass
-		massPoint.mass = mass
-		massPoint.relative_density = relativeDensity
-		massPoint.density = density
-		massPoint.position = position
-		massPoint.forward = forward
-		massPoint.up = up
-		massPoint.friction_type = frictionType
-		massPoint.friction_parallel_scale = frictionParallel
-		massPoint.friction_perpendicular_scale = frictionPerpendicular
-		massPoint.radius = mpRadius
-		
-		append massPoints massPoint
-		
-		-- Skip remaining bytes (128 total - 108 read = 20 remaining)
-		skipBytes 20
-	)
-	
-	-- Close file
-	fclose halo_file_handle
-	global halo_file_handle = undefined
-	
-	-- Calculate proper mass and density values
-	local totalRelativeMass = 0.0
-	local totalRelativeDensity = 0.0
-	
-	-- Sum all relative values
-	for mp in massPoints do
-	(
-		totalRelativeMass += mp.relative_mass
-		totalRelativeDensity += mp.relative_density
-	)
-	
-	-- Calculate base values per unit
-	local baseMassPerUnit = if totalRelativeMass > 0 then tagMass / totalRelativeMass else 0.0
-	local baseDensityPerUnit = if totalRelativeDensity > 0 then tagDensity / totalRelativeDensity else 0.0
-	
-	-- Calculate individual mass and density for each point
-	for mp in massPoints do
-	(
-		mp.mass = baseMassPerUnit * mp.relative_mass
-		
-		-- Density calculation (handles simple and complex cases)
-		if mp.density > 0.0 and (abs(mp.density - (tagDensity * mp.relative_density)) < 0.1) then
-		(
-			-- Stored density appears correct (keep as is)
-		)
-		else if totalRelativeDensity == massPointsCount then
-		(
-			-- Simple case: all relative densities are 1.0
-			mp.density = tagDensity * mp.relative_density
-		)
-		else
-		(
-			-- Complex case: mixed relative densities
-			local referenceMass = 149.266  -- Derived from Warthog test data
-			local densityModifier = baseMassPerUnit / referenceMass
-			mp.density = tagDensity * mp.relative_density * densityModifier
-		)
-	)
-	
-	format "\n[SUCCESS] Physics tag read successfully!\n"
-	format "Mass Points: %\n" massPoints.count
-	format "Powered Mass Points: %\n" poweredMassPoints.count
-	
-	return #(massPoints, poweredMassPoints)
+    local fileHandle = fopen physicsFilePath "rb"
+    if fileHandle == undefined then
+    (
+        logger "Could not open file: %\n" params:#(physicsFilePath) logType:#error
+        return undefined
+    )
+    
+    setFileHandle fileHandle
+    in_file = fileHandle
+    
+    local tagStruct = physicsTag()
+    
+    local tagHeader = readTagHeader()
+    if tagHeader == undefined then
+    (
+        fclose fileHandle
+        return undefined
+    )
+    tagStruct.header = tagHeader
+    
+    local tagBase = readBaseTag()
+    if tagBase == undefined then
+    (
+        logger "Failed to read base tag data\n" logType:#error
+        fclose fileHandle
+        return undefined
+    )
+    tagStruct.tagBase = tagBase
+    
+    local physReflex = readReflexiveHeaders()
+    if physReflex == undefined then
+    (
+        logger "Failed to read reflexive headers\n" logType:#error
+        fclose fileHandle
+        return undefined
+    )
+    tagStruct.inertiaMatricesBlock = physReflex.inertiaMatrices
+    tagStruct.poweredMassPointsBlock = physReflex.poweredMassPoints
+    tagStruct.massPointsBlock = physReflex.massPoints
+    
+    local inertiaResult = readInertiaMatrices physReflex.inertiaMatrices
+    if inertiaResult == undefined then
+    (
+        logger "Failed to read inertia matrices\n" logType:#error
+        fclose fileHandle
+        return undefined
+    )
+    tagStruct.inertiaMatrices = inertiaResult.inertialMatrices
+    
+    local poweredResult = readPoweredMassPoints physReflex.poweredMassPoints inertiaResult.endOffset
+    tagStruct.poweredMassPoints = poweredResult.poweredMassPoints
+    
+    local massResult = readMassPoints physReflex.massPoints poweredResult.endOffset
+    tagStruct.massPoints = massResult.massPoints
+    
+	fclose fileHandle
+	logger "Physics tag read successfully\n" logType:#success
+	return tagStruct
 )
