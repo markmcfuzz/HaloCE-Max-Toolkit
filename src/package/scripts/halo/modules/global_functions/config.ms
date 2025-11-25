@@ -14,12 +14,12 @@
 -- Logger Configuration (must be defined FIRST)
 ------------------------------------------------------------
 -- Logger output control flags
-global loggerDebug = true        -- Debug messages
-global loggerInfo = true         -- Info messages
+global loggerDebug = false        -- Debug messages
+global loggerInfo = false         -- Info messages
 global loggerWarning = false      -- Warning messages
-global loggerError = true        -- Error messages
+global loggerError = false        -- Error messages
 global loggerSuccess = false     -- Success messages
-global loggerDefault = true      -- Default messages
+global loggerDefault = false      -- Default messages
 global loggerTimestamp = false   -- Timestamp messages
 
 -- File logging
@@ -154,7 +154,7 @@ fn initConfig =
     initDefaultGlobal "tagMainDataLogger" tagBaseDebug
     initDefaultGlobal "tagSummaryLogger" tagBaseDebug
 
-    local tagTimeStampDebug = true
+    local tagTimeStampDebug = false
     -- Enable timestamp logging for tag reading performance
     initDefaultGlobal "timeStampLogger" tagTimeStampDebug
 )
