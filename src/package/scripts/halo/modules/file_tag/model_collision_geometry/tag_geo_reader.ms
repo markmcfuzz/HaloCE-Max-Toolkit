@@ -1,72 +1,58 @@
-/*
-Halo CE Collision BSP Geometry Reader
-Handles reading of BSP (Binary Space Partition) geometry data from model collision geometry tags
-*/
+------------------------------------------------------------------------------------------------
+--	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
+--	license is available at http://www.gnu.org/licenses/gpl.txt.
+------------------------------------------------------------------------------------------------
 
 -------------------------------------------------------
 -- BSPs Tag Block
 -------------------------------------------------------
 
--- Read BSP geometry data for a single node
--- Each node can have multiple BSP permutations (96 bytes each)
-fn readNodeBSPsData nodeIndex nodeName bspsReflexive bspsDataOffset =
+fn readNodeReflexives nodeIndex nodeName bspsReflexive bspsDataOffset =
 (
-	local bspsCount = bspsReflexive[1]
+	local bspsCount = bspsReflexive.count
 	
 	if bspsCount == 0 then
+	(
 		return #()
-	
-	--format "  Reading % BSPs for node '%'...\n" bspsCount nodeName
-	
-	-- Seek to this node's BSP data
-	--format "  [DEBUG] Seeking to BSP header offset: %\n" bspsDataOffset
+	)
 	seekToPosition bspsDataOffset
 	
 	local bsps = #()
-	
 	for i = 1 to bspsCount do
 	(
 		local currentPos = getFilePosition()
-		--format "  [DEBUG] Reading BSP % at file position %\n" i (if currentPos != undefined then currentPos else "UNKNOWN")
-		local bsp = permutationBSP()
-		
-		-- Read BSP3D nodes reflexive (12 bytes at offset 0)
-		bsp.bsp3d_nodes_tag_block = read.reflexive()
+		local bsp3dNodesReflexive = read.reflex()
 		local afterPos = getFilePosition()
-		--format "  [DEBUG] After BSP3D reflexive, position=%, reflexive=%\n" (if afterPos != undefined then afterPos else "UNKNOWN") bsp.bsp3d_nodes_tag_block
+
+		local planesReflexive = read.reflex()
+		local leavesReflexive = read.reflex()
+
+		local bsp2dReferencesReflexive = read.reflex()
+		local bsp2dNodesReflexive = read.reflex()
+		local surfacesReflexive = read.reflex()
+		local edgesReflexive = read.reflex()
+		local verticesReflexive = read.reflex()
 		
-		-- Read planes reflexive (12 bytes at offset 12)
-		bsp.planes_tag_block = read.reflexive()
-		
-		-- Read leaves reflexive (12 bytes at offset 24)
-		bsp.leaves_tag_block = read.reflexive()
-		
-		-- Read BSP2D references reflexive (12 bytes at offset 36)
-		bsp.bsp2d_references_tag_block = read.reflexive()
-		
-		-- Read BSP2D nodes reflexive (12 bytes at offset 48)
-		bsp.bsp2d_nodes_tag_block = read.reflexive()
-		
-		-- Read surfaces reflexive (12 bytes at offset 60)
-		bsp.surfaces_tag_block = read.reflexive()
-		
-		-- Read edges reflexive (12 bytes at offset 72)
-		bsp.edges_tag_block = read.reflexive()
-		
-		-- Read vertices reflexive (12 bytes at offset 84)
-		bsp.vertices_tag_block = read.reflexive()
-		
+		local bsp = returnBspsReflexives()
+		bsp.bsp3dNodes = bsp3dNodesReflexive
+		bsp.planes = planesReflexive
+		bsp.leaves = leavesReflexive
+		bsp.bsp2dReferences = bsp2dReferencesReflexive
+		bsp.bsp2dNodes = bsp2dNodesReflexive
+		bsp.surfaces = surfacesReflexive
+		bsp.edges = edgesReflexive
+		bsp.vertices = verticesReflexive
+
 		append bsps bsp
 		
-		-- Display BSP summary
-		--format "    BSP [%]: 3DNodes=%, Planes=%, Leaves=%, BSP2DRefs=%, BSP2DNodes=%, Surfaces=%, Edges=%, Vertices=%\n" \
-		--	i bsp.bsp3d_nodes_tag_block[1] bsp.planes_tag_block[1] bsp.leaves_tag_block[1] \
-		--	bsp.bsp2d_references_tag_block[1] bsp.bsp2d_nodes_tag_block[1] \
-		--	bsp.surfaces_tag_block[1] bsp.edges_tag_block[1] bsp.vertices_tag_block[1]
-		
-		--format "    [DEBUG] BSP [%] at offset %, next offset will be %\n" i bspsDataOffset (bspsDataOffset + 96)
 	)
-	
 	return bsps
 )
 
@@ -74,24 +60,28 @@ fn readNodeBSPsData nodeIndex nodeName bspsReflexive bspsDataOffset =
 -- BSP3D Nodes Tag Block
 -------------------------------------------------------
 
--- Read BSP3D nodes data
 fn readBSP3DNodes bsp3dNodesReflexive dataOffset =
 (
-	local count = bsp3dNodesReflexive[1]
-	if count == 0 then return #()
-	
+	local count = bsp3dNodesReflexive.count
+	if count == 0 then 
+	(
+		return #()
+	)
 	seekToPosition dataOffset
 	local nodes = #()
-	
 	for i = 1 to count do
 	(
-		local node = bspsBSP3DNodes()
-		node.plane = read.longB "#signed"
-		node.back_child = read.longB "#signed"
-		node.front_child = read.longB "#signed"
+		local plane = read.longB "#signed"
+		local backChild = read.longB "#signed"
+		local frontChild = read.longB "#signed"
+		
+		local node = returnBsp3dNodes()
+		node.plane = plane
+		node.backChild = backChild
+		node.frontChild = frontChild
+		
 		append nodes node
 	)
-	
 	return nodes
 )
 
@@ -99,25 +89,30 @@ fn readBSP3DNodes bsp3dNodesReflexive dataOffset =
 -- Planes Tag Block
 -------------------------------------------------------
 
--- Read planes data
 fn readPlanes planesReflexive dataOffset =
 (
-	local count = planesReflexive[1]
-	if count == 0 then return #()
-	
+	local count = planesReflexive.count
+	if count == 0 then 
+	(
+		return #()
+	)
 	seekToPosition dataOffset
 	local planes = #()
-	
 	for i = 1 to count do
 	(
-		local plane = bspsPlanes()
-		plane.i = read.floatB()
-		plane.j = read.floatB()
-		plane.k = read.floatB()
-		plane.d = read.floatB()
+		local i = read.floatB()
+		local j = read.floatB()
+		local k = read.floatB()
+		local d = read.floatB()
+		
+		local plane = returnBspsPlanes()
+		plane.i = i
+		plane.j = j
+		plane.k = k
+		plane.d = d
+		
 		append planes plane
 	)
-	
 	return planes
 )
 
@@ -125,25 +120,29 @@ fn readPlanes planesReflexive dataOffset =
 -- Leaves Tag Block
 -------------------------------------------------------
 
--- Read leaves data
 fn readLeaves leavesReflexive dataOffset =
 (
-	local count = leavesReflexive[1]
-	if count == 0 then return #()
-	
+	local count = leavesReflexive.count
+	if count == 0 then 
+	(
+		return #()
+	)
 	seekToPosition dataOffset
 	local leaves = #()
-	
 	for i = 1 to count do
 	(
-		local leaf = bspsLeaves()
 		local flagsValue = read.shortB "#unsigned"
-		leaf.flags = if (bit.get flagsValue 1) then #("contains_double_sided_surfaces") else #("none")
-		leaf.bsp2d_reference_count = read.shortB "#signed"
-		leaf.first_bsp2d_reference = read.longB "#signed"
+		local flags = if (bit.get flagsValue 1) then ("contains_double_sided_surfaces") else ("none")
+		local bsp2dReferenceCount = read.shortB "#signed"
+		local firstBsp2dReference = read.longB "#signed"
+		
+		local leaf = returnBspsLeaves()
+		leaf.flags = flags
+		leaf.bsp2dReferenceCount = bsp2dReferenceCount
+		leaf.firstBsp2dReference = firstBsp2dReference
+		
 		append leaves leaf
 	)
-	
 	return leaves
 )
 
@@ -151,84 +150,96 @@ fn readLeaves leavesReflexive dataOffset =
 -- BSP2D References Tag Block
 -------------------------------------------------------
 
--- Read BSP2D references data
 fn readBSP2DReferences bsp2dRefsReflexive dataOffset =
 (
-	local count = bsp2dRefsReflexive[1]
-	if count == 0 then return #()
-	
+	local count = bsp2dRefsReflexive.count
+	if count == 0 then 
+	(
+		return #()
+	)
 	seekToPosition dataOffset
-	local refs = #()
-	
+	local bsp2dRefs = #()
 	for i = 1 to count do
 	(
-		local ref = bspsBSP2DReference()
-		ref.plane = read.longB "#signed"
-		ref.bsp2d_node = read.longB "#signed"
-		append refs ref
+		local plane = read.longB "#signed"
+		local bsp2dNode = read.longB "#signed"
+		
+		local ref = returnBSP2DReferences()
+		ref.plane = plane
+		ref.bsp2dNode = bsp2dNode
+		
+		append bsp2dRefs ref
 	)
-	
-	return refs
+	return bsp2dRefs
 )
 
 -------------------------------------------------------
 -- BSP2D Nodes Tag Block
 -------------------------------------------------------
 
--- Read BSP2D nodes data
 fn readBSP2DNodes bsp2dNodesReflexive dataOffset =
 (
-	local count = bsp2dNodesReflexive[1]
-	if count == 0 then return #()
-	
+	local count = bsp2dNodesReflexive.count
+	if count == 0 then 
+	(
+		return #()
+	)
 	seekToPosition dataOffset
 	local nodes = #()
-	
 	for i = 1 to count do
 	(
-		local node = bspsBSP2DNode()
-		node.plane_i = read.floatB()
-		node.plane_j = read.floatB()
-		node.plane_d = read.floatB()
-		node.left_child = read.longB "#signed"
-		node.right_child = read.longB "#signed"
+		local planeI = read.floatB()
+		local planeJ = read.floatB()
+		local planeD = read.floatB()
+		local leftChild = read.longB "#signed"
+		local rightChild = read.longB "#signed"
+
+		local node = returnBsp2dNodes()
+		node.planeI = planeI
+		node.planeJ = planeJ
+		node.planeD = planeD
+		node.leftChild = leftChild
+		node.rightChild = rightChild
 		append nodes node
 	)
-	
 	return nodes
-)
+)	
 
 -------------------------------------------------------
 -- Surfaces Tag Block
 -------------------------------------------------------
 
--- Read surfaces data
 fn readSurfaces surfacesReflexive dataOffset =
 (
-	local count = surfacesReflexive[1]
-	if count == 0 then return #()
-	
+	local count = surfacesReflexive.count
+	if count == 0 then 
+	(
+		return #()
+	)
 	seekToPosition dataOffset
 	local surfaces = #()
-	
 	for i = 1 to count do
 	(
-		local surface = bspsSurface()
-		surface.plane = read.longB "#signed"
-		surface.first_edge = read.longB "#signed"
+		local plane = read.longB "#signed"
+		local firstEdge = read.longB "#signed"
 		
-		-- Read flags (1 byte)
 		local fileHandle = getCurrentFileHandle()
 		local flagsValue = readByte fileHandle #unsigned
 		local surfaceFlagNames = #("two_sided", "invisible", "climbable", "breakable")
-		surface.flags = decodeFlagBits flagsValue surfaceFlagNames
+		local flags = decodeFlagBits flagsValue surfaceFlagNames
 		
-		surface.breakable_surface = readByte fileHandle #signed
-		surface.material = read.shortB "#signed"
+		local breakableSurface = readByte fileHandle #signed
+		local material = read.shortB "#signed"
+		
+		local surface = returnSurfaces()
+		surface.plane = plane
+		surface.firstEdge = firstEdge
+		surface.flags = flags
+		surface.breakableSurface = breakableSurface
+		surface.material = material
 		
 		append surfaces surface
 	)
-	
 	return surfaces
 )
 
@@ -236,27 +247,34 @@ fn readSurfaces surfacesReflexive dataOffset =
 -- Edges Tag Block
 -------------------------------------------------------
 
--- Read edges data
 fn readEdges edgesReflexive dataOffset =
 (
-	local count = edgesReflexive[1]
-	if count == 0 then return #()
-	
+	local count = edgesReflexive.count
+	if count == 0 then 
+	(
+		return #()
+	)
 	seekToPosition dataOffset
 	local edges = #()
-	
 	for i = 1 to count do
 	(
-		local edge = bspsEdge()
-		edge.start_vertex = read.longB "#signed"
-		edge.end_vertex = read.longB "#signed"
-		edge.forward_edge = read.longB "#signed"
-		edge.reverse_edge = read.longB "#signed"
-		edge.left_surface = read.longB "#signed"
-		edge.right_surface = read.longB "#signed"
+		local startVertex = read.longB "#signed"
+		local endVertex = read.longB "#signed"
+		local forwardEdge = read.longB "#signed"
+		local reverseEdge = read.longB "#signed"
+		local leftSurface = read.longB "#signed"
+		local rightSurface = read.longB "#signed"
+		
+		local edge = returnEdges()
+		edge.startVertex = startVertex
+		edge.endVertex = endVertex
+		edge.forwardEdge = forwardEdge
+		edge.reverseEdge = reverseEdge
+		edge.leftSurface = leftSurface
+		edge.rightSurface = rightSurface
+		
 		append edges edge
 	)
-	
 	return edges
 )
 
@@ -264,26 +282,29 @@ fn readEdges edgesReflexive dataOffset =
 -- Vertices Tag Block
 -------------------------------------------------------
 
--- Read vertices data
 fn readVertices verticesReflexive dataOffset =
 (
-	local count = verticesReflexive[1]
-	if count == 0 then return #()
-	
+	local count = verticesReflexive.count
+	if count == 0 then 
+	(
+		return #()
+	)
 	seekToPosition dataOffset
 	local vertices = #()
-	
 	for i = 1 to count do
 	(
-		local vertex = bspsVertices()
 		local x = read.floatB()
 		local y = read.floatB()
 		local z = read.floatB()
-		vertex.point = [x, y, z]
-		vertex.first_edge = read.longB "#signed"
+		local point = [x, y, z]
+		local firstEdge = read.longB "#signed"
+		
+		local vertex = returnVertices()
+		vertex.point = point
+		vertex.firstEdge = firstEdge
+		
 		append vertices vertex
 	)
-	
 	return vertices
 )
 
@@ -294,107 +315,75 @@ fn readVertices verticesReflexive dataOffset =
 fn readAllNodesBSPGeometry nodes nodesDataOffset =
 (
 	if nodes.count == 0 then
+	(
 		return nodes
-	
-	--format "\n=== READING BSP GEOMETRY DATA ===\n"
-	
-	-- Get file size for validation
+	)	
 	local fileHandle = getCurrentFileHandle()
 	local currentPos = ftell fileHandle
 	fseek fileHandle 0 #seek_end
 	local fileSize = ftell fileHandle
 	fseek fileHandle currentPos #seek_set
-	--format "[DEBUG] File size: % bytes\n" fileSize
-	
-	-- Calculate where BSP data starts (after all node headers)
-	-- Each node header is 64 bytes
+
 	local bspsDataStartOffset = nodesDataOffset + (nodes.count * 64)
 	local currentBSPOffset = bspsDataStartOffset
-	
-	--format "[DEBUG] Nodes end at: %, BSP headers start at: %\n" (nodesDataOffset + (nodes.count * 64)) bspsDataStartOffset
-	
-	-- Read BSP permutations for each node (header + geometry interleaved)
+		
 	for i = 1 to nodes.count do
 	(
 		local node = nodes[i]
-		local bspsReflexive = node.bsps_tag_block
+		local bspsReflexive = node.bspsReflexive
 		
-		if bspsReflexive[1] > 0 then
-		(
-			--format "\n[DEBUG] Node % '%' BSP at offset %\n" (i-1) node.name currentBSPOffset
+		if bspsReflexive.count > 0 then
+		(			
+			node.bsps = readNodeReflexives i node.name bspsReflexive currentBSPOffset
+			currentBSPOffset += (bspsReflexive.count * 96)
 			
-			-- Read BSP header (96 bytes)
-			node.bsps = readNodeBSPsData i node.name bspsReflexive currentBSPOffset
-			currentBSPOffset += (bspsReflexive[1] * 96)
-			
-			-- Immediately read geometry data for this node's BSPs (interleaved structure)
 			for bspIdx = 1 to node.bsps.count do
 			(
 				local bsp = node.bsps[bspIdx]
-				--format "  BSP [%] geometry at offset %:\n" (bspIdx - 1) currentBSPOffset
-				
-				-- Read geometry components sequentially
-				if bsp.bsp3d_nodes_tag_block[1] > 0 then
+				if bsp.bsp3dNodes.count > 0 then
 				(
-					bsp.bsp3d_nodes = readBSP3DNodes bsp.bsp3d_nodes_tag_block currentBSPOffset
-					currentBSPOffset += (bsp.bsp3d_nodes_tag_block[1] * 12)
-					--format "    - BSP3D Nodes: %\n" bsp.bsp3d_nodes.count
+					bsp.bsp3dNodes = readBSP3DNodes bsp.bsp3dNodes currentBSPOffset
+					currentBSPOffset += (bsp.bsp3dNodes.count * 12)
 				)
-			
-				if bsp.planes_tag_block[1] > 0 then
+				if bsp.planes.count > 0 then
 				(
-					bsp.planes = readPlanes bsp.planes_tag_block currentBSPOffset
-					currentBSPOffset += (bsp.planes_tag_block[1] * 16)
-					--format "    - Planes: %\n" bsp.planes.count
+					bsp.planes = readPlanes bsp.planes currentBSPOffset
+					currentBSPOffset += (bsp.planes.count * 16)
 				)
-
-				if bsp.leaves_tag_block[1] > 0 then
+				if bsp.leaves.count > 0 then
 				(
-					bsp.leaves = readLeaves bsp.leaves_tag_block currentBSPOffset
-					currentBSPOffset += (bsp.leaves_tag_block[1] * 8)
-					--format "    - Leaves: %\n" bsp.leaves.count
+					bsp.leaves = readLeaves bsp.leaves currentBSPOffset
+					currentBSPOffset += (bsp.leaves.count * 8)
 				)
-
-				if bsp.bsp2d_references_tag_block[1] > 0 then
+				if bsp.bsp2dReferences.count > 0 then
 				(
-					bsp.bsp2d_references = readBSP2DReferences bsp.bsp2d_references_tag_block currentBSPOffset
-					currentBSPOffset += (bsp.bsp2d_references_tag_block[1] * 8)
-					--format "    - BSP2D References: %\n" bsp.bsp2d_references.count
+					bsp.bsp2dReferences = readBSP2DReferences bsp.bsp2dReferences currentBSPOffset
+					currentBSPOffset += (bsp.bsp2dReferences.count * 8)
 				)
-
-				if bsp.bsp2d_nodes_tag_block[1] > 0 then
+				if bsp.bsp2dNodes.count > 0 then
 				(
-					bsp.bsp2d_nodes = readBSP2DNodes bsp.bsp2d_nodes_tag_block currentBSPOffset
-					currentBSPOffset += (bsp.bsp2d_nodes_tag_block[1] * 20)
-					--format "    - BSP2D Nodes: %\n" bsp.bsp2d_nodes.count
+					bsp.bsp2dNodes = readBSP2DNodes bsp.bsp2dNodes currentBSPOffset
+					currentBSPOffset += (bsp.bsp2dNodes.count * 20)
 				)
-
-				if bsp.surfaces_tag_block[1] > 0 then
+				if bsp.surfaces.count > 0 then
 				(
-					bsp.surfaces = readSurfaces bsp.surfaces_tag_block currentBSPOffset
-					currentBSPOffset += (bsp.surfaces_tag_block[1] * 12)
-					--format "    - Surfaces: %\n" bsp.surfaces.count
+					bsp.surfaces = readSurfaces bsp.surfaces currentBSPOffset
+					currentBSPOffset += (bsp.surfaces.count * 12)
 				)
-
-				if bsp.edges_tag_block[1] > 0 then
+				if bsp.edges.count > 0 then
 				(
-					bsp.edges = readEdges bsp.edges_tag_block currentBSPOffset
-					currentBSPOffset += (bsp.edges_tag_block[1] * 24)
-					--format "    - Edges: %\n" bsp.edges.count
+					bsp.edges = readEdges bsp.edges currentBSPOffset
+					currentBSPOffset += (bsp.edges.count * 24)
 				)
-
-				if bsp.vertices_tag_block[1] > 0 then
+				if bsp.vertices.count > 0 then
 				(
-					bsp.vertices = readVertices bsp.vertices_tag_block currentBSPOffset
-					currentBSPOffset += (bsp.vertices_tag_block[1] * 16)
-					--format "    - Vertices: %\n" bsp.vertices.count
+					bsp.vertices = readVertices bsp.vertices currentBSPOffset
+					currentBSPOffset += (bsp.vertices.count * 16)
 				)
 			)
 		)
 	)
-	
-	--format "\nBSP Geometry reading complete\n"
 	return nodes
 )
 
-format "Tag Geometry Reader loaded successfully.\n"
+logger "Geometry tag reader loaded.\n" logType:#success
