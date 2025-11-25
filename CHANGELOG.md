@@ -63,3 +63,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **global_functions:** Renamed read_utils.ms to utils.ms and tag_classes.ms to tag_metadata.ms
 - **Utils:** Move general utilities in a global struct for better organization.
+
+## [3.5.0] - 2025-11-15
+### Added
+- New implemented tag reader for **Shader Model** tags.
+- **GBX/Model Importer:** Added support for automatic texture application to materials on imported geometries.
+- Decompress functions to utils.ms for handling compressed vertex data.
+
+### Fixed
+- **Utils:** Fixed issue where the reflexiveData struct was not being properly instantiated, leading to errors when reading reflexive data.
+- **Model Collision Geometry Importer:** Lost permutation names on imported collision geometries.
+- Increased speed of various file reading and build operations across gbx,collision and physics importers.
+
+### Changed
+- GBX/Model, Model Collision Geometry and Physics Importer code refactor bases on structs for better readability and maintainability.
