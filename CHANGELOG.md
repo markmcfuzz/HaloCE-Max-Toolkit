@@ -77,3 +77,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - GBX/Model, Model Collision Geometry and Physics Importer code refactor bases on structs for better readability and maintainability.
+- Silence import success/failure message boxes in physics/collision importer to reduce interruptions.
