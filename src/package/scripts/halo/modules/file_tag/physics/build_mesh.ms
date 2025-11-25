@@ -1,28 +1,27 @@
-/*
-Halo CE Physics Mesh Builder
-Creates sphere geometry for physics mass points
-*/
+------------------------------------------------------------------------------------------------
+--	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
+--	license is available at http://www.gnu.org/licenses/gpl.txt.
+------------------------------------------------------------------------------------------------
 
 -------------------------------------------------------
 -- Sphere orientation function
 -------------------------------------------------------
 
--- Orient sphere using forward and up vectors from physics data
 fn orientMassPointSphere sphereObj forwardVec upVec =
 (
     try
     (
-        -- Store current position
         local currentPos = sphereObj.transform.row4
-        
-        -- Create transformation matrix where:
-        -- X-axis = forward vector (from physics forward)
-        -- Z-axis = up vector (from physics up)  
-        -- Y-axis = cross product of up and forward (right-hand rule)
         local rightVec = cross upVec forwardVec
         local transformMatrix = matrix3 forwardVec rightVec upVec currentPos
-        
-        -- Apply the transformation
+
         sphereObj.transform = transformMatrix
         
         return true
@@ -37,29 +36,24 @@ fn orientMassPointSphere sphereObj forwardVec upVec =
 -- Mass Point Custom Attributes UI
 -------------------------------------------------------
 
--- Custom attributes for mass point data display in Modify panel
 massPointAttributes = attributes "Mass Point Properties"
 (
 	parameters massPointParams rollout:massPointRollout
 	(
-		-- Basic properties (parameters are writable, UI controls will be read-only)
 		mpName type:#string ui:etName default:""
 		poweredMassPointName type:#string ui:etPoweredMassPoint default:""
 		modelNodeIndex type:#integer ui:spModelNode default:-1
 		linkedNodeName type:#string ui:etLinkedNode default:""
 		
-		-- Mass and density
 		relativeMass type:#float ui:spRelativeMass default:0.0
 		massValue type:#float ui:spMass default:0.0
 		relativeDensity type:#float ui:spRelativeDensity default:0.0
 		densityValue type:#float ui:spDensity default:0.0
 		
-		-- Friction properties
 		frictionType type:#string ui:etFrictionType default:"point"
 		frictionParallel type:#float ui:spFrictionPara default:0.0
 		frictionPerpendicular type:#float ui:spFrictionPerp default:0.0
 		
-		-- Flags
 		isMetallic type:#boolean ui:chkMetallic default:false
 	)
 	
@@ -91,28 +85,22 @@ massPointAttributes = attributes "Mass Point Properties"
 -- Node collection and linking functions
 -------------------------------------------------------
 
--- Collect scene nodes for mass point linking
 fn collectSceneNodes =
 (
     try
     (
         local allNodes = #()
-        
-        -- Collect frame* nodes (common Halo naming convention)
+
         local frameNodes = for obj in objects where (matchPattern obj.name pattern:"frame*") and (isValidNode obj) collect obj
         
-        -- Collect b_* nodes (bone naming convention)
         local boneNodes = for obj in objects where (matchPattern obj.name pattern:"b_*") and (isValidNode obj) collect obj
         
-        -- Collect bip01* nodes (biped naming convention)
         local bipedNodes = for obj in objects where (matchPattern obj.name pattern:"bip01*") and (isValidNode obj) collect obj
         
-        -- Combine all node types
         join allNodes frameNodes
         join allNodes boneNodes
         join allNodes bipedNodes
         
-        -- Filter out hidden and frozen nodes
         allNodes = for obj in allNodes where not (obj.isHidden or obj.isFrozen) collect obj
         
         return allNodes
@@ -126,33 +114,25 @@ fn collectSceneNodes =
 -------------------------------------------------------
 -- Creation spheres
 -------------------------------------------------------
--- Create spheres in 3ds Max for each mass point
+
 fn createMassPointSpheres massPointsArray poweredMassPointsArray =
 (
 	if massPointsArray == undefined or massPointsArray.count == 0 then
 	(
 		return undefined
 	)
-
-	-- Collect scene nodes for potential linking
 	local sceneNodes = collectSceneNodes()
-	
 	local createdSpheres = #()
-
 	for mp in massPointsArray do
 	(
-		-- Convert world units to 3ds Max units (1 world unit = 100 3ds Max units)
 		local spherePos = (Point3 mp.position[1] mp.position[2] mp.position[3]) * 100
 		local sphereRadius = mp.radius * 100
 
-		-- Create sphere with # prefix in name
 		local sphereName = "#" + mp.name
 
-		-- Create the sphere
 		local newSphere = sphere radius:sphereRadius pos:spherePos name:sphereName smooth:on
 
-		-- Set sphere color based on friction type for visual distinction
-		local sphereColor = case mp.friction_type of
+		local sphereColor = case mp.frictionType of
 		(
 			0: (color 255 82 13)       --#ff5210 | Orange - point friction (most common)
 			1: (color 48 255 203)      --#30ffcb | Cyan - forward friction (wheels/treads)
@@ -162,35 +142,29 @@ fn createMassPointSpheres massPointsArray poweredMassPointsArray =
 		)
 		newSphere.wirecolor = sphereColor
 
-		-- Assign to "Physics" layer
 		local physicsLayer = LayerManager.getLayerFromName "Physics"
 		if physicsLayer == undefined then
 			physicsLayer = LayerManager.newLayerFromName "Physics"
 		physicsLayer.addNode newSphere
 
-		-- Add custom attributes to display mass point data in Modify panel
 		custAttributes.add newSphere massPointAttributes
 		
-		-- Set all the mass point data in the custom attributes
 		newSphere.mpName = mp.name
-		newSphere.modelNodeIndex = mp.model_node
-		newSphere.relativeMass = mp.relative_mass
-		newSphere.massValue = mp.mass  -- Now use the actual mass value from mass point
-		newSphere.relativeDensity = mp.relative_density
-		newSphere.densityValue = mp.density  -- Now use the actual density value from mass point
+		newSphere.modelNodeIndex = mp.modelNode
+		newSphere.relativeMass = mp.relativeMass
+		newSphere.massValue = mp.mass
+		newSphere.relativeDensity = mp.relativeDensity
+		newSphere.densityValue = mp.density
 		
-		-- Resolve powered mass point name
-		if mp.powered_mass_point >= 0 and mp.powered_mass_point < poweredMassPointsArray.count then
+		if mp.poweredMassPoint >= 0 and mp.poweredMassPoint < poweredMassPointsArray.count then
 		(
-			newSphere.poweredMassPointName = poweredMassPointsArray[mp.powered_mass_point + 1]
+			newSphere.poweredMassPointName = poweredMassPointsArray[mp.poweredMassPoint + 1].name
 		)
 		else
 		(
 			newSphere.poweredMassPointName = "None"
 		)
-		
-		-- Convert friction type to readable name
-		local frictionTypeName = case mp.friction_type of
+		local frictionTypeName = case mp.frictionType of
 		(
 			0: "point"
 			1: "forward"
@@ -199,27 +173,22 @@ fn createMassPointSpheres massPointsArray poweredMassPointsArray =
 			default: "unknown"
 		)
 		newSphere.frictionType = frictionTypeName
-		newSphere.frictionParallel = mp.friction_parallel_scale
-		newSphere.frictionPerpendicular = mp.friction_perpendicular_scale
+		newSphere.frictionParallel = mp.frictionParallelScale
+		newSphere.frictionPerpendicular = mp.frictionPerpendicularScale
 		newSphere.isMetallic = (mp.flags == 1)
 
-		-- Apply orientation using forward and up vectors from physics data
 		orientMassPointSphere newSphere mp.forward mp.up
-
-		-- Try to link sphere to scene node
-		if (mp.model_node >= 0 and mp.model_node < sceneNodes.count) then
+		if (mp.modelNode >= 0 and mp.modelNode < sceneNodes.count) then
 		(
-			local targetNode = sceneNodes[mp.model_node + 1]
+			local targetNode = sceneNodes[mp.modelNode + 1]
 			newSphere.parent = targetNode
-			newSphere.linkedNodeName = targetNode.name  -- Update custom attribute
+			newSphere.linkedNodeName = targetNode.name
 		)
 		else
 		(
-			newSphere.linkedNodeName = "None"  -- Update custom attribute
+			newSphere.linkedNodeName = "None"
 		)
-	
 		append createdSpheres newSphere
 	)
-
 	return createdSpheres
 )
