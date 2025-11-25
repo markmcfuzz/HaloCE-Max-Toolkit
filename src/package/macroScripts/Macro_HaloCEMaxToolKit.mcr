@@ -5,7 +5,7 @@ macroScript ImportGBX
     on execute do 
     (
         local scriptsDir = GetDir #userscripts
-        local scriptPath = scriptsDir + "\\halo\\import_gbx.ms"
+        local scriptPath = scriptsDir + "\\halo\\import_gbxmodel.ms"
         if doesFileExist scriptPath then
         (
             fileIn scriptPath
