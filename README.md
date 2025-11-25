@@ -13,10 +13,10 @@ This toolkit uses some of  the original scripts from the [BlueStreak](https://gi
 - Additional validations and error handling compared to the original BlueStreak scripts.
 - Adds a new **Halo CE Toolkit** menu section inside 3ds Max for quick access to import/export tools.
 - Uninstall the Toolkit with installer dialog.
----
+
 If you wanna know more about the features and roadmap, check the [**Project Wiki**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/wiki).
 
-
+---
 ### Dependencies
 - **Autodesk 3ds Max 2023** or later (may work on 2019+)
 
