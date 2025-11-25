@@ -1,102 +1,137 @@
-/*
-Halo CE Physics Tag Structure Definition
-Contains all struct definitions for physics tags
-*/
+------------------------------------------------------------------------------------------------
+--	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
+--	license is available at http://www.gnu.org/licenses/gpl.txt.
+------------------------------------------------------------------------------------------------
 
 -------------------------------------------------------
 -- Physics tag structure
 -------------------------------------------------------
 
 struct physicsTag (
-    header = 1885895027 or undefined,
-    radius = 0.0,
-    moment_scale = 0.0,
-    mass = 0.0,
-    density = 0.0,
-    gravity_scale = 0.0,
-    ground_friction = 0.0,
-    ground_depth = 0.0,
-    ground_damp_fraction = 0.0,
-    ground_normal_k1 = 0.0,
-    ground_normal_k0 = 0.0,
-    water_friction = 0.0,
-    water_depth = 0.0,
-    water_density = 0.0,
-    air_friction = 0.0,
-    xx_moment = 0.0,
-    yy_moment = 0.0,
-    zz_moment = 0.0,
-    inertial_matrix_and_inverse = #(),
-    powered_mass_points = #(),
-    mass_points = #(),
-    intertial_matrix_and_inverse_tag_block = undefined,
-    powered_mass_points_tag_block = undefined,
-    mass_points_tag_block = undefined
+    header = undefined,
+    tagBase = undefined,
+    inertiaMatricesBlock = undefined,
+    inertiaMatrices = #(),
+    poweredMassPointsBlock = undefined,
+    poweredMassPoints = #(),
+    massPointsBlock = undefined,
+    massPoints = #()
 )
 
-struct physicsInertialMatrixAndInverse (
-    inertial_matrix = #(),
-    inertial_matrix_inverse = #()
+-------------------------------------------------------
+-- Return structures
+-------------------------------------------------------
+
+struct returnHeader (
+    tagClass,
+    checksum,
+    version,
+    engineId
 )
 
-struct inertialMatrix (
-    yy_zz = [0.0, 0.0, 0.0],
-    zz_xx = [0.0, 0.0, 0.0],
-    xx_yy = [0.0, 0.0, 0.0]
+struct returnTagBase (
+    radius,
+    momentScale,
+    mass,
+    centerOfMass,
+    density,
+    gravityScale,
+    groundFriction,
+    groundDepth,
+    groundDampFraction,
+    groundNormalK1,
+    groundNormalK0,
+    waterFriction,
+    waterDepth,
+    waterDensity,
+    airFriction,
+    xxMoment,
+    yyMoment,
+    zzMoment
 )
 
-struct intertialMatrixInverse (
-    yy_zz = [0.0, 0.0, 0.0],
-    zz_xx = [0.0, 0.0, 0.0],
-    xx_yy = [0.0, 0.0, 0.0]
+struct returnReflexives (
+    inertiaMatrices,
+    poweredMassPoints,
+    massPoints
 )
 
-struct physicsPoweredMassPoints (
-    name = "",
-    flags = 0,
-    antigrav_strength = 0.0,
-    antigrav_offset = 0.0,
-    antigrav_height = 0.0,
-    antigrav_damp_fraction = 0.0,
-    antigrav_normal_k1 = 0.0,
-    antigrav_normal_k0 = 0.0
+struct returnInertiaMatrices (
+    inertialMatrix,
+    inertialMatrixInverse
 )
 
-struct poweredMassPointsFlags (
-    ground_friction = 0,
-    water_friction = 1,
-    water_density = 2,
-    water_lift = 3,
-    air_lift = 4,
-    thrust = 5,
-    antigrav = 6
+struct returnInertialMatrix (
+    yyZz,
+    zzXx,
+    xxYy
 )
 
-struct physicsMassPoints (
-    name = "",
-    powered_mass_point = 0,
-    model_node = 0,
-    flags = 0,
-    relative_mass = 0.0,
-    mass = 0.0,
-    relative_density = 0.0,
-    density = 0.0,
-    position = [0.0, 0.0, 0.0],
-    forward = [1.0, 0.0, 0.0], -- quaternion
-    up = [0.0, 0.0, 1.0], -- quaternion
-    friction_type = 0,
-    friction_parallel_scale = 0.0,
-    friction_perpendicular_scale = 0.0,
-    radius = 0.0
+struct returnInertialMatrixInverse (
+    yyZz,
+    zzXx,
+    xxYy
 )
 
-struct massPointsFlags (
-    metallic = 0
+struct inertiaMatricesBlockResult (
+    inertialMatrices,
+    endOffset
 )
 
-struct frictionTypeEnum (
-    point = 0,
-    forward = 1,
-    left = 2,
-    up = 3
+struct returnPoweredMassPoints (
+    name,
+    flags,
+    antigravStrength,
+    antigravOffset,
+    antigravHeight,
+    antigravDampFraction,
+    antigravNormalK1,
+    antigravNormalK0
+)
+
+struct poweredMassPointsBlockResult (
+    poweredMassPoints,
+    endOffset
+)
+
+struct returnMassPoints (
+    name,
+    poweredMassPoint,
+    modelNode,
+    flags,
+    relativeMass,
+    mass,
+    relativeDensity,
+    density,
+    position,
+    forward,
+    up,
+    frictionType,
+    frictionParallelScale,
+    frictionPerpendicularScale,
+    radius
+)
+
+struct massPointsBlockResult (
+    massPoints,
+    endOffset
+)
+
+fn frictionTypeToString funcType =
+(
+	case funcType of
+	(
+		0: "point";
+        1: "forward";
+        2: "left";
+        3: "up";
+		default: ("unknown_" + (funcType as string))
+	)
 )
