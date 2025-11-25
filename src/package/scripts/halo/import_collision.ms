@@ -26,7 +26,6 @@
 -- Get script directory
 scriptDir = getFilenamePath (getThisScriptFilename())
 
--- Clear listener
 clearListener()
 
 -- Force garbage collection to clear old structs from memory
@@ -48,7 +47,6 @@ filein (scriptDir + "modules\\file_tag\\model_collision_geometry\\tag_base_reade
 
 fn importCollisionGeometry =
 (
-	-- Open file dialog
 	collisionFile = getOpenFileName \
 		caption:"Select Halo CE Collision Geometry Tag" \
 		types:"Collision Geometry (*.model_collision_geometry)|*.model_collision_geometry|All Files (*.*)|*.*" \
@@ -60,31 +58,36 @@ fn importCollisionGeometry =
 		return undefined
 	)
 	
-	format "\n=== IMPORTING COLLISION GEOMETRY ===\n"
-	format "File: %\n" (filenameFromPath collisionFile)
+	global enableFileLogging = false
+	if enableFileLogging then
+	(
+		local logPath = (getFilenamePath collisionFile) + (getFilenameFile collisionFile) + "_collision_import.log"
+		global logFile = createFile logPath
+	)
 	
-	-- Read collision tag
+	--format "\n=== IMPORTING COLLISION GEOMETRY ===\n"
+	--format "File: %\n" (filenameFromPath collisionFile)
+	
 	local collisionData = readCollisionTag collisionFile
+	
+	if logFile != undefined do
+	(
+		close logFile
+		global logFile = undefined
+	)
+	global enableFileLogging = false
 	
 	if collisionData == undefined then
 	(
-		format "[FAILED] Could not read collision tag\n"
+		logger "Could not read collision tag\n" logType:#error
 		messageBox "Failed to read collision tag file!\n\nThe file may be corrupted or not a valid Halo CE collision geometry tag." title:"Import Failed"
 		return undefined
 	)
-	
-	format "\n[SUCCESS] Collision tag read successfully!\n"
-	format "Materials: %\n" collisionData.materials.count
-	format "Regions: %\n" collisionData.regions.count
-	format "Spheres: %\n" collisionData.pathfinding_spheres.count
-	format "Nodes: %\n" collisionData.nodes.count
-	
-	-- Build collision mesh in scene
+
 	format "\n=== BUILDING COLLISION MESH ===\n"
 	local collisionName = getFilenameFile collisionFile
 	local success = buildCollisionMesh collisionData collisionName
 	
-	-- Refresh viewport to show imported geometry
 	completeRedraw()
 	
 	if success != undefined and success.count > 0 then
@@ -99,9 +102,7 @@ fn importCollisionGeometry =
 	)
 	
 	clearListener()
-
 	return success
 )
 
--- Run the import
 importCollisionGeometry()
