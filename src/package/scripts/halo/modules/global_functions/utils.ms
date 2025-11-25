@@ -63,6 +63,28 @@ fn seekToPosition position seekMode:#seek_set =
 -------------------------------------------------------
 -- Binary readers (big-endian)
 -------------------------------------------------------
+struct tagRefData
+(
+    tagClass,
+    pathPtr,
+    pathLen,
+    tagID,
+    path
+)
+
+-- Clear any cached global variable that might override the struct
+if reflexiveData != undefined and (classOf reflexiveData) != StructDef then
+(
+    reflexiveData = undefined
+)
+
+struct reflexiveData
+(
+    count,
+    pointer,
+    id
+)
+
 global read = undefined
 
 struct read (
@@ -203,6 +225,29 @@ struct read (
 		str
 	),
 
+	-- Read a string with 4-byte padding alignment (for sequential data structures)
+	fn tagStringAligned size =
+	(
+		local fileHandle = getCurrentFileHandle()
+		local str = ""
+		
+		-- Read the actual string bytes
+		for i = 1 to size do
+		(
+			local char = readByte fileHandle #unsigned
+			if char != 0 then
+				str += bit.intAsChar char
+		)
+		
+		-- Skip padding bytes to reach 4-byte alignment
+		local paddedLen = ((size + 3) / 4) * 4
+		local paddingBytes = paddedLen - size
+		for i = 1 to paddingBytes do
+			readByte fileHandle #unsigned
+		
+		str
+	),
+
 	-- Read TagRef structure (16 bytes)
 	fn tagRef =
 	(
@@ -210,6 +255,7 @@ struct read (
 		local pathPtr = read.longB "#signed"
 		local pathLen = read.longB "#signed"
 		local tagID = read.longB "#unsigned"
+		--#(tagClass, pathPtr, pathLen, tagID)
 		tagRefData tagClass pathPtr pathLen tagID
 	),
 
@@ -232,21 +278,7 @@ struct read (
 	)
 )
 
-struct tagRefData
-(
-    tagClass,
-    pathPtr,
-    pathLen,
-    tagID,
-    path  -- Optional: stores the path string when read from file
-)
 
-struct reflexiveData
-(
-    count,
-    pointer,
-    id
-)
 
 -------------------------------------------------------
 -- Math readers
@@ -338,7 +370,7 @@ fn decodeFlagBits flagValue flagNames =
 	local result = ""
 	for flag in activeFlagsArray do
 	(
-		result += "\n  - (" + flag + ")"
+		result += "  - (" + flag + ")"
 	)
 	result
 )
@@ -398,27 +430,6 @@ fn materialTypeToString matType =
 	)
 )
 
---------------------------------------------------------
--- Decompression functions
---------------------------------------------------------
-
---fn decompressNormal32 n =
---(
---    local xMask = 1023
---    local yMask = 1023
---    local zMask = 511
---    
---    local x = (bit.and n xMask) / xMask
---    local y = (bit.and (bit.shift n -11) yMask) / yMask
---    local z = (bit.and (bit.shift n -22) zMask) / zMask
---    
---    if bit.and n (bit.shift 1 10) != 0 do x -= 1.0
---    if bit.and n (bit.shift 1 21) != 0 do y -= 1.0
---    if bit.and n (bit.shift 1 31) != 0 do z -= 1.0
---    
---    return [x, y, z]
---)
-
 -------------------------------------------------------
 -- Tag Reference Path Reader
 -------------------------------------------------------
@@ -475,9 +486,44 @@ fn formatTagRef tagRef useFullName:true =
     return "{" + tagClassName + "}" + " (" + tagPath + ")"
 )
 
+-------------------------------------------------------
+-- COMPRESSED VERTEX DECOMPRESSION
+-------------------------------------------------------
+
+-- Decompress normal from packed 32-bit format (11-11-10 bit)
+fn decompressNormal normalPacked =
+(
+    local nx = (bit.and (bit.shift normalPacked -21) 0x7FF) / 1023.0 * 2.0 - 1.0
+    local ny = (bit.and (bit.shift normalPacked -10) 0x7FF) / 1023.0 * 2.0 - 1.0
+    local nz = (bit.and normalPacked 0x3FF) / 511.0 * 2.0 - 1.0
+    return [nx, ny, nz]
+)
+
+-- Decompress UV coordinates from signed 16-bit format
+fn decompressUV u16 v16 uScale:1.0 vScale:1.0 =
+(
+    local u = (u16 / 32767.0) * uScale
+    local v_coord = 1.0 - ((v16 / 32767.0) * vScale)
+    return [u, v_coord, 0]
+)
+
+-- Decompress node indices (stored * 3 in compressed format)
+fn decompressNodeIndices node0Raw node1Raw =
+(
+    local node0Index = (node0Raw / 3) + 1  -- Convert to 1-based
+    local node1Index = (node1Raw / 3) + 1  -- Convert to 1-based
+    return #(node0Index, node1Index)
+)
+
+-- Decompress node weight from signed 16-bit to float (0.0-1.0)
+fn decompressNodeWeight weightRaw =
+(
+    local weight = weightRaw / 32767.0
+    return weight
+)
+
 -- Instantiate global structs
 read = read()
 math = math()
-
 
 logger "Utilities loaded.\n" logType:#success
