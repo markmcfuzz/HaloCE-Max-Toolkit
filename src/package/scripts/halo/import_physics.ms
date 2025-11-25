@@ -82,16 +82,16 @@ fn ImportPhysicsGeometry =
 	-- Refresh viewport
 	completeRedraw()
 	
-	if success != undefined and success.count > 0 then
-	(
-		logger "\n[SUCCESS] Physics geometry imported successfully!\n"
-		messageBox ("Physics mass points imported successfully!\nCreated " + success.count as string + " sphere objects.") title:"Import Complete"
-	)
-	else
-	(
-		logger "\n[FAILED] Could not build mass point spheres\n"
-		messageBox "Failed to build mass point spheres in scene!" title:"Import Failed"
-	)
+	--if success != undefined and success.count > 0 then
+	--(
+	--	logger "\n[SUCCESS] Physics geometry imported successfully!\n"
+	--	messageBox ("Physics mass points imported successfully!\nCreated " + success.count as string + " sphere objects.") title:"Import Complete"
+	--)
+	--else
+	--(
+	--	logger "\n[FAILED] Could not build mass point spheres\n"
+	--	messageBox "Failed to build mass point spheres in scene!" title:"Import Failed"
+	--)
 	
 	clearListener()
 

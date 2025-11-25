@@ -132,7 +132,7 @@ fn ImportGbxmodelGeometry modelFile:undefined =
     logger "Geometry built: % ms\n" params:#((timestamp() - t4)) logType:#timestamp
     
     local sceneTime = (timestamp() - sceneStartTime) / 1000.0
-    if not tagHeaderLogger then
+    if tagHeaderLogger then
     (
         logger "\n=== IMPORT COMPLETE ===\n"
         logger "File Name: %\n" params:#((filenameFromPath modelFile)) logType:#info
