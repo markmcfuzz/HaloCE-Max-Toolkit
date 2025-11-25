@@ -1,6 +1,6 @@
--- Halo Custom Edition Physics Importer (Modular Version)
+-- Halo Custom Edition Physics Importer
 -- by Mark McFuzz
--- Version 1.1.0
+-- Version 2.0.0
 ------------------------------------------------------------------------------------------------
 -- Features:
 -- - Imports physics tags from Halo Custom Edition.
@@ -45,7 +45,7 @@ filein (scriptDir + "modules\\file_tag\\physics\\build_mesh.ms")
 
 fn ImportPhysicsGeometry =
 (
-	format "\n=== IMPORTING PHYSICS GEOMETRY ===\n"
+	logger "\n=== IMPORTING PHYSICS GEOMETRY ===\n"
 	
 	-- Open file dialog
 	local physicsFile = getOpenFileName \
@@ -55,12 +55,11 @@ fn ImportPhysicsGeometry =
 	
 	if physicsFile == undefined then
 	(
-		format "Import cancelled by user.\n"
+		logger "Import cancelled by user.\n"
 		return undefined
 	)
 	
 	format "File: %\n" (filenameFromPath physicsFile)
-	
 	-- Read physics tag
 	local physicsData = readPhysicsTag physicsFile
 	
@@ -70,11 +69,14 @@ fn ImportPhysicsGeometry =
 		return undefined
 	)
 	
-	local massPointsData = physicsData[1]
-	local poweredMassPointsData = physicsData[2]
+	logger "Physics tag read successfully\n"
+	
+	-- Extract mass points and powered mass points from the tag struct
+	local massPointsData = physicsData.massPoints
+	local poweredMassPointsData = physicsData.poweredMassPoints
 	
 	-- Build spheres
-	format "\n=== BUILDING MASS POINT SPHERES ===\n"
+	logger "\n=== BUILDING MASS POINT SPHERES ===\n"
 	local success = createMassPointSpheres massPointsData poweredMassPointsData
 	
 	-- Refresh viewport
@@ -82,12 +84,12 @@ fn ImportPhysicsGeometry =
 	
 	if success != undefined and success.count > 0 then
 	(
-		format "\n[SUCCESS] Physics geometry imported successfully!\n"
+		logger "\n[SUCCESS] Physics geometry imported successfully!\n"
 		messageBox ("Physics mass points imported successfully!\nCreated " + success.count as string + " sphere objects.") title:"Import Complete"
 	)
 	else
 	(
-		format "\n[FAILED] Could not build mass point spheres\n"
+		logger "\n[FAILED] Could not build mass point spheres\n"
 		messageBox "Failed to build mass point spheres in scene!" title:"Import Failed"
 	)
 	
