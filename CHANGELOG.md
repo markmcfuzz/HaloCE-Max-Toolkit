@@ -69,6 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New implemented tag reader for **Shader Model** tags.
 - **GBX/Model Importer:** Added support for automatic texture application to materials on imported geometries.
 - Decompress functions to utils.ms for handling compressed vertex data.
+- **Physics Importer:** Assigned mass point spheres to a `Physics` layer.
+- **Model Collision Geometry Importer:** Assigned geometries to a `Collision Model` layer.
 
 ### Fixed
 - **Utils:** Fixed issue where the reflexiveData struct was not being properly instantiated, leading to errors when reading reflexive data.
