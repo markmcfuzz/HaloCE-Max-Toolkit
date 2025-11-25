@@ -8,241 +8,219 @@ Contains all struct definitions for Gbxmodel tags
 -------------------------------------------------------
 
 struct gbxmodelTag (
-    header = 1836016690 or undefined,
-    flags = 0,
-    node_list_checksum = 0,
-    super_high_detail_cutoff = 0,
-    high_detail_cutoff = 0,
-    medium_detail_cutoff = 0,
-    low_detail_cutoff = 0,
-    super_low_detail_cutoff = 0,
-    super_high_lod_nodes = 0,
-    high_lod_nodes = 0,
-    medium_lod_nodes = 0,
-    low_lod_nodes = 0,
-    super_low_lod_nodes = 0,
-    base_map_u_scale = 0.0,
-    base_map_v_scale = 0.0,
-    markers = #(),
-    markers_tag_block = undefined,
+    header = undefined,
+    tagBase = undefined,
+    nodesTagBlock = undefined,
     nodes = #(),
-    nodes_tag_block = undefined,
+    regionsTagBlock = undefined,
     regions = #(),
-    regions_tag_block = undefined,
+    geometriesTagBlock = undefined,
     geometries = #(),
-    geometries_tag_block = undefined,
-    shaders = #(),
-    shaders_tag_block = undefined
+    shadersTagBlock = undefined,
+    shaders = #()
 )
 
-struct gbxmodelTagHeader (
-    tag_class = undefined,
-    checksum = 0,
-    header_size = 0,
-    flags = 0,
-    version = 0,
-    integrity0 = 0,
-    integrity1 = 0,
-    engine_id = 0
-)
-
-fn gbxmodelFlags baseFlags =
+fn tagFlags baseFlags =
 (
     case baseFlags of
     (
-        0: "blend_shared_normals";
-        1: "parts_have_local_nodes";
-        2: "ignore_skinning";
+        
+        0: "No flags";
+        1: "blend shared normals";
+        2: "parts have local nodes";
+        3: "ignore skinning";
         default: ("unknown_flag_" + (flags as string))
     )
 )
 
-fn getGbxmodelFlagNames =
-(
-    local flags = #()
-    for i = 0 to 2 do append flags (gbxmodelFlags i)
-    flags
+-------------------------------------------------------
+-- Return structures
+-------------------------------------------------------
+
+struct returnHeader (
+    tagClass,
+    checksum,
+    version,
+    engineId
 )
 
-struct gbxmodelMarkers (
-    name = "",
-    magic_identifier = 0,
-    marker_instances = #(),
-    marker_instances_tag_block = undefined
+struct returnTagBase (
+    flags,
+    nodeListChecksum,
+    superHighDetailCutoff,
+    highDetailCutoff,
+    mediumDetailCutoff,
+    lowDetailCutoff,
+    superLowDetailCutoff,
+    superLowLodNodes,
+    baseMapUScale,
+    baseMapVScale
 )
 
-struct markerInstances (
-    region_index = 0,
-    permutation_index = 0,
-    node_index = 0,
-    translation = #(0.0, 0.0, 0.0),
-    rotation = #(0.0, 0.0, 0.0)
+struct returnReflexives (
+    nodes,
+    regions,
+    geometries,
+    shaders
 )
 
-struct gbxmodelNodes (
-    name = "",
-    next_sibling_node = 0,
-    first_child_node = 0,
-    parent_node = 0,
-    translation = #(0.0, 0.0, 0.0),
-    rotation = #(0.0, 0.0, 0.0, 0.0),
-    distance_from_parent = 0,
-    unknown = 0,
-    rot_jj_kk = #(0.0, 0.0, 0.0),
-    rot_kk_ii = #(0.0, 0.0, 0.0),
-    rot_ii_jj = #(0.0, 0.0, 0.0),
-    translation_to_root = #(0.0, 0.0, 0.0)
+struct returnNodes (
+    name,
+    nextSiblingNode,
+    firstChildNode,
+    parentNode,
+    translation,
+    rotation,
+    distanceFromParent
 )
 
-struct gbxmodelRegions (
-    name = "",
-    permutations = #(),
-    permutations_tag_block = undefined
+struct returnRegions (
+    name,
+    permutationsReflexive,
+    permutations = #()
 )
 
-struct regionPermutations (
-    name = "",
-    flags = 0,
-    permutation_set = 0,
-    superlow_geometry_block = 0,
-    low_geometry_block = 0,
-    medium_geometry_block = 0,
-    high_geometry_block = 0,
-    super_high_geometry_block = 0,
-    local_markers = #(),
-    local_markers_tag_block = undefined
+struct returnPermutations (
+    name,
+    flags,
+    superLowGeometryBlock,
+    lowGeometryBlock,
+    mediumGeometryBlock,
+    highGeometryBlock,
+    superHighGeometryBlock,
+    localMarkersReflexive,
+    localMarkers = #()
 )
 
-struct regionPermutationsFlags (
-    cannot_be_choosen_randomly = 0
+struct returnLocalMarkers (
+    name,
+    nodeIndex,
+    rotation,
+    translation
 )
 
-struct permutationLocalMarkers (
-    name = "",
-    node_index = 0,
-    rotation = #(0.0, 0.0, 0.0, 0.0),
-    translation = #(0.0, 0.0, 0.0)
-)
-
-struct gbxmodelGeometries (
+struct returnGeometries (
+    partsReflexive,
     parts = #(),
-    parts_tag_block = undefined
+    partsDataOffset = 0  -- File offset where this geometry's vertex/triangle data starts
 )
 
-struct geometriesParts (
-    flags = 0,
-    shader_index = 0,
-    previous_part_index = 0,
-    next_part_index = 0,
-    centroid_primary_node = 0,
-    centroid_secondary_node = 0,
-    centroid_primary_weight = 0.0,
-    centroid_secondary_weight = 0.0,
-    centroid_translation = #(0.0, 0.0, 0.0),
-    uncompressed_vertices = #(),
-    uncompressed_vertices_tag_block = undefined,
-    compressed_vertices = #(),
-    compressed_vertices_tag_block = undefined,
-    triangles = #(),
-    triangles_tag_block = undefined,
-    model_meta_info = #(),
-    model_meta_info_tag_block = undefined,
-    local_node_count = 0,
-    local_nodes = array 22
+struct returnParts (
+    flags,
+    shaderIndex,
+    previousPartIndex,
+    nextPartIndex,
+    centroidTranslation,
+    uncompressedVerticesReflexive,
+    compressedVerticesReflexive,
+    trianglesReflexive,
+    dataOffset = 0  -- File offset where this part's vertex/triangle data starts
+    -- Note: vertices and triangles are now read on-demand, not stored here
 )
 
-struct partsFlags (
-    stripped = 0, -- Internal
-    zoner = 1
+struct returnUncompressedVertices (
+    position,
+    normal,
+    binormal,
+    tangent,
+    textureCoords,
+    u,
+    v,
+    node0Index,
+    node1Index,
+    node0Weight,
+    node1Weight
 )
 
-struct partsUncompressedVertices (
-    position_x = 0.0,
-    position_y = 0.0,
-    position_z = 0.0,
-    normal_i = 0.0,
-    normal_j = 0.0,
-    normal_k = 0.0,
-    binormal_i = 0.0,
-    binormal_j = 0.0,
-    binormal_k = 0.0,
-    tangent_i = 0.0,
-    tangent_j = 0.0,
-    tangent_k = 0.0,
-    u = 0.0,
-    v = 0.0,
-    node_0_index = 0,
-    node_1_index = 0,
-    node_0_weight = 0,
-    node1_weight = 0
+struct returnCompressedVertices (
+    position,
+    normal,
+    binormal,
+    tangent,
+    textureCoordU,
+    textureCoordV,
+    node0Index,
+    node1Index,
+    node0Weight
 )
 
-struct partsCompressedVertices (
-    position_x = 0,
-    position_y = 0,
-    position_z = 0,
-    normal = 0, --[11.11.10-bit]
-    binormal = 0, --[11.11.10-bit]
-    tangent = 0, --[11.11.10-bit]
-    u = 0, --[16-bit]
-    v = 0, --[16-bit]
-    node_0_index = 0, --[x3]
-    node_1_index = 0, --[x3]
-    node_0_weight = 0 --[16-bit]
+struct returnTriangles (
+    v0Index,
+    v1Index,
+    v2Index
 )
 
-struct partsTriangles (
-    v0_index = 0,
-    v1_index = 0,
-    v2_index = 0
+struct returnShaders (
+    shaderType,
+    shaderPath,
+    shaderName,
+    permutationIndex
 )
-
--- Not display in guerilla
-struct partsMetaInfo (
-    index_type = 0,
-    index_count = 0,
-    indices_magic_offset = 0,
-    indices_offset = 0,
-    vertex_type = 0,
-    vertex_count = 0,
-    vertices_magic_offset = 0,
-    vertices_offset = 0
-)
-
-struct indexTypeEnum (
-    uncompressed = 1
-)
-
-struct vertexTypeEnum (
-    uncompressed = 4,
-    compressed = 5
-)
-
----Check if this struct is valid, compare with "mod2_def.txt"
-struct gbxmodelShaders (
-    shader = 0, 
-    shader_path = "",
-    permutation = 0
-)
-
 
 fn shaderTypes enum =
 (
 	case enum of
 	(
 		1936221298: "shader";
-        1936027254: "shader_environment";
-        1936683887: "shader_model";
-        1935894633: "shader_transparent_chicago";
-        1935893880: "shader_transparent_chicago_extended";
-        1936684146: "shader_transparent_generic";
-        1936157793: "shader_transparent_glass";
-        1936549236: "shader_transparent_meter";
-        1936747617: "shader_transparent_plasma";
-        1937203572: "shader_transparent_water";
+        1936027254: "shader environment";
+        1936683887: "shader model";
+        1935894633: "shader transparent chicago";
+        1935893880: "shader transparent chicago extended";
+        1936684146: "shader transparent generic";
+        1936157793: "shader transparent glass";
+        1936549236: "shader transparent meter";
+        1936747617: "shader transparent plasma";
+        1937203572: "shader transparent water";
         4294967295: "NONE";
 		default: ("unknown_" + (enum as string))
 	)
+)
+
+struct nodesBlockResult (
+    nodes,
+    endOffset
+)
+
+struct regionsBlockResult (
+    regions,
+    endOffset
+)
+
+struct geometriesBlockResult (
+    geometries,
+    endOffset
+)
+
+struct shadersBlockResult (
+    shaders,
+    endOffset
+)
+
+struct partsBlockResult (
+    parts,
+    endOffset
+)
+
+struct uncompressedVerticesBlockResult (
+    vertices,
+    endOffset
+)
+
+struct compressedVerticesBlockResult (
+    vertices,
+    endOffset
+)
+
+struct trianglesBlockResult (
+    triangles,
+    endOffset
+)
+
+-- Helper struct for reading shader references
+struct shaderRefData (
+    tagRef,
+    shaderType,
+    permutationIndex
 )
 
 logger "Tag Structure loaded.\n" logType:#success
