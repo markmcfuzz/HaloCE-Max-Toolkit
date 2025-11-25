@@ -1,4 +1,14 @@
--- Config File for Global Functions Module
+------------------------------------------------------------------------------------------------
+--	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
+--	license is available at http://www.gnu.org/licenses/gpl.txt.
+------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------
 -- Logger Configuration (must be defined FIRST)
@@ -8,13 +18,14 @@ global loggerDebug = true        -- Debug messages
 global loggerInfo = true         -- Info messages
 global loggerWarning = false      -- Warning messages
 global loggerError = true        -- Error messages
-global loggerSuccess = true     -- Success messages
+global loggerSuccess = false     -- Success messages
 global loggerDefault = true      -- Default messages
 global loggerTimestamp = false   -- Timestamp messages
 
 -- File logging
-global enableFileLogging = false  -- Set to true to enable log file output
-global logFile = undefined        -- Will hold the file handle when logging to file
+-- Set to true to enable log file output
+global enableFileLogging = false  
+global logFile = undefined        
 
 fn logger text params:#() logType:#default =
 (
@@ -22,7 +33,6 @@ fn logger text params:#() logType:#default =
     local actualText = text
     local actualParams = params
     
-    -- Check if this logger type is enabled
     local shouldLog = case actualType of
     (
         #debug: loggerDebug
@@ -33,10 +43,8 @@ fn logger text params:#() logType:#default =
         #default: loggerDefault
         #timestamp: loggerTimestamp
     )
-    
     if shouldLog do
     (
-        -- Add prefix based on type
         local prefix = case actualType of
         (
             #debug: "[DEBUG] "
@@ -47,9 +55,8 @@ fn logger text params:#() logType:#default =
             #default: ""
             #timestamp: "[TIMESTAMP] "
         )
-        
-        local fullText = prefix + actualText
-        
+
+        local fullText = prefix + actualText 
         case actualParams.count of
         (
             0: format fullText
@@ -65,8 +72,6 @@ fn logger text params:#() logType:#default =
             10: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] actualParams[5] actualParams[6] actualParams[7] actualParams[8] actualParams[9] actualParams[10]
             default: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] actualParams[5] actualParams[6] actualParams[7] actualParams[8] actualParams[9] actualParams[10] actualParams[11]
         )
-        
-        -- Write to log file if enabled
         if enableFileLogging and logFile != undefined do
         (
             case actualParams.count of
@@ -84,7 +89,7 @@ fn logger text params:#() logType:#default =
                 10: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] actualParams[5] actualParams[6] actualParams[7] actualParams[8] actualParams[9] actualParams[10] to:logFile
                 default: format fullText actualParams[1] actualParams[2] actualParams[3] actualParams[4] actualParams[5] actualParams[6] actualParams[7] actualParams[8] actualParams[9] actualParams[10] actualParams[11] to:logFile
             )
-            flush logFile  -- Ensure it writes immediately
+            flush logFile
         )
     )
 )
@@ -117,7 +122,6 @@ fn initDefaultGlobal name defaultValue forceUpdate:false =
     )
     else if forceUpdate or current != defaultValue then
     (
-        -- Convert values to strings for proper display
         local currentStr = current as string
         local defaultStr = defaultValue as string
         logger "Config: Updating % from (%) to (%)\n" params:#(name, currentStr, defaultStr) logType:#warning
@@ -134,36 +138,17 @@ fn initDefaultGlobal name defaultValue forceUpdate:false =
 ------------------------------------------------------------
 fn initConfig =
 (
-    -- Don't touch this!
-    local isCompressed = true
-    -- Enable compressed-only mode for faster import.
-    -- Compressed vertices: ~1.2s import, 16-bit precision (0.00001 weight accuracy)
-    -- Uncompressed vertices: ~3.8s import, 32-bit precision (full accuracy)
-    initDefaultGlobal "USE_COMPRESSED_ONLY" isCompressed
-
-    local tagDataDebug = false
-    -- Enable detailed logging for tag data reading
-    initDefaultGlobal "readNodesLogger" tagDataDebug
-    initDefaultGlobal "readRegionsLogger" tagDataDebug
-    initDefaultGlobal "readPermutationsLogger" tagDataDebug
-    initDefaultGlobal "readLocalMarkersLogger" tagDataDebug
-    initDefaultGlobal "readGeometriesLogger" tagDataDebug
-    initDefaultGlobal "readShadersLogger" tagDataDebug
-    initDefaultGlobal "readPartsLogger" tagDataDebug
-    
     local verboseGeometryLogging = false
     -- WARNING: This reads ALL vertex/triangle data twice (once for logging, once for mesh building)
     -- Only enable when debugging specific geometry issues
     initDefaultGlobal "readVertexDataLogger" verboseGeometryLogging
     initDefaultGlobal "readTriangleDataLogger" verboseGeometryLogging
+    initDefaultGlobal "readNodesBspLogger" verboseGeometryLogging
     
-    local cacheVertexData = false
-    -- EXPERIMENTAL: Cache vertex data in memory during reading to avoid double file I/O
-    -- When false, vertices are read from file during mesh building (current proven behavior)
-    -- When true, vertices are read once and cached in memory (faster but uses more RAM)
-    initDefaultGlobal "CACHE_VERTEX_DATA" cacheVertexData
+    local shadersLogging = false
+    initDefaultGlobal "gbxShadersLogger" shadersLogging
 
-    local tagBaseDebug = true
+    local tagBaseDebug = false
     -- Enable detailed logging for tag base reading
     initDefaultGlobal "tagHeaderLogger" tagBaseDebug
     initDefaultGlobal "tagMainDataLogger" tagBaseDebug
@@ -176,7 +161,5 @@ fn initConfig =
 
 -- Initialize configuration
 initConfig()
-
-
 
 logger "Config loaded.\n" logType:#success
