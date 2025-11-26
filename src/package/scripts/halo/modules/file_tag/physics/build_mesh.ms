@@ -69,10 +69,10 @@ massPointAttributes = attributes "Mass Point Properties"
 		
 		checkbox chkMetallic "Metallic" enabled:false
 		
-		spinner spRelativeMass "Rel. Mass:" type:#float range:[0,10000,0] readOnly:true
-		spinner spMass "Mass:" type:#float range:[0,10000,0] readOnly:true
-		spinner spRelativeDensity "Rel. Density:" type:#float range:[0,10000,0] readOnly:true
-		spinner spDensity "Density:" type:#float range:[0,10000,0] readOnly:true
+		spinner spRelativeMass "Rel. Mass:" type:#float range:[0,10000,1.0] readOnly:true
+		spinner spMass "Mass:" type:#float range:[0,10000,1.0] readOnly:true
+		spinner spRelativeDensity "Rel. Density:" type:#float range:[0,10000,1.0] readOnly:true
+		spinner spDensity "Density:" type:#float range:[0,10000,1.0] readOnly:true
 		
 		editText etFrictionType "Friction Type:" readOnly:true
 		
@@ -115,12 +115,26 @@ fn collectSceneNodes =
 -- Creation spheres
 -------------------------------------------------------
 
-fn createMassPointSpheres massPointsArray poweredMassPointsArray =
+fn createMassPointSpheres massPointsArray poweredMassPointsArray baseMass baseDensity =
 (
 	if massPointsArray == undefined or massPointsArray.count == 0 then
 	(
 		return undefined
 	)
+	
+	-- Calculate base values per unit by summing all relative values
+	local totalRelativeMass = 0.0
+	local totalRelativeDensity = 0.0
+	
+	for mp in massPointsArray do
+	(
+		totalRelativeMass += mp.relativeMass
+		totalRelativeDensity += mp.relativeDensity
+	)
+	
+	local baseMassPerUnit = if totalRelativeMass > 0 then baseMass / totalRelativeMass else 0.0
+	local baseDensityPerUnit = if totalRelativeDensity > 0 then baseDensity / totalRelativeDensity else 0.0
+	
 	local sceneNodes = collectSceneNodes()
 	local createdSpheres = #()
 	for mp in massPointsArray do
@@ -134,10 +148,10 @@ fn createMassPointSpheres massPointsArray poweredMassPointsArray =
 
 		local sphereColor = case mp.frictionType of
 		(
-			0: (color 255 82 13)       --#ff5210 | Orange - point friction (most common)
-			1: (color 48 255 203)      --#30ffcb | Cyan - forward friction (wheels/treads)
-			2: (color 255 111 133)     --#ff6f85 | Rose - left friction (side forces)
-			3: (color 129 255 110)     --#81ff6e | Green - up friction (vertical forces)
+			0: (color 255 36 16)       --#ff2410 | Orange - point friction (most common)
+			1: (color 0 236 176)       --#00ebb0 | Cyan - forward friction (wheels/treads)
+			2: (color 255 33 67)       --#ff2143 | Rose - left friction (side forces)
+			3: (color 30 230 0)        --#1ee600 | Green - up friction (vertical forces)
 			default: (color 255 255 0) --#ffff00 | Yellow - unknown friction type
 		)
 		newSphere.wirecolor = sphereColor
@@ -149,12 +163,36 @@ fn createMassPointSpheres massPointsArray poweredMassPointsArray =
 
 		custAttributes.add newSphere massPointAttributes
 		
+		-- Calculate individual mass and density using the old working formula
+		local calculatedMass = baseMassPerUnit * mp.relativeMass
+		
+		-- Density calculation with special cases from old code
+		local calculatedDensity = 0.0
+		if mp.density > 0.0 and (abs(mp.density - (baseDensity * mp.relativeDensity)) < 0.1) then
+		(
+			-- Stored density appears correct (simple cases)
+			calculatedDensity = mp.density
+		)
+		else if totalRelativeDensity == massPointsArray.count then
+		(
+			-- Simple case: all relative densities are 1.0
+			calculatedDensity = baseDensity * mp.relativeDensity
+		)
+		else
+		(
+			-- Complex case: mixed relative densities
+			local referenceMass = 149.266
+			local densityModifier = baseMassPerUnit / referenceMass
+			calculatedDensity = baseDensity * mp.relativeDensity * densityModifier
+		)
+		
+		-- Set parameter values explicitly after adding custom attributes
 		newSphere.mpName = mp.name
 		newSphere.modelNodeIndex = mp.modelNode
 		newSphere.relativeMass = mp.relativeMass
-		newSphere.massValue = mp.mass
+		newSphere.massValue = calculatedMass
 		newSphere.relativeDensity = mp.relativeDensity
-		newSphere.densityValue = mp.density
+		newSphere.densityValue = calculatedDensity
 		
 		if mp.poweredMassPoint >= 0 and mp.poweredMassPoint < poweredMassPointsArray.count then
 		(

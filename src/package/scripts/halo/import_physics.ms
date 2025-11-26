@@ -74,10 +74,12 @@ fn ImportPhysicsGeometry =
 	-- Extract mass points and powered mass points from the tag struct
 	local massPointsData = physicsData.massPoints
 	local poweredMassPointsData = physicsData.poweredMassPoints
+	local baseMass = physicsData.tagBase.mass
+	local baseDensity = physicsData.tagBase.density
 	
 	-- Build spheres
 	logger "\n=== BUILDING MASS POINT SPHERES ===\n"
-	local success = createMassPointSpheres massPointsData poweredMassPointsData
+	local success = createMassPointSpheres massPointsData poweredMassPointsData baseMass baseDensity
 	
 	-- Refresh viewport
 	completeRedraw()
