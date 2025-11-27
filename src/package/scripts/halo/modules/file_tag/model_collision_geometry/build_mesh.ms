@@ -11,6 +11,7 @@
 ------------------------------------------------------------------------------------------------
 
 global HALO_SCALE = 100.0
+global BONE_SIZE = 1.0
 
 -------------------------------------------------------
 -- MATERIAL CREATION
@@ -95,6 +96,23 @@ fn validateSceneNodes collisionNodes =
 	return true
 )
 
+fn createFallbackFrameRoot =
+(
+	local nodeObj = Sphere radius:BONE_SIZE pos:[0,0,0] name:"frame root" smooth:on
+	nodeObj.wirecolor = color 255 255 0
+	
+	logger "Created fallback 'frame root' node (no scene nodes detected)\n" logType:#warning
+	
+
+	-- Assign to "Nodes" layer
+	local nodesLayer = LayerManager.getLayerFromName "Nodes"
+	if nodesLayer == undefined then
+		nodesLayer = LayerManager.newLayerFromName "Nodes"
+	nodesLayer.addNode nodeObj
+
+	return nodeObj
+)
+
 -------------------------------------------------------
 -- PATHFINDING SPHERES
 -------------------------------------------------------
@@ -170,7 +188,7 @@ fn transformVertexFromPlane vertex planeNormal planeDistance =
 -- MESH BUILDING
 -------------------------------------------------------
 
-fn buildBSPGeometry bspData nodeName regionName permutationName materialOffset =
+fn buildBSPGeometry bspData nodeName regionName permutationName materialOffset fallbackNode:undefined =
 (
 	if bspData.vertices.count == 0 then
 	(
@@ -185,7 +203,9 @@ fn buildBSPGeometry bspData nodeName regionName permutationName materialOffset =
 	local sceneNode = getNodeByName nodeName
 	if sceneNode == undefined then
 	(
-		return undefined
+		sceneNode = fallbackNode
+		if sceneNode == undefined then
+			return undefined
 	)
 	
 	local nodeTransform = sceneNode.transform
@@ -271,9 +291,14 @@ fn buildCollisionMesh collisionData collisionFileName =
 (
 	struct regionStruct (regionName, meshes)
 	
-	if not validateSceneNodes collisionData.nodes then
+	local hasSceneNodes = validateSceneNodes collisionData.nodes
+	local fallbackNode = undefined
+	
+	if not hasSceneNodes then
 	(
-		return undefined
+		fallbackNode = createFallbackFrameRoot()
+		if fallbackNode == undefined then
+			return undefined
 	)
 	
 	local collisionName = getFilenameFile collisionFileName
@@ -336,7 +361,7 @@ fn buildCollisionMesh collisionData collisionFileName =
 							permutationName = perm.name
 					)
 				)
-				local meshObj = buildBSPGeometry bsp node.name regionName permutationName 0
+				local meshObj = buildBSPGeometry bsp node.name regionName permutationName 0 fallbackNode:fallbackNode
 				if meshObj != undefined then
 				(
 					if multiMat != undefined then
