@@ -90,17 +90,17 @@ fn importCollisionGeometry =
 	
 	completeRedraw()
 	
-	--if success != undefined and success.count > 0 then
-	--(
-	--	format "\n[SUCCESS] Collision geometry imported successfully!\n"
-	--	messageBox ("Collision geometry imported successfully!\nCreated " + success.count as string + " mesh objects.") title:"Import Complete"
-	--)
-	--else
-	--(
-	--	format "\n[FAILED] Could not build collision mesh\n"
-	--	messageBox "Failed to build collision mesh in scene!" title:"Import Failed"
-	--)
-	--
+	if success != undefined and success.count > 0 then
+	(
+		--format "\n[SUCCESS] Collision geometry imported successfully!\n"
+		messageBox ("Collision geometry imported successfully!\nCreated " + success.count as string + " mesh objects.") title:"Import Complete"
+	)
+	else
+	(
+		format "\n[FAILED] Could not build collision mesh\n"
+		messageBox "Failed to build collision mesh in scene!\nNo detected nodes" title:"Import Failed"
+	)
+	
 	clearListener()
 	return success
 )
