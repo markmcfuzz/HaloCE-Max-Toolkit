@@ -149,7 +149,7 @@ fn ImportGbxmodelGeometry modelFile:undefined =
     )
     
     -- Refresh viewport to show imported geometry
-    --completeRedraw()
+    completeRedraw()
     return tagData
 )
 
