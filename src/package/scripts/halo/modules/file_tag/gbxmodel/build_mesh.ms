@@ -9,29 +9,78 @@ global HALO_SCALE = 100.0  -- Halo units to 3ds Max units conversion
 -- MESH BUILDING FROM STRUCT DATA
 -------------------------------------------------------
 
--- Build mesh from part struct (uses compressed vertices, reads on-demand)
+-- Build mesh from part struct (handles both compressed and uncompressed vertices, reads on-demand)
 fn buildPartMesh fileHandle geometryIndex partIndex part materialObj uScale:1.0 vScale:1.0 =
 (
-    -- Read compressed vertices on-demand from file
+    -- Determine which vertex format to use (prefer compressed, fall back to uncompressed)
+    local uncompVertReflex = part.uncompressedVerticesReflexive
     local compVertReflex = part.compressedVerticesReflexive
     local trisReflex = part.trianglesReflexive
-    local vertexCount = compVertReflex.count
-    local triangleCount = trisReflex.count  -- Number of triangles
-    local indexCount = triangleCount * 3     -- File contains triangleCount × 3 indices
+    
+    -- Get the data offset for this specific part (calculated during tag reading)
+    local partDataStart = part.dataOffset
+    
+    -- Calculate file positions (data is sequential: uncompressed, then compressed, then triangles)
+    local uncompVertCount = uncompVertReflex.count
+    local compVertCount = compVertReflex.count
+    local uncompVertOffset = partDataStart
+    local compVertOffset = uncompVertOffset + (uncompVertCount * 68)
+    local trisOffset = compVertOffset + (compVertCount * 32)
+    
+    -- Auto-detect best vertex format by validating compressed data
+    -- If both formats exist, compare first vertex to check if compressed is reliable
+    local useCompressed = false
+    if compVertCount > 0 and uncompVertCount > 0 then
+    (
+        -- Both formats exist - validate compressed by comparing with uncompressed
+        -- Read first uncompressed vertex bone data
+        fseek fileHandle uncompVertOffset #seek_set
+        setFileHandle fileHandle
+        skipBytes 48  -- Skip position(12) + normal(12) + binormal(12) + tangent(12)
+        skipBytes 8   -- Skip UV(8)
+        local uncompNode0 = read.shortB "#signed"
+        local uncompNode1 = read.shortB "#signed"
+        
+        -- Read first compressed vertex bone data
+        fseek fileHandle compVertOffset #seek_set
+        setFileHandle fileHandle
+        skipBytes 28  -- Skip position(12) + normals(12) + UV(4)
+        local compNode0 = readByte fileHandle #signed
+        local compNode1 = readByte fileHandle #signed
+        
+        -- Decompress compressed node indices
+        local compNode0Decompressed = compNode0 / 3
+        local compNode1Decompressed = compNode1 / 3
+        
+        -- If decompressed compressed indices match uncompressed indices, compressed is good
+        if compNode0Decompressed == uncompNode0 and compNode1Decompressed == uncompNode1 then
+        (
+            useCompressed = true  -- Compressed data is valid, use it (faster)
+        )
+        else
+        (
+            useCompressed = false  -- Compressed data differs, use uncompressed (correct)
+        )
+    )
+    else if compVertCount > 0 then
+    (
+        -- Only compressed exists, use it
+        useCompressed = true
+    )
+    else if uncompVertCount > 0 then
+    (
+        -- Only uncompressed exists
+        useCompressed = false
+    )
+    
+    local vertexCount = if useCompressed then compVertCount else uncompVertCount
+    local triangleCount = trisReflex.count
+    local indexCount = triangleCount * 3
     
     if vertexCount == 0 or triangleCount == 0 then
     (
         return undefined
     )
-    
-    -- Get the data offset for this specific part (calculated during tag reading)
-    local partDataStart = part.dataOffset
-    
-    -- Calculate file positions (uncompressed vertices first, then compressed, then triangles)
-    local uncompVertCount = part.uncompressedVerticesReflexive.count
-    local uncompVertOffset = if part.uncompressedVerticesReflexive.pointer == 0 then partDataStart else part.uncompressedVerticesReflexive.pointer
-    local compVertOffset = if compVertReflex.pointer == 0 then (uncompVertOffset + uncompVertCount * 68) else compVertReflex.pointer
-    local trisOffset = if trisReflex.pointer == 0 then (compVertOffset + vertexCount * 32) else trisReflex.pointer
     
     -- Pre-allocate arrays
     local vertexPositions = #()
@@ -48,53 +97,142 @@ fn buildPartMesh fileHandle geometryIndex partIndex part materialObj uScale:1.0 
     -- Set global file handle for read struct
     setFileHandle fileHandle
     
-    -- Read and process compressed vertices (32 bytes each)
-    fseek fileHandle compVertOffset #seek_set
-    
-    for v = 1 to vertexCount do
+    if useCompressed then
     (
-        -- Read compressed vertex data (32 bytes)
-        -- Position (3 floats = 12 bytes)
-        local px = read.floatB()
-        local py = read.floatB()
-        local pz = read.floatB()
-        local position = [px, py, pz]
+        -- Read and process compressed vertices (32 bytes each)
+        fseek fileHandle compVertOffset #seek_set
         
-        -- Normal packed (1 uint32 = 4 bytes)
-        local normalPacked = read.longB "#unsigned"
+        for v = 1 to vertexCount do
+        (
+            -- Read compressed vertex data (32 bytes)
+            -- Position (3 floats = 12 bytes)
+            local px = read.floatB()
+            local py = read.floatB()
+            local pz = read.floatB()
+            local position = [px, py, pz]
+            
+            -- Normal packed (1 uint32 = 4 bytes)
+            local normalPacked = read.longB "#unsigned"
+            
+            -- Binormal packed (1 uint32 = 4 bytes) - skip
+            read.longB "#unsigned"
+            
+            -- Tangent packed (1 uint32 = 4 bytes) - skip
+            read.longB "#unsigned"
+            
+            -- UV (2 signed shorts = 4 bytes)
+            local textureCoordU = read.shortB "#signed"
+            local textureCoordV = read.shortB "#signed"
+            
+            -- Node indices (2 signed bytes = 2 bytes)
+            local node0Index = readByte fileHandle #signed
+            local node1Index = readByte fileHandle #signed
+            
+            -- Node weight (1 signed short = 2 bytes)
+            local node0Weight = read.shortB "#signed"
+            
+            -- Position (already in world space, just scale)
+            vertexPositions[v] = position * HALO_SCALE
+            
+            -- Decompress normal
+            normals[v] = decompressNormal normalPacked
+            
+            -- Decompress UV coordinates
+            uvCoords[v] = decompressUV textureCoordU textureCoordV uScale:uScale vScale:vScale
+            
+            -- Decompress node indices and weights (already converts to 1-based)
+            local indices = decompressNodeIndices node0Index node1Index
+            
+            -- If part has local node indices, use them for remapping
+            if part.localNodeIndices.count > 0 then
+            (
+                -- indices are already 1-based, convert back to 0-based for lookup, then back to 1-based
+                local localIdx0 = indices[1] - 1  -- Convert to 0-based
+                local localIdx1 = indices[2] - 1
+                
+                if localIdx0 >= 0 and localIdx0 < part.localNodeIndices.count then
+                    indices[1] = part.localNodeIndices[localIdx0 + 1] + 1  -- Remap to global, +1 for 1-based
+                if localIdx1 >= 0 and localIdx1 < part.localNodeIndices.count then
+                    indices[2] = part.localNodeIndices[localIdx1 + 1] + 1
+            )
+            
+            nodeIndices[v] = indices
+            
+            local weight0 = decompressNodeWeight node0Weight
+            nodeWeights[v] = #(weight0, 1.0 - weight0)
+        )
+    )
+    else
+    (
+        -- Read and process uncompressed vertices (68 bytes each)
+        fseek fileHandle uncompVertOffset #seek_set
         
-        -- Binormal packed (1 uint32 = 4 bytes) - skip
-        read.longB "#unsigned"
-        
-        -- Tangent packed (1 uint32 = 4 bytes) - skip
-        read.longB "#unsigned"
-        
-        -- UV (2 signed shorts = 4 bytes)
-        local textureCoordU = read.shortB "#signed"
-        local textureCoordV = read.shortB "#signed"
-        
-        -- Node indices (2 signed bytes = 2 bytes)
-        local node0Index = readByte fileHandle #signed
-        local node1Index = readByte fileHandle #signed
-        
-        -- Node weight (1 signed short = 2 bytes)
-        local node0Weight = read.shortB "#signed"
-        
-        -- Position (already in world space, just scale)
-        vertexPositions[v] = position * HALO_SCALE
-        
-        -- Decompress normal
-        normals[v] = decompressNormal normalPacked
-        
-        -- Decompress UV coordinates
-        uvCoords[v] = decompressUV textureCoordU textureCoordV uScale:uScale vScale:vScale
-        
-        -- Decompress node indices and weights
-        local indices = decompressNodeIndices node0Index node1Index
-        nodeIndices[v] = indices
-        
-        local weight0 = decompressNodeWeight node0Weight
-        nodeWeights[v] = #(weight0, 1.0 - weight0)
+        for v = 1 to vertexCount do
+        (
+            -- Read uncompressed vertex data (68 bytes)
+            -- Position (3 floats = 12 bytes)
+            local px = read.floatB()
+            local py = read.floatB()
+            local pz = read.floatB()
+            local position = [px, py, pz]
+            
+            -- Normal (3 floats = 12 bytes)
+            local nx = read.floatB()
+            local ny = read.floatB()
+            local nz = read.floatB()
+            local normal = [nx, ny, nz]
+            
+            -- Binormal (3 floats = 12 bytes) - skip
+            read.floatB()
+            read.floatB()
+            read.floatB()
+            
+            -- Tangent (3 floats = 12 bytes) - skip
+            read.floatB()
+            read.floatB()
+            read.floatB()
+            
+            -- UV (2 floats = 8 bytes)
+            local textureCoordU = read.floatB()
+            local textureCoordV = read.floatB()
+            
+            -- Node indices (2 signed shorts = 4 bytes)
+            local node0Index = read.shortB "#signed"
+            local node1Index = read.shortB "#signed"
+            
+            -- Node weights (2 floats = 8 bytes)
+            local node0Weight = read.floatB()
+            local node1Weight = read.floatB()
+            
+            
+            -- Position (already in world space, just scale)
+            vertexPositions[v] = position * HALO_SCALE
+            
+            -- Normal (already normalized)
+            normals[v] = normal
+            
+            -- UV coordinates (apply scale) - Point3 format required for setTVert
+            uvCoords[v] = [textureCoordU * uScale, (1.0 - textureCoordV) * vScale, 0]
+            
+            -- Node indices: convert from 0-based to 1-based
+            -- Convert to 1-based (MaxScript bone indices start at 1)
+            local globalNode0Index = node0Index + 1
+            local globalNode1Index = node1Index + 1
+            
+            if part.localNodeIndices.count > 0 then
+            (
+                -- Remap using local node indices (vertex uses local index, we need global)
+                if node0Index >= 0 and node0Index < part.localNodeIndices.count then
+                    globalNode0Index = part.localNodeIndices[node0Index + 1] + 1  -- +1 to access array, +1 for 1-based result
+                if node1Index >= 0 and node1Index < part.localNodeIndices.count then
+                    globalNode1Index = part.localNodeIndices[node1Index + 1] + 1
+            )
+            
+            nodeIndices[v] = #(globalNode0Index, globalNode1Index)
+            
+            -- Node weights (already normalized floats)
+            nodeWeights[v] = #(node0Weight, node1Weight)
+        )
     )
     
     -- Read triangle strip data (indexCount is triangleCount × 3)
@@ -158,7 +296,10 @@ fn buildPartMesh fileHandle geometryIndex partIndex part materialObj uScale:1.0 
         buildTVFaces meshObj
         
         for i = 1 to uvCoords.count do
-            setTVert meshObj i uvCoords[i]
+        (
+            local uv = uvCoords[i]
+            setTVert meshObj i [uv.x, uv.y, 0]
+        )
         
         for i = 1 to triangleIndices.count do
         (
