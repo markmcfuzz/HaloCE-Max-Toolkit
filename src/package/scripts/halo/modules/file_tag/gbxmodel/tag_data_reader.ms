@@ -14,15 +14,15 @@ fn readNodes nodesReflex =
     (
         local result = nodesBlockResult()
         result.nodes = #()
-        result.endOffset = 64 + 172 + (5 * 12)
+        result.endOffset = 296  -- 236 (reflexives start) + 60 (5 reflexives × 12 bytes)
         return result
     )
 
-    -- Calculate data offset
-    -- If pointer is 0, data is sequential after all reflexive headers
-    -- Reflexives start at 236 (64 header + 172 tagdata)
-    -- We have 5 reflexives but skip markers, so: 236 + (5 * 12) = 296
-    local nodesDataOffset = if nodesReflex.pointer == 0 then 296 else nodesReflex.pointer
+    -- Data always starts sequentially after ALL reflexive headers
+    -- Reflexives start at offset 236, 5 reflexives @ 12 bytes each = 60 bytes
+    -- So nodes data starts at 236 + 60 = 296
+    -- Note: The pointer field in reflexives is a memory address (not file offset) and should be ignored
+    local nodesDataOffset = 296
     seekToPosition nodesDataOffset
 
     local nodes = #()
@@ -79,8 +79,8 @@ fn readRegions regionsReflex nodesEndOffset =
         return result
     )
 
-    -- Regions start right after nodes data
-    local regionsDataOffset = if regionsReflex.pointer == 0 then nodesEndOffset else regionsReflex.pointer
+    -- Regions start right after nodes data (sequential, not using pointer)
+    local regionsDataOffset = nodesEndOffset
     seekToPosition regionsDataOffset
 
     local regions = #()
@@ -113,8 +113,8 @@ fn readRegions regionsReflex nodesEndOffset =
         local permReflex = regions[i].permutationsReflexive
         if permReflex.count == 0 then continue
         
-        -- Determine permutation data offset
-        local permDataOffset = if permReflex.pointer == 0 then currentOffset else permReflex.pointer
+        -- Permutations are sequential after region headers (not using pointer)
+        local permDataOffset = currentOffset
         seekToPosition permDataOffset
         
         local permutations = #()
@@ -166,8 +166,8 @@ fn readRegions regionsReflex nodesEndOffset =
             local lMarkersReflex = permutations[j].localMarkersReflexive
             if lMarkersReflex.count == 0 then continue
             
-            -- Determine local marker data offset
-            local localMarkerDataOffset = if lMarkersReflex.pointer == 0 then currentOffset else lMarkersReflex.pointer
+            -- Local markers are sequential after permutations (not using pointer)
+            local localMarkerDataOffset = currentOffset
             seekToPosition localMarkerDataOffset
 
             local localMarkers = #()
@@ -228,7 +228,8 @@ fn readShaders shadersReflex geometriesEndOffset =
         return result
     )
 
-    local shadersDataOffset = if shadersReflex.pointer == 0 then geometriesEndOffset else shadersReflex.pointer
+    -- Shaders are sequential after geometries (not using pointer)
+    local shadersDataOffset = geometriesEndOffset
     seekToPosition shadersDataOffset
 
     local shaders = #()
@@ -256,6 +257,8 @@ fn readShaders shadersReflex geometriesEndOffset =
     )
     
     -- After all shader refs, read the shader path strings sequentially
+    -- Note: Strings are stored sequentially regardless of pointer values
+    -- In MCC files, pointers are memory addresses (not file offsets) so ignore them
     seekToPosition (shadersDataOffset + (shadersCount * 32))
     
     for i = 1 to shadersCount do
@@ -268,15 +271,21 @@ fn readShaders shadersReflex geometriesEndOffset =
 
         -- Read shader path string
         local shaderPath = ""
-        if shaderPathPtr == 0 and shaderPathLen > 0 then
+        if shaderPathLen > 0 then
         (
-            -- Source tag: strings are null-terminated and stored sequentially
-            shaderPath = read.nullTerminatedString()
-        )
-        else if shaderPathPtr != 0 then
-        (
-            -- Cache tag: read from pointer using utility function
-            shaderPath = readTagRefPath shaderPathPtr shaderPathLen
+            -- Try to detect if pointer is a memory address (skip using it)
+            local isMemoryAddress = (shaderPathPtr < 0 or shaderPathPtr > 104857600)
+            
+            if shaderPathPtr == 0 or isMemoryAddress then
+            (
+                -- Source tag OR MCC file: strings are null-terminated and stored sequentially
+                shaderPath = read.nullTerminatedString()
+            )
+            else
+            (
+                -- Cache tag with valid file offset: read from pointer
+                shaderPath = readTagRefPath shaderPathPtr shaderPathLen
+            )
         )
         
         -- Extract shader name from path (last part after last backslash)
