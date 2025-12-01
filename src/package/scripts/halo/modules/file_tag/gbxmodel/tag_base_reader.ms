@@ -23,6 +23,7 @@ fn readTagHeader =
     local engineId = read.longB "#unsigned"
     -- Validate tag class
     local expectedGbxFourcc = getFourccByTagName "mod2"
+    local gbxmodelFourcc = getFourccByTagName "mode"
     if tagClass != expectedGbxFourcc then
     (
         logger "Invalid tag class. Expected: %, Found: %\n" params:#(expectedGbxFourcc, tagClass) logType:#error
@@ -93,29 +94,32 @@ fn readBaseTag =
 fn readRlexiveHeaders =
 (
     /**
-    According to the gbxmodel tag structure, reflexive headers start at offset
-    172 in the tagdata (file offset 236 = 64 header + 172 tagdata).
-    Each reflexive header is 12 bytes.
-    The order of reflexives is:
-        - markers   (offset 236) - SKIPPED (cache-only, not in source tags)
-        - nodes     (offset 248)
-        - regions   (offset 260)
-        - geometries(offset 272)
-        - shaders   (offset 284)
-    We skip the markers reflexive since it's only populated in cache files.
+    Gbxmodel reflexive headers are read SEQUENTIALLY after tag base + padding.
+    
+    According to Blender's io_scene_halo implementation:
+    - After reading tag base fields (56 bytes: flags, checksum, 5 floats, 10 shorts, 2 floats)
+    - Skip 116 bytes of padding
+    - Total offset from tagdata start: 56 + 116 = 172 bytes
+    - Absolute file offset: 64 (header) + 172 = 236
+    - Then read reflexives sequentially: markers, nodes, regions, geometries, shaders (12 bytes each)
+    
+    The "parts have local nodes" flag (bit 25) does NOT change reflexive offsets.
+    It only affects how geometry part data is structured (local node indices).
+    
+    Current position after readBaseTag: offset 120 (64 header + 56 base fields)
+    Need to skip: 172 - 56 = 116 bytes to reach reflexives at offset 236
     */
     
-    -- Seek to nodes reflexive header
-    -- header + reflexive header + skip markers
-    local nodesReflexiveOffset = 64 + 172 + 12
-    seekToPosition nodesReflexiveOffset
+    -- Skip remaining padding to reach reflexives
+    -- readBaseTag ends at offset 120, reflexives start at 236
+    -- So skip 236 - 120 = 116 bytes
+    skipBytes 116
     
+    -- Now read all reflexives sequentially
+    local markersReflexive = read.reflex()  -- Read markers (usually empty in tag files)
     local nodesReflexive = read.reflex()
-    
     local regionsReflexive = read.reflex()
-    
     local geometriesReflexive = read.reflex()
-    
     local shadersReflexive = read.reflex()
 
     local reflexives = returnReflexives()
@@ -152,7 +156,7 @@ fn readGbxmodelTag gbxmodelFilePath =
     local tagBase = readBaseTag()
     tagStruct.tagBase = tagBase
 
-    -- Read Reflexive Headers
+    -- Read Reflexive Headers (no longer need flags parameter)
     local gbxReflex = readRlexiveHeaders()
     tagStruct.nodesTagBlock = gbxReflex.nodes
     tagStruct.regionsTagBlock = gbxReflex.regions
@@ -249,15 +253,15 @@ fn readGbxmodelTag gbxmodelFilePath =
                 logger "            - Shader Index: [%]\n" params:#(part.shaderIndex)
                 logger "            - Previous Part Index: [%]\n" params:#(part.previousPartIndex)
                 logger "            - Next Part Index: [%]\n" params:#(part.nextPartIndex)
-                logger "            - Uncompressed Vertices Count: [%]\n" params:#(part.uncompressedVertices.count)
-                logger "            - Compressed Vertices Count: [%]\n" params:#(part.compressedVertices.count)
+                logger "            - Uncompressed Vertices Count: [%]\n" params:#(part.uncompressedVerticesReflexive.count)
+                logger "            - Compressed Vertices Count: [%]\n" params:#(part.compressedVerticesReflexive.count)
                 --for k = 1 to part.compressedVertices.count do
                 --(
                 --    local vertex = part.compressedVertices[k]
                 --    logger "                - Vertex [%]:\n" params:#(k - 1)
                 --    logger "                - Position: [%]\n" params:#(pointFormat vertex.position type:#point)
                 --)
-                logger "            - Triangles Count: [%]\n" params:#(part.triangles.count)
+                logger "            - Triangles Count: [%]\n" params:#(part.trianglesReflexive.count)
             )
         )
     )
