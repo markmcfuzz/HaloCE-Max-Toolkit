@@ -114,6 +114,7 @@ struct returnParts (
     uncompressedVerticesReflexive,
     compressedVerticesReflexive,
     trianglesReflexive,
+    localNodeIndices = #(),  -- Array of global node indices for local-to-global mapping
     dataOffset = 0  -- File offset where this part's vertex/triangle data starts
     -- Note: vertices and triangles are now read on-demand, not stored here
 )
