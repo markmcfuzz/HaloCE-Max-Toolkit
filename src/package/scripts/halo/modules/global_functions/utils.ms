@@ -440,6 +440,15 @@ fn readTagRefPath pathPtr pathLen =
     if pathPtr == 0 or pathLen <= 0 then
         return ""
     
+    -- Check if pointer looks like a memory address (not a valid file offset)
+    -- Valid file offsets are typically small positive numbers (< 100MB)
+    -- Memory addresses can be large positive or negative values
+    if pathPtr < 0 or pathPtr > 104857600 then  -- 100 MB threshold
+    (
+        -- This is likely a memory address, not a file offset - skip reading
+        return ""
+    )
+    
     -- Save current position
     local fileHandle = getCurrentFileHandle()
     local savedPos = ftell fileHandle
