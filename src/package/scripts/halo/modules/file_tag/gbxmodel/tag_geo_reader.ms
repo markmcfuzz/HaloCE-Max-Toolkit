@@ -203,7 +203,8 @@ fn readParts partsReflex currentOffset =
         return result
     )
 
-    local partsDataOffset = if partsReflex.pointer == 0 then currentOffset else partsReflex.pointer
+    -- Parts are sequential after previous data (not using pointer)
+    local partsDataOffset = currentOffset
         
     -- Get file size for validation
     local fileHandle = getCurrentFileHandle()
@@ -271,9 +272,31 @@ fn readParts partsReflex currentOffset =
             exit  -- Stop reading parts for this geometry
         )
         
-        -- Skip rest of part structure (64 bytes: offset 68-131)
-        -- This includes model_meta_info (36 bytes) + local nodes data (28 bytes)
-        skipBytes 64
+        -- Skip model_meta_info (36 bytes: offset 68-103)
+        skipBytes 36
+        
+        -- Read local node data (28 bytes: offset 104-131)
+        -- Local node count (4 bytes at offset 104)
+        local localNodeCount = read.longB "#signed"
+        
+        -- Read local node indices array (up to 22 bytes, then 2 bytes padding)
+        local localNodeIndices = #()
+        if localNodeCount > 0 then
+        (
+            for n = 1 to localNodeCount do
+            (
+                local globalNodeIndex = readByte fileHandle #signed
+                append localNodeIndices globalNodeIndex
+            )
+            -- Skip remaining bytes in the 22-byte local nodes array + 2 padding bytes
+            local bytesToSkip = (22 - localNodeCount) + 2
+            skipBytes bytesToSkip
+        )
+        else
+        (
+            -- No local nodes, skip all 24 bytes (22 + 2 padding)
+            skipBytes 24
+        )
         
         -- Create part struct
         local part = returnParts()
@@ -284,6 +307,7 @@ fn readParts partsReflex currentOffset =
         part.uncompressedVerticesReflexive = uncompressedVerticesReflexive
         part.compressedVerticesReflexive = compressedVerticesReflexive
         part.trianglesReflexive = trianglesReflexive
+        part.localNodeIndices = localNodeIndices
         
         append parts part
     )
@@ -357,7 +381,8 @@ fn readGeometries geometriesReflex regionsEndOffset =
         return result
     )
 
-    local geometriesDataOffset = if geometriesReflex.pointer == 0 then regionsEndOffset else geometriesReflex.pointer
+    -- Geometries are sequential after regions (not using pointer)
+    local geometriesDataOffset = regionsEndOffset
     seekToPosition geometriesDataOffset
 
     local geometries = #()
@@ -396,9 +421,9 @@ fn readGeometries geometriesReflex regionsEndOffset =
         
         --format "[DEBUG] Geometry % parts: count:%, geometriesEndOffset:% (before readParts)\n" i partsReflexive.count geometriesEndOffset
         
-        -- Calculate where this geometry's vertex/triangle data starts
-        -- If pointer is 0, data follows sequentially after part headers
-        local partsHeadersOffset = if partsReflexive.pointer == 0 then geometriesEndOffset else partsReflexive.pointer
+        -- Parts are sequential after geometry headers (not using pointer)
+        -- Data follows sequentially after part headers
+        local partsHeadersOffset = geometriesEndOffset
         local partsDataStart = partsHeadersOffset + (partsReflexive.count * 132)
         geometry.partsDataOffset = partsDataStart
         
