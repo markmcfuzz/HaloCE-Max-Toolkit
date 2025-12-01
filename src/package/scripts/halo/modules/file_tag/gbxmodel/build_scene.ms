@@ -16,7 +16,7 @@ fn isBoneNode nodeName =
 (
 	-- Biped nodes start with "bip01" (case insensitive)
 	local lowerName = toLower nodeName
-	return (matchPattern lowerName pattern:"bip01*")
+	return (matchPattern lowerName pattern:"bip01*" or matchPattern lowerName pattern:"frame*" or matchPattern lowerName pattern:"b_*")
 )
 
 -- Check if node name should be created as a helper object (frame/dummy)
@@ -24,7 +24,7 @@ fn isFrameNode nodeName =
 (
 	-- Frame nodes start with "frame" or "b_" (case insensitive)
 	local lowerName = toLower nodeName
-	return (matchPattern lowerName pattern:"frame*" or matchPattern lowerName pattern:"b_*")
+	return (matchPattern lowerName pattern:"frame_*")
 )
 
 -- Create a single node (sphere helper) from node data
