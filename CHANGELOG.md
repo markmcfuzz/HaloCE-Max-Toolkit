@@ -86,6 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Physics Importer:** Attributes panel wasn't displaying the mass and density values correctly.
+- **Model Collision Geometry Importer:** Crash when importing collision geometry with empty BSP data.
 - **GBX/Model Importer:** Enhanced vertex format support with automatic validation for Halo Custom Edition and MCC files. Intelligently compares formats to select the most reliable data for optimal performance and accuracy.
 - **GBX/Model Importer:** Implemented local node indices remapping for correct vertex skinning with part-specific bone assignments.
 - **GBX/Model Importer:** Fixed UV coordinate format error preventing texture mapping (Point2 to Point3 conversion).
