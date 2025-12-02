@@ -61,3 +61,11 @@ After installation, the new **Halo CE Toolkit** menu will appear automatically.
 - General-101
   - Some math used in the Halo 1 tag importing code.
   - [Halo-Asset-Blender-Development-Toolset](https://github.com/General-101/Halo-Asset-Blender-Development-Toolset)
+- MosesofEgypt
+  - Camera track exporter.
+- TheGhost
+  - Initial JMS exporter.
+- CtrlAltDestroy
+  - Initial animation exporter.
+- LaikaGlove
+  - Initial animation source importer.
