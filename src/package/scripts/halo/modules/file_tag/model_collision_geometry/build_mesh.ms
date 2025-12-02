@@ -314,6 +314,10 @@ fn buildCollisionMesh collisionData collisionFileName =
 		
 		for bsp in node.bsps do
 		(
+			-- Skip BSPs with empty or invalid surfaces data
+			if bsp.surfaces == undefined or classOf bsp.surfaces != Array then
+			continue
+			
 			for surf in bsp.surfaces do
 			(
 				local matIndex = surf.material + 1
