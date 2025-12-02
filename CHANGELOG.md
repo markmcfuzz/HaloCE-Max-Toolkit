@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Utils:** Move general utilities in a global struct for better organization.
 
 ## [3.5.0] - 2025-11-25
+
 ### Added
 - New implemented tag reader for **Shader Model** tags.
 - **GBX/Model Importer:** Added support for automatic texture application to materials on imported geometries.
@@ -80,3 +81,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - GBX/Model, Model Collision Geometry and Physics Importer code refactor bases on structs for better readability and maintainability.
 - Silence import success/failure message boxes in physics/collision importer to reduce interruptions.
+
+## [3.5.1] - 2025-12-02
+
+### Fixed
+- **Physics Importer:** Attributes panel wasn't displaying the mass and density values correctly.
+- **GBX/Model Importer:** Enhanced vertex format support with automatic validation for Halo Custom Edition and MCC files. Intelligently compares formats to select the most reliable data for optimal performance and accuracy.
+- **GBX/Model Importer:** Implemented local node indices remapping for correct vertex skinning with part-specific bone assignments.
+- **GBX/Model Importer:** Fixed UV coordinate format error preventing texture mapping (Point2 to Point3 conversion).
+
+### Changed
+- **Model Collision Geometry Importer:** Collision geometry now can be imported without requiring a pre-existing node hierarchy.
+  - When no hierarchy is found, a new node named `frame root` is automatically created, and all imported geometry is attached to it.
+  - This workflow is primarily intended for single-node collision setups or missing gbxmodel.
+- **GBX/Model Importer:** Create bones for all nodes, spheres are disabled for now.
