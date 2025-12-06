@@ -133,9 +133,19 @@ fn ImportGbxmodelGeometry modelFile:undefined =
         logger "Scene building: % seconds\n" params:#(sceneTime) logType:#info
         logger "Total time: % seconds\n" params:#(totalTime) logType:#info
     )
-    
     -- Refresh viewport to show imported geometry
     completeRedraw()
+
+    -- Show success message
+    if createdMeshes != undefined then
+    (
+        local fileName = filenameFromPath modelFile
+        messageBox ("Gbxmodel geometry imported successfully!\n\n" + "File: " + fileName + "\n") \
+                title:"Import Complete" \
+                beep:false
+    )
+
+    clearListener()
     return tagData
 )
 

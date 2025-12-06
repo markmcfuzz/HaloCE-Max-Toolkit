@@ -71,23 +71,21 @@ fn importCollisionGeometry =
 		return undefined
 	)
 
-	format "\n=== BUILDING COLLISION MESH ===\n"
+	--format "\n=== BUILDING COLLISION MESH ===\n"
 	local collisionName = getFilenameFile collisionFile
 	local success = buildCollisionMesh collisionData collisionName
 	
 	completeRedraw()
 	
-	if success != undefined and success.count > 0 then
-	(
-		--format "\n[SUCCESS] Collision geometry imported successfully!\n"
-		messageBox ("Collision geometry imported successfully!\nCreated " + success.count as string + " mesh objects.") title:"Import Complete"
-	)
-	else
-	(
-		format "\n[FAILED] Could not build collision mesh\n"
-		messageBox "Failed to build collision mesh in scene!\nNo detected nodes" title:"Import Failed"
-	)
-	
+	-- Show success message
+    if success != undefined and success.count > 0 then
+    (
+        local fileName = filenameFromPath collisionFile
+        messageBox ("Collision geometry imported successfully!\n\n" + "File: " + fileName + "\n") \
+                title:"Import Complete" \
+                beep:false
+    )
+
 	clearListener()
 	return success
 )

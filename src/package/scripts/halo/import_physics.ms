@@ -47,7 +47,7 @@ fn ImportPhysicsGeometry =
 		return undefined
 	)
 	
-	format "File: %\n" (filenameFromPath physicsFile)
+	--format "File: %\n" (filenameFromPath physicsFile)
 	-- Read physics tag
 	local physicsData = readPhysicsTag physicsFile
 	
@@ -66,25 +66,21 @@ fn ImportPhysicsGeometry =
 	local baseDensity = physicsData.tagBase.density
 	
 	-- Build spheres
-	logger "\n=== BUILDING MASS POINT SPHERES ===\n"
+	--logger "\n=== BUILDING MASS POINT SPHERES ===\n"
 	local success = createMassPointSpheres massPointsData poweredMassPointsData baseMass baseDensity
 	
 	-- Refresh viewport
 	completeRedraw()
-	
-	--if success != undefined and success.count > 0 then
-	--(
-	--	logger "\n[SUCCESS] Physics geometry imported successfully!\n"
-	--	messageBox ("Physics mass points imported successfully!\nCreated " + success.count as string + " sphere objects.") title:"Import Complete"
-	--)
-	--else
-	--(
-	--	logger "\n[FAILED] Could not build mass point spheres\n"
-	--	messageBox "Failed to build mass point spheres in scene!" title:"Import Failed"
-	--)
-	
-	clearListener()
 
+	if success != undefined and success.count > 0 then
+    (
+        local fileName = filenameFromPath physicsFile
+        messageBox ("Physics mass points imported successfully!\n\n" + "File: " + fileName + "\n") \
+                title:"Import Complete" \
+                beep:false
+    )
+
+	clearListener()
 	return success
 )
 
