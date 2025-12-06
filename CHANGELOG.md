@@ -101,7 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **JMS Exporter:** Complete rewrite from scratch with significant performance and stability improvements.
-  - **13.5× faster** on typical models (e.g., cyborg model: **280 ms** vs **3.78 s**).
+  - **8× faster** on typical models (e.g., cyborg model with all LODs: **1.1 s** vs **8.92 s**).
   - **3.3× faster** on large models (e.g., 60K-polygon models: **~15 s** vs **50 s**).
   - Optimized file writing with batched output.
   - Improved memory management for complex scenes.
