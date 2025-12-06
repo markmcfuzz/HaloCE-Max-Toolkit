@@ -30,7 +30,6 @@ luac.out
 *release/
 *hek_defs/
 *tags/
-*src/package/scripts/halo/modules/file_jms/
 
 # Files
 # manifest.json
