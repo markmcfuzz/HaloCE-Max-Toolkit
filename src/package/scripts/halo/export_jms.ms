@@ -23,6 +23,7 @@ gc light:true
 filein (scriptDir + "modules\\global_functions\\config.ms")
 filein (scriptDir + "modules\\global_functions\\utils.ms")
 filein (scriptDir + "modules\\file_jms\\jms_struct.ms")
+filein (scriptDir + "modules\\file_jms\\validate_scene.ms")
 filein (scriptDir + "modules\\file_jms\\process_scene.ms")
 filein (scriptDir + "modules\\file_jms\\process_file.ms")
 
@@ -30,6 +31,10 @@ fn exportJmsFile =
 (
     -- Process scene and extract JMS data
     local jmsData = processSceneForJMS()
+    
+    -- Check if validation failed
+    if jmsData == undefined then
+        return false
     
     -- Prompt user for save location
     local filePath = getSaveFileName \
