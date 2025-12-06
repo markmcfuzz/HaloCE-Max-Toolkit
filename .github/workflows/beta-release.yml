@@ -14,16 +14,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install LuaJIT
-        run: |
-          choco install luajit -y
-        shell: powershell
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-      - name: Run build script
+      - name: Run Python build script
         run: |
-          cd build
-          luajit create_mzp.lua
-          cd ..
+          python build/create_mzp.py
         shell: powershell
 
       - name: Find generated MZP
@@ -44,7 +42,7 @@ jobs:
           Write-Host "Last beta tag: $lastBeta"
 
           if (-not $lastBeta) {
-            $baseVersion = "v3.6.0"   # <-- Ajusta la siguiente versión aquí
+            $baseVersion = "v3.6.0"   # AJUSTA AQUÍ el próximo minor/major release
             $nextBeta = 1
           } else {
             $baseVersion = $lastBeta -replace "-beta.*",""
