@@ -531,6 +531,54 @@ fn decompressNodeWeight weightRaw =
     return weight
 )
 
+-------------------------------------------------------
+-- Object detection functions
+-------------------------------------------------------
+
+-- Check if object name indicates it should be exported as a node
+fn isNodeObject obj =
+(
+	if obj == undefined then return false
+	
+	local objName = toLower obj.name
+	
+	-- Check for node prefixes: 'b', 'b_', 'bone', 'frame', 'bip01'
+	local hasPrefix = (matchPattern objName pattern:"b *") or \
+	                  (matchPattern objName pattern:"b_*") or \
+	                  (matchPattern objName pattern:"bone*") or \
+	                  (matchPattern objName pattern:"frame*") or \
+	                  (matchPattern objName pattern:"bip01*")
+	
+	return hasPrefix
+)
+
+-- Check if object is a marker (names starting with '#')
+fn isMarkerObject obj =
+(
+	if obj == undefined then return false
+	return (obj.name[1] == "#")
+)
+
+-- Check if object is geometry (Editable Mesh or Editable Poly)
+fn isGeometryObject obj =
+(
+	if obj == undefined then return false
+	
+	local objClass = classOf obj
+	return (objClass == Editable_mesh or objClass == Editable_Poly)
+)
+
+-- Get the Skin modifier from an object if it exists
+fn getSkinModifier obj =
+(
+	for i = 1 to obj.modifiers.count do
+	(
+		if classOf obj.modifiers[i] == Skin then
+			return obj.modifiers[i]
+	)
+	return undefined
+)
+
 -- Instantiate global structs
 read = read()
 math = math()
