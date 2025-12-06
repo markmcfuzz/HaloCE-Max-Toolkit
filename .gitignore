@@ -30,15 +30,15 @@ luac.out
 *release/
 *hek_defs/
 *tags/
+*src/package/scripts/halo/modules/file_jms/
 
 # Files
-manifest.json
-simple_mzp.lua
+# manifest.json
+# simple_mzp.lua
 *.mzp
 *.tif
 *.7z
 *.max
-*.json
 *.jms
 
 # Shared objects (inc. Windows DLLs)
