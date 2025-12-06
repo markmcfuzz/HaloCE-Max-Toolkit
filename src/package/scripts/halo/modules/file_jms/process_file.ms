@@ -1,0 +1,231 @@
+-- JMS File Writer
+-- Writes JMS data structure to text file in proper format
+
+-------------------------------------------------------
+-- FORMAT HELPERS
+-------------------------------------------------------
+
+-- Format a float value for JMS output with 6 decimal places minimum
+fn formatJmsFloat val =
+(
+	-- Use formattedPrint to ensure at least 6 decimal places
+	local str = formattedPrint val format:".6f"
+	return str
+)
+
+-- Format quaternion rotation (i, j, k, w)
+fn formatRotation rotArray =
+(
+	local str = ""
+	str += formatJmsFloat rotArray[1] + "\t"
+	str += formatJmsFloat rotArray[2] + "\t"
+	str += formatJmsFloat rotArray[3] + "\t"
+	str += formatJmsFloat rotArray[4]
+	return str
+)
+
+-- Format translation (x, y, z)
+fn formatTranslation posArray =
+(
+	local str = ""
+	str += formatJmsFloat posArray[1] + "\t"
+	str += formatJmsFloat posArray[2] + "\t"
+	str += formatJmsFloat posArray[3]
+	return str
+)
+
+-------------------------------------------------------
+-- SECTION WRITERS
+-------------------------------------------------------
+
+-- Write JMS header (version and checksum)
+fn writeHeader fileStream jmsData =
+(
+	format "%\n" jmsData.jmsVersion to:fileStream
+	format "%\n" jmsData.jmsChecksum to:fileStream
+)
+
+-- Write node count and all nodes
+fn writeNodes fileStream jmsData =
+(
+	-- Write node count
+	format "%\n" jmsData.nodeCount to:fileStream
+	
+	-- Write each node
+	for node in jmsData.nodes do
+	(
+		format "%\n" node.nodeName to:fileStream
+		format "%\n" node.firstChildNodeIndex to:fileStream
+		format "%\n" node.nextSiblingNodeIndex to:fileStream
+		format "%\n" (formatRotation node.nodeRotation) to:fileStream
+		format "%\n" (formatTranslation node.nodeTranslation) to:fileStream
+	)
+)
+
+-- Write shader count and all shaders
+fn writeShaders fileStream jmsData =
+(
+	-- Write shader count
+	format "%\n" jmsData.shaderCount to:fileStream
+	
+	-- Write each shader
+	for shader in jmsData.shaders do
+	(
+		format "%\n" shader.shaderName to:fileStream
+		format "%\n" shader.shaderPath to:fileStream
+	)
+)
+
+-- Write marker count and all markers
+fn writeMarkers fileStream jmsData =
+(
+	-- Write marker count
+	format "%\n" jmsData.markerCount to:fileStream
+	
+	-- Write each marker
+	for marker in jmsData.markers do
+	(
+		format "%\n" marker.markerName to:fileStream
+		format "%\n" marker.markerRegion to:fileStream
+		format "%\n" marker.parentNodeIndex to:fileStream
+		format "%\n" (formatRotation marker.markerRotation) to:fileStream
+		format "%\n" (formatTranslation marker.markerTranslation) to:fileStream
+		format "%\n" (formatJmsFloat marker.markerRadius) to:fileStream
+	)
+)
+
+-- Write region count and all regions
+fn writeRegions fileStream jmsData =
+(
+	-- Write region count
+	format "%\n" jmsData.regionCount to:fileStream
+	
+	-- Write each region
+	for region in jmsData.regions do
+	(
+		format "%\n" region.regionName to:fileStream
+	)
+)
+
+-- Write vertex count and all vertices
+fn writeVertices fileStream jmsData =
+(
+	-- Write vertex count
+	format "%\n" jmsData.vertexCount to:fileStream
+	
+	-- Build vertices in larger batches (5000 vertices = 40K lines)
+	local batchSize = 5000
+	local ss = StringStream ""
+	local vertexCount = jmsData.vertices.count
+	
+	for i = 1 to vertexCount do
+	(
+		local vertex = jmsData.vertices[i]
+		
+		format "%\n" vertex.node0Index to:ss
+		format "%\n" (formatTranslation vertex.position) to:ss
+		format "%\n" (formatRotation vertex.normal) to:ss
+		format "%\n" vertex.node1Index to:ss
+		format "%\n" vertex.node1Weight to:ss
+		format "%\n" (formatJmsFloat vertex.texturePos[1]) to:ss
+		format "%\n" (formatJmsFloat vertex.texturePos[2]) to:ss
+		format "%\n" vertex.texturePos[3] to:ss
+		
+		-- Write batch when buffer is full
+		if (mod i batchSize) == 0 or i == vertexCount then
+		(
+			format "%" (ss as string) to:fileStream
+			ss = StringStream ""
+		)
+	)
+)
+
+-- Write triangle count and all triangles
+fn writeTriangles fileStream jmsData =
+(
+	-- Write triangle count
+	format "%\n" jmsData.triangleCount to:fileStream
+	
+	-- Build triangles in larger batches (10000 triangles = 30K lines)
+	local batchSize = 10000
+	local ss = StringStream ""
+	local triangleCount = jmsData.triangles.count
+	
+	for i = 1 to triangleCount do
+	(
+		local triangle = jmsData.triangles[i]
+		
+		format "%\n" triangle.regionIndex to:ss
+		format "%\n" triangle.shaderIndex to:ss
+		format "%\t%\t%\n" triangle.vertexIndices[1] triangle.vertexIndices[2] triangle.vertexIndices[3] to:ss
+		
+		-- Write batch when buffer is full
+		if (mod i batchSize) == 0 or i == triangleCount then
+		(
+			format "%" (ss as string) to:fileStream
+			ss = StringStream ""
+		)
+	)
+)
+
+-------------------------------------------------------
+-- MAIN EXPORT FUNCTION
+-------------------------------------------------------
+
+-- Write complete JMS file
+fn writeJmsFile filePath jmsData =
+(
+	logger "\n=== WRITING JMS FILE ===\n"
+	logger "Output: %\n" params:#(filePath) logType:#info
+	
+	local writeStartTime = timestamp()
+	
+	-- Create/open file for writing
+	local fileStream = createFile filePath
+	
+	if fileStream == undefined then
+	(
+		logger "Failed to create file: %\n" params:#(filePath) logType:#error
+		return false
+	)
+	
+	try
+	(
+		-- Write all sections in order
+		writeHeader fileStream jmsData
+		writeNodes fileStream jmsData
+		writeShaders fileStream jmsData
+		writeMarkers fileStream jmsData
+		writeRegions fileStream jmsData
+		writeVertices fileStream jmsData
+		writeTriangles fileStream jmsData
+		
+		-- Close file
+		close fileStream
+		
+		local writeTime = timestamp() - writeStartTime
+		
+		logger "JMS file written successfully\n" logType:#success
+		logger "    Version: %\n" params:#(jmsData.jmsVersion) logType:#info 
+		logger "    Nodes: %\n" params:#(jmsData.nodeCount) logType:#info
+		logger "    Shaders: %\n" params:#(jmsData.shaderCount) logType:#info
+		logger "    Markers: %\n" params:#(jmsData.markerCount) logType:#info
+		logger "    Regions: %\n" params:#(jmsData.regionCount) logType:#info
+		logger "    Vertices: %\n" params:#(jmsData.vertexCount) logType:#info
+		logger "    Triangles: %\n" params:#(jmsData.triangleCount) logType:#info
+
+        format "TOTAL WRITE TIME: % ms\n" writeTime
+        format "=============================\n\n"
+		--logger "    Write time: % ms\n" params:#(writeTime) logType:#timestamp
+		
+		return true
+	)
+	catch
+	(
+		logger "Exception while writing file: %\n" params:#((getCurrentException())) logType:#error
+		close fileStream
+		return false
+	)
+)
+
+logger "Process File loaded.\n" logType:#success
