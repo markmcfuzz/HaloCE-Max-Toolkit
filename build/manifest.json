@@ -1,5 +1,6 @@
 {
-    "packageVersion": "3.5.1",
+    "packageVersion": "3.6.0",
     "fileName": "halo-ce-max-toolkit-",
-    "filesAndFoldersToCompress": "src/"
+    "filesAndFoldersToCompress": "src/",
+    "isBeta": true
 }

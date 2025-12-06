@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - beta
+    paths:
+      - 'src/**'
 
 permissions:
   contents: write
@@ -47,21 +49,7 @@ jobs:
 
           Write-Host "Base version from manifest.json: $baseVersion"
 
-          # Buscar tags beta existentes
-          $betaTags = git tag --list "$baseVersion-beta.*"
-
-          if ($betaTags.Count -eq 0) {
-            $nextBeta = 1
-          } else {
-            # Extraer números beta de los tags encontrados
-            $betaNumbers = $betaTags | ForEach-Object {
-              ($_ -replace "^$baseVersion-beta\.", "") -as [int]
-            }
-
-            $nextBeta = ($betaNumbers | Measure-Object -Maximum).Maximum + 1
-          }
-
-          $newTag = "$baseVersion-beta.$nextBeta"
+          $newTag = "$baseVersion-beta"
           Write-Host "Generated tag: $newTag"
 
           echo "NEW_TAG=$newTag" >> $env:GITHUB_OUTPUT
@@ -71,6 +59,16 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          
+          # Delete existing tag if it exists (both locally and remotely)
+          $tagExists = git tag -l $env:NEW_TAG
+          if ($tagExists) {
+            Write-Host "Tag $env:NEW_TAG already exists. Deleting..."
+            git tag -d $env:NEW_TAG
+            git push --delete origin $env:NEW_TAG 2>$null
+          }
+          
+          # Create and push new tag
           git tag $env:NEW_TAG
           git push origin $env:NEW_TAG
         shell: powershell
@@ -81,6 +79,11 @@ jobs:
           tag_name: ${{ steps.version.outputs.NEW_TAG }}
           prerelease: true
           generate_release_notes: true
+          body: |
+            ## Beta Pre-release
+            This is a beta pre-release for testing purposes.
+            
+            **Full Changelog:** [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md)
           files: |
             ${{ steps.mzp.outputs.MZP_FILE }}
         env:

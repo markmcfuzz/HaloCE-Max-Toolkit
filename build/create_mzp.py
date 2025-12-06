@@ -23,6 +23,7 @@ def main():
     package_version = manifest.get("packageVersion")
     package_name = manifest.get("fileName")
     source_folder = manifest.get("filesAndFoldersToCompress")
+    is_beta = manifest.get("isBeta", False)
 
     if not (package_version and package_name and source_folder):
         raise ValueError("manifest.json missing required fields")
@@ -31,7 +32,9 @@ def main():
     if not source_dir.exists():
         raise FileNotFoundError(f"Source folder not found: {source_dir}")
 
-    output_name = f"{package_name}{package_version}"
+    # Add -beta suffix if isBeta is true
+    version_suffix = "-beta" if is_beta else ""
+    output_name = f"{package_name}{package_version}{version_suffix}"
     zip_path = root_dir / f"{output_name}.zip"
     mzp_path = root_dir / f"{output_name}.mzp"
 
