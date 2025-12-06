@@ -1,0 +1,74 @@
+name: Beta Release
+
+on:
+  push:
+    branches:
+      - beta
+
+jobs:
+  prerelease:
+    name: Generate Beta Pre-release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Lua
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.4
+
+      - name: Run build script
+        run: |
+          cd build
+          lua create_mzp.lua
+          cd ..
+
+      - name: Find generated MZP
+        id: mzp
+        run: |
+          FILE=$(find . -name "*.mzp" | head -n 1)
+          if [ -z "$FILE" ]; then
+            echo "ERROR: No .mzp file found!"
+            exit 1
+          fi
+          echo "MZP_FILE=$FILE" >> $GITHUB_OUTPUT
+          echo "Found MZP: $FILE"
+
+      - name: Set version
+        id: version
+        run: |
+          LAST_BETA=$(git tag --list "v*-beta.*" | sort -V | tail -n 1)
+          echo "Last beta tag: $LAST_BETA"
+
+          if [ -z "$LAST_BETA" ]; then
+            BASE_VERSION="v3.6.0"  # <-- CAMBIA ESTA a tu próxima versión estable
+            NEXT_BETA=1
+          else
+            BASE_VERSION=$(echo $LAST_BETA | sed 's/-beta.*//')
+            CURRENT_BETA=$(echo $LAST_BETA | sed 's/.*-beta.//')
+            NEXT_BETA=$((CURRENT_BETA + 1))
+          fi
+
+          NEW_TAG="${BASE_VERSION}-beta.${NEXT_BETA}"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "Generated tag: $NEW_TAG"
+
+      - name: Create tag
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag ${{ steps.version.outputs.NEW_TAG }}
+          git push origin ${{ steps.version.outputs.NEW_TAG }}
+
+      - name: Create Pre-release on GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.NEW_TAG }}
+          prerelease: true
+          generate_release_notes: true
+          files: |
+            ${{ steps.mzp.outputs.MZP_FILE }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
