@@ -64,7 +64,7 @@ After installation, the new **Halo CE Toolkit** menu will appear automatically.
 - MosesofEgypt
   - Camera track exporter.
 - TheGhost
-  - Initial JMS exporter.
+  - All bluestreak.
 - CtrlAltDestroy
   - Initial animation exporter.
 - LaikaGlove
