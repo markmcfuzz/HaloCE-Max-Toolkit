@@ -37,6 +37,9 @@ simple_mzp.lua
 *.mzp
 *.tif
 *.7z
+*.max
+*.json
+*.jms
 
 # Shared objects (inc. Windows DLLs)
 *.dll
