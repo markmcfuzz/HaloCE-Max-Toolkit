@@ -34,7 +34,7 @@ luac.out
 
 # Files
 # manifest.json
-# simple_mzp.lua
+create_mzp.lua
 *.mzp
 *.tif
 *.7z
