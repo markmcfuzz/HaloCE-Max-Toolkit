@@ -38,20 +38,29 @@ jobs:
       - name: Set version
         id: version
         run: |
-          $lastBeta = git tag --list "v*-beta.*" | Sort-Object -Version | Select-Object -Last 1
-          Write-Host "Last beta tag: $lastBeta"
+          # Leer versión base desde manifest.json
+          $manifest = Get-Content build/manifest.json | ConvertFrom-Json
+          $baseVersion = "v$($manifest.packageVersion)"
 
-          if (-not $lastBeta) {
-            $baseVersion = "v3.6.0"   # AJUSTA AQUÍ el próximo minor/major release
+          Write-Host "Base version from manifest.json: $baseVersion"
+
+          # Buscar tags beta existentes
+          $betaTags = git tag --list "$baseVersion-beta.*"
+
+          if ($betaTags.Count -eq 0) {
             $nextBeta = 1
           } else {
-            $baseVersion = $lastBeta -replace "-beta.*",""
-            $currentBeta = ($lastBeta -replace ".*-beta.","") -as [int]
-            $nextBeta = $currentBeta + 1
+            # Extraer números beta de los tags encontrados
+            $betaNumbers = $betaTags | ForEach-Object {
+              ($_ -replace "^$baseVersion-beta\.", "") -as [int]
+            }
+
+            $nextBeta = ($betaNumbers | Measure-Object -Maximum).Maximum + 1
           }
 
           $newTag = "$baseVersion-beta.$nextBeta"
           Write-Host "Generated tag: $newTag"
+
           echo "NEW_TAG=$newTag" >> $env:GITHUB_OUTPUT
         shell: powershell
 
