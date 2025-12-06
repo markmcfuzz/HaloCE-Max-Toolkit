@@ -4,7 +4,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
 ## [1.0.0] - 2025-09-24
 ### Added
 - Initial release
@@ -97,3 +96,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - When no hierarchy is found, a new node named `frame root` is automatically created, and all imported geometry is attached to it.
   - This workflow is primarily intended for single-node collision setups or missing gbxmodel.
 - **GBX/Model Importer:** Create bones for all nodes, spheres are disabled for now.
+
+## [3.6.0] - 2025-12-06
+
+### Added
+- **JMS Exporter:** Complete rewrite from scratch with significant performance and stability improvements.
+  - **13.5× faster** on typical models (e.g., cyborg model: **280 ms** vs **3.78 s**).
+  - **3.3× faster** on large models (e.g., 60K-polygon models: **~15 s** vs **50 s**).
+  - Optimized file writing with batched output.
+  - Improved memory management for complex scenes.
+  - More accurate normal calculation using smoothing groups.
+  - Skin weight data is now pre-cached for faster processing and more reliable bone assignments.
+  - **New regions workflow:**
+    - Supports `Named Selection Sets` for region assignment.
+    - Face-based region selection remains fully compatible.
+  - Exporting directly from `Editable Poly` is now supported. No need to convert to `Editable Mesh`, even for collision geometry and structure bsp open-edge errors will no longer appear.
