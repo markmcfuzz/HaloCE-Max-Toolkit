@@ -8,61 +8,64 @@ on:
 jobs:
   prerelease:
     name: Generate Beta Pre-release
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Lua
+      - name: Install LuaJIT
         run: |
-          sudo apt-get update
-          sudo apt-get install -y lua5.4
+          choco install luajit -y
+        shell: powershell
 
       - name: Run build script
         run: |
           cd build
-          lua create_mzp.lua
+          luajit create_mzp.lua
           cd ..
+        shell: powershell
 
       - name: Find generated MZP
         id: mzp
         run: |
-          FILE=$(find . -name "*.mzp" | head -n 1)
-          if [ -z "$FILE" ]; then
-            echo "ERROR: No .mzp file found!"
+          $file = Get-ChildItem -Recurse -Filter *.mzp | Select-Object -First 1
+          if (-not $file) {
+            Write-Error "No MZP file found"
             exit 1
-          fi
-          echo "MZP_FILE=$FILE" >> $GITHUB_OUTPUT
-          echo "Found MZP: $FILE"
+          }
+          echo "MZP_FILE=$($file.FullName)" >> $env:GITHUB_OUTPUT
+        shell: powershell
 
       - name: Set version
         id: version
         run: |
-          LAST_BETA=$(git tag --list "v*-beta.*" | sort -V | tail -n 1)
-          echo "Last beta tag: $LAST_BETA"
+          $lastBeta = git tag --list "v*-beta.*" | Sort-Object -Version | Select-Object -Last 1
+          Write-Host "Last beta tag: $lastBeta"
 
-          if [ -z "$LAST_BETA" ]; then
-            BASE_VERSION="v3.6.0"  # <-- CAMBIA ESTA a tu próxima versión estable
-            NEXT_BETA=1
-          else
-            BASE_VERSION=$(echo $LAST_BETA | sed 's/-beta.*//')
-            CURRENT_BETA=$(echo $LAST_BETA | sed 's/.*-beta.//')
-            NEXT_BETA=$((CURRENT_BETA + 1))
-          fi
+          if (-not $lastBeta) {
+            $baseVersion = "v3.6.0"   # <-- Ajusta la siguiente versión aquí
+            $nextBeta = 1
+          } else {
+            $baseVersion = $lastBeta -replace "-beta.*",""
+            $currentBeta = ($lastBeta -replace ".*-beta.","") -as [int]
+            $nextBeta = $currentBeta + 1
+          }
 
-          NEW_TAG="${BASE_VERSION}-beta.${NEXT_BETA}"
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
-          echo "Generated tag: $NEW_TAG"
+          $newTag = "$baseVersion-beta.$nextBeta"
+          Write-Host "Generated tag: $newTag"
+          echo "NEW_TAG=$newTag" >> $env:GITHUB_OUTPUT
+        shell: powershell
 
       - name: Create tag
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git tag ${{ steps.version.outputs.NEW_TAG }}
-          git push origin ${{ steps.version.outputs.NEW_TAG }}
+          git tag $env:NEW_TAG
+          git push origin $env:NEW_TAG
+        shell: powershell
 
-      - name: Create Pre-release on GitHub
+      - name: Create Pre-release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.NEW_TAG }}
