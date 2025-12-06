@@ -94,10 +94,8 @@ fn linkNodeHierarchy createdNodes nodeDataArray =
 		-- Scale translation from Halo units to 3ds Max units
 		local scaledTranslation = [translation[1], translation[2], translation[3]] * HALO_SCALE
 		
-		-- Convert quaternion to 3ds Max quat format and NEGATE x,y,z components
-		-- This is critical for correct bone orientation in 3ds Max
-		-- MUST normalize the quaternion for correct rotations
-		local rotQuat = normalize (quat (-rotation[1]) (-rotation[2]) (-rotation[3]) rotation[4])
+		-- Apply quaternion directly (matching old importer - no negation)
+		local rotQuat = normalize (quat rotation[1] rotation[2] rotation[3] rotation[4])
 		
 		-- Apply transform in parent-local space (separate statements match old script)
 		in coordsys parent nodeObj.rotation = rotQuat
