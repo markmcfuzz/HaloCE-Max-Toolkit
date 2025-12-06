@@ -11,38 +11,6 @@
 ------------------------------------------------------------------------------------------------
 
 -------------------------------------------------------
--- NODE DETECTION
--------------------------------------------------------
-
--- Check if object name indicates it should be exported as a node
-fn isNodeObject obj =
-(
-	if obj == undefined then return false
-	
-	local objName = toLower obj.name
-	
-	-- Check for node prefixes: 'b', 'b_', 'bone', 'frame', 'bip01'
-	local hasPrefix = (matchPattern objName pattern:"b *") or \
-	                  (matchPattern objName pattern:"b_*") or \
-	                  (matchPattern objName pattern:"bone*") or \
-	                  (matchPattern objName pattern:"frame*") or \
-	                  (matchPattern objName pattern:"bip01*")
-	
-	return hasPrefix
-)
-
--------------------------------------------------------
--- MARKER DETECTION
--------------------------------------------------------
-
--- Check if object is a marker (names starting with '#')
-fn isMarkerObject obj =
-(
-	if obj == undefined then return false
-	return (obj.name[1] == "#")
-)
-
--------------------------------------------------------
 -- HIERARCHY BUILDING
 -------------------------------------------------------
 
@@ -208,20 +176,35 @@ fn getNextSiblingIndex nodeIndex childIndicesArray =
 -- Convert 3ds Max rotation to quaternion (i, j, k, w)
 fn getNodeRotationQuat obj =
 (
-	-- Get rotation in parent space
-	local rotQuat = in coordsys parent obj.rotation
+	-- Try getting rotation from controller value in parent space
+	local rotQuat = undefined
 	
-	-- For JMS export, we need to negate the x, y, z components (conjugate the quaternion)
-	-- This converts from 3ds Max coordinate system to Halo coordinate system
-	-- Return as array: [i, j, k, w] which is [-x, -y, -z, w]
-	return #(-rotQuat.x, -rotQuat.y, -rotQuat.z, rotQuat.w)
+	-- Get transform in parent space
+	local tm = obj.transform
+	if obj.parent != undefined then
+		tm = tm * inverse(obj.parent.transform)
+	
+	-- Extract rotation as quaternion from matrix
+	rotQuat = tm.rotation as quat
+	
+	-- Normalize to ensure unit quaternion
+	rotQuat = normalize rotQuat
+	
+	-- Export as-is
+	return #(rotQuat.x, rotQuat.y, rotQuat.z, rotQuat.w)
 )
 
 -- Get node translation in parent space
-fn getNodeTranslation obj =
+fn getNodeTranslation obj parentNode:undefined =
 (
 	-- Get position in parent space
-	local pos = in coordsys parent obj.pos
+	-- If parentNode is provided (for markers parented to skinned geometry),
+	-- transform from world space to that node's space
+	local pos
+	if parentNode != undefined then
+		pos = obj.pos * inverse(parentNode.transform)  -- World to parent node space
+	else
+		pos = in coordsys parent obj.pos  -- Parent space position
 	
 	-- Return as array: [x, y, z]
 	return #(pos.x, pos.y, pos.z)
@@ -301,13 +284,23 @@ fn extractMarkerData nodeArray =
 		if rootParent != rootNode then continue
 		
 		-- Find parent node index in node array
-		local parentIndex = -1
-		for i = 1 to nodeArray.count do
+		-- If marker is parented to geometry, walk up to find the parent node
+		local parentNodeObj = obj.parent
+		while parentNodeObj != undefined and not (isNodeObject parentNodeObj) do
 		(
-			if nodeArray[i] == obj.parent then
+			parentNodeObj = parentNodeObj.parent
+		)
+		
+		local parentIndex = -1
+		if parentNodeObj != undefined then
+		(
+			for i = 1 to nodeArray.count do
 			(
-				parentIndex = i - 1  -- Convert to 0-based
-				exit
+				if nodeArray[i] == parentNodeObj then
+				(
+					parentIndex = i - 1  -- Convert to 0-based
+					exit
+				)
 			)
 		)
 		
@@ -317,7 +310,11 @@ fn extractMarkerData nodeArray =
 		markerData.markerRegion = -1  -- Default region
 		markerData.parentNodeIndex = parentIndex
 		markerData.markerRotation = getNodeRotationQuat obj
-		markerData.markerTranslation = getNodeTranslation obj
+		-- If marker is parented to skinned geometry, pass the parent node for proper space conversion
+		if obj.parent != undefined and (getSkinModifier obj.parent) != undefined then
+			markerData.markerTranslation = getNodeTranslation obj parentNode:parentNodeObj
+		else
+			markerData.markerTranslation = getNodeTranslation obj
 		
 		-- Get marker radius directly from object (3ds Max helper objects have .radius property)
 		if hasProperty obj #radius then
@@ -329,30 +326,6 @@ fn extractMarkerData nodeArray =
 	)
 	
 	return markerDataArray
-)
-
--------------------------------------------------------
--- GEOMETRY DETECTION
--------------------------------------------------------
-
--- Check if object is geometry (Editable Mesh or Editable Poly)
-fn isGeometryObject obj =
-(
-	if obj == undefined then return false
-	
-	local objClass = classOf obj
-	return (objClass == Editable_mesh or objClass == Editable_Poly)
-)
-
--- Get the Skin modifier from an object if it exists
-fn getSkinModifier obj =
-(
-	for i = 1 to obj.modifiers.count do
-	(
-		if classOf obj.modifiers[i] == Skin then
-			return obj.modifiers[i]
-	)
-	return undefined
 )
 
 -------------------------------------------------------
@@ -555,8 +528,8 @@ fn extractRegions nodeObjectArray =
 			delete meshObj
 	)
 	
-	-- If no regions found at all, add default "__unnamed" region
-	if not foundAnyRegion then
+	-- Always ensure "__unnamed" region exists as the default for faces without a region
+	if (findItem regionNames "__unnamed") == 0 then
 	(
 		local regionData = region()
 		regionData.regionName = "__unnamed"
@@ -619,14 +592,23 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 		
 		objectCount += 1
 		
-		-- Find parent node index
-		local parentNodeIndex = -1
-		for i = 1 to nodeObjectArray.count do
+		-- Find parent node index (walk up hierarchy until we find a node object)
+		local parentNodeObj = obj.parent
+		while parentNodeObj != undefined and not (isNodeObject parentNodeObj) do
 		(
-			if nodeObjectArray[i] == obj.parent then
+			parentNodeObj = parentNodeObj.parent
+		)
+		
+		local parentNodeIndex = -1
+		if parentNodeObj != undefined then
+		(
+			for i = 1 to nodeObjectArray.count do
 			(
-				parentNodeIndex = i - 1  -- Convert to 0-based
-				exit
+				if nodeObjectArray[i] == parentNodeObj then
+				(
+					parentNodeIndex = i - 1  -- Convert to 0-based
+					exit
+				)
 			)
 		)
 		
@@ -816,6 +798,13 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 				if foundIdx > 0 then
 					regionIndex = regionLookup.regionIndices[foundIdx]
 			)
+			else
+			(
+				-- No region assigned, use "__unnamed" region
+				local foundIdx = findItem regionLookup.regionNames "__unnamed"
+				if foundIdx > 0 then
+					regionIndex = regionLookup.regionIndices[foundIdx]
+			)
 			
 			triData.regionIndex = regionIndex
 			
@@ -854,17 +843,22 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			
 			for corner = 1 to 3 do
 			(
-				local timeVertStart = timestamp()
-				local vertIdx = face[corner]
-				local vertData = vertices()
-				
-				-- Get vertex position
-				-- snapshotAsMesh returns vertices in parent space already, no transform needed!
-				local vertPos = getVert meshObj vertIdx
-				vertData.position = #(vertPos.x, vertPos.y, vertPos.z)
-				timeVertexCreation += timestamp() - timeVertStart
-				
-			-- Calculate vertex normal using smoothing groups (like old exporter)
+			local timeVertStart = timestamp()
+			local vertIdx = face[corner]
+			local vertData = vertices()
+			
+			-- Get vertex position
+			local vertPos = getVert meshObj vertIdx
+			
+			-- Transform to world space if object has Skin modifier
+			-- Skinned objects need world space positions, not parent space
+			if hasSkin then
+			(
+				vertPos = vertPos * obj.transform
+			)
+			
+			vertData.position = #(vertPos.x, vertPos.y, vertPos.z)
+			timeVertexCreation += timestamp() - timeVertStart			-- Calculate vertex normal using smoothing groups (like old exporter)
 			local timeNormalStart = timestamp()
 			local vNormal = [0, 0, 0]
 			vNormal += faceNormals[f]  -- Use cached face normal
@@ -1016,7 +1010,24 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 fn processSceneForJMS =
 (
 	local startTime = timestamp()
-	format "\n=== JMS EXPORT PERFORMANCE ===\n"
+	--format "\n=== JMS EXPORT PERFORMANCE ===\n"
+	
+	-- Validate scene before processing
+	local validationErrors = validateSceneForExport()
+	if validationErrors.count > 0 then
+	(
+		-- Show all errors in a single message box
+		local errorMsg = "Cannot export JMS file. Please fix the following issues:\n\n"
+		for i = 1 to validationErrors.count do
+		(
+			errorMsg += validationErrors[i]
+			if i < validationErrors.count then
+				errorMsg += "\n\n========================================\n\n"
+		)
+		
+		messageBox errorMsg title:"JMS Export Validation Failed" beep:false
+		return undefined
+	)
 	
 	-- Create main JMS structure
 	local jmsData = jmsFile()
