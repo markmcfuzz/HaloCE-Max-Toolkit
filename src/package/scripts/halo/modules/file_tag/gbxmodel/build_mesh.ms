@@ -354,6 +354,10 @@ fn buildGeometryByRegions modelFilePath tagStruct materialObj createdNodes uScal
     local createdMeshes = #()
     local importedGeometryIndices = #()
     
+    -- Track meshes by region for Named Selection Sets
+    struct RegionMeshEntry (regionName, meshes = #())
+    local regionMeshMap = #()
+    
     for r = 1 to regionsArray.count do
     (
         local region = regionsArray[r]
@@ -529,6 +533,18 @@ fn buildGeometryByRegions modelFilePath tagStruct materialObj createdNodes uScal
                 append createdMeshes combinedMesh
                 append importedGeometryIndices geometryIndex
                 
+                -- Track mesh by region name for Named Selection Sets
+                local regionEntry = undefined
+                for entry in regionMeshMap where entry.regionName == regionName do
+                    regionEntry = entry
+                
+                if regionEntry == undefined then
+                (
+                    regionEntry = RegionMeshEntry regionName:regionName
+                    append regionMeshMap regionEntry
+                )
+                append regionEntry.meshes combinedMesh
+                
                 -- Add to layer
                 local geometryLayer = LayerManager.getLayerFromName "Geometry Model"
                 if geometryLayer == undefined then
@@ -539,6 +555,15 @@ fn buildGeometryByRegions modelFilePath tagStruct materialObj createdNodes uScal
                 if createdNodes.count > 0 and createdNodes[1] != undefined then
                     combinedMesh.parent = createdNodes[1]
             )
+        )
+    )
+    
+    -- Create Named Selection Sets for regions
+    for entry in regionMeshMap do
+    (
+        if entry.meshes.count > 0 then
+        (
+            selectionSets[entry.regionName] = entry.meshes
         )
     )
     
