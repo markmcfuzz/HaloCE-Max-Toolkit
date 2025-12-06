@@ -42,7 +42,19 @@ fn exportJmsFile =
         return false
     
     -- Write the JMS file
-    writeJmsFile filePath jmsData
+    local success = writeJmsFile filePath jmsData
+    
+    -- Show success message
+    if success then
+    (
+        local fileName = filenameFromPath filePath
+        messageBox ("JMS file exported successfully!\n\n" + \
+                "File: " + fileName + "\n") \
+                title:"Export Complete" \
+                beep:false
+    )
+    
+    return success
 )
 
 -- Run the exporter

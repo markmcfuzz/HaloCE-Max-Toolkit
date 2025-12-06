@@ -707,19 +707,17 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 		
 		timeRegionMapping += timestamp() - timeRegionStart
 		
-		-- Pre-calculate face normals and smoothing groups (caching for performance)
-		local timeCacheStart = timestamp()
-		local faceNormals = #()
-		local faceSmoothGroups = #()
-		local vertexFaceMap = #()  -- Store which faces use each vertex
-		
-		for f = 1 to numFaces do
-		(
-			append faceNormals (getFaceNormal meshObj f)
-			append faceSmoothGroups (getFaceSmoothGroupB meshObj f)
-		)
-		
-		-- Build vertex-to-faces map
+	-- Pre-calculate face normals and smoothing groups (caching for performance)
+	local timeCacheStart = timestamp()
+	local faceNormals = #()
+	local faceSmoothGroups = #()
+	local vertexFaceMap = #()  -- Store which faces use each vertex
+	
+	for f = 1 to numFaces do
+	(
+		append faceNormals (getFaceNormal meshObj f)
+		append faceSmoothGroups (getFaceSmoothGroup meshObj f)
+	)		-- Build vertex-to-faces map
 		for v = 1 to numVerts do
 			append vertexFaceMap #()
 		
@@ -866,52 +864,38 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 				vertData.position = #(vertPos.x, vertPos.y, vertPos.z)
 				timeVertexCreation += timestamp() - timeVertStart
 				
-				-- Calculate vertex normal using smoothing groups (like old exporter)
-				local timeNormalStart = timestamp()
-				local vNormal = [0, 0, 0]
-				vNormal += faceNormals[f]  -- Use cached face normal
-				
-				-- Get smoothing group for current face (from cache)
-				local faceSG = faceSmoothGroups[f]
-				
-				-- Get all faces that share this vertex (from cache)
-				local sharedFaces = vertexFaceMap[vertIdx]
-				
-				-- Check each shared face for smoothing group overlap
-				for s = 1 to sharedFaces.count do
+			-- Calculate vertex normal using smoothing groups (like old exporter)
+			local timeNormalStart = timestamp()
+			local vNormal = [0, 0, 0]
+			vNormal += faceNormals[f]  -- Use cached face normal
+			
+			-- Get smoothing group for current face (from cache)
+			local faceSG = faceSmoothGroups[f]
+			
+			-- Get all faces that share this vertex (from cache)
+			local sharedFaces = vertexFaceMap[vertIdx]
+			
+			-- Check each shared face for smoothing group overlap
+			for s = 1 to sharedFaces.count do
+			(
+				local sharedFaceIdx = sharedFaces[s]
+				if sharedFaceIdx != f then  -- Skip current face
 				(
-					local sharedFaceIdx = sharedFaces[s]
-					if sharedFaceIdx != f then  -- Skip current face
-					(
-						local affectNormal = false
-						local neiSG = faceSmoothGroups[sharedFaceIdx]  -- Use cached smoothing group
+					local neiSG = faceSmoothGroups[sharedFaceIdx]  -- Use cached smoothing group
 					
-						-- Check if any smoothing group is shared
-						for aN = 1 to faceSG.count do
-						(
-							if not affectNormal then
-							(
-								if (findItem neiSG faceSG[aN]) != 0 then
-								(
-									affectNormal = true
-								)
-							)
-						)
-						
-						-- If smoothing groups are shared, add this face's normal (from cache)
-						if affectNormal then
-						(
-							vNormal += faceNormals[sharedFaceIdx]
-						)
+					-- Smoothing groups are bitfields - use bitwise AND to check overlap
+					-- If they share any smoothing group bits, add the neighbor's normal
+					if (bit.and faceSG neiSG) != 0 then
+					(
+						vNormal += faceNormals[sharedFaceIdx]
 					)
 				)
-				
-				-- Normalize the result
-				vNormal = normalize vNormal
-				vertData.normal = #(vNormal.x, vNormal.y, vNormal.z)
-				timeNormalCalc += timestamp() - timeNormalStart
-				
-				-- Handle skinning
+			)
+			
+			-- Normalize the result
+			vNormal = normalize vNormal
+			vertData.normal = #(vNormal.x, vNormal.y, vNormal.z)
+			timeNormalCalc += timestamp() - timeNormalStart				-- Handle skinning
 				local timeSkinStart = timestamp()
 				if hasSkin then
 				(
