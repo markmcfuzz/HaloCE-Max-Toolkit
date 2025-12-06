@@ -111,4 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Supports `Named Selection Sets` for region assignment.
     - Face-based region selection remains fully compatible.
   - Exporting directly from `Editable Poly` is now supported. No need to convert to `Editable Mesh`, even for collision geometry and structure bsp open-edge errors will no longer appear.
-- **GBX/Model Importer:** Support for Named Selection Sets based on region names for automatized region management.
+- **GBX/Model Importer:** Support for Named Selection Sets based on region names for automatized region when importing models.
+
+### Fixed
+- **GBX/Model Importer:** Bone orientation by applying quaternion directly in node hierarchy linking.
