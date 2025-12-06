@@ -1,6 +1,3 @@
-/*
-Jms exporter written from scratch
-*/
 ------------------------------------------------------------------------------------------------
 --	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
 --	This program is free software; you can redistribute it and/or modify it	
