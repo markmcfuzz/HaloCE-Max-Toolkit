@@ -122,8 +122,8 @@ fn writeVertices fileStream jmsData =
 	-- Write vertex count
 	format "%\n" jmsData.vertexCount to:fileStream
 	
-	-- Build vertices in larger batches (5000 vertices = 40K lines)
-	local batchSize = 5000
+	-- Build vertices in larger batches (200000 vertices = 1.6M lines)
+	local batchSize = 200000
 	local ss = StringStream ""
 	local vertexCount = jmsData.vertices.count
 	
@@ -155,8 +155,8 @@ fn writeTriangles fileStream jmsData =
 	-- Write triangle count
 	format "%\n" jmsData.triangleCount to:fileStream
 	
-	-- Build triangles in larger batches (10000 triangles = 30K lines)
-	local batchSize = 10000
+	-- Build triangles in larger batches (200000 triangles = 600K lines)
+	local batchSize = 200000
 	local ss = StringStream ""
 	local triangleCount = jmsData.triangles.count
 	
