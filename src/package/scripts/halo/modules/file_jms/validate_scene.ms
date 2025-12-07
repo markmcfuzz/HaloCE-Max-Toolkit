@@ -262,7 +262,14 @@ fn validateSceneForExport =
 			if isNodeObject obj then continue
 			if isMarkerObject obj then continue
 			
-			-- Check if geometry is descendant of root node
+			-- Check if geometry has a skin modifier (skinned geometry is valid)
+			if (getSkinModifier obj) != undefined then
+			(
+				hasValidGeometry = true
+				exit
+			)
+			
+			-- Check if geometry is descendant of root node (directly linked geometry)
 			local testParent = obj.parent
 			local rootParent = undefined
 			

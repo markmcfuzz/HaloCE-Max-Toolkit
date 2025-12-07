@@ -565,7 +565,20 @@ fn isGeometryObject obj =
 	if obj == undefined then return false
 	
 	local objClass = classOf obj
-	return (objClass == Editable_mesh or objClass == Editable_Poly)
+	
+	-- Check direct class
+	if objClass == Editable_mesh or objClass == Editable_Poly then
+		return true
+	
+	-- Check base object (for objects with modifiers)
+	if obj.baseObject != undefined then
+	(
+		local baseClass = classOf obj.baseObject
+		if baseClass == Editable_mesh or baseClass == Editable_Poly then
+			return true
+	)
+	
+	return false
 )
 
 -- Get the Skin modifier from an object if it exists

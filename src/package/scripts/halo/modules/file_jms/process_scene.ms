@@ -359,11 +359,7 @@ fn extractShaders nodeObjectArray =
 		if rootParent != rootNode then continue
 		
 		-- Get mesh data to check face material IDs
-		local meshObj = undefined
-		if classOf obj == Editable_mesh then
-			meshObj = obj.mesh
-		else
-			meshObj = snapshotAsMesh obj
+		local meshObj = snapshotAsMesh obj
 		
 		-- Get material from object
 		if obj.material != undefined then
@@ -416,9 +412,8 @@ fn extractShaders nodeObjectArray =
 			)
 		)
 		
-		-- Clean up snapshot if we created one
-		if classOf obj != Editable_mesh then
-			delete meshObj
+		-- Clean up snapshot
+		delete meshObj
 	)
 	
 	return shaderArray
@@ -452,11 +447,7 @@ fn extractRegions nodeObjectArray =
 		if rootParent != rootNode then continue
 		
 		-- Get mesh data to check face selection sets
-		local meshObj = undefined
-		if classOf obj == Editable_mesh then
-			meshObj = obj.mesh
-		else
-			meshObj = snapshotAsMesh obj
+		local meshObj = snapshotAsMesh obj
 		
 		-- Method 1: Check named selection sets (new method)
 		-- Get all named selection sets for this object
@@ -523,9 +514,8 @@ fn extractRegions nodeObjectArray =
 			)
 		)
 		
-		-- Clean up snapshot if we created one
-		if classOf obj != Editable_mesh then
-			delete meshObj
+		-- Clean up snapshot
+		delete meshObj
 	)
 	
 	-- Always ensure "__unnamed" region exists as the default for faces without a region
@@ -614,12 +604,8 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 		
 		if parentNodeIndex < 0 then continue
 		
-		-- Get mesh data (use the object's mesh directly for Editable_Mesh)
-		local meshObj = undefined
-		if classOf obj == Editable_mesh then
-			meshObj = obj.mesh
-		else
-			meshObj = snapshotAsMesh obj
+		-- Get mesh data - always use snapshotAsMesh for consistent world-space geometry
+		local meshObj = snapshotAsMesh obj
 		
 		local numVerts = meshObj.numverts
 		local numFaces = meshObj.numfaces
@@ -847,16 +833,10 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			local vertIdx = face[corner]
 			local vertData = vertices()
 			
-			-- Get vertex position
+			-- Get vertex position from snapshot mesh (already in world space)
 			local vertPos = getVert meshObj vertIdx
 			
-			-- Transform to world space if object has Skin modifier
-			-- Skinned objects need world space positions, not parent space
-			if hasSkin then
-			(
-				vertPos = vertPos * obj.transform
-			)
-			
+			-- snapshotAsMesh returns world-space geometry, no additional transform needed
 			vertData.position = #(vertPos.x, vertPos.y, vertPos.z)
 			timeVertexCreation += timestamp() - timeVertStart			-- Calculate vertex normal using smoothing groups (like old exporter)
 			local timeNormalStart = timestamp()
@@ -985,9 +965,8 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 		-- Update global vertex offset
 		globalVertexOffset = allVertices.count
 		
-		-- Clean up snapshot if we created one
-		if classOf obj != Editable_mesh then
-			delete meshObj
+		-- Clean up snapshot (always created now)
+		delete meshObj
 	)
 	
 	-- Print detailed geometry timing
