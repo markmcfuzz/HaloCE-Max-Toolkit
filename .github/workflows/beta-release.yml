@@ -66,15 +66,21 @@ jobs:
           $version = "${{ steps.version.outputs.VERSION_NUMBER }}"
           $changelog = Get-Content CHANGELOG.md -Raw
           
-          # Extract the section for this version
-          $pattern = "(?s)## \[$version\].*?(?=## \[|$)"
+          # Extract the section for this version including the header to get the date
+          $pattern = "(?s)## \[$version\] - (\d{4}-\d{2}-\d{2}).*?(?=## \[|$)"
           if ($changelog -match $pattern) {
+            $date = $matches[1]
             $versionChanges = $matches[0].Trim()
-            # Remove the version header line for cleaner output
+            
+            # Create the GitHub anchor (e.g., "3.6.1" and "2025-12-07" -> "361---2025-12-07")
+            $anchor = "$($version -replace '\.', '')---$date"
+            
+            # Remove the version header line for cleaner output in body
             $versionChanges = ($versionChanges -split "`n" | Select-Object -Skip 1) -join "`n"
             $versionChanges = $versionChanges.Trim()
           } else {
             $versionChanges = "No changelog entry found for version $version"
+            $anchor = ""
           }
           
           # Escape for GitHub output
@@ -83,6 +89,7 @@ jobs:
           $versionChanges = $versionChanges -replace "`n", '%0A'
           
           echo "CHANGES=$versionChanges" >> $env:GITHUB_OUTPUT
+          echo "ANCHOR=$anchor" >> $env:GITHUB_OUTPUT
         shell: powershell
 
       - name: Create tag
