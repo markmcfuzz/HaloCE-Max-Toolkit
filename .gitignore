@@ -30,6 +30,7 @@ luac.out
 *release/
 *hek_defs/
 *tags/
+*guides/
 
 # Files
 # manifest.json
