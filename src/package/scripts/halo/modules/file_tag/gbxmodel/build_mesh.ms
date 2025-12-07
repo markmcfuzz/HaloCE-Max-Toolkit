@@ -563,7 +563,28 @@ fn buildGeometryByRegions modelFilePath tagStruct materialObj createdNodes uScal
     (
         if entry.meshes.count > 0 then
         (
-            selectionSets[entry.regionName] = entry.meshes
+            -- Check if selection set already exists
+            local existingSet = selectionSets[entry.regionName]
+            if existingSet != undefined then
+            (
+                -- Selection set exists - append new meshes to it
+                local combinedArray = #()
+                -- Add existing objects from the selection set
+                for obj in existingSet do
+                    append combinedArray obj
+                -- Add new meshes if they're not already in the set
+                for mesh in entry.meshes do
+                (
+                    if findItem combinedArray mesh == 0 then
+                        append combinedArray mesh
+                )
+                selectionSets[entry.regionName] = combinedArray
+            )
+            else
+            (
+                -- Selection set doesn't exist - create new one
+                selectionSets[entry.regionName] = entry.meshes
+            )
         )
     )
     
