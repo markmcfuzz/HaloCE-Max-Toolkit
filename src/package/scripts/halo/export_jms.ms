@@ -59,6 +59,7 @@ fn exportJmsFile =
                 beep:false
     )
     
+    clearListener()
     return success
 )
 
