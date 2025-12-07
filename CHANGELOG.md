@@ -115,3 +115,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **GBX/Model Importer:** Bone orientation by applying quaternion directly in node hierarchy linking.
+
+## [3.6.1] - 2025-12-10
+
+### Fixed
+- **JMS Exporter:**
+  - Incorrect rotation when exporting skinned editable mesh/poly.
+  - Incorrect position when exporting editable mesh linked to a root node.
+- **GBX/Model | Collision Importer:**
+  - Prevents `Named Selection Sets` from being overwritten when importing multiple models with the same region names.
+    - Now when you import a model, it checks if a selection set with that region name already exists, and if it does, it adds the new objects to it instead of replacing the entire set and losing the previously imported objects.
