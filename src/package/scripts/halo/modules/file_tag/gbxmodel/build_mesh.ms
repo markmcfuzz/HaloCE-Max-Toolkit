@@ -322,6 +322,13 @@ fn buildPartMesh fileHandle geometryIndex partIndex part materialObj uScale:1.0 
         )
     )
     
+    ---- Set simple smoothing group 1 for all faces (like old importer)
+    ---- This provides basic smoothing without artifacts
+    --for i = 1 to meshObj.numfaces do
+    --(
+    --    setFaceSmoothGroup meshObj i 1
+    --)
+    
     -- Return mesh object with weight data
     return #(meshObj, nodeIndices, nodeWeights)
 )
@@ -485,6 +492,13 @@ fn buildGeometryByRegions modelFilePath tagStruct materialObj createdNodes uScal
                 )
                 
                 update combinedMesh
+                
+                -- Assign smoothing groups 1 to faces
+                for i = 1 to combinedMesh.numfaces do
+                (
+                    
+                    setFaceSmoothGroup combinedMesh i 1
+                )
                 
                 local tSkinStart = timestamp()
                 
