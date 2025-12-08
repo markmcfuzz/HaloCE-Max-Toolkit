@@ -120,7 +120,7 @@ jobs:
             
             This is a beta pre-release for testing purposes.
             
-            **Full Changelog:** [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md#${{ steps.version.outputs.CHANGELOG_ANCHOR }})
+            **Full Changelog:** [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md#${{ steps.changelog.outputs.ANCHOR }})
           files: |
             ${{ steps.mzp.outputs.MZP_FILE }}
         env:
