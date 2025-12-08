@@ -176,35 +176,104 @@ fn getNextSiblingIndex nodeIndex childIndicesArray =
 -- Convert 3ds Max rotation to quaternion (i, j, k, w)
 fn getNodeRotationQuat obj =
 (
-	-- Try getting rotation from controller value in parent space
 	local rotQuat = undefined
 	
-	-- Get transform in parent space
-	local tm = obj.transform
-	if obj.parent != undefined then
-		tm = tm * inverse(obj.parent.transform)
-	
-	-- Extract rotation as quaternion from matrix
-	rotQuat = tm.rotation as quat
+	-- Handle Biped objects differently
+	if classOf obj == Biped_Object then
+	(
+		-- For Biped objects, use biped.getTransform
+		if obj.parent == undefined then
+		(
+			-- Root biped object - no coordinate conversion
+			rotQuat = biped.getTransform obj #rotation
+		)
+		else
+		(
+			-- Child biped - get rotation in parent space using temporary meshes
+			local m = mesh vertices:#() faces:#()
+			local mp = mesh vertices:#() faces:#()
+			m.parent = mp
+			
+			-- Get parent rotation (always use biped.getTransform)
+			local mpRot = biped.getTransform obj.parent #rotation
+			mp.rotation = quat -mpRot.x -mpRot.y -mpRot.z mpRot.w
+			mp.pos = biped.getTransform obj.parent #pos
+			
+			-- Get child rotation with coordinate conversion
+			local mRot = biped.getTransform obj #rotation
+			m.rotation = quat -mRot.x -mRot.y -mRot.z mRot.w
+			m.pos = biped.getTransform obj #pos
+			
+			-- Get rotation in parent space
+			in coordsys parent rotQuat = m.rotation
+			
+			-- Apply coordinate conversion again
+			rotQuat = normalize (quat -rotQuat.x -rotQuat.y -rotQuat.z rotQuat.w)
+			
+			delete m
+			delete mp
+		)
+	)
+	else
+	(
+		-- Regular objects - get rotation in parent space
+		in coordsys parent rotQuat = normalize obj.rotation
+		
+		-- Apply coordinate conversion (negate x, y, z)
+		rotQuat = quat -rotQuat.x -rotQuat.y -rotQuat.z rotQuat.w
+	)
 	
 	-- Normalize to ensure unit quaternion
 	rotQuat = normalize rotQuat
 	
-	-- Export as-is
+	-- Return as array (already converted)
 	return #(rotQuat.x, rotQuat.y, rotQuat.z, rotQuat.w)
 )
 
 -- Get node translation in parent space
 fn getNodeTranslation obj parentNode:undefined =
 (
-	-- Get position in parent space
-	-- If parentNode is provided (for markers parented to skinned geometry),
-	-- transform from world space to that node's space
 	local pos
-	if parentNode != undefined then
-		pos = obj.pos * inverse(parentNode.transform)  -- World to parent node space
+	
+	-- Handle Biped objects differently
+	if classOf obj == Biped_Object then
+	(
+		-- For Biped objects, use biped.getTransform
+		if obj.parent == undefined then
+		(
+			pos = biped.getTransform obj #pos
+		)
+		else
+		(
+			-- Get position in parent space using temporary meshes
+			local m = mesh vertices:#() faces:#()
+			local mp = mesh vertices:#() faces:#()
+			m.parent = mp
+			
+			-- Always use biped.getTransform for parent and apply coordinate conversion
+			local mpRot = biped.getTransform obj.parent #rotation
+			mp.rotation = quat -mpRot.x -mpRot.y -mpRot.z mpRot.w
+			mp.pos = biped.getTransform obj.parent #pos
+			
+			-- Get child transform with coordinate conversion
+			local mRot = biped.getTransform obj #rotation
+			m.rotation = quat -mRot.x -mRot.y -mRot.z mRot.w
+			m.pos = biped.getTransform obj #pos
+			in coordsys parent pos = m.pos
+			delete m
+			delete mp
+		)
+	)
 	else
-		pos = in coordsys parent obj.pos  -- Parent space position
+	(
+		-- Regular objects
+		-- If parentNode is provided (for markers parented to skinned geometry),
+		-- transform from world space to that node's space
+		if parentNode != undefined then
+			pos = obj.pos * inverse(parentNode.transform)  -- World to parent node space
+		else
+			pos = in coordsys parent obj.pos  -- Parent space position
+	)
 	
 	-- Return as array: [x, y, z]
 	return #(pos.x, pos.y, pos.z)
