@@ -425,7 +425,7 @@ fn extractRegions nodeObjectArray =
 	local regionArray = #()
 	local regionNames = #()
 	local rootNode = nodeObjectArray[1]
-	local foundAnyRegion = false
+	local hasObjectsWithoutNamedSet = false
 	
 	-- Collect all geometry objects
 	for obj in objects do
@@ -449,7 +449,7 @@ fn extractRegions nodeObjectArray =
 		-- Get mesh data to check face selection sets
 		local meshObj = snapshotAsMesh obj
 		
-		-- Method 1: Check named selection sets (new method)
+		-- Method 1: Check named selection sets (new method - primary workflow)
 		-- Get all named selection sets for this object
 		local selSetNames = #()
 		for i = 1 to (selectionSets.count) do
@@ -469,6 +469,10 @@ fn extractRegions nodeObjectArray =
 			)
 		)
 		
+		-- If object is NOT in any Named Selection Set, it needs __unnamed region
+		if selSetNames.count == 0 then
+			hasObjectsWithoutNamedSet = true
+		
 		-- Add all found selection set names as regions
 		for setName in selSetNames do
 		(
@@ -479,7 +483,6 @@ fn extractRegions nodeObjectArray =
 				
 				append regionArray regionData
 				append regionNames setName
-				foundAnyRegion = true
 			)
 		)
 		
@@ -495,7 +498,6 @@ fn extractRegions nodeObjectArray =
 				
 				append regionArray regionData
 				append regionNames regionName
-				foundAnyRegion = true
 			)
 		)
 		
@@ -510,7 +512,6 @@ fn extractRegions nodeObjectArray =
 				
 				append regionArray regionData
 				append regionNames selName
-				foundAnyRegion = true
 			)
 		)
 		
@@ -518,14 +519,17 @@ fn extractRegions nodeObjectArray =
 		delete meshObj
 	)
 	
-	-- Always ensure "__unnamed" region exists as the default for faces without a region
-	if (findItem regionNames "__unnamed") == 0 then
+	-- Add "__unnamed" region only if there are objects NOT in any Named Selection Set
+	if hasObjectsWithoutNamedSet then
 	(
-		local regionData = region()
-		regionData.regionName = "__unnamed"
-		
-		append regionArray regionData
-		append regionNames "__unnamed"
+		if (findItem regionNames "__unnamed") == 0 then
+		(
+			local regionData = region()
+			regionData.regionName = "__unnamed"
+			
+			append regionArray regionData
+			append regionNames "__unnamed"
+		)
 	)
 	
 	return regionArray

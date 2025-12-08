@@ -125,3 +125,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **GBX/Model | Collision Importer:**
   - Prevents `Named Selection Sets` from being overwritten when importing multiple models with the same region names.
     - Now when you import a model, it checks if a selection set with that region name already exists, and if it does, it adds the new objects to it instead of replacing the entire set and losing the previously imported objects.
+
+## [3.6.2] - 2025-12-08
+
+### Fixed
+- **JMS Exporter:** Region `__unnamed` was created even when all objects were assigned to a selection set (`region`).
