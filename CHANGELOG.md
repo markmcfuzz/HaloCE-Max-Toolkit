@@ -130,3 +130,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **JMS Exporter:** Region `__unnamed` was created even when all objects were assigned to a selection set (`region`).
+
+## [3.6.3] - 2025-12-08
+
+### Fixed
+- **JMS Exporter:** Support for biped object.
+
+### Changed
+- **GBX/Model Importer:** Smoothing groups set to 1 for all faces. There is no reliable solution to restore the smoothing groups in an accurate way.

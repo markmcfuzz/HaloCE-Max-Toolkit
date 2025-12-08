@@ -1,6 +1,6 @@
 try(DestroyDialog Installer_RO)catch()
 
-version = "v3.6.2"
+version = "v3.6.3"
 
 rollout Installer_RO "Halo CE Max ToolKit" width:400 height:160
 (
