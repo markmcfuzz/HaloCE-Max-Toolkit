@@ -4,28 +4,39 @@
 --	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)
 ------------------------------------------------------------------------------------------------
 
+try
 (
-	-- Only run during actual 3ds Max startup, not during file operations
-	if maxOps.isMaxStarting() == false then
+	-- Get the user scripts directory path
+	local scriptsPath = getDir #userscripts
+	local haloPath = scriptsPath + @"\halo\modules\global_functions\"
+	
+	-- Load dependencies in order
+	local configPath = haloPath + "config.ms"
+	local utilsPath = haloPath + "utils.ms"
+	local objectBuilderPath = haloPath + "object_builder.ms"
+	
+	-- Load config first
+	if doesFileExist configPath then
+		fileIn configPath
+	
+	-- Load utils second
+	if doesFileExist utilsPath then
+		fileIn utilsPath
+	
+	-- Load object_builder last
+	if doesFileExist objectBuilderPath then
 	(
-		-- Get the user scripts directory path (not the 3ds Max installation scripts)
-		local scriptsPath = getDir #userscripts
-		
-		-- Construct path to object_builder.ms
-		local objectBuilderPath = scriptsPath + "halo\\modules\\global_functions\\object_builder.ms"
-		
-		-- Check if file exists and load it
-		if doesFileExist objectBuilderPath then
-		(
-			try
-			(
-				fileIn objectBuilderPath
-				format "[Halo CE Toolkit] Helper objects loaded successfully.\n"
-			)
-			catch
-			(
-				format "[Halo CE Toolkit] Error loading helper objects.\n"
-			)
-		)
+		fileIn objectBuilderPath
+		format "[Halo CE Toolkit] Helper objects loaded successfully.\n"
+	)
+	else
+	(
+		format "[Halo CE Toolkit] Could not find object_builder.ms at: %\n" objectBuilderPath
 	)
 )
+catch
+(
+	format "[Halo CE Toolkit] Error loading helper objects: %\n" (getCurrentException())
+)
+
+--clearListener()
