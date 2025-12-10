@@ -90,17 +90,13 @@ fn collectSceneNodes =
     try
     (
         local allNodes = #()
-
-        local frameNodes = for obj in objects where (matchPattern obj.name pattern:"frame*") and (isValidNode obj) collect obj
+        -- Collect all valid node objects using isNodeObject from utils
+        for obj in objects where (isValidNode obj) and (isNodeObject obj) do
+        (
+            append allNodes obj
+        )
         
-        local boneNodes = for obj in objects where (matchPattern obj.name pattern:"b_*") and (isValidNode obj) collect obj
-        
-        local bipedNodes = for obj in objects where (matchPattern obj.name pattern:"bip01*") and (isValidNode obj) collect obj
-        
-        join allNodes frameNodes
-        join allNodes boneNodes
-        join allNodes bipedNodes
-        
+        -- Filter out hidden or frozen nodes
         allNodes = for obj in allNodes where not (obj.isHidden or obj.isFrozen) collect obj
         
         return allNodes
@@ -142,10 +138,9 @@ fn createMassPointSpheres massPointsArray poweredMassPointsArray baseMass baseDe
 		local spherePos = (Point3 mp.position[1] mp.position[2] mp.position[3]) * 100
 		local sphereRadius = mp.radius * 100
 
-		local sphereName = "#" + mp.name
-
+		local sphereName = "+" + mp.name
+		
 		local newSphere = sphere radius:sphereRadius pos:spherePos name:sphereName smooth:on
-
 		local sphereColor = case mp.frictionType of
 		(
 			0: (color 255 36 16)       --#ff2410 | Orange - point friction (most common)
