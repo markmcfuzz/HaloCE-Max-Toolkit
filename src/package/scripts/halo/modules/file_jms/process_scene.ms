@@ -214,6 +214,15 @@ fn getNodeRotationQuat obj =
 			delete mp
 		)
 	)
+	else if isCATObject obj then
+	(
+		-- CAT objects - use specialized CAT transform extraction
+		local catRotArray = getCATRotationQuat obj
+		if catRotArray != undefined then
+			return catRotArray
+		else
+			return #(0, 0, 0, 1)  -- Identity quaternion as fallback
+	)
 	else
 	(
 		-- Regular objects - get rotation in parent space
@@ -263,6 +272,15 @@ fn getNodeTranslation obj parentNode:undefined =
 			delete m
 			delete mp
 		)
+	)
+	else if isCATObject obj then
+	(
+		-- CAT objects - use specialized CAT transform extraction
+		local catPosArray = getCATTranslation obj
+		if catPosArray != undefined then
+			return catPosArray
+		else
+			return #(0, 0, 0)  -- Origin as fallback
 	)
 	else
 	(
@@ -385,11 +403,24 @@ fn extractMarkerData nodeArray =
 		else
 			markerData.markerTranslation = getNodeTranslation obj
 		
-		-- Get marker radius directly from object (3ds Max helper objects have .radius property)
-		if hasProperty obj #radius then
-			markerData.markerRadius = obj.radius
-		else
-			markerData.markerRadius = 1.0
+		-- Get marker radius based on object type
+		-- For HaloHelper objects, use markerRadius parameter
+		-- For legacy sphere objects, use radius property
+		local markerRadius = 1.0  -- Default
+		
+		if classOf obj == HaloMarker then
+		(
+			-- HaloMarker object - read from custom attributes
+			if hasProperty obj #markerRadius then
+				markerRadius = obj.markerRadius
+		)
+		else if hasProperty obj #radius then
+		(
+			-- Legacy sphere object - read radius property
+			markerRadius = obj.radius
+		)
+		
+		markerData.markerRadius = markerRadius
 		
 		append markerDataArray markerData
 	)
