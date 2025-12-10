@@ -156,7 +156,7 @@ macroScript ExportCameraTrack
 -- Tools
 macroScript SphereToHaloMarkerHelper
     category: "Halo CE"
-    toolTip: "Sphere to Helper Conversion"
+    toolTip: "Sphere to Helper Converter"
 (
     on execute do 
     (
