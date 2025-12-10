@@ -103,7 +103,7 @@ macroScript ExportJointedModelAnimation
     on execute do 
     (
         local scriptsDir = GetDir #userscripts
-        local scriptPath = scriptsDir + "\\halo\\export_animation.ms"
+        local scriptPath = scriptsDir + "\\halo\\export_jma.ms"
         if doesFileExist scriptPath then
         (
             fileIn scriptPath
@@ -142,6 +142,26 @@ macroScript ExportCameraTrack
     (
         local scriptsDir = GetDir #userscripts
         local scriptPath = scriptsDir + "\\halo\\export_camera_track.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
+
+-- Tools
+macroScript SphereToHaloMarkerHelper
+    category: "Halo CE"
+    toolTip: "Sphere to Helper Conversion"
+(
+    on execute do 
+    (
+        local scriptsDir = GetDir #userscripts
+        local scriptPath = scriptsDir + "\\halo\\tools\\sphere_to_helper.ms"
         if doesFileExist scriptPath then
         (
             fileIn scriptPath
