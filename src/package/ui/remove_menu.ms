@@ -30,7 +30,7 @@ fn removeHaloCEToolkitMenu =
         ) catch ()
         
         -- Clean up submenus
-        local submenuNames = #("Import", "Export")
+        local submenuNames = #("Import", "Export", "Tools")
         for submenuName in submenuNames do (
             try (
                 local submenuObj = mm.findMenu submenuName
