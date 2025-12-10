@@ -22,6 +22,7 @@ gc light:true
 -- Load required modules
 filein (scriptDir + "modules\\global_functions\\config.ms")
 filein (scriptDir + "modules\\global_functions\\utils.ms")
+filein (scriptDir + "modules\\global_functions\\object_builder.ms")
 filein (scriptDir + "modules\\global_functions\\tag_metadata.ms")
 filein (scriptDir + "modules\\file_tag\\gbxmodel\\tag_struct.ms")
 filein (scriptDir + "modules\\file_tag\\gbxmodel\\tag_geo_reader.ms")
