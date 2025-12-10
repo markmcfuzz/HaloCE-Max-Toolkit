@@ -124,7 +124,7 @@ fn createPathfindingSpheres pathfindingSpheres collisionNodes =
 		return #()
 	)
 	
-	local createdSpheres = #()
+	local createdHelpers = #()
 	
 	for i = 1 to pathfindingSpheres.count do
 	(
@@ -145,20 +145,25 @@ fn createPathfindingSpheres pathfindingSpheres collisionNodes =
 		local nodeTransform = sceneNode.transform
 		local worldPos = localPos * nodeTransform
 		
-		local sphereObj = Sphere radius:sphereRadius pos:worldPos name:"#pathfinding" smooth:on
+		-- Create Halo Helper with Pathfinding type (createHaloHelper handles the "+" prefix automatically)
+		local helperObj = createHaloPhysics \
+			pos:worldPos \
+			radius:sphereRadius \
+			markerType:"Physics" \
+			name:"pathfinding" \
+			nearColor:(color 0 200 0)  \
+			farColor:(color 0 200 0)   --#00c800 Green
 		
-		sphereObj.parent = sceneNode
-		
-		sphereObj.wirecolor = color 0 200 0  --#00c800 Green
+		helperObj.parent = sceneNode
 		
 		local pathfindingLayer = LayerManager.getLayerFromName "Pathfinding Spheres"
 		if pathfindingLayer == undefined then
 			pathfindingLayer = LayerManager.newLayerFromName "Pathfinding Spheres"
-		pathfindingLayer.addNode sphereObj
+		pathfindingLayer.addNode helperObj
 		
-		append createdSpheres sphereObj		
+		append createdHelpers helperObj		
 	)
-	return createdSpheres
+	return createdHelpers
 )
 
 -------------------------------------------------------
