@@ -10,62 +10,69 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
-struct jmsFile (
-    jmsVersion = undefined,
-    jmsChecksum = undefined,
-    nodeCount = undefined,
-    nodes = #(),
-    shaderCount = undefined,
-    shaders = #(),
-    markerCount = undefined,
-    markers = #(),
-    regionCount = undefined,
-    regions = #(),
-    vertexCount = undefined,
-    vertices = #(),
-    triangleCount = undefined,
-    triangles = #()
+struct jmsFile
+(	
+	jmsVersion = undefined,
+	jmsChecksum = undefined,
+	nodeCount = undefined,
+	nodes = #(),
+	shaderCount = undefined,
+	shaders = #(),
+	markerCount = undefined,
+	markers = #(),
+	regionCount = undefined,
+	regions = #(),
+	vertexCount = undefined,
+	vertices = #(),
+	triangleCount = undefined,
+	triangles = #()
 )
 
-struct nodes (
-    nodeName,
-    firstChildNodeIndex,
-    nextSiblingNodeIndex,
-    nodeRotation,
-    nodeTranslation
+struct nodes
+(	
+	nodeName,
+	firstChildNodeIndex,
+	nextSiblingNodeIndex,
+	nodeRotation,
+	nodeTranslation
 )
 
-struct shaders (
-    shaderName,
-    shaderPath
+struct shaders
+(	
+	shaderName,
+	shaderPath
 )
 
-struct markers (
-    markerName,
-    markerRegion,
-    parentNodeIndex,
-    markerRotation,
-    markerTranslation,
-    markerRadius
+struct markers
+(	
+	markerName,
+	markerRegion,
+	parentNodeIndex,
+	markerRotation,
+	markerTranslation,
+	markerRadius
 )
 
-struct region (
-    regionName
+struct region
+(	
+	regionName
 )
 
-struct vertices (
-    node0Index,
-    position,
-    normal,
-    node1Index,
-    node1Weight,
-    texturePos
+struct vertices
+(	
+	node0Index,
+	position,
+	normal,
+	node1Index,
+	node1Weight,
+	texturePos
 )
 
-struct triangles (
-    regionIndex,
-    shaderIndex,
-    vertexIndices
+struct triangles
+(	
+	regionIndex,
+	shaderIndex,
+	vertexIndices
 )
 
-logger "Jms Struct loaded.\n" logType:#success
+logger "Jms Struct loaded.\n" logType: #success 
