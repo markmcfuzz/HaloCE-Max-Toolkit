@@ -11,39 +11,6 @@
 ------------------------------------------------------------------------------------------------
 
 -------------------------------------------------------
--- FORMAT HELPERS
--------------------------------------------------------
-
--- Format a float value for JMS output with 6 decimal places minimum
-fn formatJmsFloat val =
-(
-	-- Use formattedPrint to ensure at least 6 decimal places
-	local str = formattedPrint val format:".6f"
-	return str
-)
-
--- Format quaternion rotation (i, j, k, w)
-fn formatRotation rotArray =
-(
-	local str = ""
-	str += formatJmsFloat rotArray[1] + "\t"
-	str += formatJmsFloat rotArray[2] + "\t"
-	str += formatJmsFloat rotArray[3] + "\t"
-	str += formatJmsFloat rotArray[4]
-	return str
-)
-
--- Format translation (x, y, z)
-fn formatTranslation posArray =
-(
-	local str = ""
-	str += formatJmsFloat posArray[1] + "\t"
-	str += formatJmsFloat posArray[2] + "\t"
-	str += formatJmsFloat posArray[3]
-	return str
-)
-
--------------------------------------------------------
 -- SECTION WRITERS
 -------------------------------------------------------
 
@@ -99,7 +66,7 @@ fn writeMarkers fileStream jmsData =
 		format "%\n" marker.parentNodeIndex to:fileStream
 		format "%\n" (formatRotation marker.markerRotation) to:fileStream
 		format "%\n" (formatTranslation marker.markerTranslation) to:fileStream
-		format "%\n" (formatJmsFloat marker.markerRadius) to:fileStream
+		format "%\n" (formatFloat marker.markerRadius) to:fileStream
 	)
 )
 
@@ -136,8 +103,8 @@ fn writeVertices fileStream jmsData =
 		format "%\n" (formatRotation vertex.normal) to:ss
 		format "%\n" vertex.node1Index to:ss
 		format "%\n" vertex.node1Weight to:ss
-		format "%\n" (formatJmsFloat vertex.texturePos[1]) to:ss
-		format "%\n" (formatJmsFloat vertex.texturePos[2]) to:ss
+		format "%\n" (formatFloat vertex.texturePos[1]) to:ss
+		format "%\n" (formatFloat vertex.texturePos[2]) to:ss
 		format "%\n" vertex.texturePos[3] to:ss
 		
 		-- Write batch when buffer is full
