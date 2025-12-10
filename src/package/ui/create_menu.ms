@@ -70,7 +70,7 @@ fn createHaloCEToolkitMenu =
 
         -- Add Tools macros
         print "Adding Tools macros..."
-        addMacroToMenu toolsMenu "Halo CE" "SphereToHaloMarkerHelper" mm displayName:"Convert Spheres to Halo Markers"
+        addMacroToMenu toolsMenu "Halo CE" "SphereToHaloMarkerHelper" mm displayName:"Convert Spheres to Halo Helper Markers"
 
 
         -- Add submenus to main menu
