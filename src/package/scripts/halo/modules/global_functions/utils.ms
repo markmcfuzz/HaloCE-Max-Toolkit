@@ -552,11 +552,18 @@ fn isNodeObject obj =
 	return hasPrefix
 )
 
--- Check if object is a marker (names starting with '#')
+-- Check if object is a marker (names starting with '#' or '+')
 fn isMarkerObject obj =
 (
 	if obj == undefined then return false
-	return (obj.name[1] == "#")
+	return (obj.name[1] == "#" or obj.name[1] == "+")
+)
+
+-- Check if object is a physics/pathfinding object (names starting with '+')
+fn isPhysicsObject obj =
+(
+	if obj == undefined then return false
+	return (obj.name[1] == "+")
 )
 
 -- Check if object is geometry (Editable Mesh or Editable Poly)
@@ -590,6 +597,39 @@ fn getSkinModifier obj =
 			return obj.modifiers[i]
 	)
 	return undefined
+)
+
+-------------------------------------------------------
+-- FORMAT HELPERS
+-------------------------------------------------------
+
+-- Format a float value for output with 6 decimal places minimum
+fn formatFloat val =
+(
+	-- Use formattedPrint to ensure at least 6 decimal places
+	local str = formattedPrint val format:".6f"
+	return str
+)
+
+-- Format quaternion rotation (i, j, k, w)
+fn formatRotation rotArray =
+(
+	local str = ""
+	str += formatFloat rotArray[1] + "\t"
+	str += formatFloat rotArray[2] + "\t"
+	str += formatFloat rotArray[3] + "\t"
+	str += formatFloat rotArray[4]
+	return str
+)
+
+-- Format translation (x, y, z)
+fn formatTranslation posArray =
+(
+	local str = ""
+	str += formatFloat posArray[1] + "\t"
+	str += formatFloat posArray[2] + "\t"
+	str += formatFloat posArray[3]
+	return str
 )
 
 -- Instantiate global structs
