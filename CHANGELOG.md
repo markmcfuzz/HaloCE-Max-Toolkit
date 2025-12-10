@@ -138,3 +138,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **GBX/Model Importer:** Smoothing groups set to 1 for all faces. There is no reliable solution to restore the smoothing groups in an accurate way.
+
+## [3.7.0] - 2025-12-10
+
+### Added
+- **Animation Exporter:** New implemented exporter for Halo CE Animation files.
+  - Support for node keyinfo:
+    - **Geomobject:**
+      - `Standard Primitives`
+      - `Extended Primitives`
+    - **Helpers:** 
+      - `Bone`
+      - `CAT Object`
+      - `Biped Object`
+- **Object Builder (global functions):**
+  - Introduced a **helper-based marker system**
+    - Startup script to add the helpers in the create panel.
+    - Find it under `Create` > `Helpers` > `Halo CE` > [`HCE Marker` | `HCE Physics`]
+    - Customizable **radius** (1:1 with Halo CE), and **color**.
+    - **Update Prefix** button for easy renaming. (e.g., `marker_01` > `#marker_01`, `masspoint_01` > `+masspoint_01`)
+- **JMS Exporter:** 
+  - Support export for: 
+    - `CAT Object`
+    - `Marker Helper-based`
+      - _Markers based on spheres are still supported._
+- **GBX/Model Importer | Collision Importer:**
+  - Support creation for:
+    - `Marker Helper-based`
+      - _Markers based on spheres are deprecated._
+- **Sphere to Helper Conversion Tool:** 
+  - New utility to convert existing sphere marker objects to marker helpers.
+    - Found under `Halo CE Toolkit` > `Tools` > `Sphere to Helper Converter`
+    - Preserves position, scale, and custom properties.
+### Fixed
+- **Physics Importer:** Update collect nodes in the scene from a global function in utils that add more prefix node names.
+- **GBX/Model Importer:** Global function in utils to check prefix node names and converting to bones.
+- **JMS Exporter:** Validation for exclude markers that are physics/pathfinding (`+`) and must be parent in a node with a geometry on it.
+### Changed
+- **Utils:** 
+  - Moved common file writing functions for reuse across exporters.
+  - Check if an object is a marker (names starting with `#` or `+`).
+  - Check if an object is a physics marker (names starting with `+` just for an exclusion).
