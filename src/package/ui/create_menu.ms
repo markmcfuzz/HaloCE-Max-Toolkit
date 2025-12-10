@@ -31,7 +31,7 @@ fn createHaloCEToolkitMenu =
         -- Create Export submenu
         local exportMenu = mm.createMenu "Export"
         -- Create Tools submenu
-        --local toolsMenu = mm.createMenu "Tools"
+        local toolsMenu = mm.createMenu "Tools"
 
         -- Function to add macro to menu
         fn addMacroToMenu theMenu macroCategory macroName menuManager displayName: =
@@ -68,10 +68,15 @@ fn createHaloCEToolkitMenu =
         addMacroToMenu exportMenu "Halo CE" "ExportJointedModelAnimation" mm displayName:"JMA Animation"
         addMacroToMenu exportMenu "Halo CE" "ExportCameraTrack" mm displayName:"Camera Track"
 
+        -- Add Tools macros
+        print "Adding Tools macros..."
+        addMacroToMenu toolsMenu "Halo CE" "SphereToHaloMarkerHelper" mm displayName:"Convert Spheres to Halo Markers"
+
+
         -- Add submenus to main menu
         local importSubMenu = mm.createSubMenuItem "Import" importMenu
         local exportSubMenu = mm.createSubMenuItem "Export" exportMenu
-        --local toolsSubMenu = mm.createSubMenuItem "Tools" toolsMenu
+        local toolsSubMenu = mm.createSubMenuItem "Tools" toolsMenu
 
         haloMenu.addItem importSubMenu -1
 
@@ -83,7 +88,7 @@ fn createHaloCEToolkitMenu =
         
         haloMenu.addItem separator -1
         
-        --haloMenu.addItem toolsSubMenu -1
+        haloMenu.addItem toolsSubMenu -1
         
         -- Add the main menu to the menu bar
         local mainMenuItem = mm.createSubMenuItem "Halo CE Toolkit" haloMenu
