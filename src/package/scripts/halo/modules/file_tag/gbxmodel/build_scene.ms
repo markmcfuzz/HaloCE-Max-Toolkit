@@ -11,22 +11,6 @@ global BONE_SIZE = 1.0
 -- NODE/BONE CREATION
 -------------------------------------------------------
 
--- Check if node name should be created as a bone (biped)
-fn isBoneNode nodeName =
-(
-	-- Biped nodes start with "bip01" (case insensitive)
-	local lowerName = toLower nodeName
-	return (matchPattern lowerName pattern:"bip01*" or matchPattern lowerName pattern:"frame*" or matchPattern lowerName pattern:"b_*")
-)
-
--- Check if node name should be created as a helper object (frame/dummy)
-fn isFrameNode nodeName =
-(
-	-- Frame nodes start with "frame" or "b_" (case insensitive)
-	local lowerName = toLower nodeName
-	return (matchPattern lowerName pattern:"frame_*")
-)
-
 -- Create a single node (sphere helper) from node data
 -- ALL nodes created as spheres initially - will convert to bones later
 fn createGbxmodelNode nodeData nodeIndex allNodeData =
@@ -37,10 +21,9 @@ fn createGbxmodelNode nodeData nodeIndex allNodeData =
 	-- Bone nodes will be converted to actual bones in a later pass
 	local nodeObj = Sphere radius:BONE_SIZE pos:[0,0,0] name:nodeName smooth:on
 	
-	if isBoneNode nodeName then
+	-- Use isNodeObject from utils to check if this should be a bone
+	if isNodeObject nodeObj then
 		nodeObj.wirecolor = color 6 134 6  --#068606 Green for nodes that will become bones
-	else if isFrameNode nodeName then
-		nodeObj.wirecolor = color 0 255 255  --#00ffff Cyan for frame nodes
 	else
 		nodeObj.wirecolor = color 128 128 128  --#808080 Gray for other nodes
 	
@@ -121,7 +104,7 @@ fn linkNodeHierarchy createdNodes nodeDataArray =
 		local translation = nodeData.translation
 		local rotation = nodeData.rotation
 		
-		if isBoneNode nodeName then
+		if isNodeObject nodeObj then
 		(
 			-- Get current WORLD position (already transformed)
 			local nodeWorldPos = nodeObj.pos
@@ -288,7 +271,7 @@ fn createMarkers markersArray nodesArray createdNodes =
 	--format "Total markers to create: %\n" markersArray.count
 	
 	local createdMarkers = #()
-	local markerSize = 1.0  -- Default marker size (matches old importer's spn_marker.value default)
+	local markerSize = 1.0  -- Default marker radius (matches old importer's spn_marker.value default)
 	
 	for i = 1 to markersArray.count do
 	(
@@ -298,10 +281,13 @@ fn createMarkers markersArray nodesArray createdNodes =
 		local rotation = markerData.rotation   -- Quaternion: #(i, j, k, w)
 		local translation = markerData.translation -- Position relative to node
 		
-		-- Create marker as sphere with "#" prefix
-		local markerObj = sphere radius:markerSize
-		markerObj.name = "#" + markerName
-		markerObj.wirecolor = color 137 107 255 --#896bff
+		-- Create marker using Halo Helper (createHaloHelper handles the "#" prefix automatically)
+		local markerObj = createHaloMarker \
+			pos:[0,0,0] \
+			radius:markerSize \
+			markerType:"Marker" \
+			name:markerName \
+			wireColor:(color 0 240 255)  --#00f0ff
 		
 		-- Assign to "Markers" layer
 		local markersLayer = LayerManager.getLayerFromName "Markers"
