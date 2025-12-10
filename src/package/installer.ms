@@ -1,6 +1,6 @@
 try(DestroyDialog Installer_RO)catch()
 
-version = "v3.6.3"
+version = "v3.7.0"
 
 rollout Installer_RO "Halo CE Max ToolKit" width:400 height:160
 (
@@ -27,6 +27,7 @@ rollout Installer_RO "Halo CE Max ToolKit" width:400 height:160
         -- Remove files
         hiddenDOSCommand ("rmdir /s /q \"" + ((getDir #userscripts) + @"\halo\") + "\"")
         hiddenDOSCommand ("del \"" +(( getdir #userMacros ) + @"\Macro_HaloCEMaxToolKit.mcr") + "\"")
+        hiddenDOSCommand ("rmdir /s /q \"" + ((getDir #userscripts) + @"\startup\") + "\"")
     )
 
     fn InstallFiles =
