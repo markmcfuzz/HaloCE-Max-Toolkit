@@ -24,6 +24,7 @@ filein (scriptDir + "modules\\global_functions\\config.ms")
 filein (scriptDir + "modules\\global_functions\\utils.ms")
 filein (scriptDir + "modules\\file_jms\\jms_struct.ms")
 filein (scriptDir + "modules\\file_jms\\validate_scene.ms")
+filein (scriptDir + "modules\\file_jms\\process_cat.ms")
 filein (scriptDir + "modules\\file_jms\\process_scene.ms")
 filein (scriptDir + "modules\\file_jms\\process_file.ms")
 
