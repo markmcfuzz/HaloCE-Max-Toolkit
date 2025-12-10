@@ -227,18 +227,4 @@ fn createHaloPhysics pos:[0,0,0] radius:1.0 markerType:"Physics" name:"massPoint
 	marker
 )
 
--- Unified helper function (for backward compatibility)
---fn createHaloHelper pos:[0,0,0] radius:1.0 markerType:"Marker" name:"" wireColor:(color 0 255 0) =
---(
---	if markerType == "Marker" then
---		createHaloMarker pos:pos radius:radius name:name wireColor:wireColor
---	else
---		createHaloPhysics pos:pos radius:radius markerType:markerType name:name wireColor:wireColor
---)
-
-format "\n========================================\n"
-format "Halo Marker Helper Loaded Successfully!\n"
-format "========================================\n"
-format "Usage:\n"
-format "  createHaloHelper pos:[0,0,0] radius:5.0 markerType:\"Marker\" name:\"my_helper\"\n"
-format "========================================\n\n"
+logger "Object Builder loaded successfully.\n" type:"success"
