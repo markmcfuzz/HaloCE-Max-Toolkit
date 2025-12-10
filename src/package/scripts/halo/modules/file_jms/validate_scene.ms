@@ -207,6 +207,7 @@ fn validateSceneForExport =
 	(
 		if obj.isHidden then continue
 		if not (isMarkerObject obj) then continue
+		if isPhysicsObject obj then continue  -- Skip physics/pathfinding objects (they don't need geometry)
 		if obj.parent == undefined then continue
 		
 		-- Find the parent node (walk up hierarchy until we find a node)
