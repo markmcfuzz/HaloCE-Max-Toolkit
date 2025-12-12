@@ -139,7 +139,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **GBX/Model Importer:** Smoothing groups set to 1 for all faces. There is no reliable solution to restore the smoothing groups in an accurate way.
 
-## [3.7.0] - 2025-12-10
+## [3.7.0] - 2025-12-12
 
 ### Added
 - **Animation Exporter:** New implemented exporter for Halo CE Animation files.
