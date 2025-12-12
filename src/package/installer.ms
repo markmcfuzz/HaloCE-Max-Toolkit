@@ -27,7 +27,7 @@ rollout Installer_RO "Halo CE Max ToolKit" width:400 height:160
         -- Remove files
         hiddenDOSCommand ("rmdir /s /q \"" + ((getDir #userscripts) + @"\halo\") + "\"")
         hiddenDOSCommand ("del \"" +(( getdir #userMacros ) + @"\Macro_HaloCEMaxToolKit.mcr") + "\"")
-        hiddenDOSCommand ("rmdir /s /q \"" + ((getDir #userscripts) + @"\startup\") + "\"")
+        hiddenDOSCommand ("rmdir /s /q \"" + ((getDir #userscripts) + @"\startup\halo_helpers_startup.ms") + "\"")
     )
 
     fn InstallFiles =
