@@ -46,26 +46,23 @@ plugin helper HaloMarker
 	
 	rollout params "HCE Marker"
 	(
-		button btn_update_prefix "Update Prefix"
+		edittext txt_name "Name:" text:"" fieldWidth:120 align:#center
 		spinner spn_radius "Radius:" range:[0.01,10000.0,1.0] type:#worldunits
 		colorpicker col_color "Color:" color:(color 0 255 0) align:#center
 
-		on btn_update_prefix pressed do
+		on txt_name entered val do
 		(
-			-- Get owner node to update name
+			-- Get owner node and rename it with # prefix
 			local ownerNode = refs.dependentNodes this.delegate firstOnly:true
 			if ownerNode != undefined do
-			(
-				-- Get current name and remove old prefix if it exists
-				local oldName = ownerNode.name
-				local baseName = oldName
+			( 
+				-- Check if name already starts with # prefix
+				local newName = val
+				if newName.count > 0 and newName[1] != "#" then
+					newName = "#" + newName
 				
-				-- Remove old prefix (# or +)
-				if oldName.count > 0 and (oldName[1] == "#" or oldName[1] == "+") do
-					baseName = substring oldName 2 -1
-				
-				-- Add new prefix (always # for Marker)
-				ownerNode.name = "#" + baseName
+				ownerNode.name = newName
+				txt_name.text = ownerNode.name
 			)
 		)
 		
@@ -92,12 +89,13 @@ plugin helper HaloMarker
 		
 		on params open do
 		(
-			-- Sync color picker with current wirecolor
+			-- Sync color picker with current wirecolor and name with current node name
 			local ownerNode = refs.dependentNodes this.delegate firstOnly:true
 			if ownerNode != undefined do
 			(
 				col_color.color = ownerNode.wirecolor
 				markerColor = ownerNode.wirecolor
+				txt_name.text = ownerNode.name
 			)
 		)
 	)
@@ -118,6 +116,7 @@ plugin helper HaloPhysics
 		--
 		physicsRadius type:#worldunits default:1.0 ui:spn_radius
 		markerType type:#string default:"Physics"
+		physicsColor type:#color default:(color 0 255 255) ui:col_color animatable:false
 		
 		on physicsRadius set val do
 		(
@@ -129,12 +128,41 @@ plugin helper HaloPhysics
 
 	rollout params "HCE Physics"
 	(
-		button btn_update_prefix "Update Prefix"
+		edittext txt_name "Name:" text:"" fieldWidth:120 align:#center
 		spinner spn_radius "Radius:" range:[0.01,10000.0,1.0] type:#worldunits
+		colorpicker col_color "Color:" color:(color 0 255 255) align:#center
 
+		on txt_name entered val do
+		(
+			-- Get owner node and rename it with + prefix
+			local ownerNode = refs.dependentNodes this.delegate firstOnly:true
+			if ownerNode != undefined do
+			(
+				-- Check if name already starts with + prefix
+				local newName = val
+				if newName.count > 0 and newName[1] != "+" then
+					newName = "+" + newName
+				
+				ownerNode.name = newName
+				txt_name.text = ownerNode.name
+			)
+		)
+		
 		on spn_radius changed val do
 		(
 			physicsRadius = val
+		)
+		
+		on col_color changed val do
+		(
+			physicsColor = val
+			-- Set InfluenceHelper sphere colors
+			delegate.nearColor = val
+			delegate.farColor = val
+			-- Get owner node and set wirecolor
+			local ownerNode = refs.dependentNodes this.delegate firstOnly:true
+			if ownerNode != undefined do
+				ownerNode.wirecolor = val
 		)
 		
 		on btn_update_prefix pressed do
@@ -153,6 +181,18 @@ plugin helper HaloPhysics
 
 				-- Add new prefix (always + for Physics/Pathfinding)
 				ownerNode.name = "+" + baseName
+			)
+		)
+		
+		on params open do
+		(
+			-- Sync color picker with current wirecolor and name with current node name
+			local ownerNode = refs.dependentNodes this.delegate firstOnly:true
+			if ownerNode != undefined do
+			(
+				col_color.color = ownerNode.wirecolor
+				physicsColor = ownerNode.wirecolor
+				txt_name.text = ownerNode.name
 			)
 		)
 	)
