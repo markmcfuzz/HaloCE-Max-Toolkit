@@ -18,7 +18,8 @@ If you wanna know more about the features and roadmap, check the [**Project Wiki
 
 ---
 ### Dependencies
-- **Autodesk 3ds Max 2023** or later (may work on 2019+)
+- **Autodesk 3ds Max 2020 - 2023**
+	- 3ds Max 2024+ is **NOT YET SUPPORTED** due to changes in the scripting API. Specifically related to menu generation.
 
 ## Installation  
 
