@@ -156,7 +156,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Startup script to add the helpers in the create panel.
     - Find it under `Create` > `Helpers` > `Halo CE` > [`HCE Marker` | `HCE Physics`]
     - Customizable **radius** (1:1 with Halo CE), and **color**.
-    - **Update Prefix** button for easy renaming. (e.g., `marker_01` > `#marker_01`, `masspoint_01` > `+masspoint_01`)
+    - **Name text box:** write the marker name and press enter to add the prefix. (e.g., `marker_01 + enter key` > `#marker_01`, `masspoint_01 + enter key` > `+masspoint_01`)
 - **JMS Exporter:** 
   - Support export for: 
     - `CAT Object`
@@ -170,6 +170,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New utility to convert existing sphere marker objects to marker helpers.
     - Found under `Halo CE Toolkit` > `Tools` > `Sphere to Helper Converter`
     - Preserves position, scale, and custom properties.
+    - Assign the helpers in a `Markers` layer
 ### Fixed
 - **Physics Importer:** Update collect nodes in the scene from a global function in utils that add more prefix node names.
 - **GBX/Model Importer:** Global function in utils to check prefix node names and converting to bones.
