@@ -77,22 +77,38 @@ jobs:
           }
         shell: powershell
 
-      - name: Create tag
+      - name: Check if tag exists
+        id: check_tag
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          
-          # Delete existing tag if it exists (both locally and remotely)
+          git fetch --tags
           $tagExists = git tag -l "${{ steps.version.outputs.NEW_TAG }}"
           if ($tagExists) {
-            Write-Host "Tag ${{ steps.version.outputs.NEW_TAG }} already exists. Deleting..."
-            git tag -d "${{ steps.version.outputs.NEW_TAG }}"
-            git push --delete origin "${{ steps.version.outputs.NEW_TAG }}" 2>$null
+            Write-Host "Tag ${{ steps.version.outputs.NEW_TAG }} already exists. Deleting remote tag..."
+            # Use GitHub API to delete the tag and release
+            $headers = @{
+              "Authorization" = "token ${{ secrets.GITHUB_TOKEN }}"
+              "Accept" = "application/vnd.github.v3+json"
+            }
+            
+            # Try to delete existing release
+            try {
+              $releaseResponse = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ steps.version.outputs.NEW_TAG }}" -Headers $headers -Method Get -ErrorAction SilentlyContinue
+              if ($releaseResponse.id) {
+                Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/$($releaseResponse.id)" -Headers $headers -Method Delete
+                Write-Host "Deleted existing release"
+              }
+            } catch {
+              Write-Host "No existing release to delete"
+            }
+            
+            # Delete the tag
+            try {
+              Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/git/refs/tags/${{ steps.version.outputs.NEW_TAG }}" -Headers $headers -Method Delete
+              Write-Host "Deleted existing tag"
+            } catch {
+              Write-Host "Could not delete tag: $_"
+            }
           }
-          
-          # Create and push new tag
-          git tag "${{ steps.version.outputs.NEW_TAG }}"
-          git push origin "${{ steps.version.outputs.NEW_TAG }}"
         shell: powershell
 
       - name: Create ZIP
