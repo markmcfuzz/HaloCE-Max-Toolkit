@@ -67,8 +67,8 @@ jobs:
           $pattern = "## \[$version\] - (\d{4}-\d{2}-\d{2})"
           if ($changelog -match $pattern) {
             $date = $matches[1]
-            # Create the GitHub anchor (e.g., "4.0.0" and "2025-12-15" -> "400--2025-12-15")
-            $anchor = "$($version -replace '\.', '')--$date"
+            # Create the GitHub anchor (e.g., "4.0.0" and "2025-12-15" -> "400---2025-12-15")
+            $anchor = "$($version -replace '\.', '')---$date"
             Write-Host "Changelog anchor: $anchor"
             echo "ANCHOR=$anchor" >> $env:GITHUB_OUTPUT
           } else {
