@@ -181,7 +181,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Check if an object is a marker (names starting with `#` or `+`).
   - Check if an object is a physics marker (names starting with `+` just for an exclusion).
 
-## [4.0.0] – 2025-12-15
+## [4.0.0] - 2025-12-15
 ### Changed
 - Major Refactor:
   - Complete migration of the distribution system:
