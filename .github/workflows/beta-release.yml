@@ -63,8 +63,8 @@ jobs:
           $version = "${{ steps.version.outputs.VERSION }}"
           $changelog = Get-Content CHANGELOG.md -Raw
           
-          # Extract the section for this version to get the date
-          $pattern = "(?s)## \[$version\] - (\d{4}-\d{2}-\d{2})"
+          # Extract the section for this version to get the date (handles both - and – dashes)
+          $pattern = "(?s)## \[$version\] [-–] (\d{4}-\d{2}-\d{2})"
           if ($changelog -match $pattern) {
             $date = $matches[1]
             # Create the GitHub anchor (e.g., "4.0.0" and "2025-12-15" -> "400--2025-12-15")
