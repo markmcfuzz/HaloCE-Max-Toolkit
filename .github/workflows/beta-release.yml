@@ -24,13 +24,13 @@ jobs:
       - name: Set version and beta number
         id: version
         run: |
-          # Extract the latest version from CHANGELOG.md
+          # Extract the latest version from CHANGELOG.md (last occurrence)
           $changelog = Get-Content CHANGELOG.md
-          $versionLine = $changelog | Where-Object { $_ -match '^## \[(\d+\.\d+\.\d+)\]' } | Select-Object -First 1
+          $versionLine = $changelog | Where-Object { $_ -match '^## \[(\d+\.\d+\.\d+)\]' } | Select-Object -Last 1
           
           if ($versionLine -match '^## \[(\d+\.\d+\.\d+)\]') {
             $version = $matches[1]
-            Write-Host "Found version in CHANGELOG: $version"
+            Write-Host "Found latest version in CHANGELOG: $version"
           } else {
             Write-Error "Could not find version in CHANGELOG.md. Expected format: ## [1.0.0]"
             exit 1
@@ -120,7 +120,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.NEW_TAG }}
-          name: "Beta Pre-release - v${{ steps.version.outputs.VERSION }}"
+          name: "${{ steps.version.outputs.NEW_TAG }}"
           prerelease: true
           body: |
             ## Beta Pre-release - v${{ steps.version.outputs.VERSION }}
