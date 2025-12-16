@@ -180,3 +180,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Moved common file writing functions for reuse across exporters.
   - Check if an object is a marker (names starting with `#` or `+`).
   - Check if an object is a physics marker (names starting with `+` just for an exclusion).
+
+## [4.0.0] – 2025-12-15
+### Changed
+- Major Refactor:
+  - Complete migration of the distribution system:
+  - The **`.mzp`** format used in previous versions has been abandoned.
+  - The project is now distributed as an **Application Package** with an `.exe` installer.
+  - Files are automatically installed in `AppData\Roaming\Autodesk\ApplicationPlugins`.
+- Users with earlier versions (≤3.7.0) must manually uninstall the `.mzp` file before installing the new version.
+  - Starting with this version, all updates will be made via the **plugin package** system.
+
+### Fixed
+- Max version detection to maintain support in 2023–2026.
+  - Previous versions to 2023 may not work, depending on the MaxScript API changes. Reporting issues is appreciated.
