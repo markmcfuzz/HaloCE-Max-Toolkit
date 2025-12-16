@@ -31,6 +31,7 @@ luac.out
 *hek_defs/
 *tags/
 *guides/
+*build/local/
 
 # Files
 # manifest.json
