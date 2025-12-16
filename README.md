@@ -7,65 +7,79 @@ A toolkit for Autodesk 3ds Max that allows you to **IMPORT AND EXPORT SOURCE AND
 This toolkit uses some of  the original scripts from the [BlueStreak](https://github.com/Sledmine/bluestreak/tree/main) project. And another are rewritten from scratch to improve stability, usability, and add new features.
 
 ## Features
-- Import Halo CE **GBX/XBOX Models**, **Camera Tracks**, **Animation Data**, **Physics Mass Points**, and **Collision Geometry** directly into 3ds Max.  
-- Export **JMS**, **Animation Data** and **Camera Track** files compatible with Halo CE.
+### Import:
+  - `GBX Model`
+  - `Camera Track`
+  - `Animation Data (JMA)`
+  - `Physics Mass Points`
+  - `Model Collision Geometry`
+### Export:
+ - `JMS`
+ - `JMA`
+ - `Camera Track`
+### Tools:
+ - `Sphere to Halo Marker Helper`
+    - Change the spheres with symbol `#` to new Halo Marker helpers.
 - Integrated directly into 3ds Max menus for easy access (no need to manually run scripts).
 - Additional validations and error handling compared to the original BlueStreak scripts.
-- Adds a new **Halo CE Toolkit** menu section inside 3ds Max for quick access to import/export tools.
-- Uninstall the Toolkit with installer dialog.
+- Improved performance for large models and animations compared to bluestrak.
+- Adds a new **Halo CE Toolkit** menu section inside 3ds Max for quick access to import/export/tools.
+- Executable installer for easy installation and uninstallation of the toolkit.
 
 If you wanna know more about the features and roadmap, check the [**Project Wiki**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/wiki).
 
 ---
 ### Dependencies
-- **Autodesk 3ds Max 2020 - 2023**
-	- 3ds Max 2024+ is **NOT YET SUPPORTED** due to changes in the scripting API. Specifically related to menu generation.
+- **Autodesk 3ds Max 2023 - 2026**
+	- 3ds Max < 2023 is not officially supported, but may work.
 
 ## Installation  
 
-1. Download the latest package from the [**Releases**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/releases) page.  
-2. In 3ds Max, go to **Scripting > Run Script**, select the `.mzp` file.  
-3. Follow the installer dialog to install the toolkit.  
+1. Download the latest executable from the [**Releases**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/releases) page.
+2. Uninstall any previous versions of the Halo CE Max Toolkit if you have it installed.
+3. Install the `HCE Max Toolkit.exe` with 3ds Max closed.
+4. Open 3ds Max and you see the "**Halo CE Toolkit**" menu in the main menu bar. 
 
-After installation, the new **Halo CE Toolkit** menu will appear automatically.  
+After installation, open 3ds max and the new **Halo CE Toolkit** menu will appear in the main menu bar automatically.  
 
 ## Screenshots
-### Installer UI
-![Installer](docs/images/installer_dialog.png)
 
-### Halo CE Toolkit Menu 
-![Installer](docs/images/toolkit_menu.png)
-
-### Import Options 
+### Import Menu 
 ![Installer](docs/images/import_menu.png)
 
-### Export Options 
+### Export Menu 
 ![Installer](docs/images/export_menu.png)
+
+### Tools Menu
+![Installer](docs/images/tools_menu.png)
 
 ## FAQ / Troubleshooting  
 
 - **Will there be more tools in the future?**  
   > Yes! New tools and features are planned based on user feedback and project needs. Stay tuned for updates via the repository or official release channels.
 
-- **I can't drag and drop the .mzp to install the toolkit**  
-  > Make sure you are dragging the **`.mzp`** file into the **3ds Max viewport** (the 3D view), not the toolbar or other UI areas. If nothing happens or 3ds max blocks to drop the file, go to **Scripting > Run Script**, then select the **`.mzp`** file manually.
+- **Why change from .mzp to .exe?**
+  > Because the project changed to Autodesk Application Plug-in Package format, an executable is the most convenient option. 
 
 - **Can I install this in older versions of 3ds Max?**  
-  > The toolkit is built for **3ds Max 2023** and later, but may work on older versions **(2019+)**.
+  > The toolkit is built for **3ds Max 2023** and later, but may work on older versions. If you are using an older version, please report any issues you encounter.
+
+- **How beta build works?**
+  > Beta builds are experimental versions that may contain new features or bug fixes not yet available in stable releases. They are intended for testing and feedback purposes. Use beta builds at your own risk, as they may be less stable than official releases and they are on zip format, so you need to manually install them by copying the `HCEMaxToolkit` and paste in the next path: `C:\Users\yourUserName\AppData\Roaming\Autodesk\ApplicationPlugins`.
 
 ## Special Thanks:
 
+- TheGhost
+  - All original bluestreak scripts.
 - [Sledmine](https://github.com/Sledmine)
   - Modified scripts from [BlueStreak](https://github.com/Sledmine/bluestreak/tree/main)
 - [Sigmmma](https://github.com/Sigmmma)
   - H1 Tag Definitions
 - General-101
-  - Some math used in the Halo 1 tag importing code.
+  - Some math used in the Halo 1 tag importing code and project structure inspiration.
   - [Halo-Asset-Blender-Development-Toolset](https://github.com/General-101/Halo-Asset-Blender-Development-Toolset)
 - MosesofEgypt
   - Camera track exporter.
-- TheGhost
-  - All bluestreak.
 - CtrlAltDestroy
   - Initial animation exporter.
 - LaikaGlove
