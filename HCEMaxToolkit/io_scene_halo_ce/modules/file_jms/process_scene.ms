@@ -569,10 +569,6 @@ fn extractRegions nodeObjectArray =
 			)
 		)
 		
-		-- If object is NOT in any Named Selection Set, it needs __unnamed region
-		if selSetNames.count == 0 then
-			hasObjectsWithoutNamedSet = true
-		
 		-- Add all found selection set names as regions
 		for setName in selSetNames do
 		(
@@ -614,6 +610,13 @@ fn extractRegions nodeObjectArray =
 				append regionNames selName
 			)
 		)
+		
+		-- Check if object has ANY region assignment (Named Selection Set, face selection sets, or user property)
+		local hasRegionAssignment = (selSetNames.count > 0) or (faceSelSetNames.count > 0) or (regionName != undefined)
+		
+		-- If object has NO region assignment at all, mark it for __unnamed region
+		if not hasRegionAssignment then
+			hasObjectsWithoutNamedSet = true
 		
 		-- Clean up snapshot
 		delete meshObj
@@ -764,10 +767,11 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 				local selFaces = try (obj.faces[selName]) catch(undefined)
 				if selFaces != undefined then
 				(
-					for faceObj in selFaces do
+					-- Convert face selection to bitArray for proper iteration
+					local faceBits = selFaces as bitArray
+					for faceIdx = 1 to numFaces do
 					(
-						local faceIdx = faceObj.index
-						if faceIdx > 0 and faceIdx <= numFaces then
+						if faceBits[faceIdx] then
 							faceRegionMap[faceIdx] = selName
 					)
 				)
