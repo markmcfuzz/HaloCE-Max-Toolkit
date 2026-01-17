@@ -139,7 +139,7 @@ jobs:
           name: "${{ steps.version.outputs.NEW_TAG }}"
           prerelease: true
           body: |
-            ## Beta Pre-release - v${{ steps.version.outputs.VERSION }}
+            ## Beta Pre-release - v${{ steps.version.outputs.VERSION }}-beta.${{ steps.version.outputs.BETA_NUMBER }}
             
             This is a beta pre-release for testing purposes.
             Extract the zip on next path: `C:\Users\yourUserName\AppData\Roaming\Autodesk\ApplicationPlugins`
