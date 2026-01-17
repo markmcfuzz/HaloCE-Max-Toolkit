@@ -14,15 +14,31 @@
 -- SCENE VALIDATION FOR JMS EXPORT
 -------------------------------------------------------
 
--- Helper function to check if a node has geometry linked or skinned to it
-fn nodeHasGeometry node =
+-- Recursive helper to check all descendants for geometry
+fn checkDescendantsForGeometry parentObj =
 (
-	-- Check for directly linked geometry (geometry parented to this node)
-	for child in node.children do
+	for child in parentObj.children do
 	(
-		if not child.isHidden and isGeometryObject child then
+		if child.isHidden then continue
+		
+		-- If this child is geometry (and not a node/marker), we found it
+		if isGeometryObject child and not (isNodeObject child) and not (isMarkerObject child) then
+			return true
+		
+		-- Recursively check this child's descendants (for containers/helpers)
+		if checkDescendantsForGeometry child then
 			return true
 	)
+	return false
+)
+
+-- Helper function to check if a node has geometry linked or skinned to it
+-- Recursively checks all descendants (containers/helpers) for geometry
+fn nodeHasGeometry node =
+(
+	-- Check for geometry in descendants (including through containers/helpers)
+	if checkDescendantsForGeometry node then
+		return true
 	
 	-- Check for skinned geometry (vertices weighted to this node)
 	for obj in objects do
@@ -235,7 +251,7 @@ fn validateSceneForExport =
 		(
 			errorMsg += "  • " + markersOnEmptyNodes[i] + "\n"
 		)
-		errorMsg += "\nMarkers must be linked to nodes that have geometry attached (directly or in descendants)."
+		errorMsg += "\nMarkers must be linked to nodes that have geometry attached.\nGeometry can be directly linked or skinned to the node or nested within containers/helpers."
 		append errors errorMsg
 	)
 	
