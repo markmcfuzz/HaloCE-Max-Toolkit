@@ -14,7 +14,7 @@
 -- Tag Header (64 bytes)
 -------------------------------------------------------
 
-fn readTagHeader = 
+fn readShaderModelTagHeader = 
 (
     seekToPosition 36
     local tagClass = read.longB "#unsigned"
@@ -440,7 +440,7 @@ fn readShaderModelTag filePath =
 
     local tagStruct = shaderModelTag()
     
-    local tagHeader = readTagHeader()
+    local tagHeader = readShaderModelTagHeader()
     if tagHeader == undefined then
     (
         fclose fileHandle

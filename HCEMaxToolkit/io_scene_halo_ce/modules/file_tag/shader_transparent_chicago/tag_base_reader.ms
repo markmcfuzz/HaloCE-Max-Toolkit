@@ -12,7 +12,7 @@
 -------------------------------------------------------
 -- Tag Header (64 bytes)
 -------------------------------------------------------
-fn readTagHeader = 
+fn readChicagoTagHeader = 
 (	
 	seekToPosition 36
 	local tagClass = read.longB "#unsigned"
@@ -328,7 +328,7 @@ fn readShaderTransparentChicagoTag filePath =
 	setFileHandle fileHandle
 	in_file = fileHandle
 	local tagStruct = shaderTransparentChicagoTag()
-	local tagHeader = readTagHeader()
+	local tagHeader = readChicagoTagHeader()
 	if tagHeader == undefined then
 	(		
 		fclose fileHandle
