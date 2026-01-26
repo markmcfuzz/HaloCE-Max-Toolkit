@@ -27,14 +27,14 @@ struct shaderTransparentChicagoTag (
     extraFlags = undefined
 )
 
-struct header (
+struct returnHeader (
     tagClass,
     checksum,
     version,
     engineId
 )
 
-struct radiosityProperties (
+struct returnRadiosityProperties (
     flags,
     detailLevel,
     lightPower,
@@ -42,29 +42,27 @@ struct radiosityProperties (
     tintColor
 )
 
-struct physicsProperties (
+struct returnPhysicsProperties (
     materialType
 )
 
-struct chicagoShader (
+struct returnChicagoShader (
     numericCounterLimit,
     chicagoFlags,
     firstMapType,
     framebufferBlendFunction,
     framebufferFadeMode,
-    framebufferFadeSource
-)
-
-struct lensFlares (
+    framebufferFadeSource,
     lensFlareSpacing,
     lensFlare
 )
 
-struct extraLayersBlock (
-    shader
+struct returnExtraLayers (
+    shaderTagClass,
+    shaderPath
 )
 
-struct fourStageMap (
+struct returnFourStageMap (
     mapFlags,
     colorFunction,
     alphaFunction,
@@ -74,27 +72,188 @@ struct fourStageMap (
     mapVOffset,
     mapRotation,
     mipmapBias,
-    map,
+    mapPath,
     uAnimation,
     vAnimation,
     rotationAnimation,
     rotationCenter
 )
 
-struct uVRotAnimation (
-    source
-    function
-    period
-    phase
-    scale
+struct returnTextureAnimation (
+    uAnimationSource,
+    uAnimationFunction,
+    uAnimationPeriod,
+    uAnimationPhase,
+    uAnimationScale,
+    vAnimationSource,
+    vAnimationFunction,
+    vAnimationPeriod,
+    vAnimationPhase,
+    vAnimationScale,
+    rotationAnimationSource,
+    rotationAnimationFunction,
+    rotationAnimationPeriod,
+    rotationAnimationPhase,
+    rotationAnimationScale,
+    rotationAnimationCenter
 )
 
-struct rotationCenter (
+struct returnRotationCenter (
     x,
     y
 )
 
+struct shaderMapsResult (
+    mapsProps,
+    animProps
+)
 
+struct returnChicagoReflexives (
+    extraLayers,
+    fourStageMap
+)
 
+struct shaderAttributesResult (
+    radProps,
+    physProps
+)
+
+fn detailLeveltoString enum =
+(
+    case enum of
+    (
+        0: "high";
+        1: "medium";
+        2: "low";
+        3: "turd";
+        default: ("unknown_flag_" + (enum as string))
+    )
+)
+
+fn sourceBlockToString enum =
+(
+    case enum of
+    (
+        0: "none";
+        1: "A";
+        2: "B";
+        3: "C";
+        4: "D";
+        default: ("unknown_" + (enum as string))
+    )
+)
+
+fn firstMapTypeToString enum =
+(
+    case enum of
+    (
+        0: "map_2d";
+        1: "reflection_cube_map";
+        2: "object_centered_cube_map";
+        3: "viewer_centered_cube_map";
+        default: ("unknown_flag_" + (enum as string))
+    )
+)
+
+fn framebufferBlendFunctionToString enum =
+(
+    case enum of
+    (
+        0: "alpha_blend";
+        1: "multiply";
+        2: "double_multiply";
+        3: "add";
+        4: "subtract";
+        5: "component_min";
+        6: "component_max";
+        7: "alpha_multiply_add";
+        default: ("unknown_flag_" + (enum as string))
+    )
+)
+
+fn framebufferFadeModeToString enum =
+(
+    case enum of
+    (
+        0: "none";
+        1: "fade_when_perpendicular";
+        2: "fade_when_parallel";
+        default: ("unknown_flag_" + (enum as string))
+    )
+)
+
+fn framebufferFadeSourceToString enum =
+(
+    case enum of
+    (
+        0: "none";
+        1: "A out";
+        2: "B out";
+        3: "C out";
+        4: "D out";
+        default: ("unknown_flag_" + (enum as string))
+    )
+)
+
+fn extraLayerTagClass enum =
+(
+    case enum of
+    (
+        1936221298: "shader";
+        1936027254: "shader_environment";
+        1936683887: "shader_model";
+        1935894633: "shader_transparent_chicago";
+        1935893880: "shader_transparent_chicago_extended";
+        1936684146: "shader_transparent_generic";
+        1936157793: "shader_transparent_glass";
+        1936549236: "shader_transparent_meter";
+        1936747617: "shader_transparent_plasma";
+        1937203572: "shader_transparent_water";
+        4294967295: "none";
+        default: ("unknown_flag_" + (enum as string))
+    )
+)
+
+fn colorFunctionToString enum =
+(
+    case enum of
+    (
+        0: "current";
+        1: "next_map";
+        2: "multiply";
+        3: "double_multiply";
+        4: "add";
+        5: "add_signed_current";
+        6: "add_signed_next_map";
+        7: "subtract_signed_current";
+        8: "subtract_signed_next_map";
+        9: "blend_current_alpha";
+        10: "blend_current_alpha_inverse";
+        11: "blend_next_map_alpha";
+        12: "blend_next_map_alpha_inverse";
+        default: ("unknown_" + (enum as string))
+    )
+)
+
+fn animFunctionToString enum =
+(
+    case enum of
+    (
+        
+        0: "one";
+        1: "zero";
+        2: "cosine";
+        3: "cosine (variable period)";
+        4: "diagonal wave";
+        5: "diagonal wave (variable period)";
+        6: "slide";
+        7: "slide (variable period)";
+        8: "noise";
+        9: "jitter";
+        10: "wander";
+        11: "spark";
+        default: ("unknown_" + (enum as string))
+    )
+)
 
 logger "Tag Struct Loaded: shader_transparent_chicago"
