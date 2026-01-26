@@ -361,7 +361,6 @@ fn readTagReferencePaths maps reflection =
     if maps.baseMap.pathLen <= 0 then
     (
         maps.baseMap.path = "NULL"
-        continue
     )
     else if maps.baseMap.pathPtr == 0 then
     (
@@ -378,7 +377,6 @@ fn readTagReferencePaths maps reflection =
     if maps.multipurposeMap.pathLen <= 0 then
     (
         maps.multipurposeMap.path = "NULL"
-        continue
     )
     else if maps.multipurposeMap.pathPtr == 0 then
     (
