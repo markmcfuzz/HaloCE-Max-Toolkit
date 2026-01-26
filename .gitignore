@@ -58,4 +58,5 @@ create_mzp.lua
 *.hex
 
 # Test Files
-*test_shader_reader.ms
+*test_shader_model_reader.ms
+*test_shader_chicago_reader.ms
