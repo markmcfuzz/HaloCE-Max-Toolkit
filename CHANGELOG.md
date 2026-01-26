@@ -194,3 +194,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Max version detection to maintain support in 2023–2026.
   - Previous versions to 2023 may not work, depending on the MaxScript API changes. Reporting issues is appreciated.
+
+## [4.0.1] - 2026-01-25
+### Fixed
+- **Shader Model:**
+  - Reading shader model empty paths. (This fix some cases with the gbxmodel importer where the `shader_model` tag has empty texture paths that caused the textures `tif/png` never import correctly even if the files exist in the correct path in data folder).
+### Added
+- **Gbx/Model Importer:**
+  - Support for containers/helpers in the node hierarchy for organize several objects. This was a petition from a user.
+    - Usage: Create a container with the symbol `/` as prefix name (e.g., `/my_container`) and link objects to it, (geometrys, markers etc).
