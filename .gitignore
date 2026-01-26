@@ -32,6 +32,7 @@ luac.out
 *tags/
 *guides/
 *build/local/
+*_test/
 
 # Files
 # manifest.json
@@ -56,3 +57,5 @@ create_mzp.lua
 *.x86_64
 *.hex
 
+# Test Files
+*test_shader_reader.ms
