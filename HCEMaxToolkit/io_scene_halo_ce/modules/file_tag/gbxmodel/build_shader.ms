@@ -12,9 +12,10 @@
 --
 
 -------------------------------------------------------
--- Module initialization flag and paths
+-- Module initialization flags and paths
 -------------------------------------------------------
-global _shaderModulesLoaded = false
+global _shaderModelModulesLoaded = false
+global _shaderChicagoModulesLoaded = false
 global _shaderModulesPath = undefined
 
 -- Capture the path at file load time
@@ -25,41 +26,69 @@ if _shaderModulesPath == undefined then
 )
 
 -------------------------------------------------------
--- Preload shader_model modules at script level
--------------------------------------------------------
-if not _shaderModulesLoaded and _shaderModulesPath != undefined then
-(
-    local structPath = _shaderModulesPath + "\\shader_model\\tag_struct.ms"
-    local readerPath = _shaderModulesPath + "\\shader_model\\tag_base_reader.ms"
-    
-    if doesFileExist structPath and doesFileExist readerPath then
-    (
-        try
-        (
-            -- Declare as global first so the filein can populate it
-            global readShaderModelTag
-            global shaderModelTag
-            
-            fileIn structPath
-            fileIn readerPath
-            
-            if readShaderModelTag != undefined then
-                _shaderModulesLoaded = true
-        )
-        catch ()  -- Silently ignore any errors during preload
-    )
-)
-
--------------------------------------------------------
--- Verify shader modules are loaded (for safety)
+-- Load shader modules on-demand (not at script level)
 -------------------------------------------------------
 fn loadShaderModelModules =
 (
-    if _shaderModulesLoaded and readShaderModelTag != undefined then
+    if not _shaderModelModulesLoaded and _shaderModulesPath != undefined then
+    (
+        local structPath = _shaderModulesPath + "\\shader_model\\tag_struct.ms"
+        local readerPath = _shaderModulesPath + "\\shader_model\\tag_base_reader.ms"
+        
+        if doesFileExist structPath and doesFileExist readerPath then
+        (
+            try
+            (
+                -- Declare as global first so the filein can populate it
+                global readShaderModelTag
+                global shaderModelTag
+                
+                fileIn structPath
+                fileIn readerPath
+                
+                if readShaderModelTag != undefined then
+                    _shaderModelModulesLoaded = true
+            )
+            catch ()  -- Silently ignore any errors during load
+        )
+    )
+    
+    if _shaderModelModulesLoaded and readShaderModelTag != undefined then
         return true
     
-    -- If not loaded, something went wrong during preload
     logger "Shader model modules not available\n" logType:#error
+    return false
+)
+
+fn loadShaderChicagoModules =
+(
+    if not _shaderChicagoModulesLoaded and _shaderModulesPath != undefined then
+    (
+        local structPath = _shaderModulesPath + "\\shader_transparent_chicago\\tag_struct.ms"
+        local readerPath = _shaderModulesPath + "\\shader_transparent_chicago\\tag_base_reader.ms"
+        
+        if doesFileExist structPath and doesFileExist readerPath then
+        (
+            try
+            (
+                -- Declare as global first so the filein can populate it
+                global readShaderTransparentChicagoTag
+                global shaderTransparentChicagoTag
+                
+                fileIn structPath
+                fileIn readerPath
+                
+                if readShaderTransparentChicagoTag != undefined then
+                    _shaderChicagoModulesLoaded = true
+            )
+            catch ()  -- Silently ignore any errors during load
+        )
+    )
+    
+    if _shaderChicagoModulesLoaded and readShaderTransparentChicagoTag != undefined then
+        return true
+    
+    logger "Shader transparent chicago modules not available\n" logType:#error
     return false
 )
 
@@ -117,16 +146,32 @@ fn convertTagsPathToDataPath tagsRoot =
 -- * Example: 
 -- *   gbxmodelPath = "D:\...\tags\gdd\weapons\shotgun_double\fp\fp.gbxmodel"
 -- *   shaderRelativePath = "gdd\weapons\shared\shaders\gdd_bullets"
+-- *   shaderType = "shader model"
 -- * Returns: "D:\...\tags\gdd\weapons\shared\shaders\gdd_bullets.shader_model"
 --
-fn buildShaderFilePath gbxmodelPath shaderRelativePath =
+fn buildShaderFilePath gbxmodelPath shaderRelativePath shaderType:"shader model" =
 (
     local tagsRoot = getTagsRootFromGbxmodelPath gbxmodelPath
     if tagsRoot == undefined then
         return undefined
     
+    -- Determine file extension based on shader type
+    local extension = case shaderType of
+    (
+        "shader model": ".shader_model"
+        "shader transparent chicago": ".shader_transparent_chicago"
+        "shader transparent chicago extended": ".shader_transparent_chicago_extended"
+        "shader environment": ".shader_environment"
+        "shader transparent generic": ".shader_transparent_generic"
+        "shader transparent glass": ".shader_transparent_glass"
+        "shader transparent meter": ".shader_transparent_meter"
+        "shader transparent plasma": ".shader_transparent_plasma"
+        "shader transparent water": ".shader_transparent_water"
+        default: ".shader_model"  -- Fallback
+    )
+    
     -- Combine tags root with relative shader path and add extension
-    local shaderFullPath = tagsRoot + shaderRelativePath + ".shader_model"
+    local shaderFullPath = tagsRoot + shaderRelativePath + extension
     
     return shaderFullPath
 )
@@ -178,7 +223,7 @@ fn buildTextureFilePath gbxmodelPath bitmapRelativePath =
  * Open a shader_model tag and extract base map path
  * Returns: bitmap relative path or undefined if failed
  */
-fn getBaseMapFromShader shaderFilePath =
+fn getBaseMapFromShaderModel shaderFilePath =
 (
     -- Check if file exists
     if not doesFileExist shaderFilePath then
@@ -209,6 +254,44 @@ fn getBaseMapFromShader shaderFilePath =
 )
 
 /**
+ * Open a shader_transparent_chicago tag and extract first map path
+ * Returns: bitmap relative path or undefined if failed
+ */
+fn getMap1FromChicagoShader shaderFilePath =
+(
+    -- Check if file exists
+    if not doesFileExist shaderFilePath then
+    (
+        logger "Shader file not found: %\n" params:#(shaderFilePath) logType:#warning
+        return undefined
+    )
+    
+    -- Read chicago shader tag
+    local shaderData = readShaderTransparentChicagoTag shaderFilePath
+    
+    if shaderData == undefined then
+    (
+        logger "Failed to read shader transparent chicago tag: %\n" params:#(shaderFilePath) logType:#error
+        return undefined
+    )
+    
+    -- Extract first map from fourStageMap array
+    if shaderData.fourStageMap != undefined and shaderData.fourStageMap.count > 0 then
+    (
+        local map1 = shaderData.fourStageMap[1]
+        -- map1 is shaderMapsResult, which contains mapsProps (returnFourStageMap)
+        -- mapsProps contains mapPath (tagRefData), which has the path string
+        local mapPath = map1.mapsProps.mapPath.path
+        
+        if mapPath != undefined and mapPath != "" and mapPath != "NULL" then
+            return mapPath
+    )
+    
+    logger "No maps found in chicago shader: %\n" params:#(filenameFromPath shaderFilePath) logType:#info
+    return undefined
+)
+
+/**
  * Resolve a single shader reference to its texture file path
  * Returns: struct with shader info and texture path
  */
@@ -231,8 +314,8 @@ fn resolveShaderTexture gbxmodelPath shaderData =
     result.shaderType = shaderData.shaderType
     result.shaderPath = shaderData.shaderPath
     
-    -- Build full shader file path
-    local shaderFilePath = buildShaderFilePath gbxmodelPath shaderData.shaderPath
+    -- Build full shader file path with correct extension
+    local shaderFilePath = buildShaderFilePath gbxmodelPath shaderData.shaderPath shaderType:shaderData.shaderType
     if shaderFilePath == undefined then
     (
         return result
@@ -246,8 +329,29 @@ fn resolveShaderTexture gbxmodelPath shaderData =
         return result
     )
     
-    -- Get base map from shader
-    local baseMapPath = getBaseMapFromShader shaderFilePath
+    -- Get base map from shader based on shader type
+    local baseMapPath = undefined
+    case shaderData.shaderType of
+    (
+        "shader model":
+        (
+            if not loadShaderModelModules() then
+                return result
+            baseMapPath = getBaseMapFromShaderModel shaderFilePath
+        )
+        "shader transparent chicago":
+        (
+            if not loadShaderChicagoModules() then
+                return result
+            baseMapPath = getMap1FromChicagoShader shaderFilePath
+        )
+        default:
+        (
+            logger "Unsupported shader type: %\n" params:#(shaderData.shaderType) logType:#warning
+            return result
+        )
+    )
+    
     if baseMapPath == undefined then
     (
         return result
@@ -291,12 +395,8 @@ fn resolveAllShaderTextures gbxmodelPath shadersArray =
         return #()
     )
     
-    -- Load shader_model modules on demand (after gbxmodel is fully loaded)
-    if not loadShaderModelModules() then
-    (
-        logger "Failed to load shader model modules\n" logType:#error
-        return #()
-    )
+    -- Note: Shader modules are loaded on-demand per shader type
+    -- No preloading needed here
     
     local results = #()
     
