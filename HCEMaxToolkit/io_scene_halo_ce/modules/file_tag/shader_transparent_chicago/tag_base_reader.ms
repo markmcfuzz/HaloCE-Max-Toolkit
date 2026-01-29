@@ -152,7 +152,8 @@ fn readChicagoShaderProperties =
 
 -------------------------------------------------------
 -- Read Reflexive Headers (Extra Layers and Maps)
--- At offset 32 within schi_attrs (file offset 136), size 24 bytes total (2 reflexives)
+-- At offset 32 within schi_attrs (file offset 136), 
+-- size 24 bytes total (2 reflexives)
 -------------------------------------------------------
 
 fn readReflexiveHeaders =
@@ -224,15 +225,9 @@ fn readFourStageMaps mapsReflexive lensFlarePathLen extraLayersArray =
 	)
 	
 	-- Extra layers reflexive data comes before maps reflexive data
-	local extraLayersDataSize = extraLayersArray.count * 16  -- Each extra layer tag reference is 16 bytes
+    -- Each extra layer tag reference is 16 bytes
+	local extraLayersDataSize = extraLayersArray.count * 16  
 	local mapsDataOffset = 172 + lensFlareStringSize + extraLayersStringSize + extraLayersDataSize
-	
-	--if tagHeaderLogger then
-	--(
-	--	logger "=== READING FOUR STAGE MAPS ===\n"
-    --    
-	--	logger "Maps data offset: %\n" params:#(mapsDataOffset) logType:#debug
-	--)
 	
 	-- Seek to maps reflexive data block
 	seekToPosition mapsDataOffset
@@ -424,6 +419,8 @@ fn readShaderTransparentChicagoTag filePath =
 		(
 			logger "    - Map % Path: '%'\n" params:#(i, tagStruct.fourStageMap[i].mapsProps.mapPath.path)
 		)
+
+        logger "\n\n"
 	)
 
 	-- Close file and return tag struct
