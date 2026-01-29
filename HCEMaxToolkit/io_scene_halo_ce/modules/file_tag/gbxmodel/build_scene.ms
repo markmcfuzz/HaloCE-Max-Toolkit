@@ -435,6 +435,28 @@ fn createMaterialWithTextures gbxmodelPath shadersArray materialName:"Gbxmodel M
 			mat.diffusemap = diffuseMap
 			mat.showInViewport = true
 			
+			-- For transparent shaders, also apply the texture to opacity channel
+			-- This helps visualize alpha channel transparency
+			if textureResult.shaderType == "shader transparent glass" or \
+				textureResult.shaderType == "shader transparent chicago" or \
+				textureResult.shaderType == "shader transparent chicago extended" or \
+				textureResult.shaderType == "shader transparent generic" then
+			(
+				local opacityMap = Bitmaptexture fileName:textureResult.textureFilePath
+				-- Use image alpha channel (0=Image Alpha, 1=RGB Intensity, 2=None (opaque))
+				opacityMap.alphaSource = 2 
+				mat.opacitymap = opacityMap
+			)
+			
+			if textureResult.shaderType == "shader transparent meter" or \
+				textureResult.shaderType == "shader transparent water" then
+			(
+				local opacityMap = Bitmaptexture fileName:textureResult.textureFilePath
+				
+				opacityMap.rgbOutput = 1
+				mat.opacitymap = opacityMap
+			)
+
 			--logger "Applied texture to material '%': %\n" params:#(shaderName, textureResult.textureFilePath) logType:#success
 		)
 		else
