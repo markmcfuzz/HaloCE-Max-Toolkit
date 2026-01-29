@@ -60,6 +60,14 @@ fn seekToPosition position seekMode:#seek_set =
 		fseek fileHandle position seekMode
 )
 
+-- Skip bytes in file
+fn skipBytes count =
+(
+	local fileHandle = getCurrentFileHandle()
+	for i = 1 to count do
+		readByte fileHandle #unsigned
+)
+
 -------------------------------------------------------
 -- Binary readers (big-endian)
 -------------------------------------------------------
@@ -259,7 +267,7 @@ struct read (
 		tagRefData tagClass pathPtr pathLen tagID
 	),
 
-	-- Read reflexive structure (12 bytes)
+	-- Read reflexive structure (12 bytes) Legacy function
 	fn reflexive =
 	(
 		local count = read.longB "#signed"
@@ -332,14 +340,6 @@ fn pointFormat value type:default =
 	)
 )
 
--- Skip bytes in file
-fn skipBytes count =
-(
-	local fileHandle = getCurrentFileHandle()
-	for i = 1 to count do
-		readByte fileHandle #unsigned
-)
-
 -------------------------------------------------------
 -- Halo-specific structure reading functions
 -------------------------------------------------------
@@ -385,6 +385,12 @@ fn getFlagArray num =
 		num /= 2
 	)
 	myBitArray
+)
+
+-- Radians to Degrees conversion
+fn radiansToDegrees radians =
+(
+	radians * (180.0 / 3.141592653589793)
 )
 
 -- Material Type Enum
