@@ -28,25 +28,6 @@ struct shaderModelTag (
     unknown1 = #()
 )
 
-struct returnHeader (
-    tagClass,
-    checksum,
-    version,
-    engineId
-)
-
-struct returnRadiosityProperties (
-    flags,
-    detailLevel,
-    lightPower,
-    lightColor,
-    tintColor
-)
-
-struct returnPhysicsProperties (
-    materialType
-)
-
 struct returnModelShader (
     flags,
     translucency
@@ -77,30 +58,6 @@ struct returnMaps (
     detailMapVScale
 )
 
-struct shaderAttributesResult (
-    radProps,
-    physProps
-)
-
-struct returnTextureAnimation (
-    uAnimationSource,
-    uAnimationFunction,
-    uAnimationPeriod,
-    uAnimationPhase,
-    uAnimationScale,
-    vAnimationSource,
-    vAnimationFunction,
-    vAnimationPeriod,
-    vAnimationPhase,
-    vAnimationScale,
-    rotationAnimationSource,
-    rotationAnimationFunction,
-    rotationAnimationPeriod,
-    rotationAnimationPhase,
-    rotationAnimationScale,
-    rotationAnimationCenter
-)
-
 struct returnReflectionProperties (
     falloffDistance,
     cutoffDistance,
@@ -109,54 +66,6 @@ struct returnReflectionProperties (
     parallelBrightness,
     parallelTintColor,
     cubeMap
-)
-
-fn detailLevel enum =
-(
-    case enum of
-    (
-        
-        0: "high";
-        1: "medium";
-        2: "low";
-        3: "turd";
-        default: ("unknown_flag_" + (flags as string))
-    )
-)
-
-fn sourceBlockToString enum =
-(
-    case enum of
-    (
-        
-        0: "none";
-        1: "A";
-        2: "B";
-        3: "C";
-        4: "D";
-        default: ("unknown_" + (enum as string))
-    )
-)
-
-fn animFunctionToString enum =
-(
-    case enum of
-    (
-        
-        0: "one";
-        1: "zero";
-        2: "cosine";
-        3: "cosine (variable period)";
-        4: "diagonal wave";
-        5: "diagonal wave (variable period)";
-        6: "slide";
-        7: "slide (variable period)";
-        8: "noise";
-        9: "jitter";
-        10: "wander";
-        11: "spark";
-        default: ("unknown_" + (enum as string))
-    )
 )
 
 fn detailFunctionToString enum =
