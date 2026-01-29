@@ -573,6 +573,8 @@ fn readShaderModelTag filePath =
         --logger "    - Parallel Brightness: [%]\n" params:#(tagStruct.reflectionProperties.parallelBrightness)
         --logger "    - Parallel Tint Color: R=% G=% B=%\n" params:#(tagStruct.reflectionProperties.parallelTintColor[1], tagStruct.reflectionProperties.parallelTintColor[2], tagStruct.reflectionProperties.parallelTintColor[3])
         logger "    - Cube Map: %\n" params:#(tagStruct.reflectionProperties.cubeMap.path)
+        
+        logger "\n\n"
     )
     -- Close file and return tag struct
     fclose fileHandle
