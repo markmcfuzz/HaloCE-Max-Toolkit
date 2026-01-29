@@ -203,3 +203,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Gbx/Model Importer:**
   - Support for containers/helpers in the node hierarchy for organize several objects. This was a petition from a user.
     - Usage: Create a container with the symbol `/` as prefix name (e.g., `/my_container`) and link objects to it, (geometrys, markers etc).
+
+## [4.1.0] - 2026-01-29
+### Added
+- **GBX/Model Importer:**
+  - Support for read more shader types.
+    - > _(before only `shader_model` were supported)._
+    - New supported shaders:
+      - `shader_transparent_chicago`
+      - `shader_transparent_chicago_extended`
+      - `shader_transparent_generic`
+      - `shader_transparent_glass`
+      - `shader_transparent_meter`
+      - `shader_transparent_water`
+  - Basic material configuration in 3ds Max for transparent shaders. 
+    - > _(In the future, I plan to recreate the Halo CE shaders in 3ds Max as much as possible.)_
+  - Support for `.bmp`, `.tga` and `.dds` texture formats in addition to existing `.tif` and `.png` support.
