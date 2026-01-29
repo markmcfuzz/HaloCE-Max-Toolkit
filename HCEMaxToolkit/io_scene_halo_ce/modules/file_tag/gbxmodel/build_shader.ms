@@ -16,6 +16,11 @@
 -------------------------------------------------------
 global _shaderModelModulesLoaded = false
 global _shaderChicagoModulesLoaded = false
+global _shaderChicagoExtendedModulesLoaded = false
+global _shaderGenericModulesLoaded = false
+global _shaderGlassModulesLoaded = false
+global _shaderMeterModulesLoaded = false
+global _shaderWaterModulesLoaded = false
 global _shaderModulesPath = undefined
 
 -- Capture the path at file load time
@@ -32,10 +37,11 @@ fn loadShaderModelModules =
 (
     if not _shaderModelModulesLoaded and _shaderModulesPath != undefined then
     (
+        local sharedStructPath = _shaderModulesPath + "\\shader\\tag_struct.ms"
         local structPath = _shaderModulesPath + "\\shader_model\\tag_struct.ms"
         local readerPath = _shaderModulesPath + "\\shader_model\\tag_base_reader.ms"
         
-        if doesFileExist structPath and doesFileExist readerPath then
+        if doesFileExist structPath and doesFileExist readerPath and doesFileExist sharedStructPath then
         (
             try
             (
@@ -43,6 +49,7 @@ fn loadShaderModelModules =
                 global readShaderModelTag
                 global shaderModelTag
                 
+                fileIn sharedStructPath
                 fileIn structPath
                 fileIn readerPath
                 
@@ -64,10 +71,11 @@ fn loadShaderChicagoModules =
 (
     if not _shaderChicagoModulesLoaded and _shaderModulesPath != undefined then
     (
+        local sharedStructPath = _shaderModulesPath + "\\shader\\tag_struct.ms"
         local structPath = _shaderModulesPath + "\\shader_transparent_chicago\\tag_struct.ms"
         local readerPath = _shaderModulesPath + "\\shader_transparent_chicago\\tag_base_reader.ms"
         
-        if doesFileExist structPath and doesFileExist readerPath then
+        if doesFileExist structPath and doesFileExist readerPath and doesFileExist sharedStructPath then
         (
             try
             (
@@ -75,6 +83,7 @@ fn loadShaderChicagoModules =
                 global readShaderTransparentChicagoTag
                 global shaderTransparentChicagoTag
                 
+                fileIn sharedStructPath
                 fileIn structPath
                 fileIn readerPath
                 
@@ -89,6 +98,176 @@ fn loadShaderChicagoModules =
         return true
     
     logger "Shader transparent chicago modules not available\n" logType:#error
+    return false
+)
+
+fn loadShaderChicagoExtendedModules =
+(
+    if not _shaderChicagoExtendedModulesLoaded and _shaderModulesPath != undefined then
+    (
+        local sharedStructPath = _shaderModulesPath + "\\shader\\tag_struct.ms"
+        local structPath = _shaderModulesPath + "\\shader_transparent_chicago_extended\\tag_struct.ms"
+        local readerPath = _shaderModulesPath + "\\shader_transparent_chicago_extended\\tag_base_reader.ms"
+
+        if doesFileExist structPath and doesFileExist readerPath and doesFileExist sharedStructPath then
+        (
+            try
+            (
+                -- Declare as global first so the filein can populate it
+                global readShaderTransparentChicagoExtendedTag
+                global shaderTransparentChicagoExtendedTag
+                
+                fileIn sharedStructPath
+                fileIn structPath
+                fileIn readerPath
+                
+                if readShaderTransparentChicagoExtendedTag != undefined then
+                    _shaderChicagoExtendedModulesLoaded = true
+            )
+            catch ()  -- Silently ignore any errors during load
+        )
+    )
+    
+    if _shaderChicagoExtendedModulesLoaded and readShaderTransparentChicagoExtendedTag != undefined then
+        return true
+    
+    logger "Shader transparent chicago extended modules not available\n" logType:#error
+    return false
+)
+
+fn loadShaderGenericModules =
+(
+    if not _shaderGenericModulesLoaded and _shaderModulesPath != undefined then
+    (
+        local sharedStructPath = _shaderModulesPath + "\\shader\\tag_struct.ms"
+        local structPath = _shaderModulesPath + "\\shader_transparent_generic\\tag_struct.ms"
+        local readerPath = _shaderModulesPath + "\\shader_transparent_generic\\tag_base_reader.ms"
+
+        if doesFileExist structPath and doesFileExist readerPath and doesFileExist sharedStructPath then
+        (
+            try
+            (
+                -- Declare as global first so the filein can populate it
+                global readShaderTransparentGenericTag
+                global shaderTransparentGenericTag
+                
+                fileIn sharedStructPath
+                fileIn structPath
+                fileIn readerPath
+                
+                if readShaderTransparentGenericTag != undefined then
+                    _shaderGenericModulesLoaded = true
+            )
+            catch ()  -- Silently ignore any errors during load
+        )
+    )
+    
+    if _shaderGenericModulesLoaded and readShaderTransparentGenericTag != undefined then
+        return true
+    
+    logger "Shader transparent generic modules not available\n" logType:#error
+    return false
+)
+
+fn loadShaderGlassModules =
+(
+    if not _shaderGlassModulesLoaded and _shaderModulesPath != undefined then
+    (
+        local sharedStructPath = _shaderModulesPath + "\\shader\\tag_struct.ms"
+        local structPath = _shaderModulesPath + "\\shader_transparent_glass\\tag_struct.ms"
+        local readerPath = _shaderModulesPath + "\\shader_transparent_glass\\tag_base_reader.ms"
+
+        if doesFileExist structPath and doesFileExist readerPath and doesFileExist sharedStructPath then
+        (
+            try
+            (
+                -- Declare as global first so the filein can populate it
+                global readShaderTransparentGlassTag
+                global shaderTransparentGlassTag
+                
+                fileIn sharedStructPath
+                fileIn structPath
+                fileIn readerPath
+                
+                if readShaderTransparentGlassTag != undefined then
+                    _shaderGlassModulesLoaded = true
+            )
+            catch ()  -- Silently ignore any errors during load
+        )
+    )
+    
+    if _shaderGlassModulesLoaded and readShaderTransparentGlassTag != undefined then
+        return true
+    
+    logger "Shader transparent glass modules not available\n" logType:#error
+    return false
+)
+
+fn loadShaderMeterModules =
+(
+    if not _shaderMeterModulesLoaded and _shaderModulesPath != undefined then
+    (
+        local sharedStructPath = _shaderModulesPath + "\\shader\\tag_struct.ms"
+        local structPath = _shaderModulesPath + "\\shader_transparent_meter\\tag_struct.ms"
+        local readerPath = _shaderModulesPath + "\\shader_transparent_meter\\tag_base_reader.ms"
+
+        if doesFileExist structPath and doesFileExist readerPath and doesFileExist sharedStructPath then
+        (
+            try
+            (
+                -- Declare as global first so the filein can populate it
+                global readShaderTransparentMeterTag
+                global shaderTransparentMeterTag
+                
+                fileIn sharedStructPath
+                fileIn structPath
+                fileIn readerPath
+                
+                if readShaderTransparentMeterTag != undefined then
+                    _shaderMeterModulesLoaded = true
+            )
+            catch ()  -- Silently ignore any errors during load
+        )
+    )
+    
+    if _shaderMeterModulesLoaded and readShaderTransparentMeterTag != undefined then
+        return true
+    
+    logger "Shader transparent meter modules not available\n" logType:#error
+    return false
+)
+
+fn loadShaderWaterModules =
+(
+    if not _shaderWaterModulesLoaded and _shaderModulesPath != undefined then
+    (
+        local sharedStructPath = _shaderModulesPath + "\\shader\\tag_struct.ms"
+        local structPath = _shaderModulesPath + "\\shader_transparent_water\\tag_struct.ms"
+        local readerPath = _shaderModulesPath + "\\shader_transparent_water\\tag_base_reader.ms"
+
+        if doesFileExist structPath and doesFileExist readerPath and doesFileExist sharedStructPath then
+        (
+            try
+            (
+                -- Declare as global first so the filein can populate it
+                global readShaderTransparentWaterTag
+                global shaderTransparentWaterTag
+                
+                fileIn sharedStructPath
+                fileIn structPath
+                fileIn readerPath
+                
+                if readShaderTransparentWaterTag != undefined then
+                    _shaderWaterModulesLoaded = true
+            )
+            catch ()  -- Silently ignore any errors during load
+        )
+    )
+    
+    if _shaderWaterModulesLoaded and readShaderTransparentWaterTag != undefined then
+        return true
+    
+    logger "Shader transparent water modules not available\n" logType:#error
     return false
 )
 
@@ -111,12 +290,13 @@ fn getTagsRootFromGbxmodelPath gbxmodelPath =
         -- Try forward slash variant
         tagsPos = findString gbxmodelPath "/tags/"
         if tagsPos == undefined then
-        (
-            logger "Could not find 'tags' directory in gbxmodel path: %\n" params:#(gbxmodelPath) logType:#warning
+        ( 
+
+            logger "Could not find 'tags' directory in gbxmodel path: %\n" params:#(gbxmodelPath) logType:#warning 
+            
             return undefined
         )
     )
-    
     -- Extract everything up to and including "tags\"
     -- +5 to include "\tags\" (backslash + tags + backslash)
     local tagsRoot = substring gbxmodelPath 1 (tagsPos + 5)
@@ -178,7 +358,7 @@ fn buildShaderFilePath gbxmodelPath shaderRelativePath shaderType:"shader model"
 
 --
 -- * Build full texture file path from tags root and relative bitmap path
--- * Supports multiple image formats: .tif, .png
+-- * Supports multiple image formats: .tif, .png, .bmp, .dds, .tga
 -- * Returns the first format that exists on disk
 -- * Example:
 -- *   gbxmodelPath = D:\...\tags\gdd\weapons\shotgun_double\fp\fp.gbxmodel
@@ -199,7 +379,7 @@ fn buildTextureFilePath gbxmodelPath bitmapRelativePath =
         return undefined
     
     -- Try multiple image formats in order of preference
-    local imageFormats = #(".tif", ".png")
+    local imageFormats = #(".tif", ".png", ".bmp", ".dds", ".tga")
     local basePath = dataRoot + bitmapRelativePath
     
     for ext in imageFormats do
@@ -275,10 +455,11 @@ fn getMap1FromChicagoShader shaderFilePath =
         return undefined
     )
     
-    -- Extract first map from fourStageMap array
+    -- Extract last map from fourStageMap array
     if shaderData.fourStageMap != undefined and shaderData.fourStageMap.count > 0 then
     (
-        local map1 = shaderData.fourStageMap[1]
+        local lastIndex = shaderData.fourStageMap.count
+        local map1 = shaderData.fourStageMap[lastIndex]
         -- map1 is shaderMapsResult, which contains mapsProps (returnFourStageMap)
         -- mapsProps contains mapPath (tagRefData), which has the path string
         local mapPath = map1.mapsProps.mapPath.path
@@ -289,6 +470,166 @@ fn getMap1FromChicagoShader shaderFilePath =
     
     logger "No maps found in chicago shader: %\n" params:#(filenameFromPath shaderFilePath) logType:#info
     return undefined
+)
+
+fn getMap1FromChicagoExtendedShader shaderFilePath =
+(
+    -- Check if file exists
+    if not doesFileExist shaderFilePath then
+    (
+        logger "Shader file not found: %\n" params:#(shaderFilePath) logType:#warning
+        return undefined
+    )
+    
+    -- Read chicago extended shader tag
+    local shaderData = readShaderTransparentChicagoExtendedTag shaderFilePath
+    
+    if shaderData == undefined then
+    (
+        logger "Failed to read shader transparent chicago extended tag: %\n" params:#(shaderFilePath) logType:#error
+        return undefined
+    )
+    
+    -- Extract last map from fourStageMap array
+    if shaderData.fourStageMap != undefined and shaderData.fourStageMap.count > 0 then
+    (
+        local lastIndex = shaderData.fourStageMap.count
+        local map1 = shaderData.fourStageMap[lastIndex]
+        -- map1 is shaderMapsResult, which contains mapsProps (returnFourStageMap)
+        -- mapsProps contains mapPath (tagRefData), which has the path string
+        local mapPath = map1.mapsProps.mapPath.path
+        
+        if mapPath != undefined and mapPath != "" and mapPath != "NULL" then
+            return mapPath
+    )
+    
+    logger "No maps found in chicago extended shader: %\n" params:#(filenameFromPath shaderFilePath) logType:#info
+    return undefined
+)
+
+fn getMap1FromGenericShader shaderFilePath =
+(
+    -- Check if file exists
+    if not doesFileExist shaderFilePath then
+    (
+        logger "Shader file not found: %\n" params:#(shaderFilePath) logType:#warning
+        return undefined
+    )
+    
+    -- Read generic shader tag
+    local shaderData = readShaderTransparentGenericTag shaderFilePath
+    
+    if shaderData == undefined then
+    (
+        logger "Failed to read shader transparent generic tag: %\n" params:#(shaderFilePath) logType:#error
+        return undefined
+    )
+    
+    -- Extract last map from maps array
+    if shaderData.maps != undefined and shaderData.maps.count > 0 then
+    (
+        local lastIndex = shaderData.maps.count
+        local map1 = shaderData.maps[lastIndex]
+        -- map1 is shaderMapsResult, which contains mapsProps (returnMaps)
+        -- mapsProps contains mapPath (tagRefData), which has the path string
+        local mapPath = map1.mapsProps.mapPath.path
+        
+        if mapPath != undefined and mapPath != "" and mapPath != "NULL" then
+            return mapPath
+    )
+    
+    logger "No maps found in generic shader: %\n" params:#(filenameFromPath shaderFilePath) logType:#info
+    return undefined
+)
+
+fn getDiffuseMapFromGlassShader shaderFilePath =
+(
+    -- Check if file exists
+    if not doesFileExist shaderFilePath then
+    (
+        logger "Shader file not found: %\n" params:#(shaderFilePath) logType:#warning
+        return undefined
+    )
+    
+    -- Read glass shader tag
+    local shaderData = readShaderTransparentGlassTag shaderFilePath
+    
+    if shaderData == undefined then
+    (
+        logger "Failed to read shader transparent glass tag: %\n" params:#(shaderFilePath) logType:#error
+        return undefined
+    )
+    
+    -- Extract diffuse map
+    local diffMapPath = shaderData.diffuseProps.diffuseMapPath.path
+    
+    if diffMapPath == undefined or diffMapPath == "" or diffMapPath == "NULL" then
+    (
+        logger "No diffuse map found in shader: %\n" params:#(filenameFromPath shaderFilePath) logType:#info
+        return undefined
+    )
+    
+    return diffMapPath
+)
+
+fn getMeterMapFromMeterShader shaderFilePath =
+(
+    -- Check if file exists
+    if not doesFileExist shaderFilePath then
+    (
+        logger "Shader file not found: %\n" params:#(shaderFilePath) logType:#warning
+        return undefined
+    )
+    
+    -- Read meter shader tag
+    local shaderData = readShaderTransparentMeterTag shaderFilePath
+    
+    if shaderData == undefined then
+    (
+        logger "Failed to read shader transparent meter tag: %\n" params:#(shaderFilePath) logType:#error
+        return undefined
+    )
+    
+    -- Extract meter map
+    local meterMapPath = shaderData.meterShader.meterMapPath.path
+    
+    if meterMapPath == undefined or meterMapPath == "" or meterMapPath == "NULL" then
+    (
+        logger "No meter map found in shader: %\n" params:#(filenameFromPath shaderFilePath) logType:#info
+        return undefined
+    )
+    
+    return meterMapPath
+)
+
+fn getBaseMapFromWaterShader shaderFilePath =
+(
+    -- Check if file exists
+    if not doesFileExist shaderFilePath then
+    (
+        logger "Shader file not found: %\n" params:#(shaderFilePath) logType:#warning
+        return undefined
+    )
+    
+    -- Read water shader tag
+    local shaderData = readShaderTransparentWaterTag shaderFilePath
+    
+    if shaderData == undefined then
+    (
+        logger "Failed to read shader transparent water tag: %\n" params:#(shaderFilePath) logType:#error
+        return undefined
+    )
+    
+    -- Extract base map path
+    local baseMapPath = shaderData.waterShader.waterMapPath.path
+    
+    if baseMapPath == undefined or baseMapPath == "" or baseMapPath == "NULL" then
+    (
+        logger "No base map found in water shader: %\n" params:#(filenameFromPath shaderFilePath) logType:#info
+        return undefined
+    )
+    
+    return baseMapPath
 )
 
 /**
@@ -326,6 +667,7 @@ fn resolveShaderTexture gbxmodelPath shaderData =
     if not doesFileExist shaderFilePath then
     (
         logger "Shader file not found: %\n" params:#(shaderFilePath) logType:#warning
+    
         return result
     )
     
@@ -344,6 +686,36 @@ fn resolveShaderTexture gbxmodelPath shaderData =
             if not loadShaderChicagoModules() then
                 return result
             baseMapPath = getMap1FromChicagoShader shaderFilePath
+        )
+        "shader transparent chicago extended":
+        (
+            if not loadShaderChicagoExtendedModules() then
+                return result
+            baseMapPath = getMap1FromChicagoExtendedShader shaderFilePath
+        )
+        "shader transparent generic":
+        (
+            if not loadShaderGenericModules() then
+                return result
+            baseMapPath = getMap1FromGenericShader shaderFilePath
+        )
+        "shader transparent glass":
+        (
+            if not loadShaderGlassModules() then
+                return result
+            baseMapPath = getDiffuseMapFromGlassShader shaderFilePath
+        )
+        "shader transparent meter":
+        (
+            if not loadShaderMeterModules() then
+                return result
+            baseMapPath = getMeterMapFromMeterShader shaderFilePath
+        )
+        "shader transparent water":
+        (
+            if not loadShaderWaterModules() then
+                return result
+            baseMapPath = getBaseMapFromWaterShader shaderFilePath
         )
         default:
         (
