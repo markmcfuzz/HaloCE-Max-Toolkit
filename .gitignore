@@ -60,3 +60,8 @@ create_mzp.lua
 # Test Files
 *test_shader_model_reader.ms
 *test_shader_chicago_reader.ms
+*test_shader_chicago_ext_reader.ms
+*test_shader_glass_reader.ms
+*test_shader_generic_reader.ms
+*test_shader_meter_reader.ms
+*test_shader_water_reader.ms
