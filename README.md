@@ -36,11 +36,14 @@ If you wanna know more about the features and roadmap, check the [**Project Wiki
 ## Installation  
 
 1. Download the latest executable from the [**Releases**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/releases) page.
-2. Uninstall any previous versions of the Halo CE Max Toolkit if you have it installed.
+2. If you have an older version (valid from version 4.0.0 onwards) of Halo CE Max Toolkit installed, simply install the new version over it.
+    > _`.mzp` versions are deprecated, if you still have one of them, uninstall it with the same .mzp executed as script inside 3ds Max._
 3. Install the `HCE Max Toolkit.exe` with 3ds Max closed.
 4. Open 3ds Max and you see the "**Halo CE Toolkit**" menu in the main menu bar. 
 
-After installation, open 3ds max and the new **Halo CE Toolkit** menu will appear in the main menu bar automatically.  
+After installation, open 3ds max and the new **Halo CE Toolkit** menu will appear in the main menu bar automatically.
+
+> For any issues or questions, please refer to the [**FAQ section**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit?tab=readme-ov-file#faq--troubleshooting) below or open an issue on the GitHub repository.
 
 ## Screenshots
 
@@ -66,6 +69,13 @@ After installation, open 3ds max and the new **Halo CE Toolkit** menu will appea
 
 - **How beta build works?**
   > Beta builds are experimental versions that may contain new features or bug fixes not yet available in stable releases. They are intended for testing and feedback purposes. Use beta builds at your own risk, as they may be less stable than official releases and they are on zip format, so you need to manually install them by copying the `HCEMaxToolkit` and paste in the next path: `C:\Users\yourUserName\AppData\Roaming\Autodesk\ApplicationPlugins`.
+
+- **Alternative installation method?**  
+  > For more advanced users can follow these steps using symbolic link:
+  https://github.com/markmcfuzz/HaloCE-Max-Toolkit/wiki/Advanced-Users
+
+- **Can I contribute to the project?**  
+  > Yes! Contributions are welcome. You can contribute by reporting issues, suggesting features, or submitting pull requests on the GitHub repository.
 
 ## Special Thanks:
 
