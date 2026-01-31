@@ -198,7 +198,7 @@ fn readReflectionProperties =
 
     -- Now at offset 272 (202 + 70)
 
-    local reflectionProps = returnReflectionProps()
+    local reflectionProps = returnGlassReflectionProps()
     reflectionProps.reflectionType = reflectionType
     reflectionProps.perpendicularBrightness = perpendicularBrightness
     reflectionProps.perpendicularTintColor = [perpendicularTintR, perpendicularTintG, perpendicularTintB]
