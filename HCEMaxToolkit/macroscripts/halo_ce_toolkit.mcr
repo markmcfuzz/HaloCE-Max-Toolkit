@@ -110,6 +110,26 @@ macroScript ImportAnimationData
     )
 )
 
+macroScript ImportJMS
+    category: "Halo CE"
+    toolTip: "Jointed Model Skeleton (JMS)"
+(
+    on execute do 
+    (
+        local thisScript = getThisScriptFilename()
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath thisScript)
+        local scriptPath = pluginRoot + "\\io_scene_halo_ce\\import_jms.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
+
 
 -- Export Scripts
 
