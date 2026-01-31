@@ -543,40 +543,52 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 		)
 		
 		-- Build bone weight arrays for WELDED mesh vertices
-		-- OPTIMIZATION: Build position-to-vertex lookup dictionary using string keys
-		local positionDict = dictionary()
+		-- After welding, face vertex indices are updated to point to welded vertices
+		-- We need to map each welded vertex back to an original vertex by tracing face topology
 		
+		-- Build map: original vertex index -> welded vertex index
+		local originalToWeldedMap = #()
 		for i = 1 to preWeldVertCount do
+			append originalToWeldedMap 0
+		
+		-- Scan all faces to find which welded vertex each original vertex maps to
+		for faceIdx = 1 to meshObj.numfaces do
 		(
-			local pos = regionVertPositions[i]
-			-- Create string key with 0.001 precision (floor to avoid floating point issues)
-			local keyX = floor (pos.x * 1000.0)
-			local keyY = floor (pos.y * 1000.0)
-			local keyZ = floor (pos.z * 1000.0)
-			local key = (keyX as string + "_" + keyY as string + "_" + keyZ as string) as name
+			local faceVerts = getFace meshObj faceIdx
+			local remappedFace = regionFaces[faceIdx]  -- Original face with pre-weld indices
 			
-			-- Store first vertex at this position (duplicates have same bone weights)
-			if positionDict[key] == undefined then
-				positionDict[key] = i
+			-- Map original vertex indices to current welded indices
+			if originalToWeldedMap[remappedFace[1]] == 0 then
+				originalToWeldedMap[remappedFace[1]] = faceVerts[1]
+			if originalToWeldedMap[remappedFace[2]] == 0 then
+				originalToWeldedMap[remappedFace[2]] = faceVerts[2]
+			if originalToWeldedMap[remappedFace[3]] == 0 then
+				originalToWeldedMap[remappedFace[3]] = faceVerts[3]
+		)
+		
+		-- Build reverse map: welded vertex index -> original vertex index
+		local weldedToOriginalMap = #()
+		for i = 1 to postWeldVertCount do
+			append weldedToOriginalMap 0
+		
+		for origIdx = 1 to originalToWeldedMap.count do
+		(
+			local weldedIdx = originalToWeldedMap[origIdx]
+			if weldedIdx > 0 and weldedToOriginalMap[weldedIdx] == 0 then
+				weldedToOriginalMap[weldedIdx] = origIdx
 		)
 		
 		local weldedNodeIndices = #()
 		local weldedNodeWeights = #()
 		
-		-- Process each welded vertex using the lookup dictionary
+		-- Process each welded vertex and get bone weights from its original vertex
 		for v = 1 to postWeldVertCount do
 		(
-			local weldedPos = getVert meshObj v
-			local keyX = floor (weldedPos.x * 1000.0)
-			local keyY = floor (weldedPos.y * 1000.0)
-			local keyZ = floor (weldedPos.z * 1000.0)
-			local key = (keyX as string + "_" + keyY as string + "_" + keyZ as string) as name
+			local originalIdx = weldedToOriginalMap[v]
 			
-			local foundOriginalIdx = positionDict[key]
-			
-			if foundOriginalIdx != undefined and foundOriginalIdx <= usedVertIndices.count then
+			if originalIdx > 0 and originalIdx <= usedVertIndices.count then
 			(
-				local globalVertIdx = usedVertIndices[foundOriginalIdx] as integer
+				local globalVertIdx = usedVertIndices[originalIdx] as integer
 				if globalVertIdx > 0 and globalVertIdx <= jmsData.vertices.count then
 				(
 					local vertData = jmsData.vertices[globalVertIdx]
