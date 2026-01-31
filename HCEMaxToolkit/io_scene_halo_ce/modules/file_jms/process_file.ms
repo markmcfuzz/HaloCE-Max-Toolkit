@@ -100,7 +100,7 @@ fn writeVertices fileStream jmsData =
 		
 		format "%\n" vertex.node0Index to:ss
 		format "%\n" (formatTranslation vertex.position) to:ss
-		format "%\n" (formatRotation vertex.normal) to:ss
+		format "%\n" (formatTranslation vertex.normal) to:ss
 		format "%\n" vertex.node1Index to:ss
 		format "%\n" vertex.node1Weight to:ss
 		format "%\n" (formatFloat vertex.texturePos[1]) to:ss
@@ -144,6 +144,53 @@ fn writeTriangles fileStream jmsData =
 	)
 )
 
+-- Write extended metadata section (optional, for enhanced workflows)
+fn writeExtendedMetadata fileStream jmsData =
+(
+	-- Only write if we have extended data
+	if jmsData.shaderBitmaps.count == 0 and jmsData.smoothingGroups.count == 0 then
+		return ok
+	
+	-- Blank line separator
+	format "\n" to:fileStream
+	
+	-- Write shader bitmap paths
+	if jmsData.shaderBitmaps.count > 0 then
+	(
+		format ";### SHADER/BITMAP PATHS ###\n" to:fileStream
+		for i = 1 to jmsData.shaderBitmaps.count do
+		(
+			local shaderName = jmsData.shaders[i].shaderName
+			local bitmapPath = jmsData.shaderBitmaps[i]
+			format "%\n" shaderName to:fileStream
+			format "%\n" bitmapPath to:fileStream
+		)
+		format "\n" to:fileStream  -- Blank line after last bitmap path
+	)
+	
+	-- Write smoothing groups
+	if jmsData.smoothingGroups.count > 0 then
+	(
+		format ";### SMOOTHING GROUPS ###\n" to:fileStream
+		format "%\n" jmsData.smoothingGroups.count to:fileStream
+		
+		-- Write in batches for performance
+		local batchSize = 100000
+		local ss = StringStream ""
+		
+		for i = 1 to jmsData.smoothingGroups.count do
+		(
+			format "%\n" jmsData.smoothingGroups[i] to:ss
+			
+			if (mod i batchSize) == 0 or i == jmsData.smoothingGroups.count then
+			(
+				format "%" (ss as string) to:fileStream
+				ss = StringStream ""
+			)
+		)
+	)
+)
+
 -------------------------------------------------------
 -- MAIN EXPORT FUNCTION
 -------------------------------------------------------
@@ -175,6 +222,9 @@ fn writeJmsFile filePath jmsData =
 		writeRegions fileStream jmsData
 		writeVertices fileStream jmsData
 		writeTriangles fileStream jmsData
+		
+		-- Write extended metadata (bitmaps, smoothing groups, etc.)
+		writeExtendedMetadata fileStream jmsData
 		
 		-- Close file
 		close fileStream
