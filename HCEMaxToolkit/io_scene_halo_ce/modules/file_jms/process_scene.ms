@@ -951,44 +951,27 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			local timeNormalStart = timestamp()
 			local vNormal = [0, 0, 0]
 			
-			-- First, try to get explicit normal if it exists (set via setNormal)
-			local hasExplicitNormal = false
-			try
-			(
-				local explicitNormal = getNormal meshObj vertIdx
-				if explicitNormal != undefined then
-				(
-					vNormal = explicitNormal
-					hasExplicitNormal = true
-				)
-			)
-			catch()
+			vNormal += faceNormals[f]  -- Use cached face normal
 			
-			-- If no explicit normal, calculate using smoothing groups (like old exporter)
-			if not hasExplicitNormal then
+			-- Get smoothing group for current face (from cache)
+			local faceSG = faceSmoothGroups[f]
+			
+			-- Get all faces that share this vertex (from cache)
+			local sharedFaces = vertexFaceMap[vertIdx]
+			
+			-- Check each shared face for smoothing group overlap
+			for s = 1 to sharedFaces.count do
 			(
-				vNormal += faceNormals[f]  -- Use cached face normal
-				
-				-- Get smoothing group for current face (from cache)
-				local faceSG = faceSmoothGroups[f]
-				
-				-- Get all faces that share this vertex (from cache)
-				local sharedFaces = vertexFaceMap[vertIdx]
-				
-				-- Check each shared face for smoothing group overlap
-				for s = 1 to sharedFaces.count do
+				local sharedFaceIdx = sharedFaces[s]
+				if sharedFaceIdx != f then  -- Skip current face
 				(
-					local sharedFaceIdx = sharedFaces[s]
-					if sharedFaceIdx != f then  -- Skip current face
+					local neiSG = faceSmoothGroups[sharedFaceIdx]  -- Use cached smoothing group
+					
+					-- Smoothing groups are bitfields - use bitwise AND to check overlap
+					-- If they share any smoothing group bits, add the neighbor's normal
+					if (bit.and faceSG neiSG) != 0 then
 					(
-						local neiSG = faceSmoothGroups[sharedFaceIdx]  -- Use cached smoothing group
-						
-						-- Smoothing groups are bitfields - use bitwise AND to check overlap
-						-- If they share any smoothing group bits, add the neighbor's normal
-						if (bit.and faceSG neiSG) != 0 then
-						(
-							vNormal += faceNormals[sharedFaceIdx]
-						)
+						vNormal += faceNormals[sharedFaceIdx]
 					)
 				)
 			)
