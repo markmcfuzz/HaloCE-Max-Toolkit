@@ -64,6 +64,7 @@ fn createHaloCEToolkitMenu =
 
         -- Add Import macros
         print "Adding Import macros..."
+        addMacroToMenu importMenu "Halo CE" "ImportJMS" mm displayName:"JMS Model"
         addMacroToMenu importMenu "Halo CE" "ImportAnimationData" mm displayName:"Animation Data"
         addMacroToMenu importMenu "Halo CE" "ImportGBX" mm displayName:"GBX Model"
         addMacroToMenu importMenu "Halo CE" "ImportCollisionGeometry" mm displayName:"Collision Geometry"

@@ -32,6 +32,8 @@ function menuCallback =
     local importCollisionId = "ImportCollisionGeometry`Halo CE"
     local importPhysicsId = "ImportPhysics`Halo CE"
     local importCameraTrackId = "ImportCameraTrack`Halo CE"
+    local importJmsId = "ImportJMS`Halo CE"
+    importMenu.CreateAction "2B3C4D5E-6F70-8192-A3B4-C5D6E7F8091A" macroScriptTableId importJmsId
     importMenu.CreateAction "EFD414B5-0B36-4092-BE7E-39D785F91B05" macroScriptTableId importAnimDataId
     importMenu.CreateAction "ADB41E81-D249-4539-8F5B-2406E02D8352" macroScriptTableId importGbxId
     importMenu.CreateAction "3C4D1F2E-1C7C-4D2C-8F1E-4F6D1E2B8C9A" macroScriptTableId importCollisionId
