@@ -646,11 +646,12 @@ fn extractRegions nodeObjectArray =
 fn extractGeometryData nodeObjectArray shaderArray regionArray =
 (
 	if nodeObjectArray.count == 0 then
-		return #(#(), #())  -- Return empty vertices and triangles
+		return #(#(), #(), #())  -- Return empty vertices, triangles, and smoothing groups
 	
 	local rootNode = nodeObjectArray[1]
 	local allVertices = #()
 	local allTriangles = #()
+	local allSmoothingGroups = #()  -- Store smoothing group per triangle
 	local globalVertexOffset = 0
 	
 	-- Timing variables
@@ -946,30 +947,48 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			
 			-- snapshotAsMesh returns world-space geometry, no additional transform needed
 			vertData.position = #(vertPos.x, vertPos.y, vertPos.z)
-			timeVertexCreation += timestamp() - timeVertStart			-- Calculate vertex normal using smoothing groups (like old exporter)
+			timeVertexCreation += timestamp() - timeVertStart			-- Calculate vertex normal
 			local timeNormalStart = timestamp()
 			local vNormal = [0, 0, 0]
-			vNormal += faceNormals[f]  -- Use cached face normal
 			
-			-- Get smoothing group for current face (from cache)
-			local faceSG = faceSmoothGroups[f]
-			
-			-- Get all faces that share this vertex (from cache)
-			local sharedFaces = vertexFaceMap[vertIdx]
-			
-			-- Check each shared face for smoothing group overlap
-			for s = 1 to sharedFaces.count do
+			-- First, try to get explicit normal if it exists (set via setNormal)
+			local hasExplicitNormal = false
+			try
 			(
-				local sharedFaceIdx = sharedFaces[s]
-				if sharedFaceIdx != f then  -- Skip current face
+				local explicitNormal = getNormal meshObj vertIdx
+				if explicitNormal != undefined then
 				(
-					local neiSG = faceSmoothGroups[sharedFaceIdx]  -- Use cached smoothing group
-					
-					-- Smoothing groups are bitfields - use bitwise AND to check overlap
-					-- If they share any smoothing group bits, add the neighbor's normal
-					if (bit.and faceSG neiSG) != 0 then
+					vNormal = explicitNormal
+					hasExplicitNormal = true
+				)
+			)
+			catch()
+			
+			-- If no explicit normal, calculate using smoothing groups (like old exporter)
+			if not hasExplicitNormal then
+			(
+				vNormal += faceNormals[f]  -- Use cached face normal
+				
+				-- Get smoothing group for current face (from cache)
+				local faceSG = faceSmoothGroups[f]
+				
+				-- Get all faces that share this vertex (from cache)
+				local sharedFaces = vertexFaceMap[vertIdx]
+				
+				-- Check each shared face for smoothing group overlap
+				for s = 1 to sharedFaces.count do
+				(
+					local sharedFaceIdx = sharedFaces[s]
+					if sharedFaceIdx != f then  -- Skip current face
 					(
-						vNormal += faceNormals[sharedFaceIdx]
+						local neiSG = faceSmoothGroups[sharedFaceIdx]  -- Use cached smoothing group
+						
+						-- Smoothing groups are bitfields - use bitwise AND to check overlap
+						-- If they share any smoothing group bits, add the neighbor's normal
+						if (bit.and faceSG neiSG) != 0 then
+						(
+							vNormal += faceNormals[sharedFaceIdx]
+						)
 					)
 				)
 			)
@@ -1066,7 +1085,13 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			-- Set triangle vertex indices (add global offset to make them absolute)
 			triData.vertexIndices = #(globalVertexOffset + vertIndices[1], globalVertexOffset + vertIndices[2], globalVertexOffset + vertIndices[3])
 			
+			-- Get smoothing group for this face (bit flags, 0 = no smoothing)
+			local smoothGroup = 0  -- Default to 0 (hard edges/no smoothing)
+			try (smoothGroup = getFaceSmoothGroup meshObj f) catch ()
+			if smoothGroup == undefined then smoothGroup = 0
+			
 			append allTriangles triData
+			append allSmoothingGroups smoothGroup
 			timeTriangleCreation += timestamp() - timeTriStart
 		)
 		
@@ -1086,7 +1111,80 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	logger "    Skinning: % ms\n" params:#(timeSkinning) logType:#timestamp
 	logger "    Triangle creation: % ms\n" params:#(timeTriangleCreation) logType:#timestamp
 	
-	return #(allVertices, allTriangles)
+	return #(allVertices, allTriangles, allSmoothingGroups)
+)
+
+-- Extract bitmap paths from shader materials
+fn extractShaderBitmaps shaderArray =
+(
+	local bitmapPaths = #()
+	
+	-- Build a material lookup table from all objects in scene
+	local matLookup = #()
+	for obj in objects where obj.material != undefined do
+		appendIfUnique matLookup obj.material
+	
+	for shader in shaderArray do
+	(
+		local bitmapPath = "<none>"
+		
+		-- Search in material lookup table
+		for mat in matLookup do
+		(
+			local foundMat = undefined
+			
+			-- Check if it's a Multi/Sub-Object material
+			if classOf mat == Multimaterial then
+			(
+				-- Search through sub-materials
+				for i = 1 to mat.numsubs do
+				(
+					local subMat = mat[i]
+					if subMat == undefined then continue
+					if subMat.name != shader.shaderName then continue
+					
+					foundMat = subMat
+					exit
+				)
+			)
+			else if mat.name == shader.shaderName then
+			(
+				foundMat = mat
+			)
+			
+			-- Extract bitmap if material was found
+			if foundMat == undefined then continue
+			
+			try
+			(
+				local bitmapMap = undefined
+				
+				-- Check for Physical Material (base_color_map)
+				if classOf foundMat == Physical_Material then
+				(
+					bitmapMap = foundMat.base_color_map
+				)
+				-- Check for Standard Material (diffuseMap)
+				else if hasProperty foundMat #diffuseMap then
+				(
+					bitmapMap = foundMat.diffuseMap
+				)
+				
+				if bitmapMap == undefined then continue
+				
+				local fullPath = try (bitmapMap.filename) catch (undefined)
+				if fullPath != undefined and fullPath != "" then
+					bitmapPath = fullPath
+			)
+			catch ()
+			
+			exit
+		)
+		
+		append bitmapPaths bitmapPath
+	)
+	
+	return bitmapPaths
 )
 
 -------------------------------------------------------
@@ -1162,12 +1260,20 @@ fn processSceneForJMS =
 	local geometryResult = extractGeometryData nodeObjectArray shaderDataArray regionDataArray
 	local vertexDataArray = geometryResult[1]
 	local triangleDataArray = geometryResult[2]
+	local smoothingGroupsArray = geometryResult[3]
 	jmsData.vertices = vertexDataArray
 	jmsData.vertexCount = vertexDataArray.count
 	jmsData.triangles = triangleDataArray
 	jmsData.triangleCount = triangleDataArray.count
+	jmsData.smoothingGroups = smoothingGroupsArray
 	local geomTime = timestamp() - geomStartTime
 	logger "Geometry extraction: % ms (% vertices, % triangles)\n" params:#(geomTime, vertexDataArray.count, triangleDataArray.count) logType:#timestamp
+	
+	-- Extract bitmap paths for shaders
+	local bitmapStartTime = timestamp()
+	jmsData.shaderBitmaps = extractShaderBitmaps shaderDataArray
+	local bitmapTime = timestamp() - bitmapStartTime
+	logger "Bitmap extraction: % ms (% bitmaps)\n" params:#(bitmapTime, jmsData.shaderBitmaps.count) logType:#timestamp
 	
 	local totalTime = timestamp() - startTime
 	format "TOTAL TIME: % ms\n" totalTime
