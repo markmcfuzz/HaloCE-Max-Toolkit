@@ -362,6 +362,16 @@ fn createMaterial shadersArray materialName:"Gbxmodel Materials" =
 		mat.name = shaderName
 		mat.showInViewport = true
 		
+		-- Apply checker pattern by default
+		local checkerMap = Checker()
+		checkerMap.color1 = color 25 25 25    --#191919
+		checkerMap.color2 = color 136 136 136  --#888888
+		checkerMap.coordinates.U_Tiling = 10.0
+		checkerMap.coordinates.V_Tiling = 10.0
+		
+		mat.diffusemap = checkerMap
+		mat.showInViewport = true
+		
 		-- Set material in Multi/Sub-Object
 		multiMat.materialList[i] = mat
 		multiMat.names[i] = shaderName
