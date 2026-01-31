@@ -219,3 +219,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Basic material configuration in 3ds Max for transparent shaders. 
     - > _(In the future, I plan to recreate the Halo CE shaders in 3ds Max as much as possible.)_
   - Support for `.bmp`, `.tga` and `.dds` texture formats in addition to existing `.tif` and `.png` support.
+
+## [4.2.0] - 2026-01-31
+### Added
+- **JMS Importer**
+  - Add new tool to import JMS files.
+  - Check all the features [**Here**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/wiki/Import-Tools#jms-importer)
+- **JMS Exporter:**
+  - Support extended metadata check details [**Here**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/wiki/Export-Tools#6-export-extended-metadata)
+- **Utils:**
+  - New general functions for read and write extended metadata in jms files.
+### Fixed
+- **GBX/Model Importer**
+  - Issues with reading shader modules:
+    - `shader_model`
+    - `shader_transparent_glass`
