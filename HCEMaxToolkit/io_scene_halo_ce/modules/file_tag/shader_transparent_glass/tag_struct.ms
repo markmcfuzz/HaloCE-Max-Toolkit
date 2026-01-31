@@ -35,7 +35,7 @@ struct returnBackgroundTintProps (
     tintMapPath
 )
 
-struct returnReflectionProps (
+struct returnGlassReflectionProps (
     reflectionType,
     perpendicularBrightness,
     perpendicularTintColor,
