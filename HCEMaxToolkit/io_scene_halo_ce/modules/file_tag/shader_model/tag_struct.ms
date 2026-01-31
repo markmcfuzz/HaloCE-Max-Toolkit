@@ -58,7 +58,7 @@ struct returnMaps (
     detailMapVScale
 )
 
-struct returnReflectionProperties (
+struct returnModelReflectionProperties (
     falloffDistance,
     cutoffDistance,
     perpendicularBrightness,
