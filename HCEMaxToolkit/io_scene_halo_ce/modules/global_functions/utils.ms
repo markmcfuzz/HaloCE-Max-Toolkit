@@ -286,6 +286,72 @@ struct read (
 	)
 )
 
+-------------------------------------------------------
+-- Line Text readers
+-------------------------------------------------------
+
+-- Read a single line from file and trim whitespace
+fn readLineFromStream fileStream =
+(
+	local line = readLine fileStream
+	trimRight (trimLeft line)
+)
+
+-- Read an integer value from the next line
+fn readIntValue fileStream =
+(
+	local line = readLine fileStream
+	line as integer
+)
+
+-- Read a float value from the next line
+fn readFloatValue fileStream =
+(
+	local line = readLine fileStream
+	line as float
+)
+
+-- Read a 3D point (vector) from the next line (space or tab separated)
+fn readVectorValue fileStream =
+(
+	local line = readLine fileStream
+	local values = filterString line " \t"
+	
+	if values.count >= 3 then
+		[values[1] as float, values[2] as float, values[3] as float]
+	else
+		[0, 0, 0]
+)
+
+-- Read a quaternion from the next line (i j k w format, space or tab separated)
+fn readQuatValue fileStream =
+(
+	local line = readLine fileStream
+	local values = filterString line " \t"
+	
+	if values.count >= 4 then
+	(
+		local i = values[1] as float
+		local j = values[2] as float
+		local k = values[3] as float
+		local w = values[4] as float
+		normalize (quat i j k w)
+	)
+	else
+		quat 0 0 0 1
+)
+
+-- Read 2D texture coordinates from the next line
+fn readUVValue fileStream =
+(
+	local line = readLine fileStream
+	local values = filterString line " \t"
+	
+	if values.count >= 2 then
+		[values[1] as float, values[2] as float]
+	else
+		[0, 0]
+)
 
 
 -------------------------------------------------------
