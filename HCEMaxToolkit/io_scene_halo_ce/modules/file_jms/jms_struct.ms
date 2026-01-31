@@ -25,7 +25,9 @@ struct jmsFile
 	vertexCount = undefined,
 	vertices = #(),
 	triangleCount = undefined,
-	triangles = #()
+	triangles = #(),
+	shaderBitmaps = #(),
+	smoothingGroups = #()
 )
 
 struct nodes
