@@ -331,7 +331,7 @@ fn readReflectionProperties =
     
     -- Now at offset 436 (380 + 56)
     
-    local reflection = returnReflectionProperties()
+    local reflection = returnModelReflectionProperties()
     reflection.falloffDistance = falloffDistance
     reflection.cutoffDistance = cutoffDistance
     reflection.perpendicularBrightness = perpendicularBrightness
@@ -405,7 +405,14 @@ fn readTagReferencePaths maps reflection =
         maps.detailMap.path = readTagRefPath maps.detailMap.pathPtr maps.detailMap.pathLen
     )
     
-    -- Read cube map path
+    -- Read cube map path (only if cubeMap property exists - check for struct name conflict with glass shader)
+    if classOf reflection != returnModelReflectionProperties then
+    (
+        -- Wrong struct type loaded (likely from glass shader module), skip cube map reading
+        logger "Warning: Reflection struct name conflict detected. Using fallback reading.\n" logType:#warning
+        return ok
+    )
+    
     if reflection.cubeMap.pathLen <= 0 then
     (
         reflection.cubeMap.path = "NULL"
@@ -572,7 +579,10 @@ fn readShaderModelTag filePath =
         --logger "    - Perpendicular Tint Color: R=% G=% B=%\n" params:#(tagStruct.reflectionProperties.perpendicularTintColor[1], tagStruct.reflectionProperties.perpendicularTintColor[2], tagStruct.reflectionProperties.perpendicularTintColor[3])
         --logger "    - Parallel Brightness: [%]\n" params:#(tagStruct.reflectionProperties.parallelBrightness)
         --logger "    - Parallel Tint Color: R=% G=% B=%\n" params:#(tagStruct.reflectionProperties.parallelTintColor[1], tagStruct.reflectionProperties.parallelTintColor[2], tagStruct.reflectionProperties.parallelTintColor[3])
-        logger "    - Cube Map: %\n" params:#(tagStruct.reflectionProperties.cubeMap.path)
+        if hasProperty tagStruct.reflectionProperties "cubeMap" and classOf tagStruct.reflectionProperties == returnModelReflectionProperties then
+        (
+            logger "    - Cube Map: %\n" params:#(tagStruct.reflectionProperties.cubeMap.path)
+        )
         
         logger "\n\n"
     )
