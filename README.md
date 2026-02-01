@@ -4,7 +4,8 @@
 
 A toolkit for Autodesk 3ds Max that allows you to **import and export source and tag files** for Halo Custom Edition. 
 
-Originally, the project was primarily based on the Bluestreak scripts, but it is now a **complete rewrite from scratch** with numerous improvements and optimizations.
+### Disclaimer
+> This toolkit is **not a modification of Bluestreak**. Although it covers all the functionality Bluestreak once offered, every tool has been rewritten from scratch, resulting in a faster, cleaner, and more robust system. In addition to major performance and workflow improvements, the toolkit introduces brand-new tools and features never seen before, designed to enhance productivity and modernize the 3ds Max pipeline.
 
 If you want to learn more in depth about the features and roadmap, check the [**Project Wiki**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/wiki).
 
