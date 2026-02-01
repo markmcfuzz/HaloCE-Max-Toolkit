@@ -439,6 +439,38 @@ fn extractShaders nodeObjectArray =
 	local shaderNames = #()
 	local rootNode = nodeObjectArray[1]
 	
+	-- Helper function to extract bitmap path from a material
+	fn getBitmapPathFromMaterial mat =
+	(
+		local bitmapPath = "<none>"
+		try
+		(
+			local bitmapMap = undefined
+			
+			-- Check for Physical Material (base_color_map)
+			if classOf mat == Physical_Material then
+				bitmapMap = mat.base_color_map
+			-- Check for Standard Material (diffuseMap)
+			else if hasProperty mat #diffuseMap then
+				bitmapMap = mat.diffuseMap
+			
+			if bitmapMap != undefined then
+			(
+				local fullPath = try (bitmapMap.filename) catch (undefined)
+				if fullPath != undefined and fullPath != "" then
+				(
+					-- Remove file extension to support multiple formats
+					local pathOnly = getFilenamePath fullPath
+					local fileOnly = getFilenameFile fullPath
+					bitmapPath = pathOnly + fileOnly
+				)
+			)
+		)
+		catch ()
+		
+		return bitmapPath
+	)
+	
 	-- Collect all geometry objects
 	for obj in objects do
 	(
@@ -485,7 +517,7 @@ fn extractShaders nodeObjectArray =
 							(
 								local shaderData = shaders()
 								shaderData.shaderName = matName
-								shaderData.shaderPath = "<none>"
+								shaderData.bitmapPath = getBitmapPathFromMaterial subMat
 								
 								append shaderArray shaderData
 								append shaderNames matName
@@ -504,7 +536,7 @@ fn extractShaders nodeObjectArray =
 				(
 					local shaderData = shaders()
 					shaderData.shaderName = matName
-					shaderData.shaderPath = "<none>"
+					shaderData.bitmapPath = getBitmapPathFromMaterial obj.material
 					
 					append shaderArray shaderData
 					append shaderNames matName
@@ -642,6 +674,41 @@ fn extractRegions nodeObjectArray =
 -- GEOMETRY DATA EXTRACTION
 -------------------------------------------------------
 
+-- Helper function to create hash key from vertex attributes
+fn createVertexHash pos norm uv node0 node1 weight1 =
+(
+	-- Round to 4 decimal places to create hash key (avoids floating point precision issues)
+	local hashKey = ""
+	hashKey += ((pos[1] * 10000) as integer) as string + ","
+	hashKey += ((pos[2] * 10000) as integer) as string + ","
+	hashKey += ((pos[3] * 10000) as integer) as string + ","
+	hashKey += ((norm[1] * 10000) as integer) as string + ","
+	hashKey += ((norm[2] * 10000) as integer) as string + ","
+	hashKey += ((norm[3] * 10000) as integer) as string + ","
+	hashKey += ((uv[1] * 10000) as integer) as string + ","
+	hashKey += ((uv[2] * 10000) as integer) as string + ","
+	hashKey += (node0 as string) + ","
+	hashKey += (node1 as string) + ","
+	hashKey += ((weight1 * 10000) as integer) as string
+	return hashKey
+)
+
+-- Helper function to find matching vertex using hash lookup (with proper dictionary)
+fn findMatchingVertexFast vertData hashDict =
+(
+	local hashKey = createVertexHash vertData.position vertData.normal vertData.texturePos vertData.node0Index vertData.node1Index vertData.node1Weight
+	
+	-- Try to get value from dictionary (returns undefined if key doesn't exist)
+	local result = hashDict[hashKey]
+	return result
+)
+
+-- Helper function to add vertex to hash dictionary
+fn addVertexToHash hashDict hashKey vertexIdx =
+(
+	hashDict[hashKey] = vertexIdx
+)
+
 -- Extract all geometry data from scene
 fn extractGeometryData nodeObjectArray shaderArray regionArray =
 (
@@ -711,6 +778,17 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 		)
 		
 		if parentNodeIndex < 0 then continue
+		
+		-- Check for Edit_Normals modifier (explicit normals stored here)
+		local editNormalsMod = undefined
+		for m = 1 to obj.modifiers.count do
+		(
+			if classOf obj.modifiers[m] == Edit_Normals then
+			(
+				editNormalsMod = obj.modifiers[m]
+				exit
+			)
+		)
 		
 		-- Get mesh data - always use snapshotAsMesh for consistent world-space geometry
 		local meshObj = snapshotAsMesh obj
@@ -789,7 +867,34 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	local faceNormals = #()
 	local faceSmoothGroups = #()
 	local vertexFaceMap = #()  -- Store which faces use each vertex
+	local explicitNormalsCache = #()  -- Store explicit normals per face: #( #(corner1_normal, corner2_normal, corner3_normal), ... )
+	local hasSmoothingGroups = false
+	local hasExplicitNormals = false
 	
+	-- First pass: check if any face has smoothing groups
+	for f = 1 to numFaces do
+	(
+		local sg = getFaceSmoothGroup meshObj f
+		if sg != 0 and sg != undefined then
+		(
+			hasSmoothingGroups = true
+			exit
+		)
+	)
+	
+	-- If no smoothing groups, use face normals
+	-- NOTE: Explicit normals from FBX are not accessible without proper Edit_Normals setup
+	-- For now, we default to face normals when no smoothing groups exist
+	if not hasSmoothingGroups then
+	(
+		logger "    No smoothing groups detected, using face normals\n" logType:#info
+		
+		-- Cache empty explicit normals (will use face normals in vertex loop)
+		for f = 1 to numFaces do
+			append explicitNormalsCache #()
+	)
+	
+	-- Cache face data
 	for f = 1 to numFaces do
 	(
 		append faceNormals (getFaceNormal meshObj f)
@@ -864,6 +969,10 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 				append cachedSkinData vertWeights
 			)
 		)
+		
+		-- Vertex welding: use dictionary-based hash for O(1) lookups
+		-- Create hash key from vertex attributes for efficient duplicate detection
+		local vertexHashDict = dictionary #string  -- Use MAXScript dictionary for true O(1) lookups
 		
 		-- Extract vertices AND triangles together (per-face-corner to match UVs)
 		-- This matches the old exporter behavior
@@ -947,37 +1056,58 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			
 			-- snapshotAsMesh returns world-space geometry, no additional transform needed
 			vertData.position = #(vertPos.x, vertPos.y, vertPos.z)
-			timeVertexCreation += timestamp() - timeVertStart			-- Calculate vertex normal
+			timeVertexCreation += timestamp() - timeVertStart
+			
+			-- Calculate vertex normal
 			local timeNormalStart = timestamp()
 			local vNormal = [0, 0, 0]
 			
-			vNormal += faceNormals[f]  -- Use cached face normal
-			
-			-- Get smoothing group for current face (from cache)
-			local faceSG = faceSmoothGroups[f]
-			
-			-- Get all faces that share this vertex (from cache)
-			local sharedFaces = vertexFaceMap[vertIdx]
-			
-			-- Check each shared face for smoothing group overlap
-			for s = 1 to sharedFaces.count do
+			-- If no smoothing groups, use explicit normals if available, otherwise face normals
+			if not hasSmoothingGroups then
 			(
-				local sharedFaceIdx = sharedFaces[s]
-				if sharedFaceIdx != f then  -- Skip current face
+				if hasExplicitNormals then
 				(
-					local neiSG = faceSmoothGroups[sharedFaceIdx]  -- Use cached smoothing group
-					
-					-- Smoothing groups are bitfields - use bitwise AND to check overlap
-					-- If they share any smoothing group bits, add the neighbor's normal
-					if (bit.and faceSG neiSG) != 0 then
-					(
-						vNormal += faceNormals[sharedFaceIdx]
-					)
+					-- Use pre-cached explicit normal for this face corner
+					vNormal = explicitNormalsCache[f][corner]
+				)
+				else
+				(
+					-- Fallback to face normal
+					vNormal = faceNormals[f]
 				)
 			)
+			else
+			(
+				-- Use smoothing group-based calculation
+				vNormal += faceNormals[f]  -- Use cached face normal
+				
+				-- Get smoothing group for current face (from cache)
+				local faceSG = faceSmoothGroups[f]
+				
+				-- Get all faces that share this vertex (from cache)
+				local sharedFaces = vertexFaceMap[vertIdx]
+				
+				-- Check each shared face for smoothing group overlap
+				for s = 1 to sharedFaces.count do
+				(
+					local sharedFaceIdx = sharedFaces[s]
+					if sharedFaceIdx != f then  -- Skip current face
+					(
+						local neiSG = faceSmoothGroups[sharedFaceIdx]  -- Use cached smoothing group
+						
+						-- Smoothing groups are bitfields - use bitwise AND to check overlap
+						-- If they share any smoothing group bits, add the neighbor's normal
+						if (bit.and faceSG neiSG) != 0 then
+						(
+							vNormal += faceNormals[sharedFaceIdx]
+						)
+					)
+				)
+				
+				-- Normalize the result
+				vNormal = normalize vNormal
+			)
 			
-			-- Normalize the result
-			vNormal = normalize vNormal
 			vertData.normal = #(vNormal.x, vNormal.y, vNormal.z)
 			timeNormalCalc += timestamp() - timeNormalStart				-- Handle skinning
 				local timeSkinStart = timestamp()
@@ -1060,13 +1190,29 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 					vertData.texturePos = #(0.0, 0.0, 0)
 				)
 				
-				-- Add vertex and store its index (relative to current object's vertices)
-				append allVertices vertData
-				append vertIndices (allVertices.count - 1 - globalVertexOffset)
+				-- Vertex welding: check if we already have an identical vertex using hash lookup
+				local existingVertexIdx = findMatchingVertexFast vertData vertexHashDict
+				
+				if existingVertexIdx != undefined then
+				(
+					-- Reuse existing vertex (already a global index, no offset needed)
+					append vertIndices existingVertexIdx
+				)
+				else
+				(
+					-- Add new vertex
+					append allVertices vertData
+					local globalIdx = allVertices.count - 1  -- Global index (0-based)
+					append vertIndices globalIdx
+					
+					-- Add to hash dictionary for future lookups
+					local hashKey = createVertexHash vertData.position vertData.normal vertData.texturePos vertData.node0Index vertData.node1Index vertData.node1Weight
+					addVertexToHash vertexHashDict hashKey globalIdx
+				)
 			)
 			
-			-- Set triangle vertex indices (add global offset to make them absolute)
-			triData.vertexIndices = #(globalVertexOffset + vertIndices[1], globalVertexOffset + vertIndices[2], globalVertexOffset + vertIndices[3])
+			-- Set triangle vertex indices (vertIndices already contains global indices)
+			triData.vertexIndices = #(vertIndices[1], vertIndices[2], vertIndices[3])
 			
 			-- Get smoothing group for this face (bit flags, 0 = no smoothing)
 			local smoothGroup = 0  -- Default to 0 (hard edges/no smoothing)
@@ -1078,8 +1224,9 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			timeTriangleCreation += timestamp() - timeTriStart
 		)
 		
-		-- Update global vertex offset
+		-- Update global vertex offset and clear per-object hash dictionary
 		globalVertexOffset = allVertices.count
+		vertexHashDict = dictionary #string  -- Reset dictionary for next object
 		
 		-- Clean up snapshot (always created now)
 		delete meshObj
@@ -1095,79 +1242,6 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	logger "    Triangle creation: % ms\n" params:#(timeTriangleCreation) logType:#timestamp
 	
 	return #(allVertices, allTriangles, allSmoothingGroups)
-)
-
--- Extract bitmap paths from shader materials
-fn extractShaderBitmaps shaderArray =
-(
-	local bitmapPaths = #()
-	
-	-- Build a material lookup table from all objects in scene
-	local matLookup = #()
-	for obj in objects where obj.material != undefined do
-		appendIfUnique matLookup obj.material
-	
-	for shader in shaderArray do
-	(
-		local bitmapPath = "<none>"
-		
-		-- Search in material lookup table
-		for mat in matLookup do
-		(
-			local foundMat = undefined
-			
-			-- Check if it's a Multi/Sub-Object material
-			if classOf mat == Multimaterial then
-			(
-				-- Search through sub-materials
-				for i = 1 to mat.numsubs do
-				(
-					local subMat = mat[i]
-					if subMat == undefined then continue
-					if subMat.name != shader.shaderName then continue
-					
-					foundMat = subMat
-					exit
-				)
-			)
-			else if mat.name == shader.shaderName then
-			(
-				foundMat = mat
-			)
-			
-			-- Extract bitmap if material was found
-			if foundMat == undefined then continue
-			
-			try
-			(
-				local bitmapMap = undefined
-				
-				-- Check for Physical Material (base_color_map)
-				if classOf foundMat == Physical_Material then
-				(
-					bitmapMap = foundMat.base_color_map
-				)
-				-- Check for Standard Material (diffuseMap)
-				else if hasProperty foundMat #diffuseMap then
-				(
-					bitmapMap = foundMat.diffuseMap
-				)
-				
-				if bitmapMap == undefined then continue
-				
-				local fullPath = try (bitmapMap.filename) catch (undefined)
-				if fullPath != undefined and fullPath != "" then
-					bitmapPath = fullPath
-			)
-			catch ()
-			
-			exit
-		)
-		
-		append bitmapPaths bitmapPath
-	)
-	
-	return bitmapPaths
 )
 
 -------------------------------------------------------
@@ -1252,11 +1326,7 @@ fn processSceneForJMS =
 	local geomTime = timestamp() - geomStartTime
 	logger "Geometry extraction: % ms (% vertices, % triangles)\n" params:#(geomTime, vertexDataArray.count, triangleDataArray.count) logType:#timestamp
 	
-	-- Extract bitmap paths for shaders
-	local bitmapStartTime = timestamp()
-	jmsData.shaderBitmaps = extractShaderBitmaps shaderDataArray
-	local bitmapTime = timestamp() - bitmapStartTime
-	logger "Bitmap extraction: % ms (% bitmaps)\n" params:#(bitmapTime, jmsData.shaderBitmaps.count) logType:#timestamp
+	-- Bitmap paths are now stored directly in shader.bitmapPath (no need for separate extraction)
 	
 	local totalTime = timestamp() - startTime
 	format "TOTAL TIME: % ms\n" totalTime
