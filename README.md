@@ -2,15 +2,18 @@
 
 ![icon](docs/images/banner.png)
 
-A toolkit for Autodesk 3ds Max that allows you to **IMPORT AND EXPORT SOURCE AND TAG FILES** for Halo Custom Edition.
+A toolkit for Autodesk 3ds Max that allows you to **import and export source and tag files** for Halo Custom Edition. 
 
-This toolkit uses some of  the original scripts from the [BlueStreak](https://github.com/Sledmine/bluestreak/tree/main) project. And another are rewritten from scratch to improve stability, usability, and add new features.
+Originally, the project was primarily based on the Bluestreak scripts, but it is now a **complete rewrite from scratch** with numerous improvements and optimizations.
+
+If you want to learn more in depth about the features and roadmap, check the [**Project Wiki**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/wiki).
 
 ## Features
 ### Import:
   - `GBX Model`
   - `Camera Track`
   - `Animation Data (JMA)`
+  - `Jointed Model Skeleton (JMS)`
   - `Physics Mass Points`
   - `Model Collision Geometry`
 ### Export:
@@ -21,12 +24,10 @@ This toolkit uses some of  the original scripts from the [BlueStreak](https://gi
  - `Sphere to Halo Marker Helper`
     - Change the spheres with symbol `#` to new Halo Marker helpers.
 - Integrated directly into 3ds Max menus for easy access (no need to manually run scripts).
-- Additional validations and error handling compared to the original BlueStreak scripts.
-- Improved performance for large models and animations compared to bluestrak.
+- Additional validations and clear error handling for JMS Exporter.
+- Improved performance for large models and animations compared to bluestreak.
 - Adds a new **Halo CE Toolkit** menu section inside 3ds Max for quick access to import/export/tools.
 - Executable installer for easy installation and uninstallation of the toolkit.
-
-If you wanna know more about the features and roadmap, check the [**Project Wiki**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/wiki).
 
 ---
 ### Dependencies
@@ -70,8 +71,8 @@ After installation, open 3ds max and the new **Halo CE Toolkit** menu will appea
 - **How beta build works?**
   > Beta builds are experimental versions that may contain new features or bug fixes not yet available in stable releases. They are intended for testing and feedback purposes. Use beta builds at your own risk, as they may be less stable than official releases and they are on zip format, so you need to manually install them by copying the `HCEMaxToolkit` and paste in the next path: `C:\Users\yourUserName\AppData\Roaming\Autodesk\ApplicationPlugins`.
 
-- **Alternative installation method?**  
-  > For more advanced users can follow these steps using symbolic link:
+- **Alternative get updated?**  
+  > For more advanced users can follow these steps for get updated using symbolic link:
   https://github.com/markmcfuzz/HaloCE-Max-Toolkit/wiki/Advanced-Users
 
 - **Can I contribute to the project?**  
@@ -80,7 +81,7 @@ After installation, open 3ds max and the new **Halo CE Toolkit** menu will appea
 ## Special Thanks:
 
 - TheGhost
-  - All original bluestreak scripts.
+  - All original bluestreak scripts. At the start of this project.
 - [Sledmine](https://github.com/Sledmine)
   - Modified scripts from [BlueStreak](https://github.com/Sledmine/bluestreak/tree/main)
 - [Sigmmma](https://github.com/Sigmmma)
