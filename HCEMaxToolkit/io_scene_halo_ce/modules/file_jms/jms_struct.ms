@@ -26,7 +26,6 @@ struct jmsFile
 	vertices = #(),
 	triangleCount = undefined,
 	triangles = #(),
-	shaderBitmaps = #(),
 	smoothingGroups = #()
 )
 
@@ -42,7 +41,7 @@ struct nodes
 struct shaders
 (	
 	shaderName,
-	shaderPath
+	bitmapPath
 )
 
 struct markers
