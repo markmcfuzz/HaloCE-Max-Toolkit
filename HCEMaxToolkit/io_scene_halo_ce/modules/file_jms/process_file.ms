@@ -48,7 +48,7 @@ fn writeShaders fileStream jmsData =
 	for shader in jmsData.shaders do
 	(
 		format "%\n" shader.shaderName to:fileStream
-		format "%\n" shader.shaderPath to:fileStream
+		format "%\n" shader.bitmapPath to:fileStream
 	)
 )
 
@@ -147,26 +147,12 @@ fn writeTriangles fileStream jmsData =
 -- Write extended metadata section (optional, for enhanced workflows)
 fn writeExtendedMetadata fileStream jmsData =
 (
-	-- Only write if we have extended data
-	if jmsData.shaderBitmaps.count == 0 and jmsData.smoothingGroups.count == 0 then
+	-- Only write if we have smoothing groups
+	if jmsData.smoothingGroups.count == 0 then
 		return ok
 	
 	-- Blank line separator
 	format "\n" to:fileStream
-	
-	-- Write shader bitmap paths
-	if jmsData.shaderBitmaps.count > 0 then
-	(
-		format ";### SHADER/BITMAP PATHS ###\n" to:fileStream
-		for i = 1 to jmsData.shaderBitmaps.count do
-		(
-			local shaderName = jmsData.shaders[i].shaderName
-			local bitmapPath = jmsData.shaderBitmaps[i]
-			format "%\n" shaderName to:fileStream
-			format "%\n" bitmapPath to:fileStream
-		)
-		format "\n" to:fileStream  -- Blank line after last bitmap path
-	)
 	
 	-- Write smoothing groups
 	if jmsData.smoothingGroups.count > 0 then
