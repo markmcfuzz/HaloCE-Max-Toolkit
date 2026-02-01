@@ -63,7 +63,7 @@ fn readShaders fileStream jmsData =
 		local shader = shaders()
 		
 		shader.shaderName = readLineFromStream fileStream
-		shader.shaderPath = readLineFromStream fileStream
+		shader.bitmapPath = readLineFromStream fileStream
 		
 		append jmsData.shaders shader
 	)
@@ -176,7 +176,7 @@ fn readTriangles fileStream jmsData =
 	return true
 )
 
--- Read extended metadata (optional - shader bitmaps and smoothing groups)
+-- Read extended metadata (optional - smoothing groups)
 fn readExtendedMetadata fileStream jmsData =
 (
 	-- Try to read next line - if EOF or not a metadata section, return
@@ -186,40 +186,6 @@ fn readExtendedMetadata fileStream jmsData =
 	-- Skip blank lines
 	while nextLine != undefined and (trimLeft (trimRight nextLine)) == "" do
 		nextLine = readLineFromStream fileStream
-	
-	if nextLine == undefined then return true
-	
-	-- Check if we have shader/bitmap paths section
-	if nextLine == ";### SHADER/BITMAP PATHS ###" then
-	(
-		logger "Reading shader bitmap paths..." logType: #info
-		
-		jmsData.shaderBitmaps = #()
-		for i = 1 to jmsData.shaderCount do
-		(
-			-- Read shader name line
-			local shaderLine = readLineFromStream fileStream
-			if shaderLine == undefined then break
-			
-			-- Read bitmap path line
-			local bitmapLine = readLineFromStream fileStream
-			if bitmapLine != undefined then
-			(
-				local bitmapPath = trimLeft (trimRight bitmapLine)
-				append jmsData.shaderBitmaps bitmapPath
-				--logger ("  Shader " + (trimLeft (trimRight shaderLine)) + " bitmap: " + bitmapPath) logType: #info
-			)
-			else
-				append jmsData.shaderBitmaps "<none>"
-		)
-		
-		logger ("Total bitmaps loaded: " + jmsData.shaderBitmaps.count as string) logType: #info
-		
-		-- Read next line for smoothing groups section (skip blanks)
-		nextLine = readLineFromStream fileStream
-		while nextLine != undefined and (trimLeft (trimRight nextLine)) == "" do
-			nextLine = readLineFromStream fileStream
-	)
 	
 	if nextLine == undefined then return true
 	
