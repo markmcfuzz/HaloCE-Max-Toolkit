@@ -40,7 +40,7 @@ fn buildMaterials jmsData tagsPath dataPath =
 	(
 		local shaderData = jmsData.shaders[i]
 		local shaderName = shaderData.shaderName
-		local shaderPath = shaderData.shaderPath
+		local bitmapPath = shaderData.bitmapPath
 		
 		-- Create standard material
 		local mat = StandardMaterial()
@@ -50,31 +50,35 @@ fn buildMaterials jmsData tagsPath dataPath =
 		mat.ambient = color 64 64 64
 		mat.twoSided = false
 		
-		-- Check if we have extended metadata with bitmap paths
-		local bitmapPath = undefined
-		if jmsData.shaderBitmaps != undefined and i <= jmsData.shaderBitmaps.count then
+		-- Check if bitmap path is valid (without extension)
+		local fullBitmapPath = undefined
+		if bitmapPath != undefined and bitmapPath != "<none>" and bitmapPath != "" then
 		(
-			local pathFromMetadata = jmsData.shaderBitmaps[i]
-			--logger ("  Shader " + i as string + " (" + shaderName + ") metadata path: " + pathFromMetadata as string) logType: #info
-			if pathFromMetadata != undefined and pathFromMetadata != "<none>" and pathFromMetadata != "" then
-				bitmapPath = pathFromMetadata
-		)
-		else
-		(
-			logger ("  No extended metadata for shader " + i as string) logType: #info
+			-- bitmapPath contains path without extension
+			-- Try to find the actual file with various extensions
+			local extensions = #(".tga", ".tif", ".tiff", ".png", ".jpg", ".jpeg", ".bmp", ".dds")
+			
+			for ext in extensions do
+			(
+				local testPath = bitmapPath + ext
+				if doesFileExist testPath then
+				(
+					fullBitmapPath = testPath
+					exit
+				)
+			)
 		)
 		
-		-- If we have a bitmap path from extended metadata, use it
-		if bitmapPath != undefined and doesFileExist bitmapPath then
+		-- If we found a bitmap path, use it
+		if fullBitmapPath != undefined then
 		(
-			--logger ("  Applying bitmap: " + bitmapPath) logType: #info
-			mat.diffuseMap = Bitmaptexture filename:bitmapPath
+			mat.diffuseMap = Bitmaptexture filename:fullBitmapPath
 			mat.showInViewport = true
 		)
-		-- Otherwise, try to find texture from shader path
-		else if tagsPath != undefined and dataPath != undefined and shaderPath != "" then
+		-- Otherwise, try to find texture from shader name in tags/data folders
+		else if tagsPath != undefined and dataPath != undefined and shaderName != "" then
 		(
-			local texturePath = findShaderTexture shaderPath tagsPath dataPath
+			local texturePath = findShaderTexture shaderName tagsPath dataPath
 			if texturePath != undefined and doesFileExist texturePath then
 			(
 				mat.diffuseMap = Bitmaptexture filename:texturePath
