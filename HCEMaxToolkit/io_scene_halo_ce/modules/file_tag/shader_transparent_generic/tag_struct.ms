@@ -195,5 +195,4 @@ fn colorOutputMappingToString enum =
     )
 )
 
-logger "Tag Struct Loaded: shader_transparent_generic"
---logger "Tag Shader Shared Structure loaded.\n" logType:#success
+logger "Shader Transparent Generic tag structure loaded.\n" logType: #success 

@@ -253,4 +253,4 @@ fn animFunctionToString enum =
     )
 )
 
-logger "Tag Shader Shared Structure loaded.\n" logType:#success
+logger "Shader shared tag structure loaded.\n" logType:#success

@@ -224,4 +224,4 @@ struct shaderRefData (
     permutationIndex
 )
 
-logger "Tag Structure loaded.\n" logType:#success
+logger "Gbx/Model tag structure loaded.\n" logType:#success

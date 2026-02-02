@@ -300,4 +300,4 @@ fn materialTypeToString matType =
 	)
 )
 
-logger "Tag structure loaded.\n" logType:#success
+logger "Model Collision Geometry tag structure loaded.\n" logType:#success

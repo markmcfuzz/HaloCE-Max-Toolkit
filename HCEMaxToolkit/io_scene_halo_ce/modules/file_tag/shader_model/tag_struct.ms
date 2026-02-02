@@ -97,3 +97,5 @@ fn detailMaskToString enum =
         default: ("unknown_" + (enum as string))
     )
 )
+
+logger "Shader Model tag structure loaded.\n" logType: #success 

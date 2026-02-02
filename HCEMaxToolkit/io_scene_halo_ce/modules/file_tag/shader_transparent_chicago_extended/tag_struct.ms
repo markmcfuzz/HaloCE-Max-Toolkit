@@ -46,4 +46,4 @@ struct returnChicagoExtendedReflexives (
     twoStageMap
 )
 
-logger "Tag Struct Loaded: shader_transparent_chicago_extended"
+logger "Shader Transparent Chicago Extended tag structure loaded.\n" logType: #success 

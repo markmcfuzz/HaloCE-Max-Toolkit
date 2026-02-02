@@ -53,4 +53,4 @@ struct returnRipples (
     mapIndex
 )
 
-logger "Tag Struct Loaded: shader_transparent_water" 
+logger "Shader Transparent Water tag structure loaded.\n" logType: #success 

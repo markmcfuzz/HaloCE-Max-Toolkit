@@ -72,4 +72,4 @@ fn reflectionTypeToString enum =
     )
 )
 
-logger "Tag Struct Loaded: shader_transparent_glass"
+logger "Shader Transparent Glass tag structure loaded.\n" logType: #success 

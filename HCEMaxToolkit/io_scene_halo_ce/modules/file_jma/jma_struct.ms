@@ -36,3 +36,5 @@ struct jmaKeyframes
     nodeRotation,
     nodeScale
 )
+
+logger "JMA structure loaded.\n" logType: #success 

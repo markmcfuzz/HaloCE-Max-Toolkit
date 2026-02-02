@@ -46,4 +46,4 @@ struct returnExternalFunctionSource (
     flashExtension
 )
 
-logger "Tag Shader Shared Structure loaded.\n" logType:#success
+logger "Shader Transparent Meter tag structure loaded.\n" logType: #success 

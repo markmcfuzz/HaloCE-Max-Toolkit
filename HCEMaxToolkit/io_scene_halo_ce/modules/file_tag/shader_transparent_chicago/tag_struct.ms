@@ -43,4 +43,4 @@ struct returnChicagoReflexives (
     fourStageMap
 )
 
-logger "Tag Struct Loaded: shader_transparent_chicago"
+logger "Shader Transparent Chicago tag structure loaded.\n" logType: #success 

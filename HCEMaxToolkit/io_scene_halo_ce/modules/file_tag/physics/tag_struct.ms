@@ -135,3 +135,5 @@ fn frictionTypeToString funcType =
 		default: ("unknown_" + (funcType as string))
 	)
 )
+
+logger "Physics tag structure loaded.\n" logType: #success 
