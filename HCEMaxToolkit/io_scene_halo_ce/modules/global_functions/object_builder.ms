@@ -267,4 +267,4 @@ fn createHaloPhysics pos:[0,0,0] radius:1.0 markerType:"Physics" name:"massPoint
 	marker
 )
 
-logger "Object Builder loaded successfully.\n" type:"success"
+logger "Object Builder loaded successfully.\n" logType: #success
