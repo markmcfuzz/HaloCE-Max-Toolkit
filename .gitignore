@@ -31,8 +31,10 @@ luac.out
 *hek_defs/
 *tags/
 *guides/
-*build/local/
+*backups/
+*build/
 *_test/
+*_refs/
 
 # Files
 # manifest.json
@@ -44,13 +46,11 @@ create_mzp.lua
 *.jms
 
 # Shared objects (inc. Windows DLLs)
-*.dll
 *.so
 *.so.*
 *.dylib
 
 # Executables
-*.exe
 *.out
 *.app
 *.i*86
