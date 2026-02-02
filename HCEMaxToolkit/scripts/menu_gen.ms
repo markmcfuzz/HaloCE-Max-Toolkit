@@ -48,7 +48,9 @@ function menuCallback =
     exportMenu.CreateAction "0A1B2C3D-4E5F-6071-8293-A4B5C6D7E8F9" macroScriptTableId exportCameraTrackId
     -- Add Tools submenu actions
     local sphereToHaloHelperId = "SphereToHaloMarkerHelper`Halo CE"
+    local jmsFormatterId = "JmsFormatter`Halo CE"
     toolsMenu.CreateAction "05C59238-B2A9-47D1-BA72-A781492FEDB4" macroScriptTableId sphereToHaloHelperId
+    toolsMenu.CreateAction "D4E5F6A7-B8C9-4D1E-2B3C-4F5A6B7C8D9E" macroScriptTableId jmsFormatterId
 )
 -- Register our menu creation callback so that it can be executed whenever the menu structure is evaluated.
 callbacks.removeScripts id:#haloceToolkitMenu

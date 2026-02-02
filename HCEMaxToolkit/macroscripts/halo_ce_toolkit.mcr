@@ -213,3 +213,23 @@ macroScript SphereToHaloMarkerHelper
         )
     )
 )
+
+macroScript JmsFormatter
+    category: "Halo CE"
+    toolTip: "JMS Format Converter"
+(
+    on execute do 
+    (
+        local thisScript = getThisScriptFilename()
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath thisScript)
+        local scriptPath = pluginRoot + "\\io_scene_halo_ce\\tools\\JmsFormatter.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
