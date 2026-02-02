@@ -23,7 +23,7 @@ global BONE_SIZE = 1.0
 -------------------------------------------------------
 
 -- Calculate parent node index from JMS sibling structure
-fn calculateParentIndices jmsData =
+fn calculateParentIndices jmsData useSimpleHierarchy:false =
 (
 	local parentIndices = #()
 	
@@ -31,27 +31,60 @@ fn calculateParentIndices jmsData =
 	for i = 1 to jmsData.nodeCount do
 		append parentIndices -1
 	
-	-- First pass: set parent for first child nodes
-	for i = 1 to jmsData.nodeCount do
+	if useSimpleHierarchy then
 	(
-		local node = jmsData.nodes[i]
-		local firstChildIdx = node.firstChildNodeIndex
-		
-		if firstChildIdx >= 0 and firstChildIdx < jmsData.nodeCount then
+		-- Backward sibling chain algorithm for fbx-to-jms/Blender format
+		-- In this format, sibling chains point BACKWARD from firstChild
+		-- Example: pelvis.firstChild=3 (spine), spine.nextSibling=2 (r thigh), r thigh.nextSibling=1 (l thigh)
+		-- This means pelvis's children are: 1, 2, 3 (following the backward chain)
+		for i = 1 to jmsData.nodeCount do
 		(
-			parentIndices[firstChildIdx + 1] = i - 1  -- Store as 0-based
+			local node = jmsData.nodes[i]
+			local firstChildIdx = node.firstChildNodeIndex
+			
+			if firstChildIdx >= 0 and firstChildIdx < jmsData.nodeCount then
+			(
+				local currentParent = i - 1  -- 0-based parent index
+				local currentIdx = firstChildIdx
+				
+				-- Follow the backward sibling chain from firstChild
+				while currentIdx >= 0 and currentIdx < jmsData.nodeCount do
+				(
+					-- Assign this node to the parent
+					parentIndices[currentIdx + 1] = currentParent
+					
+					-- Move to the previous sibling (backward chain)
+					local siblingNode = jmsData.nodes[currentIdx + 1]
+					currentIdx = siblingNode.nextSiblingNodeIndex
+				)
+			)
 		)
 	)
-	
-	-- Second pass: set parent for sibling nodes
-	for i = 1 to jmsData.nodeCount do
+	else
 	(
-		local node = jmsData.nodes[i]
-		local nextSiblingIdx = node.nextSiblingNodeIndex
-		
-		if nextSiblingIdx >= 0 and nextSiblingIdx < jmsData.nodeCount then
+		-- Traditional algorithm using sibling chains
+		-- First pass: set parent for first child nodes
+		for i = 1 to jmsData.nodeCount do
 		(
-			parentIndices[nextSiblingIdx + 1] = parentIndices[i]
+			local node = jmsData.nodes[i]
+			local firstChildIdx = node.firstChildNodeIndex
+			
+			if firstChildIdx >= 0 and firstChildIdx < jmsData.nodeCount then
+			(
+				parentIndices[firstChildIdx + 1] = i - 1  -- Store as 0-based
+			)
+		)
+		
+		-- Second pass: set parent for sibling nodes
+		for i = 1 to jmsData.nodeCount do
+		(
+			local node = jmsData.nodes[i]
+			local nextSiblingIdx = node.nextSiblingNodeIndex
+			
+			if nextSiblingIdx >= 0 and nextSiblingIdx < jmsData.nodeCount then
+			(
+				parentIndices[nextSiblingIdx + 1] = parentIndices[i]
+			)
 		)
 	)
 	
@@ -243,9 +276,9 @@ fn linkAndTransformNodes createdNodes jmsData parentIndices =
 -- Build all nodes
 fn buildNodes jmsData =
 (
-	logger ("Building " + jmsData.nodeCount as string + " nodes...") logType: #info
+	logger ("Building " + jmsData.nodeCount as string + " nodes...\n") logType: #info
 	
-	local parentIndices = calculateParentIndices jmsData
+	local parentIndices = calculateParentIndices jmsData useSimpleHierarchy:jmsData.useSimpleHierarchy
 	local createdNodes = #()
 	
 	-- Create all nodes as spheres first
@@ -273,7 +306,7 @@ fn buildMarkers jmsData createdNodes =
 	if jmsData.markerCount == 0 then
 		return #()
 	
-	logger ("Building " + jmsData.markerCount as string + " markers...") logType: #info
+	logger ("Building " + jmsData.markerCount as string + " markers...\n") logType: #info
 	
 	local createdMarkers = #()
 	
@@ -340,7 +373,7 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 		return undefined
 	)
 	
-	logger ("Building geometry: " + jmsData.vertexCount as string + " vertices, " + jmsData.triangleCount as string + " triangles...") logType: #info
+	logger ("Building geometry: " + jmsData.vertexCount as string + " vertices, " + jmsData.triangleCount as string + " triangles...\n") logType: #info
 	
 	-- Pre-allocate vertex arrays
 	local vertPositions = #()
@@ -390,7 +423,7 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 		if triangles.count == 0 then
 			continue
 		
-		logger ("Building region: " + regionName + " (" + triangles.count as string + " triangles)") logType: #info
+		logger ("Building region: " + regionName + " (" + triangles.count as string + " triangles)\n") logType: #info
 		
 		-- Extract unique vertices used by this region
 		local usedVertIndices = #()
@@ -510,7 +543,7 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 		meshop.weldVertsByThreshold meshObj #{1..meshObj.numverts} 0.00001
 		local postWeldVertCount = meshObj.numverts
 		
-		logger ("  Welded vertices: " + preWeldVertCount as string + " -> " + postWeldVertCount as string) logType: #info
+		logger ("Welded vertices: " + preWeldVertCount as string + " -> " + postWeldVertCount as string + "\n") logType: #info
 		
 		-- Apply smoothing groups AFTER welding
 		if jmsData.smoothingGroups != undefined and jmsData.smoothingGroups.count > 0 then
@@ -525,7 +558,7 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 				else
 					exit
 			)
-			logger ("  Applying smoothing groups to region " + regionName + " (starting at tri " + globalTriIndex as string + ")") logType: #info
+			logger ("Applying smoothing groups to region " + regionName + " (starting at tri " + globalTriIndex as string + ")\n") logType: #info
 			-- Apply smoothing groups to this mesh's faces
 			for f = 1 to meshObj.numfaces do
 			(
@@ -539,7 +572,7 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 		)
 		else
 		(
-			logger ("  No smoothing groups available in JMS data") logType: #info
+			logger ("No smoothing groups available in JMS data\n") logType: #info
 		)
 		
 		-- Build bone weight arrays for WELDED mesh vertices
