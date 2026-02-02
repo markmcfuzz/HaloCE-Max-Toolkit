@@ -20,8 +20,8 @@ fn readHeader fileStream jmsData =
 	jmsData.jmsVersion = readIntValue fileStream
 	jmsData.jmsChecksum = readIntValue fileStream
 	
-	logger ("JMS Version: " + jmsData.jmsVersion as string) logType: #info
-	logger ("Checksum: " + jmsData.jmsChecksum as string) logType: #info
+	logger ("JMS Version: " + jmsData.jmsVersion as string + "\n") logType: #info
+	logger ("Checksum: " + jmsData.jmsChecksum as string + "\n") logType: #info
 	
 	return true
 )
@@ -30,7 +30,7 @@ fn readHeader fileStream jmsData =
 fn readNodes fileStream jmsData =
 (
 	jmsData.nodeCount = readIntValue fileStream
-	logger ("Reading " + jmsData.nodeCount as string + " nodes...") logType: #info
+	logger ("Reading " + jmsData.nodeCount as string + " nodes...\n") logType: #info
 	
 	jmsData.nodes = #()
 	
@@ -47,6 +47,54 @@ fn readNodes fileStream jmsData =
 		append jmsData.nodes node
 	)
 	
+	-- Auto-detect indexing format and normalize to 0-based
+	-- fbx-to-jms and Blender use indices starting at 3 (skipping 0,1,2)
+	-- Old exporters use proper 0-based indexing starting at 1
+	-- Detection: check if first node's child index is 3 (characteristic of new format)
+	if jmsData.nodes.count > 0 then
+	(
+		-- Detect backward sibling references (fbx-to-jms/Blender format)
+		-- These files use normal indices but have sibling chains that point backward
+		-- instead of forward, making the traditional two-pass algorithm fail
+		local hasBackwardSiblings = false
+		
+		-- Debug: print first few nodes
+		logger "Checking node hierarchy format:\n" logType: #info
+		for i = 1 to (amin 5 jmsData.nodeCount) do
+		(
+			local node = jmsData.nodes[i]
+			logger ("  Node % (array %): % - firstChild:% nextSibling:%\n") params:#((i-1), i, node.nodeName, node.firstChildNodeIndex, node.nextSiblingNodeIndex) logType: #info
+		)
+		
+		for i = 1 to jmsData.nodeCount do
+		(
+			local node = jmsData.nodes[i]
+			local siblingIdx = node.nextSiblingNodeIndex
+			
+			-- If sibling index points to a LOWER index, it's a backward reference
+			if siblingIdx >= 0 and siblingIdx < (i - 1) then
+			(
+				logger ("  -> Backward sibling detected at node % (array %): nextSibling=% < %\n") params:#((i-1), i, siblingIdx, (i-1)) logType: #info
+				hasBackwardSiblings = true
+				exit
+			)
+		)
+		
+		if hasBackwardSiblings then
+		(
+			logger "Detected backward sibling references (fbx-to-jms/Blender format)\n" logType: #info
+			logger "Using simple hierarchy calculation (firstChildNodeIndex only)\n" logType: #info
+			
+			-- Set flag to use simple hierarchy calculation (no sibling chains)
+			jmsData.useSimpleHierarchy = true
+		)
+		else
+		(
+			logger "No backward siblings found\n" logType: #info
+			logger "Using traditional hierarchy calculation (firstChild + sibling chains)\n" logType: #info
+		)
+	)
+	
 	return true
 )
 
@@ -54,7 +102,7 @@ fn readNodes fileStream jmsData =
 fn readShaders fileStream jmsData =
 (
 	jmsData.shaderCount = readIntValue fileStream
-	logger ("Reading " + jmsData.shaderCount as string + " shaders...") logType: #info
+	logger ("Reading " + jmsData.shaderCount as string + " shaders...\n") logType: #info
 	
 	jmsData.shaders = #()
 	
@@ -75,7 +123,7 @@ fn readShaders fileStream jmsData =
 fn readMarkers fileStream jmsData =
 (
 	jmsData.markerCount = readIntValue fileStream
-	logger ("Reading " + jmsData.markerCount as string + " markers...") logType: #info
+	logger ("Reading " + jmsData.markerCount as string + " markers...\n") logType: #info
 	
 	jmsData.markers = #()
 	
@@ -100,7 +148,7 @@ fn readMarkers fileStream jmsData =
 fn readRegions fileStream jmsData =
 (
 	jmsData.regionCount = readIntValue fileStream
-	logger ("Reading " + jmsData.regionCount as string + " regions...") logType: #info
+	logger ("Reading " + jmsData.regionCount as string + " regions...\n") logType: #info
 	
 	jmsData.regions = #()
 	
@@ -119,7 +167,7 @@ fn readRegions fileStream jmsData =
 fn readVertices fileStream jmsData =
 (
 	jmsData.vertexCount = readIntValue fileStream
-	logger ("Reading " + jmsData.vertexCount as string + " vertices...") logType: #info
+	logger ("Reading " + jmsData.vertexCount as string + " vertices...\n") logType: #info
 	
 	jmsData.vertices = #()
 	
@@ -133,9 +181,31 @@ fn readVertices fileStream jmsData =
 		vert.node1Index = readIntValue fileStream
 		vert.node1Weight = readFloatValue fileStream
 		
-		-- Read texture coordinates (U, V, and texture index/unknown)
-		local texU = readFloatValue fileStream
-		local texV = readFloatValue fileStream
+		-- Read texture coordinates - support both formats:
+		-- fbx/Blender format: texU and texV on same line (tab separated)
+		-- Our JMS format: texU on one line, texV on next line
+		local texU = 0.0
+		local texV = 0.0
+		
+		local uvLine = readLineFromStream fileStream
+		if uvLine != undefined then
+		(
+			local uvValues = filterString uvLine " \t"
+			if uvValues.count >= 2 then
+			(
+				-- fbx/Blender format: both on same line
+				texU = uvValues[1] as float
+				texV = uvValues[2] as float
+			)
+			else if uvValues.count == 1 then
+			(
+				-- Our JMS format: only texU, read texV from next line
+				texU = uvValues[1] as float
+				local texVLine = readLineFromStream fileStream
+				texV = texVLine as float
+			)
+		)
+		
 		local texIndex = readIntValue fileStream
 		
 		vert.texturePos = [texU, texV, texIndex]
@@ -150,7 +220,7 @@ fn readVertices fileStream jmsData =
 fn readTriangles fileStream jmsData =
 (
 	jmsData.triangleCount = readIntValue fileStream
-	logger ("Reading " + jmsData.triangleCount as string + " triangles...") logType: #info
+	logger ("Reading " + jmsData.triangleCount as string + " triangles...\n") logType: #info
 	
 	jmsData.triangles = #()
 	
@@ -161,9 +231,9 @@ fn readTriangles fileStream jmsData =
 		tri.regionIndex = readIntValue fileStream
 		tri.shaderIndex = readIntValue fileStream
 		
-		-- Read the three vertex indices (can be space or tab separated on one line)
-		local line = readLineFromStream fileStream
-		local indices = filterString line " \t"
+		-- Read the three vertex indices from one line (tab/space separated)
+		local indicesLine = readLineFromStream fileStream
+		local indices = filterString indicesLine " \t"
 		
 		if indices.count >= 3 then
 			tri.vertexIndices = #(indices[1] as integer, indices[2] as integer, indices[3] as integer)
@@ -195,7 +265,7 @@ fn readExtendedMetadata fileStream jmsData =
 		logger "Reading smoothing groups..." logType: #info
 		
 		local sgCountLine = readLineFromStream fileStream
-		logger ("  Count line read: '" + sgCountLine as string + "'") logType: #info
+		logger ("  Count line read: '" + sgCountLine as string + "'\n") logType: #info
 		
 		if sgCountLine == undefined or sgCountLine == "" then
 		(
@@ -218,7 +288,7 @@ fn readExtendedMetadata fileStream jmsData =
 			sgCount = 0
 		)
 		
-		logger ("  Parsed count: " + sgCount as string) logType: #info
+		logger ("  Parsed count: " + sgCount as string + "\n") logType: #info
 		
 		if sgCount == 0 then
 		(
@@ -228,7 +298,7 @@ fn readExtendedMetadata fileStream jmsData =
 		
 		jmsData.smoothingGroups = #()
 		
-		logger ("Smoothing group count: " + sgCount as string) logType: #info
+		logger ("Smoothing group count: " + sgCount as string + "\n") logType: #info
 		
 		for i = 1 to sgCount do
 		(
@@ -253,7 +323,7 @@ fn readExtendedMetadata fileStream jmsData =
 			append jmsData.smoothingGroups sg
 		)
 		
-		logger ("Total smoothing groups loaded: " + jmsData.smoothingGroups.count as string) logType: #info
+		logger ("Total smoothing groups loaded: " + jmsData.smoothingGroups.count as string + "\n") logType: #info
 	)
 	
 	return true
@@ -266,7 +336,10 @@ fn readExtendedMetadata fileStream jmsData =
 -- Read a complete JMS file and return a jmsFile struct with all data
 fn readJmsFile filePath =
 (
-	logger ("Opening JMS file: " + filePath) logType: #info
+	logger ("Opening JMS file: " + filePath + "\n") logType: #info
+	
+	-- Clear token buffer for tab-separated format support
+	clearTokenBuffer()
 	
 	-- Create the data structure
 	local jmsData = jmsFile()
@@ -283,43 +356,44 @@ fn readJmsFile filePath =
 	try
 	(
 		-- Read each section in order
-		logger "Reading header..." logType: #info
+		--logger "Reading header...\n" logType: #info
 		if not (readHeader fileStream jmsData) then throw "Failed to read header"
 		
-		logger "Reading nodes..." logType: #info
+		--logger "Reading nodes...\n" logType: #info
 		if not (readNodes fileStream jmsData) then throw "Failed to read nodes"
 		
-		logger "Reading shaders..." logType: #info
+		--logger "Reading shaders...\n" logType: #info
 		if not (readShaders fileStream jmsData) then throw "Failed to read shaders"
 		
-		logger "Reading markers..." logType: #info
+		--logger "Reading markers...\n" logType: #info
 		if not (readMarkers fileStream jmsData) then throw "Failed to read markers"
 		
-		logger "Reading regions..." logType: #info
+		--logger "Reading regions...\n" logType: #info
 		if not (readRegions fileStream jmsData) then throw "Failed to read regions"
 		
-		logger "Reading vertices..." logType: #info
+		--logger "Reading vertices...\n" logType: #info
 		if not (readVertices fileStream jmsData) then throw "Failed to read vertices"
 		
-		logger "Reading triangles..." logType: #info
+		--logger "Reading triangles...\n" logType: #info
 		if not (readTriangles fileStream jmsData) then throw "Failed to read triangles"
 		
 		-- Try to read extended metadata (optional - don't fail if it doesn't exist)
-		logger "Reading extended metadata..." logType: #info
+		logger "Reading extended metadata...\n" logType: #info
 		try
 		(
 			readExtendedMetadata fileStream jmsData
 		)
 		catch
 		(
-			logger ("Extended metadata read failed: " + getCurrentException() as string) logType: #warning
+			logger ("Extended metadata read failed: " + getCurrentException() as string + "\n\n") logType: #warning
 		)
 		
 		logger "JMS file read successfully!" logType: #success
 	)
 	catch
 	(
-		logger ("Error reading JMS file: " + getCurrentException()) logType: #error
+		logger "\n"
+		logger ("Error reading JMS file: " + getCurrentException() as string + "\n") logType: #error
 		close fileStream
 		return undefined
 	)
