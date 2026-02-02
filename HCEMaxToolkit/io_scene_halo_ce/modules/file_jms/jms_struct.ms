@@ -26,7 +26,8 @@ struct jmsFile
 	vertices = #(),
 	triangleCount = undefined,
 	triangles = #(),
-	smoothingGroups = #()
+	smoothingGroups = #(),
+	useSimpleHierarchy = false  -- Flag for fbx-to-jms format
 )
 
 struct nodes
@@ -76,4 +77,4 @@ struct triangles
 	vertexIndices
 )
 
-logger "Jms Struct loaded.\n" logType: #success 
+logger "JMS structure loaded.\n" logType: #success 
