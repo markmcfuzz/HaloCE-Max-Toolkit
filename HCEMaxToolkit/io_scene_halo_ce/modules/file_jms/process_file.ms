@@ -89,6 +89,13 @@ fn writeVertices fileStream jmsData =
 	-- Write vertex count
 	format "%\n" jmsData.vertexCount to:fileStream
 	
+	-- Safety check
+	if jmsData.vertices == undefined then
+	(
+		logger "ERROR: jmsData.vertices is undefined!\n" logType:#error
+		return false
+	)
+	
 	-- Build vertices in larger batches (200000 vertices = 1.6M lines)
 	local batchSize = 200000
 	local ss = StringStream ""
@@ -97,6 +104,18 @@ fn writeVertices fileStream jmsData =
 	for i = 1 to vertexCount do
 	(
 		local vertex = jmsData.vertices[i]
+		
+		-- Safety checks
+		if vertex == undefined then
+		(
+			logger "ERROR: Vertex % is undefined!\n" params:#(i) logType:#error
+			continue
+		)
+		if vertex.texturePos == undefined then
+		(
+			logger "ERROR: Vertex % texturePos is undefined!\n" params:#(i) logType:#error
+			vertex.texturePos = #(0.0, 0.0, 0)
+		)
 		
 		format "%\n" vertex.node0Index to:ss
 		format "%\n" (formatTranslation vertex.position) to:ss
@@ -122,6 +141,13 @@ fn writeTriangles fileStream jmsData =
 	-- Write triangle count
 	format "%\n" jmsData.triangleCount to:fileStream
 	
+	-- Safety check
+	if jmsData.triangles == undefined then
+	(
+		logger "ERROR: jmsData.triangles is undefined!\n" logType:#error
+		return false
+	)
+	
 	-- Build triangles in larger batches (200000 triangles = 600K lines)
 	local batchSize = 200000
 	local ss = StringStream ""
@@ -130,6 +156,18 @@ fn writeTriangles fileStream jmsData =
 	for i = 1 to triangleCount do
 	(
 		local triangle = jmsData.triangles[i]
+		
+		-- Safety checks
+		if triangle == undefined then
+		(
+			--logger "ERROR: Triangle % is undefined!\n" params:#(i) logType:#error
+			continue
+		)
+		if triangle.vertexIndices == undefined then
+		(
+			--logger "ERROR: Triangle % vertexIndices is undefined!\n" params:#(i) logType:#error
+			continue
+		)
 		
 		format "%\n" triangle.regionIndex to:ss
 		format "%\n" triangle.shaderIndex to:ss
@@ -148,31 +186,28 @@ fn writeTriangles fileStream jmsData =
 fn writeExtendedMetadata fileStream jmsData =
 (
 	-- Only write if we have smoothing groups
-	if jmsData.smoothingGroups.count == 0 then
+	if jmsData.smoothingGroups == undefined or jmsData.smoothingGroups.count == 0 then
 		return ok
 	
 	-- Blank line separator
 	format "\n" to:fileStream
 	
 	-- Write smoothing groups
-	if jmsData.smoothingGroups.count > 0 then
+	format ";### SMOOTHING GROUPS ###\n" to:fileStream
+	format "%\n" jmsData.smoothingGroups.count to:fileStream
+	
+	-- Write in batches for performance
+	local batchSize = 100000
+	local ss = StringStream ""
+	
+	for i = 1 to jmsData.smoothingGroups.count do
 	(
-		format ";### SMOOTHING GROUPS ###\n" to:fileStream
-		format "%\n" jmsData.smoothingGroups.count to:fileStream
+		format "%\n" jmsData.smoothingGroups[i] to:ss
 		
-		-- Write in batches for performance
-		local batchSize = 100000
-		local ss = StringStream ""
-		
-		for i = 1 to jmsData.smoothingGroups.count do
+		if (mod i batchSize) == 0 or i == jmsData.smoothingGroups.count then
 		(
-			format "%\n" jmsData.smoothingGroups[i] to:ss
-			
-			if (mod i batchSize) == 0 or i == jmsData.smoothingGroups.count then
-			(
-				format "%" (ss as string) to:fileStream
-				ss = StringStream ""
-			)
+			format "%" (ss as string) to:fileStream
+			ss = StringStream ""
 		)
 	)
 )
@@ -185,7 +220,7 @@ fn writeExtendedMetadata fileStream jmsData =
 fn writeJmsFile filePath jmsData =
 (
 	logger "\n=== WRITING JMS FILE ===\n"
-	logger "Output: %\n" params:#(filePath) logType:#info
+	--logger "Output: %\n" params:#(filePath) logType:#info
 	
 	local writeStartTime = timestamp()
 	
@@ -201,14 +236,28 @@ fn writeJmsFile filePath jmsData =
 	try
 	(
 		-- Write all sections in order
+		logger "Writing header...\n" logType:#info
 		writeHeader fileStream jmsData
+		
+		logger "Writing nodes...\n" logType:#info
 		writeNodes fileStream jmsData
+		
+		logger "Writing shaders...\n" logType:#info
 		writeShaders fileStream jmsData
+		
+		logger "Writing markers...\n" logType:#info
 		writeMarkers fileStream jmsData
+		
+		logger "Writing regions...\n" logType:#info
 		writeRegions fileStream jmsData
+		
+		logger "Writing vertices...\n" logType:#info
 		writeVertices fileStream jmsData
+		
+		logger "Writing triangles...\n" logType:#info
 		writeTriangles fileStream jmsData
 		
+		logger "Writing extended metadata...\n" logType:#info
 		-- Write extended metadata (bitmaps, smoothing groups, etc.)
 		writeExtendedMetadata fileStream jmsData
 		
