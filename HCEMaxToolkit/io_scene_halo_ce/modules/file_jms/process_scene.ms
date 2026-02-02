@@ -678,19 +678,21 @@ fn extractRegions nodeObjectArray =
 fn createVertexHash pos norm uv node0 node1 weight1 =
 (
 	-- Round to 4 decimal places to create hash key (avoids floating point precision issues)
-	local hashKey = ""
-	hashKey += ((pos[1] * 10000) as integer) as string + ","
-	hashKey += ((pos[2] * 10000) as integer) as string + ","
-	hashKey += ((pos[3] * 10000) as integer) as string + ","
-	hashKey += ((norm[1] * 10000) as integer) as string + ","
-	hashKey += ((norm[2] * 10000) as integer) as string + ","
-	hashKey += ((norm[3] * 10000) as integer) as string + ","
-	hashKey += ((uv[1] * 10000) as integer) as string + ","
-	hashKey += ((uv[2] * 10000) as integer) as string + ","
-	hashKey += (node0 as string) + ","
-	hashKey += (node1 as string) + ","
-	hashKey += ((weight1 * 10000) as integer) as string
-	return hashKey
+	-- Use StringStream for fast string building (avoids repeated string concatenation overhead)
+	local ss = stringstream ""
+	format "%,%,%,%,%,%,%,%,%,%,%" \
+		((pos[1] * 10000) as integer) \
+		((pos[2] * 10000) as integer) \
+		((pos[3] * 10000) as integer) \
+		((norm[1] * 10000) as integer) \
+		((norm[2] * 10000) as integer) \
+		((norm[3] * 10000) as integer) \
+		((uv[1] * 10000) as integer) \
+		((uv[2] * 10000) as integer) \
+		node0 node1 \
+		((weight1 * 10000) as integer) \
+		to:ss
+	return ss as string
 )
 
 -- Helper function to find matching vertex using hash lookup (with proper dictionary)
@@ -887,7 +889,7 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	-- For now, we default to face normals when no smoothing groups exist
 	if not hasSmoothingGroups then
 	(
-		logger "    No smoothing groups detected, using face normals\n" logType:#info
+		logger "No smoothing groups detected, using face normals\n" logType:#warning
 		
 		-- Cache empty explicit normals (will use face normals in vertex loop)
 		for f = 1 to numFaces do
@@ -1191,30 +1193,30 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 				)
 				
 				-- Vertex welding: check if we already have an identical vertex using hash lookup
-				local existingVertexIdx = findMatchingVertexFast vertData vertexHashDict
-				
-				if existingVertexIdx != undefined then
-				(
-					-- Reuse existing vertex (already a global index, no offset needed)
-					append vertIndices existingVertexIdx
-				)
-				else
-				(
-					-- Add new vertex
-					append allVertices vertData
-					local globalIdx = allVertices.count - 1  -- Global index (0-based)
-					append vertIndices globalIdx
-					
-					-- Add to hash dictionary for future lookups
-					local hashKey = createVertexHash vertData.position vertData.normal vertData.texturePos vertData.node0Index vertData.node1Index vertData.node1Weight
-					addVertexToHash vertexHashDict hashKey globalIdx
-				)
+			-- Compute hash once and reuse it for both lookup and insertion
+			local hashKey = createVertexHash vertData.position vertData.normal vertData.texturePos vertData.node0Index vertData.node1Index vertData.node1Weight
+			local existingVertexIdx = vertexHashDict[hashKey]
+			
+			if existingVertexIdx != undefined then
+			(
+				-- Reuse existing vertex (already a global index, no offset needed)
+				append vertIndices existingVertexIdx
 			)
-			
-			-- Set triangle vertex indices (vertIndices already contains global indices)
-			triData.vertexIndices = #(vertIndices[1], vertIndices[2], vertIndices[3])
-			
-			-- Get smoothing group for this face (bit flags, 0 = no smoothing)
+			else
+			(
+				-- Add new vertex
+				append allVertices vertData
+				local globalIdx = allVertices.count - 1  -- Global index (0-based)
+				append vertIndices globalIdx
+				
+				-- Add to hash dictionary for future lookups (reuse computed hashKey)
+				vertexHashDict[hashKey] = globalIdx
+			)
+		)
+		
+		-- Set triangle vertex indices (vertIndices already contains global indices)
+		triData.vertexIndices = #(vertIndices[1], vertIndices[2], vertIndices[3])
+		
 			local smoothGroup = 0  -- Default to 0 (hard edges/no smoothing)
 			try (smoothGroup = getFaceSmoothGroup meshObj f) catch ()
 			if smoothGroup == undefined then smoothGroup = 0
@@ -1233,7 +1235,7 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	)
 	
 	-- Print detailed geometry timing
-	logger " Geometry breakdown (% objects):\n" params:#(objectCount) logType:#timestamp
+	logger "Geometry breakdown (% objects):\n" params:#(objectCount) logType:#timestamp
 	logger "    Region mapping: % ms\n" params:#(timeRegionMapping) logType:#timestamp
 	logger "    Material mapping: % ms\n" params:#(timeMaterialMapping) logType:#timestamp
 	logger "    Vertex creation: % ms\n" params:#(timeVertexCreation) logType:#timestamp
@@ -1252,7 +1254,7 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 fn processSceneForJMS =
 (
 	local startTime = timestamp()
-	--format "\n=== JMS EXPORT PERFORMANCE ===\n"
+	logger "\n=== EXPORT SCENE DATA ===\n"
 	
 	-- Validate scene before processing
 	local validationErrors = validateSceneForExport()
@@ -1286,6 +1288,7 @@ fn processSceneForJMS =
 	jmsData.nodes = nodeDataArray
 	jmsData.nodeCount = nodeDataArray.count
 	local nodeTime = timestamp() - nodeStartTime
+
 	logger "Node extraction: % ms (% nodes)\n" params:#(nodeTime, nodeDataArray.count) logType:#timestamp
 	
 	-- Extract marker data (needs node object array for parent lookup)
