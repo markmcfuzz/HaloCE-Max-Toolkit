@@ -300,21 +300,24 @@ fn readLineFromStream fileStream =
 -- Read an integer value from the next line
 fn readIntValue fileStream =
 (
-	local line = readLine fileStream
+	local line = readLineFromStream fileStream
+	-- Handle special case: "undefined" string in old JMS files
+	if line == "undefined" then
+		return 0
 	line as integer
 )
 
 -- Read a float value from the next line
 fn readFloatValue fileStream =
 (
-	local line = readLine fileStream
+	local line = readLineFromStream fileStream
 	line as float
 )
 
 -- Read a 3D point (vector) from the next line (space or tab separated)
 fn readVectorValue fileStream =
 (
-	local line = readLine fileStream
+	local line = readLineFromStream fileStream
 	local values = filterString line " \t"
 	
 	if values.count >= 3 then
@@ -326,7 +329,7 @@ fn readVectorValue fileStream =
 -- Read a quaternion from the next line (i j k w format, space or tab separated)
 fn readQuatValue fileStream =
 (
-	local line = readLine fileStream
+	local line = readLineFromStream fileStream
 	local values = filterString line " \t"
 	
 	if values.count >= 4 then
@@ -344,13 +347,20 @@ fn readQuatValue fileStream =
 -- Read 2D texture coordinates from the next line
 fn readUVValue fileStream =
 (
-	local line = readLine fileStream
+	local line = readLineFromStream fileStream
 	local values = filterString line " \t"
 	
 	if values.count >= 2 then
 		[values[1] as float, values[2] as float]
 	else
 		[0, 0]
+)
+
+-- Legacy function for compatibility
+fn clearTokenBuffer =
+(
+	-- No-op - kept for compatibility
+	return undefined
 )
 
 
