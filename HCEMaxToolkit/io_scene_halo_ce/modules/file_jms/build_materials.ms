@@ -30,7 +30,7 @@ fn buildMaterials jmsData tagsPath dataPath =
 		return mat
 	)
 	
-	logger ("Building " + jmsData.shaderCount as string + " materials...") logType: #info
+	logger ("Building " + jmsData.shaderCount as string + " materials...\n") logType: #info
 	
 	-- Create multi/sub-object material
 	local multiMat = MultiMaterial numsubs:jmsData.shaderCount
