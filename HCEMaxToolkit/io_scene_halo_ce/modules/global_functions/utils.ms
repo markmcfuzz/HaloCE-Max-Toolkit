@@ -440,15 +440,7 @@ fn decodeFlagBits flagValue flagNames =
 		if bit.get flagValue i then
 			append activeFlagsArray flagNames[i]
 	)
-	-- Return formatted string with each flag on its own line
-	if activeFlagsArray.count == 0 then
-		return "none"
-	local result = ""
-	for flag in activeFlagsArray do
-	(
-		result += "  - (" + flag + ")"
-	)
-	result
+	return activeFlagsArray
 )
 
 -- Get the flag array for a given number (legacy function)
