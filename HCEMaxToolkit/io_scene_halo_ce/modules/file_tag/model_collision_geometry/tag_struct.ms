@@ -259,45 +259,4 @@ fn shieldFailureFunctionToString funcType =
 	)
 )
 
-fn materialTypeToString matType =
-(
-	case matType of
-	(
-		0: "dirt";
-        1: "sand";
-        2: "stone";
-        3: "snow";
-        4: "wood";
-		5: "metal hollow";
-        6: "metal thin";
-        7: "metal thick";
-        8: "rubber";
-        9: "glass";
-		10: "force field";
-        11: "grunt"; 
-        12: "hunter armor";
-        13: "hunter skin"; 
-        14: "elite";
-		15: "jackal";
-        16: "jackal energy shield";
-        17: "engineer skin";
-        18: "engineer force field";
-		19: "flood combat form";
-        20: "flood carrier form";
-        21: "cyborg armor";
-        22: "cyborg energy shield";
-		23: "human armor";
-        24: "human skin";
-        25: "sentinel";
-        26: "monitor";
-        27: "plastic";
-		28: "water";
-        29: "leaves";
-        30: "elite energy shield";
-        31: "ice";
-        32: "hunter shield";
-		default: ("unknown_" + (matType as string))
-	)
-)
-
 logger "Model Collision Geometry tag structure loaded.\n" logType:#success
