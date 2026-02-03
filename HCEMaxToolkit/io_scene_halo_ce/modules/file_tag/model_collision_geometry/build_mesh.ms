@@ -49,12 +49,26 @@ fn createCollisionMultiMaterial materials collisionName surfaceFlagsArray =
 		if surfaceFlagsArray != undefined and i <= surfaceFlagsArray.count then
 		(
 			local flags = surfaceFlagsArray[i]
-			if flags != undefined then
+			if flags != undefined and flags.count > 0 then
 			(
-				if findItem flags "two_sided" > 0 then subMatName += "%"
-				if findItem flags "invisible" > 0 then subMatName += "@"
-				if findItem flags "climbable" > 0 then subMatName += "^"
-				if findItem flags "breakable" > 0 then subMatName += "-"
+				local hasTwoSided = findItem flags "two_sided" > 0
+				local hasInvisible = findItem flags "invisible" > 0
+				local hasClimbable = findItem flags "climbable" > 0
+				local hasBreakable = findItem flags "breakable" > 0
+				
+				-- Special case: two_sided + invisible = *
+				if hasTwoSided and hasInvisible then
+				(
+					subMatName += "*"
+				)
+				else
+				(
+					if hasTwoSided then subMatName += "%"
+					--if hasInvisible then subMatName += "@"
+				)
+				
+				if hasClimbable then subMatName += "^"
+				if hasBreakable then subMatName += "-"
 			)
 		)
 		subMat.name = subMatName
@@ -62,7 +76,6 @@ fn createCollisionMultiMaterial materials collisionName surfaceFlagsArray =
 		subMat.diffuse = stringToColor mat.name
 		
 		multiMat[i] = subMat
-
 		multiMat.names[i] = materialTypeToString mat.materialType
 	)
 	
