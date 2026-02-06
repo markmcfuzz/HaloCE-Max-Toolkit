@@ -405,7 +405,8 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 		local regionIdx = tri.regionIndex
 		local matID = tri.shaderIndex + 1
 		local face = [tri.vertexIndices[1] + 1, tri.vertexIndices[2] + 1, tri.vertexIndices[3] + 1]
-		local triangleData = #(face, matID)
+		-- Store face, matID, and global triangle index for smoothing group mapping
+		local triangleData = #(face, matID, i)
 		
 		if regionIdx >= 0 and regionIdx < jmsData.regionCount then
 			append regionTriangles[regionIdx + 1] triangleData
@@ -473,15 +474,18 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 		-- Build face array with remapped indices
 		local regionFaces = #()
 		local regionFaceMaterials = #()
+		local regionFaceToGlobalTriIndex = #()  -- Track global triangle index for each face
 		
 		for triData in triangles do
 		(
 			local face = triData[1]
 			local matID = triData[2]
+			local globalTriIndex = triData[3]  -- Get global triangle index
 			
 			local remappedFace = [vertexRemap[face[1]], vertexRemap[face[2]], vertexRemap[face[3]]]
 			append regionFaces remappedFace
 			append regionFaceMaterials matID
+			append regionFaceToGlobalTriIndex globalTriIndex
 		)
 		
 		-- Create mesh for this region
@@ -545,28 +549,22 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 		
 		logger ("Welded vertices: " + preWeldVertCount as string + " -> " + postWeldVertCount as string + "\n") logType: #info
 		
-		-- Apply smoothing groups AFTER welding
+		-- Apply smoothing groups AFTER welding, using correct global triangle index mapping
 		if jmsData.smoothingGroups != undefined and jmsData.smoothingGroups.count > 0 then
 		(
-			local globalTriIndex = 0
+			logger ("Applying smoothing groups to region " + regionName + " (" + regionFaceToGlobalTriIndex.count as string + " faces)\n") logType: #info
 			
-			-- Find the starting triangle index for this region
-			for t = 1 to jmsData.triangles.count do
-			(
-				if jmsData.triangles[t].regionIndex < (r - 1) then
-					globalTriIndex += 1
-				else
-					exit
-			)
-			logger ("Applying smoothing groups to region " + regionName + " (starting at tri " + globalTriIndex as string + ")\n") logType: #info
-			-- Apply smoothing groups to this mesh's faces
+			-- Apply smoothing groups using the correct global triangle index for each face
 			for f = 1 to meshObj.numfaces do
 			(
-				local triIndex = globalTriIndex + f
-				if triIndex <= jmsData.smoothingGroups.count then
+				if f <= regionFaceToGlobalTriIndex.count then
 				(
-					local sg = jmsData.smoothingGroups[triIndex]
-					setFaceSmoothGroup meshObj f sg
+					local globalTriIndex = regionFaceToGlobalTriIndex[f]
+					if globalTriIndex > 0 and globalTriIndex <= jmsData.smoothingGroups.count then
+					(
+						local sg = jmsData.smoothingGroups[globalTriIndex]
+						setFaceSmoothGroup meshObj f sg
+					)
 				)
 			)
 		)
