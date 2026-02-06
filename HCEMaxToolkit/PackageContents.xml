@@ -19,7 +19,7 @@
         <ComponentEntry AppName="HaloCEMacros" Version="1.0.0" ModuleName="./macroscripts/halo_ce_toolkit.mcr" />
     </Components>
     <Components Description="post-start-up scripts parts">
-        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2020" SeriesMax="2023" />
+        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2020" SeriesMax="2024" />
         <ComponentEntry AppName="MenuGenerationOld" Version="1.0.0" ModuleName="./scripts/menu_gen_old.ms" />
         <ComponentEntry AppName="HaloHelpersGeneration" Version="1.0.0" ModuleName="./scripts/halo_helpers_gen.ms" />
     </Components>
