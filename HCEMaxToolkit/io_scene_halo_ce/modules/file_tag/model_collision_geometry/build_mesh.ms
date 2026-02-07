@@ -206,6 +206,74 @@ fn transformVertexFromPlane vertex planeNormal planeDistance =
 -- MESH BUILDING
 -------------------------------------------------------
 
+fn getSurfaceEdgeSet bspData surf surfaceIndex0Based =
+(
+	-- Extract all edges for a surface and return as a sorted array of vertex pairs
+	local edgeSet = #()
+	local faceVerts = #()
+	local currentEdgeIndex = surf.firstEdge
+	local startEdgeIndex = surf.firstEdge
+	local edgesProcessed = 0
+	local maxEdges = bspData.edges.count
+	
+	while edgesProcessed < maxEdges do
+	(
+		if currentEdgeIndex < 0 or currentEdgeIndex >= bspData.edges.count then
+			exit
+		
+		local edge = bspData.edges[currentEdgeIndex + 1]
+		local isLeftSurface = (edge.leftSurface == surfaceIndex0Based)
+		
+		if isLeftSurface then
+		(
+			append faceVerts (edge.startVertex + 1)
+			currentEdgeIndex = edge.forwardEdge
+		)
+		else if edge.rightSurface == surfaceIndex0Based then
+		(
+			append faceVerts (edge.endVertex + 1)
+			currentEdgeIndex = edge.reverseEdge
+		)
+		else
+			exit
+		
+		edgesProcessed += 1
+		
+		if currentEdgeIndex == startEdgeIndex then
+			exit
+	)
+	
+	-- Convert to sorted vertex pairs for comparison
+	for i = 1 to faceVerts.count do
+	(
+		local v1 = faceVerts[i]
+		local v2 = if i < faceVerts.count then faceVerts[i+1] else faceVerts[1]
+		-- Store as sorted pair so we can detect same edge regardless of direction
+		if v1 < v2 then
+			append edgeSet #(v1, v2)
+		else
+			append edgeSet #(v2, v1)
+	)
+	
+	qsort edgeSet (fn comparer a b = (if a[1] < b[1] then -1 else if a[1] > b[1] then 1 else (if a[2] < b[2] then -1 else if a[2] > b[2] then 1 else 0)))
+	
+	return edgeSet
+)
+
+fn edgeSetsMatch edgeSet1 edgeSet2 =
+(
+	if edgeSet1.count != edgeSet2.count then
+		return false
+	
+	for i = 1 to edgeSet1.count do
+	(
+		if edgeSet1[i][1] != edgeSet2[i][1] or edgeSet1[i][2] != edgeSet2[i][2] then
+			return false
+	)
+	
+	return true
+)
+
 fn buildBSPGeometry bspData nodeName regionName permutationName materialOffset fallbackNode:undefined =
 (
 	if bspData.vertices.count == 0 then
@@ -235,23 +303,68 @@ fn buildBSPGeometry bspData nodeName regionName permutationName materialOffset f
 		local worldPos = localPos * nodeTransform
 		append vertArray worldPos
 	)
-	local faceArray = #()
-	local matIDArray = #()
+	
+	-- Pre-process surfaces to detect two-sided duplicates
+	local processedSurfaces = #{}
+	local surfaceEdgeSets = #()
+	
 	for surfIndex = 1 to bspData.surfaces.count do
 	(
 		local surf = bspData.surfaces[surfIndex]
+		local surfaceIndex0Based = surfIndex - 1
+		local edgeSet = getSurfaceEdgeSet bspData surf surfaceIndex0Based
+		append surfaceEdgeSets edgeSet
+	)
+	
+	-- Build face array, skipping two-sided duplicates
+	local faceArray = #()
+	local matIDArray = #()
+	
+	for surfIndex = 1 to bspData.surfaces.count do
+	(
+		-- Skip if already marked as processed
+		if processedSurfaces[surfIndex] then
+			continue
+		
+		local surf = bspData.surfaces[surfIndex]
 		local matID = surf.material + materialOffset + 1
+		local surfaceIndex0Based = surfIndex - 1
+		
+		-- Check if this surface has the two_sided flag
+		local hasTwoSided = (surf.flags != undefined and findItem surf.flags "two_sided" > 0)
+		
+		-- If two-sided, look for duplicate surface and mark it to skip
+		if hasTwoSided then
+		(
+			local currentEdgeSet = surfaceEdgeSets[surfIndex]
+			
+			for otherSurfIndex = (surfIndex + 1) to bspData.surfaces.count do
+			(
+				if processedSurfaces[otherSurfIndex] then
+					continue
+				
+				local otherEdgeSet = surfaceEdgeSets[otherSurfIndex]
+				
+				-- If edge sets match, this is the duplicate back-face
+				if edgeSetsMatch currentEdgeSet otherEdgeSet then
+				(
+					processedSurfaces[otherSurfIndex] = true
+					exit
+				)
+			)
+		)
+		
+		-- Process this surface normally
 		local faceVerts = #()
 		local currentEdgeIndex = surf.firstEdge
 		local startEdgeIndex = surf.firstEdge
 		local edgesProcessed = 0
 		local maxEdges = bspData.edges.count
-		local surfaceIndex0Based = surfIndex - 1
 		
 		while edgesProcessed < maxEdges do
 		(
 			if currentEdgeIndex < 0 or currentEdgeIndex >= bspData.edges.count then
-			exit
+				exit
 			
 			local edge = bspData.edges[currentEdgeIndex + 1]
 			
@@ -268,13 +381,14 @@ fn buildBSPGeometry bspData nodeName regionName permutationName materialOffset f
 				currentEdgeIndex = edge.reverseEdge
 			)
 			else
-			exit
+				exit
 
 			edgesProcessed += 1
 			
 			if currentEdgeIndex == startEdgeIndex then
-			exit
+				exit
 		)
+		
 		if faceVerts.count >= 3 then
 		(
 			for i = 2 to (faceVerts.count - 1) do
