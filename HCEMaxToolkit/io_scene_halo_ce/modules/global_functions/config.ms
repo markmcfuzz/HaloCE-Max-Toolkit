@@ -117,19 +117,19 @@ fn initDefaultGlobal name defaultValue forceUpdate:false =
 
     if current == undefined then
     (
-        logger "Config: Initializing % to %\n" params:#(name, defaultValue) logType:#warning
+        logger "Config: Initializing % to %\n" params:#(name, defaultValue) logType:#success
         setGlobalValue name defaultValue
     )
     else if forceUpdate or current != defaultValue then
     (
         local currentStr = current as string
         local defaultStr = defaultValue as string
-        logger "Config: Updating % from (%) to (%)\n" params:#(name, currentStr, defaultStr) logType:#warning
+        logger "Config: Updating % from (%) to (%)\n" params:#(name, currentStr, defaultStr) logType:#success
         setGlobalValue name defaultValue
     )
     else
     (
-        logger "Config: % already exists as (%).\n" params:#(name, current) logType:#warning
+        logger "Config: % already exists as (%).\n" params:#(name, current) logType:#success
     )
 )
 
