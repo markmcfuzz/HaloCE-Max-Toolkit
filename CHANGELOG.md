@@ -234,3 +234,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Issues with reading shader modules:
     - `shader_model`
     - `shader_transparent_glass`
+
+## [4.2.1] - 2026-02-02
+### Changed
+- **JMS Importer:**
+  - Added smoothing group import: 
+    - Reads smoothing groups from extended metadata section
+  - Removed Shader/bitmap paths section in extended metadata no longer read (obsolete format) and now uses the field below shader name to write the bitmap path.
+  - Support for modern JMS format:
+    - JMS files exported from fbx-to-jms tool and Blender toolset.
+      - Skeleton hierarchy now builds correctly.
+    - > _Too old JMS files are not supported anymore. Use the `JMS Format Converter` utility to update them._
+### Fixed
+- Support for 3ds Max 2024.
+- **JMS Exporter:**
+  - Performance Issues: Improved vertex welding performance by 70%
+    - Exporter was significantly slower on large models due to inefficient string handling and redundant hash computations.
+    - Export time reduced from 26+ seconds to ~10 seconds for large models (82K vertices, 59K triangles).
+- **Model Collision Geometry Importer:**
+  - Add symbols to material names if the geometry has flags such as  `% = two-side` `* = two-side/invisible` `^ = climbable` `- = breakable`
+  - Prevent import duplicated geometry on surfaces with the `two_side` flag.
+- **JMS Importer:**
+  - Fixed the smoothing group mapping to correctly apply to each region's faces, regardless of how the geometry is organized in the file.
+    - Smoothing groups now import correctly and are properly preserved across all regions.
+### Added
+- **JMS Exporter:**
+  - Vertex welding: 
+    - Vertices are now properly deduplicated, reducing vertex count by ~57% (e.g., 2589 vs 6048 vertices with `cyborg` model).
+  - Added smoothing group export: 
+    - Smoothing groups now written after triangle data in extended metadata section.
+  - Improved normal handling: 
+    - Auto-detects smoothing groups and falls back to face normals when absent.
+  - File size: ~57% smaller with proper vertex sharing.
+- **JMS Format Converter:**
+  - New tool to convert old JMS format (single-line) to new JMS format (multi-line) for compatibility.
