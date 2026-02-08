@@ -884,16 +884,93 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 		)
 	)
 	
-	-- If no smoothing groups, use face normals
-	-- NOTE: Explicit normals from FBX are not accessible without proper Edit_Normals setup
-	-- For now, we default to face normals when no smoothing groups exist
+	-- If no smoothing groups, try to read explicit normals from Edit_Normals modifier
 	if not hasSmoothingGroups then
 	(
-		logger "No smoothing groups detected, using face normals\n" logType:#warning
+		-- Track if we auto-added the modifier so we can clean it up later
+		local autoAddedEditNormals = false
 		
-		-- Cache empty explicit normals (will use face normals in vertex loop)
-		for f = 1 to numFaces do
-			append explicitNormalsCache #()
+		-- If no Edit_Normals modifier exists, automatically add one to capture mesh normals
+		if editNormalsMod == undefined then
+		(
+			logger "No smoothing groups detected - automatically adding Edit_Normals modifier to capture normals\n" logType:#info
+			
+			-- Add Edit_Normals modifier to the object
+			editNormalsMod = Edit_Normals()
+			addModifier obj editNormalsMod
+			autoAddedEditNormals = true
+			
+			-- Need to refresh the mesh snapshot after adding modifier
+			delete meshObj
+			meshObj = snapshotAsMesh obj
+			numVerts = meshObj.numverts
+			numFaces = meshObj.numfaces
+		)
+		
+		if editNormalsMod != undefined then
+		(
+			-- Read explicit normals from Edit_Normals modifier
+			logger "Reading explicit normals from Edit_Normals modifier\n" logType:#info
+			
+			-- CRITICAL: Edit_Normals API requires the modifier to be active in the modify panel
+			-- Without this setup, GetNormalID and GetNormal will return undefined
+			max modify mode
+			select obj
+			modPanel.setCurrentObject editNormalsMod
+			
+			-- Get the object's rotation to transform normals to world space
+			-- Using rotation quaternion converted to matrix works correctly for normals
+			local rotMatrix = obj.rotation as matrix3
+			
+			-- Read normals per face corner from Edit_Normals
+			for f = 1 to numFaces do
+			(
+				local cornerNormals = #()
+				for corner = 1 to 3 do
+				(
+					-- GetNormalID returns the normal index for this face corner
+					local normalID = editNormalsMod.GetNormalID f corner
+					if normalID != undefined and normalID > 0 then
+					(
+						local normal = editNormalsMod.GetNormal normalID
+						if normal != undefined then
+						(
+							-- Transform normal to world space using rotation
+							local worldNormal = normalize (normal * rotMatrix)
+							append cornerNormals worldNormal
+						)
+						else
+						(
+							-- Fallback to face normal if GetNormal returns undefined
+							append cornerNormals (getFaceNormal meshObj f)
+						)
+					)
+					else
+					(
+						-- Fallback to face normal if explicit normal not available
+						append cornerNormals (getFaceNormal meshObj f)
+					)
+				)
+				append explicitNormalsCache cornerNormals
+			)
+			hasExplicitNormals = true
+			
+			-- Clean up auto-added modifier to not pollute the scene
+			if autoAddedEditNormals then
+			(
+				deleteModifier obj editNormalsMod
+				logger "Removed auto-added Edit_Normals modifier\n" logType:#info
+			)
+		)
+		else
+		(
+			-- No Edit_Normals modifier, fall back to face normals
+			logger "No smoothing groups detected, using face normals\n" logType:#warning
+			
+			-- Cache empty explicit normals (will use face normals in vertex loop)
+			for f = 1 to numFaces do
+				append explicitNormalsCache #()
+		)
 	)
 	
 	-- Cache face data
