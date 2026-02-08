@@ -189,6 +189,23 @@ fn writeExtendedMetadata fileStream jmsData =
 	if jmsData.smoothingGroups == undefined or jmsData.smoothingGroups.count == 0 then
 		return ok
 	
+	-- Check if ANY smoothing group is non-zero (if all are 0, skip extended metadata entirely)
+	local hasNonZeroSmoothingGroup = false
+	for sg in jmsData.smoothingGroups do
+	(
+		if sg != 0 then
+		(
+			hasNonZeroSmoothingGroup = true
+			exit
+		)
+	)
+	
+	if not hasNonZeroSmoothingGroup then
+	(
+		logger "No smoothing groups found - skipping extended metadata\n" logType:#info
+		return ok
+	)
+	
 	-- Blank line separator
 	format "\n" to:fileStream
 	
