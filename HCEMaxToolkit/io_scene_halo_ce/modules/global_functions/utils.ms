@@ -573,13 +573,18 @@ fn formatTagRef tagRef useFullName:true =
 -- COMPRESSED VERTEX DECOMPRESSION
 -------------------------------------------------------
 
--- Decompress normal from packed 32-bit format (11-11-10 bit)
+-- Decompress normal vector from packed 32-bit format | Fixed
 fn decompressNormal normalPacked =
 (
-    local nx = (bit.and (bit.shift normalPacked -21) 0x7FF) / 1023.0 * 2.0 - 1.0
-    local ny = (bit.and (bit.shift normalPacked -10) 0x7FF) / 1023.0 * 2.0 - 1.0
-    local nz = (bit.and normalPacked 0x3FF) / 511.0 * 2.0 - 1.0
-    return [nx, ny, nz]
+    local i = (bit.and normalPacked 1023) / 1023.0
+    local j = (bit.and (bit.shift normalPacked -11) 1023) / 1023.0
+    local k = (bit.and (bit.shift normalPacked -22) 511) / 511.0
+
+    if (bit.and normalPacked (bit.shift 1 10)) != 0 do i -= 1.0
+    if (bit.and normalPacked (bit.shift 1 21)) != 0 do j -= 1.0
+    if (bit.and normalPacked (bit.shift 1 31)) != 0 do k -= 1.0
+
+    normalize [i, j, k]
 )
 
 -- Decompress UV coordinates from signed 16-bit format
