@@ -542,19 +542,24 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 			selectionSets[selSetName] = #(meshObj)
 		)
 		
-		-- Weld vertices FIRST so smoothing groups work properly
+		-- Determine if we should weld vertices based on smoothing group availability
+		local hasSmoothing = (jmsData.smoothingGroups != undefined and jmsData.smoothingGroups.count > 0)
 		local preWeldVertCount = meshObj.numverts
-		meshop.weldVertsByThreshold meshObj #{1..meshObj.numverts} 0.00001
-		local postWeldVertCount = meshObj.numverts
+		local postWeldVertCount = preWeldVertCount
 		
-		logger ("Welded vertices: " + preWeldVertCount as string + " -> " + postWeldVertCount as string + "\n") logType: #info
-		
-		-- Apply smoothing groups AFTER welding, using correct global triangle index mapping
-		if jmsData.smoothingGroups != undefined and jmsData.smoothingGroups.count > 0 then
+		if hasSmoothing then
 		(
+			-- Path A: Extended metadata with smoothing groups available
+			-- Weld vertices FIRST so smoothing groups work properly
+			logger ("Welding vertices for smoothing group application...\n") logType: #info
+			meshop.weldVertsByThreshold meshObj #{1..meshObj.numverts} 0.00001
+			postWeldVertCount = meshObj.numverts
+			
+			logger ("Welded vertices: " + preWeldVertCount as string + " -> " + postWeldVertCount as string + "\n") logType: #info
+			
+			-- Apply smoothing groups AFTER welding, using correct global triangle index mapping
 			logger ("Applying smoothing groups to region " + regionName + " (" + regionFaceToGlobalTriIndex.count as string + " faces)\n") logType: #info
 			
-			-- Apply smoothing groups using the correct global triangle index for each face
 			for f = 1 to meshObj.numfaces do
 			(
 				if f <= regionFaceToGlobalTriIndex.count then
@@ -570,61 +575,81 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 		)
 		else
 		(
-			logger ("No smoothing groups available in JMS data\n") logType: #info
-		)
-		
-		-- Build bone weight arrays for WELDED mesh vertices
-		-- After welding, face vertex indices are updated to point to welded vertices
-		-- We need to map each welded vertex back to an original vertex by tracing face topology
-		
-		-- Build map: original vertex index -> welded vertex index
-		local originalToWeldedMap = #()
-		for i = 1 to preWeldVertCount do
-			append originalToWeldedMap 0
-		
-		-- Scan all faces to find which welded vertex each original vertex maps to
-		for faceIdx = 1 to meshObj.numfaces do
-		(
-			local faceVerts = getFace meshObj faceIdx
-			local remappedFace = regionFaces[faceIdx]  -- Original face with pre-weld indices
+			-- Path B: No extended metadata - use vertex normals directly
+			logger ("No smoothing groups available - applying vertex normals directly\n") logType: #info
 			
-			-- Map original vertex indices to current welded indices
-			if originalToWeldedMap[remappedFace[1]] == 0 then
-				originalToWeldedMap[remappedFace[1]] = faceVerts[1]
-			if originalToWeldedMap[remappedFace[2]] == 0 then
-				originalToWeldedMap[remappedFace[2]] = faceVerts[2]
-			if originalToWeldedMap[remappedFace[3]] == 0 then
-				originalToWeldedMap[remappedFace[3]] = faceVerts[3]
+			-- Set all faces to smoothing group 1
+			for f = 1 to meshObj.numfaces do
+				setFaceSmoothGroup meshObj f 1
+			
+			-- Apply explicit vertex normals from JMS data
+			for v = 1 to regionVertNormals.count do
+				setNormal meshObj v regionVertNormals[v]
 		)
 		
-		-- Build reverse map: welded vertex index -> original vertex index
-		local weldedToOriginalMap = #()
-		for i = 1 to postWeldVertCount do
-			append weldedToOriginalMap 0
-		
-		for origIdx = 1 to originalToWeldedMap.count do
-		(
-			local weldedIdx = originalToWeldedMap[origIdx]
-			if weldedIdx > 0 and weldedToOriginalMap[weldedIdx] == 0 then
-				weldedToOriginalMap[weldedIdx] = origIdx
-		)
-		
+		-- Build bone weight arrays based on whether vertices were welded
 		local weldedNodeIndices = #()
 		local weldedNodeWeights = #()
 		
-		-- Process each welded vertex and get bone weights from its original vertex
-		for v = 1 to postWeldVertCount do
+		if hasSmoothing then
 		(
-			local originalIdx = weldedToOriginalMap[v]
+			-- Path A: Build bone weight arrays for WELDED mesh vertices
+			-- After welding, face vertex indices are updated to point to welded vertices
+			-- We need to map each welded vertex back to an original vertex by tracing face topology
 			
-			if originalIdx > 0 and originalIdx <= usedVertIndices.count then
+			logger ("Mapping bone weights for welded vertices...\n") logType: #info
+			
+			-- Build map: original vertex index -> welded vertex index
+			local originalToWeldedMap = #()
+			for i = 1 to preWeldVertCount do
+				append originalToWeldedMap 0
+			
+			-- Scan all faces to find which welded vertex each original vertex maps to
+			for faceIdx = 1 to meshObj.numfaces do
 			(
-				local globalVertIdx = usedVertIndices[originalIdx] as integer
-				if globalVertIdx > 0 and globalVertIdx <= jmsData.vertices.count then
+				local faceVerts = getFace meshObj faceIdx
+				local remappedFace = regionFaces[faceIdx]  -- Original face with pre-weld indices
+				
+				-- Map original vertex indices to current welded indices
+				if originalToWeldedMap[remappedFace[1]] == 0 then
+					originalToWeldedMap[remappedFace[1]] = faceVerts[1]
+				if originalToWeldedMap[remappedFace[2]] == 0 then
+					originalToWeldedMap[remappedFace[2]] = faceVerts[2]
+				if originalToWeldedMap[remappedFace[3]] == 0 then
+					originalToWeldedMap[remappedFace[3]] = faceVerts[3]
+			)
+			
+			-- Build reverse map: welded vertex index -> original vertex index
+			local weldedToOriginalMap = #()
+			for i = 1 to postWeldVertCount do
+				append weldedToOriginalMap 0
+			
+			for origIdx = 1 to originalToWeldedMap.count do
+			(
+				local weldedIdx = originalToWeldedMap[origIdx]
+				if weldedIdx > 0 and weldedToOriginalMap[weldedIdx] == 0 then
+					weldedToOriginalMap[weldedIdx] = origIdx
+			)
+			
+			-- Process each welded vertex and get bone weights from its original vertex
+			for v = 1 to postWeldVertCount do
+			(
+				local originalIdx = weldedToOriginalMap[v]
+				
+				if originalIdx > 0 and originalIdx <= usedVertIndices.count then
 				(
-					local vertData = jmsData.vertices[globalVertIdx]
-					append weldedNodeIndices #(vertData.node0Index + 1, vertData.node1Index + 1)
-					append weldedNodeWeights #((1.0 - vertData.node1Weight), vertData.node1Weight)
+					local globalVertIdx = usedVertIndices[originalIdx] as integer
+					if globalVertIdx > 0 and globalVertIdx <= jmsData.vertices.count then
+					(
+						local vertData = jmsData.vertices[globalVertIdx]
+						append weldedNodeIndices #(vertData.node0Index + 1, vertData.node1Index + 1)
+						append weldedNodeWeights #((1.0 - vertData.node1Weight), vertData.node1Weight)
+					)
+					else
+					(
+						append weldedNodeIndices #(1, -1)
+						append weldedNodeWeights #(1.0, 0.0)
+					)
 				)
 				else
 				(
@@ -632,14 +657,38 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 					append weldedNodeWeights #(1.0, 0.0)
 				)
 			)
-			else
+		)
+		else
+		(
+			-- Path B: Build bone weight arrays for NON-WELDED vertices (1:1 mapping)
+			logger ("Building bone weights for non-welded vertices...\n") logType: #info
+			
+			for v = 1 to postWeldVertCount do
 			(
-				append weldedNodeIndices #(1, -1)
-				append weldedNodeWeights #(1.0, 0.0)
+				if v <= usedVertIndices.count then
+				(
+					local globalVertIdx = usedVertIndices[v] as integer
+					if globalVertIdx > 0 and globalVertIdx <= jmsData.vertices.count then
+					(
+						local vertData = jmsData.vertices[globalVertIdx]
+						append weldedNodeIndices #(vertData.node0Index + 1, vertData.node1Index + 1)
+						append weldedNodeWeights #((1.0 - vertData.node1Weight), vertData.node1Weight)
+					)
+					else
+					(
+						append weldedNodeIndices #(1, -1)
+						append weldedNodeWeights #(1.0, 0.0)
+					)
+				)
+				else
+				(
+					append weldedNodeIndices #(1, -1)
+					append weldedNodeWeights #(1.0, 0.0)
+				)
 			)
 		)
 		
-		-- Apply skin modifier with welded vertex bone data
+		-- Apply skin modifier with vertex bone data
 		if createdNodes.count > 0 and weldedNodeIndices.count == postWeldVertCount then
 		(
 			local skinMod = Skin()
