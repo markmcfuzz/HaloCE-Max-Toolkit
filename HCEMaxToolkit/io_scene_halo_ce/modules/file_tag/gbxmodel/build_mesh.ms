@@ -289,6 +289,13 @@ fn buildPartMesh fileHandle geometryIndex partIndex part materialObj uScale:1.0 
     meshObj.name = meshName
     meshObj.wirecolor = color 200 200 200
     
+    -- Set smoothing group 1 BEFORE applying UVs and updating
+    -- This ensures normals are calculated with smoothing applied
+    for i = 1 to meshObj.numfaces do
+    (
+        setFaceSmoothGroup meshObj i 1
+    )
+    
     -- Apply UV coordinates
     if uvCoords.count == vertexPositions.count then
     (
@@ -322,15 +329,8 @@ fn buildPartMesh fileHandle geometryIndex partIndex part materialObj uScale:1.0 
         )
     )
     
-    ---- Set simple smoothing group 1 for all faces (like old importer)
-    ---- This provides basic smoothing without artifacts
-    --for i = 1 to meshObj.numfaces do
-    --(
-    --    setFaceSmoothGroup meshObj i 1
-    --)
-    
-    -- Return mesh object with weight data
-    return #(meshObj, nodeIndices, nodeWeights)
+    -- Return mesh object with weight data and normals
+    return #(meshObj, nodeIndices, nodeWeights, normals)
 )
 
 -------------------------------------------------------
@@ -432,6 +432,7 @@ fn buildGeometryByRegions modelFilePath tagStruct materialObj createdNodes uScal
                     local tempMesh = partResult[1]
                     local partNodeIndices = partResult[2]
                     local partNodeWeights = partResult[3]
+                    local partNormals = partResult[4]
                     
                     local numVerts = tempMesh.numVerts
                     local numFaces = tempMesh.numFaces
@@ -442,8 +443,9 @@ fn buildGeometryByRegions modelFilePath tagStruct materialObj createdNodes uScal
                     for v = 1 to numVerts do
                         append allVertices (getVert tempMesh v)
                     
+                    -- Collect normals from file data, not calculated mesh normals
                     for v = 1 to numVerts do
-                        append allNormals (getNormal tempMesh v)
+                        append allNormals partNormals[v]
                     
                     for v = 1 to numVerts do
                         append allUVs (getTVert tempMesh v)
@@ -491,13 +493,18 @@ fn buildGeometryByRegions modelFilePath tagStruct materialObj createdNodes uScal
                         setTVFace combinedMesh f allFaces[f]
                 )
                 
-                update combinedMesh
-                
-                -- Assign smoothing groups 1 to faces
+                -- Set smoothing group 1 for all faces (matches JMS behavior)
                 for i = 1 to combinedMesh.numfaces do
                 (
-                    
                     setFaceSmoothGroup combinedMesh i 1
+                )
+                
+                -- Apply explicit vertex normals from file data
+                if allNormals.count == combinedMesh.numverts then
+                (
+                    logger ("Applying " + allNormals.count as string + " explicit normals\n") logType:#info
+                    for v = 1 to allNormals.count do
+                        setNormal combinedMesh v allNormals[v]
                 )
                 
                 local tSkinStart = timestamp()
