@@ -44,6 +44,7 @@ create_mzp.lua
 *.7z
 *.max
 *.jms
+*.af
 
 # Shared objects (inc. Windows DLLs)
 *.so
