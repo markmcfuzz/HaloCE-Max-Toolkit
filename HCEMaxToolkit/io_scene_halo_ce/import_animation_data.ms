@@ -106,7 +106,11 @@ fn readStringValue =
 			)
 			default: 
 			(
-				line = firstChar + readLine in_file
+				-- Check if we're at EOF before calling readLine to avoid "Read past end of file" error
+				if (eof in_file) then
+					line = firstChar
+				else
+					line = firstChar + readLine in_file
 				exit
 			)
 		)
