@@ -268,7 +268,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - File size: ~57% smaller with proper vertex sharing.
 - **JMS Format Converter:**
   - New tool to convert old JMS format (single-line) to new JMS format (multi-line) for compatibility.
-## [4.2.2] - 2026-02-10
+## [4.2.2] - 2026-02-11
 ### Fixed
 - **Utils:**
   - Fixed normal vector decompression.
@@ -278,13 +278,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **JMS Importer:**
   - Fixed explicit normal import.
     - Models containing explicit normals (without smoothing groups in extended metadata) now import cleanly, with no smoothing group data interfering with the normals.
+- **Animation Importer:**
+  - Add EOF check when reading the file to prevent read data that doesn't exist.
+### Added
 - **JMS Exporter:**
   - Support for exporting explicit normals.
     - Exporting with explicit normals takes approximately two-thirds longer compared to using smoothing groups.
     - Skips writing **extended metadata** when no smoothing groups are present.
-- **Animation Importer:**
-  - Add EOF check when reading the file to prevent read data that doesn't exist.
-### Added
 - **JMS Importer:**
   - Support for models that combine smoothing groups and explicit normals (one method per region).
     - The importer automatically detects which method is used in each region and applies the appropriate normal/SG data, ensuring optimal visual fidelity.
