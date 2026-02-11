@@ -542,8 +542,26 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 			selectionSets[selSetName] = #(meshObj)
 		)
 		
-		-- Determine if we should weld vertices based on smoothing group availability
-		local hasSmoothing = (jmsData.smoothingGroups != undefined and jmsData.smoothingGroups.count > 0)
+		-- Determine if THIS REGION has any non-zero smoothing groups
+		-- Check per-region so we can handle mixed scenes (some regions with SG, others with explicit normals)
+		local hasSmoothing = false
+		if jmsData.smoothingGroups != undefined and jmsData.smoothingGroups.count > 0 then
+		(
+			-- Check if any triangle in this region has a non-zero smoothing group
+			for f = 1 to regionFaceToGlobalTriIndex.count do
+			(
+				local globalTriIndex = regionFaceToGlobalTriIndex[f]
+				if globalTriIndex > 0 and globalTriIndex <= jmsData.smoothingGroups.count then
+				(
+					if jmsData.smoothingGroups[globalTriIndex] != 0 then
+					(
+						hasSmoothing = true
+						exit
+					)
+				)
+			)
+		)
+		
 		local preWeldVertCount = meshObj.numverts
 		local postWeldVertCount = preWeldVertCount
 		
@@ -575,12 +593,12 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 		)
 		else
 		(
-			-- Path B: No extended metadata - use vertex normals directly
-			logger ("No smoothing groups available - applying vertex normals directly\n") logType: #info
+			-- Path B: No smoothing groups for this region - use vertex normals directly
+			logger ("Region '" + regionName + "' has no smoothing groups - applying explicit vertex normals\n") logType: #info
 			
-			-- Set all faces to smoothing group 1
+			-- Clear all auto-generated smoothing groups (3ds Max creates them by default)
 			for f = 1 to meshObj.numfaces do
-				setFaceSmoothGroup meshObj f 1
+				setFaceSmoothGroup meshObj f 0
 			
 			-- Apply explicit vertex normals from JMS data
 			for v = 1 to regionVertNormals.count do

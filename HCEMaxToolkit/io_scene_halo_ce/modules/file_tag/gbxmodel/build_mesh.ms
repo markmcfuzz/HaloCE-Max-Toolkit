@@ -289,11 +289,10 @@ fn buildPartMesh fileHandle geometryIndex partIndex part materialObj uScale:1.0 
     meshObj.name = meshName
     meshObj.wirecolor = color 200 200 200
     
-    -- Set smoothing group 1 BEFORE applying UVs and updating
-    -- This ensures normals are calculated with smoothing applied
+    -- Clear all auto-generated smoothing groups (GBXModel uses explicit normals)
     for i = 1 to meshObj.numfaces do
     (
-        setFaceSmoothGroup meshObj i 1
+        setFaceSmoothGroup meshObj i 0
     )
     
     -- Apply UV coordinates
@@ -493,10 +492,10 @@ fn buildGeometryByRegions modelFilePath tagStruct materialObj createdNodes uScal
                         setTVFace combinedMesh f allFaces[f]
                 )
                 
-                -- Set smoothing group 1 for all faces (matches JMS behavior)
+                -- Clear all auto-generated smoothing groups (GBXModel uses explicit normals)
                 for i = 1 to combinedMesh.numfaces do
                 (
-                    setFaceSmoothGroup combinedMesh i 1
+                    setFaceSmoothGroup combinedMesh i 0
                 )
                 
                 -- Apply explicit vertex normals from file data
