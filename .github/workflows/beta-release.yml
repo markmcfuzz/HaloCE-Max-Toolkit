@@ -144,7 +144,7 @@ jobs:
             This is a beta pre-release for testing purposes.
             Extract the zip on next path: `C:\Users\yourUserName\AppData\Roaming\Autodesk\ApplicationPlugins`
             
-            **Full Changelog:** [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/beta/CHANGELOG.md#${{ steps.changelog.outputs.ANCHOR }})
+            **Full Changelog:** [CHANGELOG.md](http://github.com/${{ github.repository }}/blob/beta/CHANGELOG.md#${{ steps.changelog.outputs.ANCHOR }})
           files: |
             ${{ steps.create_zip.outputs.ZIP_FILE }}
         env:
