@@ -725,46 +725,49 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	
 	-- Timing variables
 	local timeRegionMapping = 0
-	local timeMaterialMapping = 0
-	local timeVertexCreation = 0
-	local timeNormalCalc = 0
-	local timeSkinning = 0
 	local timeTriangleCreation = 0
 	local objectCount = 0
 	
-	-- Collect all geometry objects in scene
+	-- Build node name to index lookup ONCE (needed for all skin caching)
+	struct NodeLookup (nodeNames = #(), nodeIndices = #())
+	local nodeLookup = NodeLookup()
+	for i = 1 to nodeObjectArray.count do
+	(
+		append nodeLookup.nodeNames (nodeObjectArray[i].name)
+		append nodeLookup.nodeIndices (i - 1)
+	)
+	
+	-- ============================================================================
+	-- PRE-PASS: Collect valid objects and cache ALL skin data BEFORE any Edit_Normals
+	-- Edit_Normals panel activation corrupts skinOps for ALL subsequent objects
+	-- ============================================================================
+	local validObjects = #()
+	local allSkinCache = #()  -- Parallel array: allSkinCache[i] = skin data for validObjects[i]
+	local allParentNodeIndices = #()  -- Parallel array: parent node index for each valid object
+	local allHasSmoothingGroups = #()  -- Parallel array: hasSmoothingGroups for each valid object
+	
 	for obj in objects do
 	(
 		if obj.isHidden then continue
 		if not (isGeometryObject obj) then continue
 		if obj.parent == undefined then continue
-		
-		-- Skip objects that are nodes (they shouldn't be geometry)
 		if isNodeObject obj then continue
-		
-		-- Skip markers (they have geometry but aren't mesh geometry)
 		if isMarkerObject obj then continue
 		
 		-- Check if geometry is descendant of root node
 		local testParent = obj.parent
 		local rootParent = undefined
-		
 		while testParent != undefined do
 		(
 			rootParent = testParent
 			testParent = testParent.parent
 		)
-		
 		if rootParent != rootNode then continue
 		
-		objectCount += 1
-		
-		-- Find parent node index (walk up hierarchy until we find a node object)
+		-- Find parent node index
 		local parentNodeObj = obj.parent
 		while parentNodeObj != undefined and not (isNodeObject parentNodeObj) do
-		(
 			parentNodeObj = parentNodeObj.parent
-		)
 		
 		local parentNodeIndex = -1
 		if parentNodeObj != undefined then
@@ -773,15 +776,87 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			(
 				if nodeObjectArray[i] == parentNodeObj then
 				(
-					parentNodeIndex = i - 1  -- Convert to 0-based
+					parentNodeIndex = i - 1
 					exit
 				)
 			)
 		)
-		
 		if parentNodeIndex < 0 then continue
 		
-		-- Check for Edit_Normals modifier (explicit normals stored here)
+		-- Valid object - add to list
+		append validObjects obj
+		append allParentNodeIndices parentNodeIndex
+		
+		-- PRE-CACHE hasSmoothingGroups for this object
+		local tempMesh = snapshotAsMesh obj
+		local numVerts = tempMesh.numverts
+		local numFaces = tempMesh.numfaces
+		
+		local objHasSmoothingGroups = false
+		for f = 1 to numFaces do
+		(
+			local sg = getFaceSmoothGroup tempMesh f
+			if sg != 0 and sg != undefined then
+			(
+				objHasSmoothingGroups = true
+				exit
+			)
+		)
+		append allHasSmoothingGroups objHasSmoothingGroups
+		
+		-- PRE-CACHE skin data for this object NOW (before any Edit_Normals runs)
+		local objSkinData = #()
+		local skinMod = getSkinModifier obj
+		
+		if skinMod != undefined then
+		(
+			local testCount = try (skinOps.getVertexWeightCount skinMod 1) catch (undefined)
+			if testCount != undefined then
+			(
+				for v = 1 to numVerts do
+				(
+					local vertWeights = #()
+					local weightCount = skinOps.getVertexWeightCount skinMod v
+					
+					for w = 1 to weightCount do
+					(
+						local boneID = skinOps.getVertexWeightBoneID skinMod v w
+						local weight = skinOps.getVertexWeight skinMod v w
+						
+						if weight > 0.0 then
+						(
+							local boneName = skinOps.getBoneName skinMod boneID 0
+							local foundIdx = findItem nodeLookup.nodeNames boneName
+							
+							if foundIdx > 0 then
+								append vertWeights #(nodeLookup.nodeIndices[foundIdx], weight)
+						)
+					)
+					
+					append objSkinData vertWeights
+				)
+			)
+		)
+		
+		delete tempMesh
+		append allSkinCache objSkinData
+	)
+	
+	-- ============================================================================
+	-- MAIN PASS: Process geometry using pre-cached skin data
+	-- Now safe to use Edit_Normals since all skin data is already cached
+	-- ============================================================================
+	for objIdx = 1 to validObjects.count do
+	(
+		local obj = validObjects[objIdx]
+		local parentNodeIndex = allParentNodeIndices[objIdx]
+		local cachedSkinData = allSkinCache[objIdx]
+		local hasSkin = (cachedSkinData.count > 0)
+		local hasSmoothingGroups = allHasSmoothingGroups[objIdx]
+		
+		objectCount += 1
+		
+		-- Check for Edit_Normals modifier
 		local editNormalsMod = undefined
 		for m = 1 to obj.modifiers.count do
 		(
@@ -792,22 +867,10 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			)
 		)
 		
-		-- Get mesh data - always use snapshotAsMesh for consistent world-space geometry
+		-- Get mesh data
 		local meshObj = snapshotAsMesh obj
-		
 		local numVerts = meshObj.numverts
 		local numFaces = meshObj.numfaces
-		
-		-- Check for Skin modifier (we'll pre-cache bone weights after building lookup tables)
-		local skinMod = getSkinModifier obj
-		local hasSkin = false
-		
-		if skinMod != undefined then
-		(
-			-- Test if we can actually access the skin modifier
-			local testCount = try (skinOps.getVertexWeightCount skinMod 1) catch (undefined)
-			hasSkin = (testCount != undefined)
-		)
 		
 		-- Build face region map first (needed for triangle processing)
 		local timeRegionStart = timestamp()
@@ -870,19 +933,7 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	local faceSmoothGroups = #()
 	local vertexFaceMap = #()  -- Store which faces use each vertex
 	local explicitNormalsCache = #()  -- Store explicit normals per face: #( #(corner1_normal, corner2_normal, corner3_normal), ... )
-	local hasSmoothingGroups = false
 	local hasExplicitNormals = false
-	
-	-- First pass: check if any face has smoothing groups
-	for f = 1 to numFaces do
-	(
-		local sg = getFaceSmoothGroup meshObj f
-		if sg != 0 and sg != undefined then
-		(
-			hasSmoothingGroups = true
-			exit
-		)
-	)
 	
 	-- If no smoothing groups, try to read explicit normals from Edit_Normals modifier
 	if not hasSmoothingGroups then
@@ -900,11 +951,9 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			addModifier obj editNormalsMod
 			autoAddedEditNormals = true
 			
-			-- Need to refresh the mesh snapshot after adding modifier
-			delete meshObj
-			meshObj = snapshotAsMesh obj
-			numVerts = meshObj.numverts
-			numFaces = meshObj.numfaces
+			-- NOTE: Do NOT re-snapshot the mesh here!
+			-- Edit_Normals does not change mesh topology (vertices, faces, UVs)
+			-- Re-snapshotting could change vertex ordering, breaking our pre-cached skin data
 		)
 		
 		if editNormalsMod != undefined then
@@ -1012,42 +1061,7 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			append shaderLookup.shaderIndices (i - 1)
 		)
 		
-		-- Build node name to index lookup (for skinning)
-		struct NodeLookup (nodeNames = #(), nodeIndices = #())
-		local nodeLookup = NodeLookup()
-		for i = 1 to nodeObjectArray.count do
-		(
-			append nodeLookup.nodeNames (nodeObjectArray[i].name)
-			append nodeLookup.nodeIndices (i - 1)
-		)
-		
-		-- Pre-cache all skin weights for all vertices (now that NodeLookup is built)
-		local cachedSkinData = #()  -- Array indexed by vertex: #( #(boneNodeIdx, weight), ... )
-		if hasSkin then
-		(
-			for v = 1 to numVerts do
-			(
-				local vertWeights = #()
-				local weightCount = skinOps.getVertexWeightCount skinMod v
-				
-				for w = 1 to weightCount do
-				(
-					local boneID = skinOps.getVertexWeightBoneID skinMod v w
-					local weight = skinOps.getVertexWeight skinMod v w
-					
-					if weight > 0.0 then
-					(
-						local boneName = skinOps.getBoneName skinMod boneID 0
-						local foundIdx = findItem nodeLookup.nodeNames boneName
-						
-						if foundIdx > 0 then
-							append vertWeights #(nodeLookup.nodeIndices[foundIdx], weight)
-					)
-				)
-				
-				append cachedSkinData vertWeights
-			)
-		)
+		-- Skin data already pre-cached in allSkinCache before any Edit_Normals was accessed
 		
 		-- Vertex welding: use dictionary-based hash for O(1) lookups
 		-- Create hash key from vertex attributes for efficient duplicate detection
@@ -1055,10 +1069,9 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 		
 		-- Extract vertices AND triangles together (per-face-corner to match UVs)
 		-- This matches the old exporter behavior
+		local timeTriStart = timestamp()
 		for f = 1 to numFaces do
 		(
-			local timeTriStart = timestamp()
-			
 			local face = getFace meshObj f
 			local tvFace = if meshObj.numtverts > 0 then (getTVFace meshObj f) else (point3 0 0 0)
 			
@@ -1092,7 +1105,6 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			triData.regionIndex = regionIndex
 			
 			-- Get shader index (using cached lookup)
-			local timeMaterialStart = timestamp()
 			local shaderIndex = 0
 			if obj.material != undefined then
 			(
@@ -1119,14 +1131,12 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			)
 			
 			triData.shaderIndex = shaderIndex
-			timeMaterialMapping += timestamp() - timeMaterialStart
 			
 			-- Create 3 vertices for this face (one per corner)
 			local vertIndices = #()
 			
 			for corner = 1 to 3 do
 			(
-			local timeVertStart = timestamp()
 			local vertIdx = face[corner]
 			local vertData = vertices()
 			
@@ -1135,10 +1145,8 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			
 			-- snapshotAsMesh returns world-space geometry, no additional transform needed
 			vertData.position = #(vertPos.x, vertPos.y, vertPos.z)
-			timeVertexCreation += timestamp() - timeVertStart
 			
 			-- Calculate vertex normal
-			local timeNormalStart = timestamp()
 			local vNormal = [0, 0, 0]
 			
 			-- If no smoothing groups, use explicit normals if available, otherwise face normals
@@ -1188,9 +1196,9 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			)
 			
 			vertData.normal = #(vNormal.x, vNormal.y, vNormal.z)
-			timeNormalCalc += timestamp() - timeNormalStart				-- Handle skinning
-				local timeSkinStart = timestamp()
-				if hasSkin then
+			
+			-- Handle skinning
+			if hasSkin then
 				(
 					-- Use pre-cached skin data instead of repeated skinOps calls
 					local boneWeights = cachedSkinData[vertIdx]
@@ -1245,12 +1253,11 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 				else
 				(
 					vertData.node0Index = parentNodeIndex
-					vertData.node1Index = -1
-					vertData.node1Weight = 0.0
-				)
-				timeSkinning += timestamp() - timeSkinStart
-				
-				-- Get texture coordinates for THIS FACE CORNER
+				vertData.node1Index = -1
+				vertData.node1Weight = 0.0
+			)
+			
+			-- Get texture coordinates for THIS FACE CORNER
 				if meshObj.numtverts > 0 then
 				(
 					local tvIdx = tvFace[corner] as integer
@@ -1300,8 +1307,8 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			
 			append allTriangles triData
 			append allSmoothingGroups smoothGroup
-			timeTriangleCreation += timestamp() - timeTriStart
 		)
+		timeTriangleCreation += timestamp() - timeTriStart
 		
 		-- Update global vertex offset and clear per-object hash dictionary
 		globalVertexOffset = allVertices.count
@@ -1314,11 +1321,7 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	-- Print detailed geometry timing
 	logger "Geometry breakdown (% objects):\n" params:#(objectCount) logType:#timestamp
 	logger "    Region mapping: % ms\n" params:#(timeRegionMapping) logType:#timestamp
-	logger "    Material mapping: % ms\n" params:#(timeMaterialMapping) logType:#timestamp
-	logger "    Vertex creation: % ms\n" params:#(timeVertexCreation) logType:#timestamp
-	logger "    Normal calculation: % ms\n" params:#(timeNormalCalc) logType:#timestamp
-	logger "    Skinning: % ms\n" params:#(timeSkinning) logType:#timestamp
-	logger "    Triangle creation: % ms\n" params:#(timeTriangleCreation) logType:#timestamp
+	logger "    Triangle/vertex processing: % ms\n" params:#(timeTriangleCreation) logType:#timestamp
 	
 	return #(allVertices, allTriangles, allSmoothingGroups)
 )
