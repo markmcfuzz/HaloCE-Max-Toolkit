@@ -282,6 +282,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Support for exporting explicit normals.
     - Exporting with explicit normals takes approximately two-thirds longer compared to using smoothing groups.
     - Skips writing **extended metadata** when no smoothing groups are present.
+- **Animation Importer:**
+  - Add EOF check when reading the file to prevent read data that doesn't exist.
 ### Added
 - **JMS Importer:**
   - Support for models that combine smoothing groups and explicit normals (one method per region).
