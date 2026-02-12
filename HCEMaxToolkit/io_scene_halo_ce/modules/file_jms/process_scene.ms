@@ -1021,7 +1021,6 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 				append explicitNormalsCache #()
 		)
 	)
-	
 	-- Cache face data
 	for f = 1 to numFaces do
 	(
@@ -1038,9 +1037,55 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			append vertexFaceMap[face.y] f
 			append vertexFaceMap[face.z] f
 		)
-		
+		-- =====================================================================
+        -- PRECOMPUTE SMOOTHING CLUSTER NORMALS (OPTIMIZED CACHE)
+        -- =====================================================================
+        local vertexFaceClusterNormal = #()  
+        if hasSmoothingGroups then
+        (
+            for v = 1 to numVerts do
+            (
+                local sharedFacesRaw = vertexFaceMap[v]
+                if sharedFacesRaw == undefined or sharedFacesRaw.count == 0 then
+                    continue
+                -- Force standard array
+                local unvisited = for sf in sharedFacesRaw collect sf
+                local faceNormalMap = dictionary #integer  -- faceIndex → normal
+                while unvisited.count > 0 do
+                (
+                    local cluster = #()
+                    local stack = #(unvisited[1])
+                    deleteItem unvisited 1
+                    while stack.count > 0 do
+                    (
+                        local current = stack[stack.count]
+                        deleteItem stack stack.count
+                        append cluster current
+                        local currentSG = faceSmoothGroups[current]
+                        for i = unvisited.count to 1 by -1 do
+                        (
+                            local test = unvisited[i]
+                            if (bit.and currentSG faceSmoothGroups[test]) != 0 then
+                            (
+                                append stack test
+                                deleteItem unvisited i
+                            )
+                        )
+                    )
+                    -- Compute cluster normal ONCE
+                    local n = [0,0,0]
+                    for faceIdx in cluster do
+                        n += faceNormals[faceIdx]
+                    n = normalize n
+                    -- Assign same normal to all faces in this cluster
+                    for faceIdx in cluster do
+                        faceNormalMap[faceIdx] = n
+                )
+                vertexFaceClusterNormal[v] = faceNormalMap
+            )
+        )
+		-- End of smoothing cluster normals caching
 		local timeCacheEnd = timestamp() - timeCacheStart
-
 		logger "    Pre-calculation cache: % ms\n" params:#(timeCacheEnd) logType:#timestamp
 		
 		-- Build region name to index lookup (using struct as dictionary)
@@ -1164,36 +1209,53 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 				)
 			)
 			else
-			(
-				-- Use smoothing group-based calculation
-				vNormal += faceNormals[f]  -- Use cached face normal
-				
-				-- Get smoothing group for current face (from cache)
-				local faceSG = faceSmoothGroups[f]
-				
-				-- Get all faces that share this vertex (from cache)
-				local sharedFaces = vertexFaceMap[vertIdx]
-				
-				-- Check each shared face for smoothing group overlap
-				for s = 1 to sharedFaces.count do
-				(
-					local sharedFaceIdx = sharedFaces[s]
-					if sharedFaceIdx != f then  -- Skip current face
-					(
-						local neiSG = faceSmoothGroups[sharedFaceIdx]  -- Use cached smoothing group
-						
-						-- Smoothing groups are bitfields - use bitwise AND to check overlap
-						-- If they share any smoothing group bits, add the neighbor's normal
-						if (bit.and faceSG neiSG) != 0 then
-						(
-							vNormal += faceNormals[sharedFaceIdx]
-						)
-					)
-				)
-				
-				-- Normalize the result
-				vNormal = normalize vNormal
-			)
+            (
+                local vIdx = vertIdx as integer
+                local faceNormalMap = vertexFaceClusterNormal[vIdx]
+                if faceNormalMap != undefined then
+                (
+                    local cachedNormal = faceNormalMap[f]
+                    if cachedNormal != undefined then
+                        vNormal = cachedNormal
+                    else
+                        vNormal = faceNormals[f]
+                )
+                else
+                (
+                    vNormal = faceNormals[f]
+                )
+            )
+			-- end
+		--	(
+		--		-- Use smoothing group-based calculation
+		--		vNormal += faceNormals[f]  -- Use cached face normal
+		--		
+		--		-- Get smoothing group for current face (from cache)
+		--		local faceSG = faceSmoothGroups[f]
+		--		
+		--		-- Get all faces that share this vertex (from cache)
+		--		local sharedFaces = vertexFaceMap[vertIdx]
+		--		
+		--		-- Check each shared face for smoothing group overlap
+		--		for s = 1 to sharedFaces.count do
+		--		(
+		--			local sharedFaceIdx = sharedFaces[s]
+		--			if sharedFaceIdx != f then  -- Skip current face
+		--			(
+		--				local neiSG = faceSmoothGroups[sharedFaceIdx]  -- Use cached smoothing group
+		--				
+		--				-- Smoothing groups are bitfields - use bitwise AND to check overlap
+		--				-- If they share any smoothing group bits, add the neighbor's normal
+		--				if (bit.and faceSG neiSG) != 0 then
+		--				(
+		--					vNormal += faceNormals[sharedFaceIdx]
+		--				)
+		--			)
+		--		)
+		--		
+		--		-- Normalize the result
+		--		vNormal = normalize vNormal
+		--	)
 			
 			vertData.normal = #(vNormal.x, vNormal.y, vNormal.z)
 			
