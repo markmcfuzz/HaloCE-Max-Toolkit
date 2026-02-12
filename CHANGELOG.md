@@ -282,7 +282,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add EOF check when reading the file to prevent read data that doesn't exist.
 - **JMS Exporter:**
   - Fixed skin/vertex weights being lost on high-poly models when exporting with explicit normals (no smoothing groups).
-  - Restructured geometry extraction to pre-cache skin data before Edit_Normals modifier access, preventing panel context corruption .
+  - Restructured geometry extraction to pre-cache skin data before `Edit_Normals` modifier access, preventing panel context corruption .
+  - Fixed incorrect shading caused by improper smoothing group processing.
+    - Exported models now match the original 3ds Max shading more accurately.
 ### Added
 - **JMS Exporter:**
   - Support for exporting explicit normals.
