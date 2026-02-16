@@ -300,3 +300,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **GBX/Model Importer:**
   - Reuses existing skeleton nodes in the scene when importing multiple gbxmodels that share the same skeleton. A dialog prompts you to confirm whether to reuse them.
   - Skips marker creation if markers with the same name already exist in the scene.
+## [4.3.0] - 2026-02-15
+### Added
+- **JMA Importer:**
+ - Add new tool to import source animation files. (Halo CE to Halo 4)
