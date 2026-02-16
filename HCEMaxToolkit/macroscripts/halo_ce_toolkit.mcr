@@ -98,7 +98,7 @@ macroScript ImportAnimationData
     (
         local thisScript = getThisScriptFilename()
         local pluginRoot = pathConfig.removePathLeaf (getFilenamePath thisScript)
-        local scriptPath = pluginRoot + "\\io_scene_halo_ce\\import_animation_data.ms"
+        local scriptPath = pluginRoot + "\\io_scene_halo_ce\\import_jma.ms"
         if doesFileExist scriptPath then
         (
             fileIn scriptPath
