@@ -20,7 +20,8 @@ struct jmaFile
 	nodeCount = undefined,
 	nodeChecksum = undefined,
 	nodes = #(),
-    keyframes = #()
+    keyframes = #(),      -- Used by exporter (jmaKeyframes array)
+    frames = #()          -- Used by importer (jmaFrameData array)
 )
 
 struct jmaNodes
@@ -30,11 +31,26 @@ struct jmaNodes
 	nextSiblingNodeIndex
 )
 
+-- Used by exporter: stores arrays per frame (one element per node)
 struct jmaKeyframes 
 (	
     nodeTranslation,
     nodeRotation,
     nodeScale
+)
+
+-- Used by importer: stores single node transform for one frame
+struct jmaNodeFrame
+(
+    translation,
+    rotation,
+    scale
+)
+
+-- Used by importer: stores all node data for one frame
+struct jmaFrameData
+(
+    nodeFrames = #()  -- Array of jmaNodeFrame
 )
 
 logger "JMA structure loaded.\n" logType: #success 
