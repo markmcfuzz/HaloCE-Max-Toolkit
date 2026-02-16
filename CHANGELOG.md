@@ -298,5 +298,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - As a best practice, use only one method per region in your workflow.
       - > If both methods are combined within the same region, **explicit normals will be discarded**.
 - **GBX/Model Importer:**
-  - Reuse skeleton nodes in scene when importing multiple gbxmodels with shared skeletons. A dialog will appear to ask if you want to reuse the existing nodes.
-  - Skip markers creation if they exist in the scene with the same name.
+  - Reuses existing skeleton nodes in the scene when importing multiple gbxmodels that share the same skeleton. A dialog prompts you to confirm whether to reuse them.
+  - Skips marker creation if markers with the same name already exist in the scene.
