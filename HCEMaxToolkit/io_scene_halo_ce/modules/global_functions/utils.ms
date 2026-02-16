@@ -461,6 +461,21 @@ fn radiansToDegrees radians =
 	radians * (180.0 / 3.141592653589793)
 )
 
+-- Find index of a value in an array (returns -1 if not found)
+fn findInArray arr value =
+(
+	local result = -1
+	for i = 1 to arr.count do
+	(
+		if arr[i] == value then
+		(
+			result = i
+			exit
+		)
+	)
+	result
+)
+
 -- Material Type Enum
 -- Convert material type enum to string
 fn materialTypeToString matType =
