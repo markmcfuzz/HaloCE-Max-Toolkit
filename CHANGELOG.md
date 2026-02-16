@@ -275,6 +275,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - > Previous decompression method produced incorrect normal vectors, leading to visual artifacts in imported models.
 - **GBX/Model Importer:**
   - Imported GBX models now load cleanly without auto-generated smoothing groups, preserving the original explicit normals from the file. This ensures the geometry appears exactly as intended.
+  - Fixed issues with reading shader modules:
+    - `shader_transparent_generic`
 - **JMS Importer:**
   - Fixed explicit normal import.
     - Models containing explicit normals (without smoothing groups in extended metadata) now import cleanly, with no smoothing group data interfering with the normals.
@@ -295,3 +297,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - The importer automatically detects which method is used in each region and applies the appropriate normal/SG data, ensuring optimal visual fidelity.
     - As a best practice, use only one method per region in your workflow.
       - > If both methods are combined within the same region, **explicit normals will be discarded**.
+- **GBX/Model Importer:**
+  - Reuse skeleton nodes in scene when importing multiple gbxmodels with shared skeletons. A dialog will appear to ask if you want to reuse the existing nodes.
+  - Skip markers creation if they exist in the scene with the same name.
