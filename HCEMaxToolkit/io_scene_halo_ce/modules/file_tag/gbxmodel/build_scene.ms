@@ -8,6 +8,160 @@ global HALO_SCALE = 100.0
 global BONE_SIZE = 1.0
 
 -------------------------------------------------------
+-- SKELETON DETECTION AND REUSE
+-------------------------------------------------------
+
+-- Recursive helper function to collect all children in a hierarchy
+-- Must be defined at module level (not nested) due to MaxScript scoping rules
+-- Only collects bones and helpers (skeleton nodes), excludes geometry meshes and Markers
+fn collectAllChildren parent theArray =
+(
+    for child in parent.children do
+    (
+        local childClass = classOf child
+
+        if childClass == BoneGeometry or
+        childClass == Sphere or
+        childClass == Point or
+        childClass == Dummy do
+        append theArray child
+        
+        collectAllChildren child theArray
+    )
+)
+
+-- Check if a bone hierarchy matches the incoming node data
+-- Returns array of existing nodes in correct order if match found, undefined otherwise
+fn findMatchingSkeleton nodeDataArray =
+(
+
+	logger "\nfindMatchingSkeleton called with % nodes\n"  params:#(nodeDataArray.count) logType:#debug
+	
+	if nodeDataArray.count == 0 then
+		return undefined
+	
+	-- Get the root node name (first node with parentNode == -1)
+	local rootNodeName = undefined
+	for nodeData in nodeDataArray do
+	(
+		if nodeData.parentNode == -1 then
+		(
+			rootNodeName = nodeData.name
+			exit
+		)
+	)
+	
+	logger "Root node name: %\n"  params:#(rootNodeName) logType:#debug
+	
+	if rootNodeName == undefined then
+		return undefined
+	
+	-- Find all potential root nodes in the scene with the same name
+	local potentialRoots = for obj in objects where obj.name == rootNodeName collect obj
+	logger "Found % potential root objects in scene\n"  params:#(potentialRoots.count) logType:#debug
+	
+	if potentialRoots.count == 0 then
+		return undefined
+	
+	-- For each potential root, collect its hierarchy and check if it matches
+	for rootObj in potentialRoots do
+	(
+		logger "Checking root object: %\n"  params:#(rootObj.name) logType:#debug
+		
+		-- Collect all nodes in this hierarchy
+		local hierarchyNodes = #(rootObj)
+		collectAllChildren rootObj hierarchyNodes
+
+		
+		logger "Collected % nodes in hierarchy\n"  params:#(hierarchyNodes.count) logType:#debug
+		
+		-- Check if node count matches
+		if hierarchyNodes.count != nodeDataArray.count then
+		(
+			logger "Node count mismatch: hierarchy has %, need %\n"  params:#(hierarchyNodes.count, nodeDataArray.count) logType:#error
+			continue
+		)
+		
+		logger "Node counts match! Starting node matching...\n" logType:#debug
+		
+		-- Try to match all nodes by name and parent relationship
+		local orderedNodes = #()
+		local allMatched = true
+		
+		for i = 1 to nodeDataArray.count do
+		(
+			local nodeData = nodeDataArray[i]
+			
+			-- Find node with matching name in hierarchy
+			local foundNode = undefined
+			for node in hierarchyNodes where node.name == nodeData.name do
+			(
+				foundNode = node
+				exit
+			)
+			
+			if foundNode == undefined then
+			(
+				logger "FAILED: Could not find node '%' in hierarchy\n"  params:#(nodeData.name) logType:#error
+				allMatched = false
+				exit
+			)
+			logger "Node %: Found '%'\n"  params:#(i, nodeData.name) logType:#debug
+			-- Verify parent relationship
+			local parentIndex = nodeData.parentNode
+			if parentIndex >= 0 and parentIndex < nodeDataArray.count then
+			(
+				-- Get expected parent name from node data
+				local expectedParentName = nodeDataArray[parentIndex + 1].name
+				
+				-- Check if found node's parent matches
+				if foundNode.parent == undefined then
+				(
+					logger "FAILED: Node '%' has no parent, expected '%'\n"  params:#(nodeData.name, expectedParentName) logType:#error
+					allMatched = false
+					exit
+				)
+				else if foundNode.parent.name != expectedParentName then
+				(
+					logger "FAILED: Node '%' parent is '%', expected '%'\n"  params:#(nodeData.name, foundNode.parent.name, expectedParentName) logType:#error
+					allMatched = false
+					exit
+				)
+			)
+			else if parentIndex == -1 then
+			(
+				-- Root node should have no parent
+				if foundNode.parent != undefined then
+				(
+					logger "FAILED: Root node '%' has parent '%'\n"  params:#(nodeData.name, foundNode.parent.name) logType:#error
+					allMatched = false
+					exit
+				)
+			)
+			append orderedNodes foundNode
+		)
+		-- If all nodes matched, return the ordered array
+		if allMatched then
+		(
+			logger "SUCCESS! Found matching skeleton: % nodes\n"  params:#(orderedNodes.count) logType:#debug
+			return orderedNodes
+		)
+	)
+	return undefined
+)
+
+-- Show dialog asking user if they want to reuse existing skeleton
+-- Returns true if user wants to reuse, false otherwise
+fn askReuseSkeletonDialog =
+(
+	local result = queryBox "Skeleton detected in the scene!\n\nWould you like to reuse the existing bones?" \
+		title:"Reuse Skeleton?" \
+		beep:false
+	
+	return result
+)
+
+-------------------------------------------------------
 -- NODE/BONE CREATION
 -------------------------------------------------------
 
@@ -228,10 +382,35 @@ fn linkNodeHierarchy createdNodes nodeDataArray =
 -- Create all nodes from gbxmodel data
 fn createAllNodes nodesArray =
 (
-	--format "\n=== CREATING NODES ===\n"
-	--format "Total nodes to create: %\n" nodesArray.count
+	format "\n=== CREATING NODES ===\n"
+	format "Total nodes to create: %\n" nodesArray.count
 	
 	local createdNodes = #()
+	
+	-- Check if a matching skeleton already exists in the scene
+	logger "Checking for matching skeleton...\n" logType:#debug
+	local existingSkeleton = findMatchingSkeleton nodesArray
+	
+	if existingSkeleton != undefined then
+	(
+		logger "Found existing skeleton! Asking user...\n" logType:#debug
+		-- Ask user if they want to reuse the existing skeleton
+		local reuseExisting = askReuseSkeletonDialog()
+		
+		if reuseExisting then
+		(
+			logger "Reusing existing skeleton from scene\n" logType:#success
+			return existingSkeleton
+		)
+		else
+		(
+			logger "Creating new skeleton\n" logType:#info
+		)
+	)
+	else
+	(
+		logger "No matching skeleton found, creating new one\n" logType:#debug
+	)
 	
 	-- First pass: create all nodes
 	for i = 1 to nodesArray.count do
@@ -281,6 +460,45 @@ fn createMarkers markersArray nodesArray createdNodes =
 		local rotation = markerData.rotation   -- Quaternion: #(i, j, k, w)
 		local translation = markerData.translation -- Position relative to node
 		
+		-- Marker names in the scene have "#" prefix, but tag data doesn't
+		local markerNameWithPrefix = "#" + markerName
+		
+		--format "[DEBUG MARKER] Checking marker: '%'\n" markerName
+		
+		-- Check if marker already exists on the target parent node
+		local markerExists = false
+		if nodeIndex >= 0 and nodeIndex < createdNodes.count then
+		(
+			local parentNode = createdNodes[nodeIndex + 1]
+			if parentNode != undefined then
+			(
+				--format "[DEBUG MARKER] Parent node: '%' has % children\n" parentNode.name parentNode.children.count
+				
+				-- Check if a marker with this name already exists as a child of this node
+				for child in parentNode.children do
+				(
+					--format "[DEBUG MARKER]   Child: '%' (class: %)\n" child.name (classOf child)
+					
+					if child.name == markerNameWithPrefix then
+					(
+						markerExists = true
+						append createdMarkers child  -- Add existing marker to the array
+						--format "[DEBUG MARKER] Marker '%' already exists on '%', skipping\n" markerNameWithPrefix parentNode.name
+						exit
+					)
+				)
+			)
+		)
+		
+		-- Skip creating this marker if it already exists
+		if markerExists then
+		(
+			--format "[DEBUG MARKER] Skipping duplicate marker '%'\n" markerNameWithPrefix
+			continue
+		)
+		
+		--format "[DEBUG MARKER] Creating new marker '%'\n" markerName
+		
 		-- Create marker using Halo Helper (createHaloHelper handles the "#" prefix automatically)
 		local markerObj = createHaloMarker \
 			pos:[0,0,0] \
@@ -288,6 +506,8 @@ fn createMarkers markersArray nodesArray createdNodes =
 			markerType:"Marker" \
 			name:markerName \
 			wireColor:(color 0 240 255)  --#00f0ff
+		
+		--format "[DEBUG MARKER] Created marker with name: '%'\n" markerObj.name
 		
 		-- Assign to "Markers" layer
 		local markersLayer = LayerManager.getLayerFromName "Markers"
