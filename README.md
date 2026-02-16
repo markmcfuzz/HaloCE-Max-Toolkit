@@ -34,14 +34,16 @@ If you want to learn more in depth about the features and roadmap, check the [**
 ---
 ### Dependencies
 - **Autodesk 3ds Max 2023 - 2026**
-  > [!WARNING]
-  > 3ds Max **< 2023** is not officially supported, but may work.
+> [!WARNING]
+> 3ds Max **< 2023** is not officially supported, but may work.
 
 ## Installation  
 1. Download the latest executable from the [**Releases**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/releases) page.
 2. If you have an older version (valid from version 4.0.0 onwards) of Halo CE Max Toolkit installed, simply install the new version over it.
+
     > [!IMPORTANT]
     > _`.mzp` versions are deprecated, if you still have one of them, uninstall it with the same .mzp executed as script inside 3ds Max._
+    
 3. Install the `HCE Max Toolkit.exe` with 3ds Max closed.
 4. Open 3ds Max and you see the "**Halo CE Toolkit**" menu in the main menu bar. 
 
