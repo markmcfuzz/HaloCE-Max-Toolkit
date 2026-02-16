@@ -45,7 +45,7 @@ struct returnGenericReflexives (
     stages
 )
 
-struct returnMaps (
+struct returnGenericMaps (
     mapFlags,
     mapUScale,
     mapVScale,

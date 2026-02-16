@@ -246,7 +246,7 @@ fn readMaps mapsReflexive lensFlarePathLen extraLayersArray =
     for i = 1 to count do
     (
         local mapResult = shaderMapsResult()
-		local mapProps = returnMaps()
+		local mapProps = returnGenericMaps()
         -- Read flags (offset 0, 2 bytes)
         local flagsValue = read.shortB "#unsigned"
         local flagNames = #("unfiltered", "u clamped", "v clamped")
