@@ -19,6 +19,140 @@ global HALO_SCALE = 1.0
 global BONE_SIZE = 1.0
 
 -------------------------------------------------------
+-- SKELETON DETECTION AND REUSE
+-------------------------------------------------------
+
+-- Recursive helper function to collect all children in a hierarchy
+-- Must be defined at module level (not nested) due to MaxScript scoping rules
+-- Only collects bones and helpers (skeleton nodes), excludes geometry meshes
+fn collectAllChildren parent theArray =
+(
+	for child in parent.children do
+	(
+		-- Only collect bones, spheres, and helpers (skeleton nodes)
+		-- Skip editable meshes, markers, and other geometry
+		local childClass = classOf child
+		if childClass == BoneGeometry or childClass == Sphere or childClass == Point or childClass == Dummy then
+		(
+			append theArray child
+			collectAllChildren child theArray
+		)
+		else
+		(
+			-- For non-skeleton objects (meshes, markers), still check their children
+			-- in case there are nested skeleton nodes
+			collectAllChildren child theArray
+		)
+	)
+)
+
+-- Check if a bone hierarchy matches the incoming node data
+-- Returns array of existing nodes in correct order if match found, undefined otherwise
+fn findMatchingSkeleton jmsData parentIndices =
+(
+	if jmsData.nodeCount == 0 then
+		return undefined
+	
+	-- Get the root node name (first node with parentIdx == -1)
+	local rootNodeName = undefined
+	for i = 1 to jmsData.nodeCount do
+	(
+		if parentIndices[i] == -1 then
+		(
+			rootNodeName = jmsData.nodes[i].nodeName
+			exit
+		)
+	)
+	
+	if rootNodeName == undefined then
+		return undefined
+	
+	-- Find all potential root nodes in the scene with the same name
+	local potentialRoots = for obj in objects where obj.name == rootNodeName collect obj
+	
+	if potentialRoots.count == 0 then
+		return undefined
+	
+	-- For each potential root, collect its hierarchy and check if it matches
+	for rootObj in potentialRoots do
+	(
+		-- Collect all nodes in this hierarchy
+		local hierarchyNodes = #(rootObj)
+		collectAllChildren rootObj hierarchyNodes
+		
+		-- Check if node count matches
+		if hierarchyNodes.count != jmsData.nodeCount then
+			continue
+		
+		-- Try to match all nodes by name and parent relationship
+		local orderedNodes = #()
+		local allMatched = true
+		
+		for i = 1 to jmsData.nodeCount do
+		(
+			local nodeData = jmsData.nodes[i]
+			
+			-- Find node with matching name in hierarchy
+			local foundNode = undefined
+			for node in hierarchyNodes where node.name == nodeData.nodeName do
+			(
+				foundNode = node
+				exit
+			)
+			
+			if foundNode == undefined then
+			(
+				allMatched = false
+				exit
+			)
+			
+			-- Verify parent relationship
+			local parentIdx = parentIndices[i]
+			if parentIdx >= 0 and parentIdx < jmsData.nodeCount then
+			(
+				-- Get expected parent name from node data
+				local expectedParentName = jmsData.nodes[parentIdx + 1].nodeName
+				
+				-- Check if found node's parent matches
+				if foundNode.parent == undefined or foundNode.parent.name != expectedParentName then
+				(
+					allMatched = false
+					exit
+				)
+			)
+			else if parentIdx == -1 then
+			(
+				-- Root node should have no parent
+				if foundNode.parent != undefined then
+				(
+					allMatched = false
+					exit
+				)
+			)
+			
+			append orderedNodes foundNode
+		)
+		
+		-- If all nodes matched, return the ordered array
+		if allMatched then
+			return orderedNodes
+	)
+	
+	return undefined
+)
+
+-- Show dialog asking user if they want to reuse existing skeleton
+-- Returns true if user wants to reuse, false otherwise
+fn askReuseSkeletonDialog =
+(
+	local result = queryBox "Skeleton detected in the scene!\n\nWould you like to reuse the existing bones?" \
+		title:"Reuse Skeleton?" \
+		beep:false
+	
+	return result
+)
+
+-------------------------------------------------------
 -- NODE/BONE CREATION
 -------------------------------------------------------
 
@@ -281,6 +415,25 @@ fn buildNodes jmsData =
 	local parentIndices = calculateParentIndices jmsData useSimpleHierarchy:jmsData.useSimpleHierarchy
 	local createdNodes = #()
 	
+	-- Check if a matching skeleton already exists in the scene
+	local existingSkeleton = findMatchingSkeleton jmsData parentIndices
+	
+	if existingSkeleton != undefined then
+	(
+		-- Ask user if they want to reuse the existing skeleton
+		local reuseExisting = askReuseSkeletonDialog()
+		
+		if reuseExisting then
+		(
+			logger "Reusing existing skeleton from scene\n" logType:#success
+			return existingSkeleton
+		)
+		else
+		(
+			logger "Creating new skeleton\n" logType:#info
+		)
+	)
+	
 	-- Create all nodes as spheres first
 	for i = 1 to jmsData.nodeCount do
 	(
@@ -319,11 +472,37 @@ fn buildMarkers jmsData createdNodes =
 		local rotation = markerData.markerRotation
 		local radius = markerData.markerRadius * HALO_SCALE
 		
+		-- Determine marker prefix: "+" if name contains "mp", otherwise "#"
+		local prefix = if (findString (toLower markerName) "mp") != undefined then "+" else "#"
+		local markerNameWithPrefix = prefix + markerName
+		
+		-- Check if marker already exists on the target parent node
+		local markerExists = false
+		if parentIdx >= 0 and parentIdx < createdNodes.count then
+		(
+			local parentNode = createdNodes[parentIdx + 1]
+			if parentNode != undefined then
+			(
+				-- Check if a marker with this name already exists as a child of this node
+				for child in parentNode.children do
+				(
+					if child.name == markerNameWithPrefix then
+					(
+						markerExists = true
+						append createdMarkers child  -- Add existing marker to the array
+						exit
+					)
+				)
+			)
+		)
+		
+		-- Skip creating this marker if it already exists
+		if markerExists then
+			continue
+		
 		-- Create Halo marker helper
 		local markerObj = HaloMarker()
-		-- Add prefix: "+" if name contains "mp", otherwise "#"
-		local prefix = if (findString (toLower markerName) "mp") != undefined then "+" else "#"
-		markerObj.name = prefix + markerName
+		markerObj.name = markerNameWithPrefix
 		markerObj.markerRadius = radius
 		markerObj.wirecolor = color 0 240 255 --#00f0ff
 		
