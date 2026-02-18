@@ -307,3 +307,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **JMS Importer:**
   - Reuses existing skeleton nodes in the scene when importing multiple gbxmodels that share the same skeleton. A dialog prompts you to confirm whether to reuse them.
   - Skips marker creation if markers with the same name already exist in the scene.
+- **Camera Track Importer:**
+  - New rewrite tool for importing camera track tag files.
+    - Creates a pyramid object for each control point with the correct position and orientation.
+      - Assigns the pyramid objects to a `Camera Control Points` layer.
+    - Creates a target camera with a distance of 70 and an FOV of 70, along with a dummy helper called `camera_track_dummy`. Assigns both to a `Camera Control Points Animation` layer.
+      - Links the target camera to the dummy helper and creates an animation that matches the position and rotation of each pyramid object, with keyframes every 5 frames (starting at frame 0).
+    - Viewport configuration: Sets the viewport to display the imported target camera in Viewport 3 (bottom-left) with default shading.
