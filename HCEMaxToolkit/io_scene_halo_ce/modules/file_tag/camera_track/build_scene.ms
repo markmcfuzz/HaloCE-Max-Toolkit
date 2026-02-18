@@ -85,7 +85,7 @@ fn buildControlPoints trakData =
 -- Create Camera Setup
 -------------------------------------------------------
 
-fn createCameraSetup =
+fn createCameraSetup pyramidObjects =
 (
     logger "Creating camera setup...\n" logType:#info
     
@@ -129,13 +129,13 @@ fn createCameraSetup =
     camLayer.addNode cam
     camLayer.addNode cam.target
 
-    -- Set a specific viewport to camera view (default: viewport 1)
+    -- Set a specific viewport to camera view (default: viewport 3)
     try
     (
         -- Save current active viewport
         local previousViewport = viewport.activeViewport
         
-        -- Switch to target viewport (1 = top-left in standard 4-view layout)
+        -- Switch to target viewport (3 = bottom-left in standard 4-view layout)
         viewport.activeViewport = 3
         
         viewport.setCamera cam
@@ -144,13 +144,10 @@ fn createCameraSetup =
         -- Set viewport to default shading (smooth + highlights)
         viewport.setRenderLevel #smoothhighlights
         
-        -- Hide pyramid geometry from camera viewport
-        viewport.setShowByCategory #pyramid false
-        
         -- Restore previous active viewport
         viewport.activeViewport = previousViewport
         
-        logger "Set viewport 1 to camera view with default shading and pyramids hidden\n" logType:#success
+        logger "Set viewport 3 to camera view with default shading\n" logType:#success
     )
     catch
     (
