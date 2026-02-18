@@ -60,7 +60,7 @@ fn importCameraTrackTag trakFile:undefined =
     local pointsName = getFilenameFile trakFile
     
     -- Create camera setup (returns #(camera, dummy))
-    local cameraSetup = createCameraSetup()
+    local cameraSetup = createCameraSetup createdPoints
     local cam = cameraSetup[1]
     local dummyObj = cameraSetup[2]
     
