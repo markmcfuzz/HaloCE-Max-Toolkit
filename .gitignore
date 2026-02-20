@@ -35,6 +35,7 @@ luac.out
 *build/
 *_test/
 *_refs/
+*_approach/
 
 # Files
 # manifest.json
