@@ -314,3 +314,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Creates a target camera with a distance of 70 and an FOV of 70, along with a dummy helper called `camera_track_dummy`. Assigns both to a `Camera Control Points Animation` layer.
       - Links the target camera to the dummy helper and creates an animation that matches the position and rotation of each pyramid object, with keyframes every 5 frames (starting at frame 0).
     - Viewport configuration: Sets the viewport to display the imported target camera in Viewport 3 (bottom-left) with default shading.
+## [5.0.0] - 2026-03-10
+### Changed
+- Replaced per-tag reader architecture with a new generic definition-driven parser based on `Gorilla` JSON definitions.
+- Reorganized project structure.
+- Replaced legacy logging calls with a new structured logging system supporting log levels (info, warning, error, debug, trace) and log file output configuration via `config.ini`.
+- Export camera track tool was removed for now, it will be reimplemented in the next update.
+### Added
+- **Model Animations Extractor Tool:**
+  - Extracts `.model_animations` tags to JMA-family source files (`.JMA`, `.JMO`, `.JMM`, etc.).
+  - Supports overlay fixed animations.
+- **Global** 
+  - `config.ini` for logging and performance configuration.
+    - Includes `skip_uncompressed_vertices` option (enabled by default).
+### Fixed
+- **GBX/Model Importer:** 
+  - Improved import performance with enable `skipping uncompressed vertices` (up to 68% faster).
