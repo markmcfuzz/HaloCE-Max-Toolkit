@@ -36,6 +36,11 @@ luac.out
 *_test/
 *_refs/
 *_approach/
+*io_scene_halo_ce/
+*parser_resources/
+*groups_ce/
+*groups_mcc/
+*journal/
 
 # Files
 # manifest.json
@@ -46,6 +51,7 @@ create_mzp.lua
 *.max
 *.jms
 *.af
+*.tree
 
 # Shared objects (inc. Windows DLLs)
 *.so
@@ -67,3 +73,9 @@ create_mzp.lua
 *test_shader_generic_reader.ms
 *test_shader_meter_reader.ms
 *test_shader_water_reader.ms
+*_test_import_tag.ms
+
+# Misc Files
+*_tag_definitions_mcc.json
+*_tag_definitions.json
+*halo_tags_to_maxstructs.py
