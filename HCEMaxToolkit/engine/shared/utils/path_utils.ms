@@ -46,36 +46,55 @@ struct pathUtilsStruct
             )
         )
         -- Expand environment variables like %USERPROFILE%, %TEMP%, etc.
-        local startPos = 1
-        while startPos <= result.count do
+        -- Compatible with 3ds Max 2023 and older (findString only accepts 2 parameters)
+        local searchOffset = 0
+        local keepSearching = true
+        while keepSearching do
         (
-            local percentPos = findString result "%" startPos:startPos
+            -- Search in the remaining part of the string
+            local remainingStr = substring result (searchOffset + 1) -1
+            local percentPos = findString remainingStr "%"
+            
             if percentPos != undefined then
             (
-                local endPos = findString result "%" startPos:(percentPos + 1)
+                -- Adjust position to full string coordinates
+                local actualPercentPos = searchOffset + percentPos
+                
+                -- Look for closing % in the substring after the first %
+                local afterFirstPercent = substring result (actualPercentPos + 1) -1
+                local endPos = findString afterFirstPercent "%"
+                
                 if endPos != undefined then
                 (
-                    local varName = substring result (percentPos + 1) (endPos - percentPos - 1)
+                    -- Adjust end position to full string coordinates
+                    local actualEndPos = actualPercentPos + endPos
+                    
+                    local varName = substring result (actualPercentPos + 1) (actualEndPos - actualPercentPos - 1)
                     local varValue = systemTools.getEnvVariable varName
+                    
                     if varValue != undefined then
                     (
                         local varToken = "%" + varName + "%"
                         result = substituteString result varToken varValue
-                        startPos = percentPos  -- Re-check from same position
+                        -- Continue searching from the same position (string has changed)
+                        searchOffset = actualPercentPos - 1
                     )
                     else
                     (
-                        startPos = endPos + 1
+                        -- Variable not found, skip past this pair
+                        searchOffset = actualEndPos
                     )
                 )
                 else
                 (
-                    startPos = result.count + 1  -- No closing %, stop searching
+                    -- No closing %, stop searching
+                    keepSearching = false
                 )
             )
             else
             (
-                startPos = result.count + 1  -- No more % found
+                -- No more % found
+                keepSearching = false
             )
         )
         return result
