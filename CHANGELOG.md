@@ -330,3 +330,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **GBX/Model Importer:** 
   - Improved import performance with enable `skipping uncompressed vertices` (up to 68% faster).
+## [5.0.1] - 2026-03-04
+### Fixed
+- **Path Utilities:** Fixed toolkit initialization failure in 3ds Max 2023 caused by incompatible `findString` syntax. The function now uses substring slicing instead of start position parameters, ensuring compatibility with 3ds Max 2023 and all newer versions. This resolves the "Argument count error" that prevented `config.ini` creation in the Documents folder.
