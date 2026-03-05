@@ -254,7 +254,7 @@ macroScript ModelAnimationsExtractor
         local thisScript = getThisScriptFilename()
         local leafPath = pathConfig.removePathLeaf thisScript
         local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
-        local scriptPath = pluginRoot + "\\engine\\tool_extract_model_animations.ms"
+        local scriptPath = pluginRoot + "\\engine\\tool_extract_animations.ms"
         if doesFileExist scriptPath then
         (
             fileIn scriptPath
