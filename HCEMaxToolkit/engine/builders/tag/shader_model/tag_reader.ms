@@ -36,7 +36,8 @@ fn readShaderModelTagHeader =
     (
         if tagClass != gbxmodelFourcc then
         (
-            logger "Invalid tag class. Expected: %, Found: %\n" params:#(expectedFourcc, tagClass) logType:#error
+
+            logger.error "Invalid tag class. Expected: {}, Found: {}" args:#(expectedFourcc, tagClass)
             return undefined
         )
         -- If it's a gbxmodel, we're likely in preload mode - return undefined silently
@@ -45,11 +46,11 @@ fn readShaderModelTagHeader =
     
     --if tagHeaderLogger then
     --(
-    --    logger "\n=== READING TAG HEADER ===\n"
-    --    logger "Tag Class: %\n" params:#(getTagClassInfo tagClass) logType:#debug
-    --    --logger "Checksum: %\n" params:#(checksum) logType:#debug
-    --    logger "Version: %\n" params:#(version) logType:#debug
-    --    logger "Engine ID: %\n\n" params:#(getEngineIdInfo engineId) logType:#debug
+    --    logger.log "=== READING TAG HEADER ==="
+    --    logger.debug "Tag Class: {}" args:#(getTagClassInfo tagClass)
+    --    logger.debug "Checksum: {}" args:#(checksum)
+    --    logger.debug "Version: {}" args:#(version)
+    --    logger.debug "Engine ID: {}" args:#(getEngineIdInfo engineId)
     --)
     local header = returnHeader()
     header.tagClass = tagClass
@@ -409,7 +410,7 @@ fn readTagReferencePaths maps reflection =
     if classOf reflection != returnModelReflectionProperties then
     (
         -- Wrong struct type loaded (likely from glass shader module), skip cube map reading
-        logger "Warning: Reflection struct name conflict detected. Using fallback reading.\n" logType:#warning
+        logger.warn "Reflection struct name conflict detected. Using fallback reading"
         return ok
     )
     
@@ -459,7 +460,7 @@ fn readShaderModelTag filePath =
     local shaderAttrs = readShaderAttributes()
     if shaderAttrs == undefined then
     (
-        logger "Failed to read shader attributes\n" logType:#error
+        logger.error "Failed to read shader attributes"
         fclose fileHandle
         return undefined
     )
@@ -470,7 +471,7 @@ fn readShaderModelTag filePath =
     local modelShader = readModelShaderProperties()
     if modelShader == undefined then
     (
-        logger "Failed to read model shader properties\n" logType:#error
+        logger.error "Failed to read model shader properties"
         fclose fileHandle
         return undefined
     )
@@ -480,7 +481,7 @@ fn readShaderModelTag filePath =
     local changeColor = readColorChangeProperties()
     if changeColor == undefined then
     (
-        logger "Failed to read color change properties\n" logType:#error
+        logger.error "Failed to read color change properties"
         fclose fileHandle
         return undefined
     )
@@ -490,7 +491,7 @@ fn readShaderModelTag filePath =
     local selfIllum = readSelfIlluminationProperties()
     if selfIllum == undefined then
     (
-        logger "Failed to read self illumination properties\n" logType:#error
+        logger.error "Failed to read self illumination properties"
         fclose fileHandle
         return undefined
     )
@@ -500,7 +501,7 @@ fn readShaderModelTag filePath =
     local maps = readMapsProperties()
     if maps == undefined then
     (
-        logger "Failed to read maps properties\n" logType:#error
+        logger.error "Failed to read maps properties"
         fclose fileHandle
         return undefined
     )
@@ -510,7 +511,7 @@ fn readShaderModelTag filePath =
     local texAnim = readTextureAnimationProperties()
     if texAnim == undefined then
     (
-        logger "Failed to read texture animation properties\n" logType:#error
+        logger.error "Failed to read texture animation properties"
         fclose fileHandle
         return undefined
     )
@@ -520,7 +521,7 @@ fn readShaderModelTag filePath =
     local reflection = readReflectionProperties()
     if reflection == undefined then
     (
-        logger "Failed to read reflection properties\n" logType:#error
+        logger.error "Failed to read reflection properties"
         fclose fileHandle
         return undefined
     )
@@ -531,8 +532,8 @@ fn readShaderModelTag filePath =
 
     --if tagHeaderLogger then
     --(
-    --    logger "\n=== SHADER MODEL ===\n"
-    --    --logger "Radiosity Properties:\n"
+    --    logger.log "=== SHADER MODEL ==="
+    --    --logger.log "Radiosity Properties:"
     --    --logger "    - Flags: %\n" params:#(tagStruct.radiosityProperties.flags)
     --    --logger "    - Detail Level: (%)\n" params:#(detailLevel tagStruct.radiosityProperties.detailLevel)
     --    --logger "    - Light Power: [%]\n" params:#(tagStruct.radiosityProperties.lightPower)

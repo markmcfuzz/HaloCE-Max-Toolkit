@@ -33,7 +33,7 @@ fn readShaderMeterTagHeader =
 	(		
 		if tagClass != gbxmodelFourcc then
 		(			
-			logger "Invalid tag class. Expected: %, Found: %\n" params: #( expectedFourcc, tagClass ) logType: #error
+			logger.error "Invalid tag class. Expected: {}, Found: {}" args:#(expectedFourcc, tagClass)
 			return undefined
 		)
 		-- If it's a gbxmodel, we're likely in preload mode - return undefined silently
@@ -265,7 +265,7 @@ fn readShaderTransparentMeterTag filePath =
 	local shaderAttrs = readShaderAttributes()
 	if shaderAttrs == undefined then
 	(		
-		logger "Failed to read shader attributes\n" logType: #error
+		logger.error "Failed to read shader attributes"
 		fclose fileHandle
 		return undefined
 	)
@@ -276,7 +276,7 @@ fn readShaderTransparentMeterTag filePath =
     local meterShader = readMeterShaderProperties()
     if meterShader == undefined then
     (        
-        logger "Failed to read meter shader properties\n" logType: #error
+        logger.error "Failed to read meter shader properties"
         fclose fileHandle
         return undefined
     )
@@ -286,7 +286,7 @@ fn readShaderTransparentMeterTag filePath =
     local colors = readColorsProperties()
     if colors == undefined then
     (        
-        logger "Failed to read colors properties\n" logType: #error
+        logger.error "Failed to read colors properties"
         fclose fileHandle
         return undefined
     )
@@ -296,7 +296,7 @@ fn readShaderTransparentMeterTag filePath =
     local externalFuncSource = readExternalFunctionSource()
     if externalFuncSource == undefined then
     (        
-        logger "Failed to read external function source properties\n" logType: #error
+        logger.error "Failed to read external function source properties"
         fclose fileHandle
         return undefined
     )

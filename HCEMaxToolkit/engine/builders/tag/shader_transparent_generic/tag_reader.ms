@@ -30,7 +30,7 @@ fn readShaderGenericTagHeader =
 	(		
 		if tagClass != gbxmodelFourcc then
 		(			
-			logger "Invalid tag class. Expected: %, Found: %\n" params: #( expectedFourcc, tagClass ) logType: #error
+			logger.error "Invalid tag class. Expected: {}, Found: {}" args:#(expectedFourcc, tagClass)
 			return undefined
 		)
 		-- If it's a gbxmodel, we're likely in preload mode - return undefined silently
@@ -479,7 +479,7 @@ fn readShaderTransparentGenericTag filePath =
 	local shaderAttrs = readShaderAttributes()
 	if shaderAttrs == undefined then
 	(		
-		logger "Failed to read shader attributes\n" logType: #error
+		logger.error "Failed to read shader attributes"
 		fclose fileHandle
 		return undefined
 	)
@@ -490,7 +490,7 @@ fn readShaderTransparentGenericTag filePath =
     local genericShader = readGenericShaderProperties()
     if genericShader == undefined then
     (        
-        logger "Failed to read generic shader properties\n" logType: #error
+        logger.error "Failed to read generic shader properties"
         fclose fileHandle
         return undefined
     )
@@ -500,7 +500,7 @@ fn readShaderTransparentGenericTag filePath =
     local reflexives = readReflexiveHeaders()
     if reflexives == undefined then
     (        
-        logger "Failed to read reflexive headers\n" logType: #error
+        logger.error "Failed to read reflexive headers"
         fclose fileHandle
         return undefined
     )

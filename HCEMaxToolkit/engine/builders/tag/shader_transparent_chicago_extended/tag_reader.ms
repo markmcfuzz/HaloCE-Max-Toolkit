@@ -29,7 +29,7 @@ fn readChicagoExtendedTagHeader =
 	(		
 		if tagClass != gbxmodelFourcc then
 		(			
-			logger "Invalid tag class. Expected: %, Found: %\n" params: #( expectedFourcc, tagClass ) logType: #error
+			logger.error "Invalid tag class. Expected: {}, Found: {}" args:#(expectedFourcc, tagClass)
 			return undefined
 		)
 		-- If it's a gbxmodel, we're likely in preload mode - return undefined silently

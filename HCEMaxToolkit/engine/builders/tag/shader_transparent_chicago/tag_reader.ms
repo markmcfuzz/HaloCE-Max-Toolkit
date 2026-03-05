@@ -29,20 +29,20 @@ fn readChicagoTagHeader =
 	(		
 		if tagClass != gbxmodelFourcc then
 		(			
-			logger "Invalid tag class. Expected: %, Found: %\n" params: #( expectedFourcc, tagClass ) logType: #error
+			logger.error "Invalid tag class. Expected: {}, Found: {}" args:#(expectedFourcc, tagClass)
 			return undefined
 		)
 		-- If it's a gbxmodel, we're likely in preload mode - return undefined silently
 		return undefined
 	)
-	--if tagHeaderLogger then
-	--(		
-	--	logger "\n=== READING TAG HEADER ===\n"
-	--	logger "Tag Class: %\n" params: #( getTagClassInfo tagClass ) logType: #debug
-	--	--logger "Checksum: %\n" params:#(checksum) logType:#debug
-	--	logger "Version: %\n" params: #( version ) logType: #debug
-	--	logger "Engine ID: %\n\n" params: #( getEngineIdInfo engineId ) logType: #debug
-	--)
+    --if tagHeaderLogger then
+    --(
+    --    logger.log "=== READING TAG HEADER ==="
+    --    logger.debug "Tag Class: {}" args:#(getTagClassInfo tagClass)
+    --    logger.debug "Checksum: {}" args:#(checksum)
+    --    logger.debug "Version: {}" args:#(version)
+    --    logger.debug "Engine ID: {}" args:#(getEngineIdInfo engineId)
+    --)
 	local header = returnHeader()
 	header.tagClass = tagClass
 	header.checksum = checksum
@@ -300,7 +300,7 @@ fn readFourStageMaps mapsReflexive lensFlarePathLen extraLayersArray =
 		
 		--if tagHeaderLogger then
 		--(
-		--	logger "Map %: tag_class=%, path_length=%\n" params:#(i, getTagClassInfo mapProps.mapPath.tagClass, mapProps.mapPath.pathLen) logType:#debug
+		--	logger.debug "Map {}: tag_class={}, path_length={}" args:#(i, getTagClassInfo mapProps.mapPath.tagClass, mapProps.mapPath.pathLen)
 		--)
 		
 		append fourStageMaps mapResult
@@ -335,7 +335,7 @@ fn readShaderTransparentChicagoTag filePath =
 	local shaderAttrs = readShaderAttributes()
 	if shaderAttrs == undefined then
 	(		
-		logger "Failed to read shader attributes\n" logType: #error
+		logger.error "Failed to read shader attributes"
 		fclose fileHandle
 		return undefined
 	)
@@ -346,7 +346,7 @@ fn readShaderTransparentChicagoTag filePath =
 	local chicagoShader = readChicagoShaderProperties()
 	if chicagoShader == undefined then
 	(
-		logger "Failed to read chicago shader properties\n" logType:#error
+		logger.error "Failed to read chicago shader properties"
 		fclose fileHandle
 		return undefined
 	)
@@ -356,7 +356,7 @@ fn readShaderTransparentChicagoTag filePath =
 	local reflexives = readReflexiveHeaders()
 	if reflexives == undefined then
 	(
-		logger "Failed to read reflexive headers\n" logType:#error
+		logger.error "Failed to read reflexive headers"
 		fclose fileHandle
 		return undefined
 	)

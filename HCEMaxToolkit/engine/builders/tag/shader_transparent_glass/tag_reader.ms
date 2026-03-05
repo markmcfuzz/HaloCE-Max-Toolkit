@@ -33,20 +33,20 @@ fn readShaderGlassTagHeader =
 	(		
 		if tagClass != gbxmodelFourcc then
 		(			
-			logger "Invalid tag class. Expected: %, Found: %\n" params: #( expectedFourcc, tagClass ) logType: #error
+			logger.error "Invalid tag class. Expected: {}, Found: {}" args:#(expectedFourcc, tagClass)
 			return undefined
 		)
 		-- If it's a gbxmodel, we're likely in preload mode - return undefined silently
 		return undefined
 	)
-	--if tagHeaderLogger then
-	--(		
-	--	logger "\n=== READING TAG HEADER ===\n"
-	--	logger "Tag Class: %\n" params: #( getTagClassInfo tagClass ) logType: #debug
-	--	--logger "Checksum: %\n" params:#(checksum) logType:#debug
-	--	logger "Version: %\n" params: #( version ) logType: #debug
-	--	logger "Engine ID: %\n\n" params: #( getEngineIdInfo engineId ) logType: #debug
-	--)
+    --if tagHeaderLogger then
+    --(
+    --    logger.log "=== READING TAG HEADER ==="
+    --    logger.debug "Tag Class: {}" args:#(getTagClassInfo tagClass)
+    --    logger.debug "Checksum: {}" args:#(checksum)
+    --    logger.debug "Version: {}" args:#(version)
+    --    logger.debug "Engine ID: {}" args:#(getEngineIdInfo engineId)
+    --)
 	local header = returnHeader()
 	header.tagClass = tagClass
 	header.checksum = checksum
@@ -303,7 +303,7 @@ fn readShaderTransparentGlassTag filePath =
 	local shaderAttrs = readShaderAttributes()
 	if shaderAttrs == undefined then
 	(		
-		logger "Failed to read shader attributes\n" logType: #error
+		logger.error "Failed to read shader attributes"
 		fclose fileHandle
 		return undefined
 	)
@@ -314,7 +314,7 @@ fn readShaderTransparentGlassTag filePath =
     local glassShader = readGlassShaderProperties()
     if glassShader == undefined then
     (
-        logger "Failed to read glass shader properties\n" logType: #error
+        logger.error "Failed to read glass shader properties"
         fclose fileHandle
         return undefined
     )
@@ -324,7 +324,7 @@ fn readShaderTransparentGlassTag filePath =
     local backgroundTintProps = readBackgroundTintProperties()
     if backgroundTintProps == undefined then
     (
-        logger "Failed to read background tint properties\n" logType: #error
+        logger.error "Failed to read background tint properties"
         fclose fileHandle
         return undefined
     )
@@ -334,7 +334,7 @@ fn readShaderTransparentGlassTag filePath =
     local reflectionProps = readReflectionProperties()
     if reflectionProps == undefined then
     (
-        logger "Failed to read reflection properties\n" logType: #error
+        logger.error "Failed to read reflection properties"
         fclose fileHandle
         return undefined
     )
@@ -344,7 +344,7 @@ fn readShaderTransparentGlassTag filePath =
     local diffuseProps = readDiffuseProperties()
     if diffuseProps == undefined then
     (
-        logger "Failed to read diffuse properties\n" logType: #error
+        logger.error "Failed to read diffuse properties"
         fclose fileHandle
         return undefined
     )
@@ -354,7 +354,7 @@ fn readShaderTransparentGlassTag filePath =
     local specularProps = readSpecularProperties()
     if specularProps == undefined then
     (
-        logger "Failed to read specular properties\n" logType: #error
+        logger.error "Failed to read specular properties"
         fclose fileHandle
         return undefined
     )
