@@ -117,7 +117,9 @@ fn ImportPhysics =
         return undefined
     )
     
-    logger.info "Opening tag file: '{}'" args:#(substring physicsFile (findString physicsFile "tags\\") -1)
+    local tagsPos = findString physicsFile "tags\\"
+    local displayPath = if tagsPos != undefined then (substring physicsFile tagsPos -1) else (filenameFromPath physicsFile)
+    logger.info "Opening tag file: '{}'" args:#(displayPath)
 
     local setupEndTime = timestamp()
     local setupTime = (setupEndTime - setupStartTime) / 1000.

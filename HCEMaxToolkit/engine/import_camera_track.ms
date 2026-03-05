@@ -99,7 +99,9 @@ fn importCameraTrack =
         return undefined
     )
 
-    logger.info "Opening tag file: '{}'" args:#(substring trakFile (findString trakFile "tags\\") -1)
+    local tagsPos = findString trakFile "tags\\"
+    local displayPath = if tagsPos != undefined then (substring trakFile tagsPos -1) else (filenameFromPath trakFile)
+    logger.info "Opening tag file: '{}'" args:#(displayPath)
 
     local readStartTime = timestamp()
     local trakData = readCameraTrackTag trakFile tagDef

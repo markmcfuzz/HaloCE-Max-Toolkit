@@ -104,7 +104,9 @@ fn ImportCollision =
         return undefined
     )
     
-    logger.log "Opening tag file: '{}'" args:#(substring collisionFile (findString collisionFile "tags\\") -1)
+    local tagsPos = findString collisionFile "tags\\"
+    local displayPath = if tagsPos != undefined then (substring collisionFile tagsPos -1) else (filenameFromPath collisionFile)
+    logger.log "Opening tag file: '{}'" args:#(displayPath)
 
     -- Read collision data using parser
     local readStartTime = timestamp()

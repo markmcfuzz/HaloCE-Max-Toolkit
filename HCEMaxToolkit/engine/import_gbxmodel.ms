@@ -113,7 +113,9 @@ fn ImportGbxModel =
         return undefined
     )
 
-    logger.info "Opening tag file: '{}'" args:#(substring gbxModelFile (findString gbxModelFile "tags\\") -1)
+    local tagsPos = findString gbxModelFile "tags\\"
+    local displayPath = if tagsPos != undefined then (substring gbxModelFile tagsPos -1) else (filenameFromPath gbxModelFile)
+    logger.info "Opening tag file: '{}'" args:#(displayPath)
     
     -- Read GBX model data using parser
     local readStartTime = timestamp()
