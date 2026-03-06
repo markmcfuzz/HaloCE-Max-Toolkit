@@ -348,6 +348,17 @@ fn readReflectionProperties =
 -- Read Tag Reference Paths
 -------------------------------------------------------
 
+-- Helper function to read tag reference path from cached tag
+-- For MCC cached tags, paths are often still stored sequentially despite pathPtr > 0
+fn readTagRefPath pathPtr pathLen =
+(
+    -- Even for cached tags with pathPtr > 0, the paths are typically stored
+    -- sequentially in the file after the tag data, so we just read as a
+    -- null-terminated string from the current position
+    local pathStr = read.nullTerminatedString()
+    return pathStr
+)
+
 fn readTagReferencePaths maps reflection =
 (
     -- For source tags (pathPtr == 0), paths are stored sequentially after ALL tag data
