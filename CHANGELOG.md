@@ -333,3 +333,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Path Utilities:** Fixed toolkit initialization failure in 3ds Max 2023 caused by incompatible `findString` syntax. The function now uses substring slicing instead of start position parameters, ensuring compatibility with 3ds Max 2023 and all newer versions. This resolves the "Argument count error" that prevented `config.ini` creation in the Documents folder.
   - **Import Scripts:** Fixed crash in gbxmodel, camera_track, collision, and physics importers when file path doesn't contain "tags\\" directory. The scripts now safely handle cases where `findString` returns `undefined`, falling back to displaying just the filename instead of causing an "Unable to convert: undefined to type: Integer" error in 3ds Max 2023.
   - Fixed path in macroscript for extract animation tool.
+  - Added missing `readTagRefPath` function for reading shader references in gbxmodel importer.
