@@ -10,8 +10,8 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
-global HALO_SCALE = 100.0
-global BONE_SIZE = 1.0
+global haloScale = 100.0
+global boneSize = 1.0
 
 -------------------------------------------------------
 -- BITFIELD FLAG HELPERS
@@ -144,7 +144,7 @@ fn validateSceneNodes collisionNodes =
 
 fn createFallbackFrameRoot =
 (
-	local nodeObj = Sphere radius:BONE_SIZE pos:[0,0,0] name:"frame root" smooth:on
+	local nodeObj = Sphere radius:boneSize pos:[0,0,0] name:"frame root" smooth:on
 	nodeObj.wirecolor = color 255 255 0
 	
 	logger.warn "Created fallback 'frame root' node (no scene nodes detected)"
@@ -187,8 +187,8 @@ fn createPathfindingSpheres pathfindingSpheres collisionNodes =
 		if sceneNode == undefined then continue
 		
 		-- Parser returns center as Point3, so use it directly
-		local localPos = pfVals[2] * HALO_SCALE  -- center
-		local sphereRadius = pfVals[3] * HALO_SCALE  -- radius
+		local localPos = pfVals[2] * haloScale  -- center
+		local sphereRadius = pfVals[3] * haloScale  -- radius
 		
 		local nodeTransform = sceneNode.transform
 		local worldPos = localPos * nodeTransform
@@ -345,7 +345,7 @@ fn buildBSPGeometry bspData nodeName regionName permutationName materialOffset f
 	for v in bsp.vertices do
 	(
 		-- Direct struct property access - O(1)
-		local localPos = v.point * HALO_SCALE
+		local localPos = v.point * haloScale
 		local worldPos = localPos * nodeTransform
 		append vertArray worldPos
 	)
