@@ -1,21 +1,18 @@
 ------------------------------------------------------------------------------------------------
---	HCE Max Toolkit - Clean CE Tag Parser
---	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)
---
---	Clean rewrite focused on correct CE tag reading order for multi-parent tags
---	
---	CE Tag Layout (multi-parent):
---	[Header 64 bytes]
---	[Object: tagdata → tag-ref paths (null-term) → reflexive data]
---	[Unit: tagdata → tag-ref paths → reflexive data]
---	[Biped: tagdata → tag-ref paths → reflexive data]
---
---	Each parent block is SELF-CONTAINED and sequential
+--	Copyright (C) 2026 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
+--	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--- ======================================
+-----------------------------------------
 -- UTILITY FUNCTIONS
--- ======================================
+-----------------------------------------
 
 -- Calculate the byte size of a block structure for skipping
 fn calculateBlockSize blockDef =
@@ -84,9 +81,9 @@ fn calculateBlockSize blockDef =
 	totalSize
 )
 
--- ======================================
+-----------------------------------------
 -- FIELD READING FUNCTIONS
--- ======================================
+-----------------------------------------
 
 -- Read a single field value based on type
 fn readFieldValue fieldDef &deferredTagRefs &deferredReflexives =
@@ -218,9 +215,9 @@ fn readFieldValue fieldDef &deferredTagRefs &deferredReflexives =
 	value
 )
 
--- ======================================
+-----------------------------------------
 -- BLOCK READING FUNCTIONS
--- ======================================
+-----------------------------------------
 
 --Read a complete tag block (tagdata → tag-refs → reflexives)
 -- Returns: #(entry, deferredTagRefs, deferredReflexives)
@@ -402,9 +399,9 @@ fn readReflexiveBlocks deferredReflexives parentEntry skipBlocks:#() =
 	ok
 )
 
--- ======================================
+-----------------------------------------
 -- PARENT CHAIN HANDLING
--- ======================================
+-----------------------------------------
 
 -- Collect parent chain (deepest first)
 fn collectParentChain tagDef =
@@ -474,9 +471,9 @@ fn readMainBlock tagDef =
 	#(entry, tagDef, deferredTagRefs, deferredReflexives)
 )
 
--- ======================================
+-----------------------------------------
 -- SINGLE TAG READING FUNCTION
--- ======================================
+-----------------------------------------
 
 -- Read a single-level tag (no parents) - for tags like collision geometry, physics, etc.
 fn readTag tagDefOrBlock skipBlocks:#() printData:false =
@@ -525,9 +522,9 @@ fn readRootTagData blockDef skipBlocks:#() =
 	readTag blockDef skipBlocks:skipBlocks
 )
 
--- ======================================
+-----------------------------------------
 -- MAIN TAG READING FUNCTION
--- ======================================
+-----------------------------------------
 
 -- Read a complete tag with CE structure: each parent reads tagdata+reflexives, then all tag-ref strings at end
 fn readTagWithParents tagDef skipBlocks:#() printParents:true printMain:true =
@@ -621,9 +618,9 @@ fn readTagWithParents tagDef skipBlocks:#() printParents:true printMain:true =
 	result
 )
 
--- ======================================
--- PRINT FUNCTION (salvaged from parser.ms)
--- ======================================
+-----------------------------------------
+-- PRINT FUNCTION
+-----------------------------------------
 
 fn printBlockRecursively data blockDef indent:0 =
 (
