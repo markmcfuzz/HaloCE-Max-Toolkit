@@ -475,6 +475,28 @@ struct math
         z = read.floatB()
         d = read.floatB()
         point4 x y z d  -- Return Point4 for plane
+    ),
+	-- Read compressed quaternion component (16-bit signed normalized)
+	fn readQuatComp =
+    (
+        (read.shortB "#signed") / 32767.0
+    ),
+	-- Normalize quaternion components to unit length (returns Point4 with i,j,k,w)
+    fn normalizeQuat qi qj qk qw =
+    (
+        local mag2 = qi*qi + qj*qj + qk*qk + qw*qw
+        if mag2 == 0.0 then return point4 0 0 0 1
+        local inv = 1.0 / sqrt mag2
+        point4 (qi*inv) (qj*inv) (qk*inv) (qw*inv)
+    ),
+    -- Read compressed quaternion (4 components, each 16-bit signed normalized)
+    fn readQuatCompressed =
+    (
+        local qi = readQuatComp()
+        local qj = readQuatComp()
+        local qk = readQuatComp()
+        local qw = readQuatComp()
+        normalizeQuat qi qj qk qw
     )
 )
 
