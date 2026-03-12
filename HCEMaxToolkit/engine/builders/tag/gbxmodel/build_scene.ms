@@ -10,128 +10,177 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
-global HALO_SCALE = 100.0
-global BONE_SIZE = 1.0
+global haloScale = 100.0
+global boneSize = 1.0
 
 -------------------------------------------------------
--- MATERIAL HELPERS
+-- SKELETON DETECTION AND REUSE
 -------------------------------------------------------
---
-fn stringToColor str =
+
+-- Recursive helper function to collect all children in a hierarchy
+-- Must be defined at module level (not nested) due to MaxScript scoping rules
+-- Only collects bones and helpers (skeleton nodes), excludes geometry meshes and Markers
+fn collectAllChildren parent theArray =
 (
-	local hash = 0
-	for i = 1 to str.count do
-	(
-		hash += (bit.charasint str[i]) * (i * 31)
-	)
-	
-	local r = (mod (hash * 73) 156) + 100
-	local g = (mod (hash * 151) 156) + 100
-	local b = (mod (hash * 257) 156) + 100
-	
-	return (color r g b)
+    for child in parent.children do
+    (
+        local childClass = classOf child
+
+        if childClass == BoneGeometry or
+        childClass == Sphere or
+        childClass == Point or
+        childClass == Dummy do
+        append theArray child
+        
+        collectAllChildren child theArray
+    )
 )
 
--------------------------------------------------------
--- MATERIAL CREATION
--------------------------------------------------------
-
-fn createGBXModelMultiMaterial gbxmodelPath shaders gbxModelName =
+-- Check if a bone hierarchy matches the incoming node data
+-- Returns array of existing nodes in correct order if match found, undefined otherwise
+fn findMatchingSkeleton nodeDataArray =
 (
-	if shaders == undefined or shaders.count == 0 then
+	-- Guard clause: check if nodeDataArray is undefined or invalid
+	if nodeDataArray == undefined then
+	(
+		logger.warning "findMatchingSkeleton called with undefined nodeDataArray"
+		return undefined
+	)
+
+	logger.debug "findMatchingSkeleton called with {} nodes"  args:#(nodeDataArray.count)
+	
+	if nodeDataArray.count == 0 then
 		return undefined
 	
-	-- Resolve shader textures using new parser approach
-	local textureResults = resolveAllShaderTextures gbxmodelPath shaders
-	
-	local multiMat = MultiMaterial numSubs:shaders.count
-	multiMat.name = gbxModelName
-	
-	for i = 1 to shaders.count do
+	-- Get the root node name (first node with parentNode == -1)
+	local rootNodeName = undefined
+	for nodeData in nodeDataArray do
 	(
-		local shader = shaders[i]
-		local subMat = StandardMaterial()
-		
-		-- Get shader name from tag reference path
-		local shaderTagRef = getFieldValue shader "shader"
-		local shaderName = "unknown"
-		if shaderTagRef != undefined and shaderTagRef[#path] != undefined then
+		if nodeData.parentNode == -1 then
 		(
-			local pathParts = filterString shaderTagRef[#path] "\\"
-			if pathParts.count > 0 then
-				shaderName = pathParts[pathParts.count]
-		)
-		
-		subMat.name = shaderName
-		subMat.showInViewport = true
-		
-		-- Find corresponding texture result
-		local textureResult = undefined
-		for result in textureResults where result != undefined and result.shaderIndex == (i - 1) do
-		(
-			textureResult = result
+			rootNodeName = nodeData.name
 			exit
 		)
-		
-		-- Apply texture if resolved successfully
-		if textureResult != undefined then
-		(
-			logger.debug "Material '{}': textureFilePath: '{}'" args:#(shaderName, textureResult.textureFilePath)
-		)
-		
-		if textureResult != undefined and textureResult.success and doesFileExist textureResult.textureFilePath then
-		(
-			logger.debug "Applying texture {} to material: '{}'" args:#((getFilenameFile textureResult.textureFilePath + getFilenameType textureResult.textureFilePath), shaderName)
-			local diffuseMap = Bitmaptexture fileName:textureResult.textureFilePath
-			subMat.diffusemap = diffuseMap
-			subMat.showInViewport = true
-			
-			-- For transparent shaders, apply texture to opacity channel
-			local shaderType = textureResult.shaderType
-			if shaderType == "shader_transparent_glass" or \
-				shaderType == "shader_transparent_chicago" or \
-				shaderType == "shader_transparent_chicago_extended" or \
-				shaderType == "shader_transparent_generic" then
-			(
-				local opacityMap = Bitmaptexture fileName:textureResult.textureFilePath
-				opacityMap.alphaSource = 2  -- Use image alpha
-				subMat.opacitymap = opacityMap
-			)
-			else if shaderType == "shader_transparent_meter" or \
-				shaderType == "shader_transparent_water" then
-			(
-				local opacityMap = Bitmaptexture fileName:textureResult.textureFilePath
-				opacityMap.rgbOutput = 1
-				subMat.opacitymap = opacityMap
-			)
-		)
-		else
-		(
-			-- Apply checker pattern for missing textures
-			if textureResult == undefined then
-				logger.warn "Material '{}': No texture result ('applying checker')" args:#(shaderName)
-			else if not textureResult.success then
-				logger.warn "Material '{}': Texture resolution failed ('applying checker')" args:#(shaderName)
-			else if textureResult.textureFilePath == undefined then
-				logger.warn "Material '{}': No texture file path ('applying checker')" args:#(shaderName)
-			else
-				logger.warn "Material '{}': Texture file not found ('applying checker'): {}" args:#(shaderName, textureResult.textureFilePath)
-			
-			local checkerMap = Checker()
-			checkerMap.color1 = color 25 25 25    -- #191919
-			checkerMap.color2 = color 136 136 136  -- #888888
-			checkerMap.coordinates.U_Tiling = 10.0
-			checkerMap.coordinates.V_Tiling = 10.0
-			
-			subMat.diffusemap = checkerMap
-			subMat.showInViewport = true
-		)
-		
-		multiMat[i] = subMat
-		multiMat.names[i] = shaderName
 	)
 	
-	return multiMat
+	logger.info "Root node name: '{}'"  args:#(rootNodeName)
+	
+	if rootNodeName == undefined then
+		return undefined
+	
+	-- Find all potential root nodes in the scene with the same name
+	local potentialRoots = for obj in objects where obj.name == rootNodeName collect obj
+	logger.info "Found {} potential root objects in scene"  args:#(potentialRoots.count)
+	
+	if potentialRoots.count == 0 then
+		return undefined
+	
+	-- For each potential root, collect its hierarchy and check if it matches
+	for rootObj in potentialRoots do
+	(
+		--
+		logger.debug "Checking root object: '{}'"  args:#(rootObj.name)
+		
+		-- Collect all nodes in this hierarchy
+		local hierarchyNodes = #(rootObj)
+		collectAllChildren rootObj hierarchyNodes
+
+		
+		logger.debug "Collected {} nodes in hierarchy"  args:#(hierarchyNodes.count)
+		
+		-- Check if node count matches
+		if hierarchyNodes.count != nodeDataArray.count then
+		(
+			logger.error "Node count mismatch: hierarchy has {}, need {}"  args:#(hierarchyNodes.count, nodeDataArray.count)
+			continue
+		)
+		
+		logger.debug "Node counts match! Starting node matching..." 
+		
+		-- Try to match all nodes by name and parent relationship
+		local orderedNodes = #()
+		local allMatched = true
+		
+		for i = 1 to nodeDataArray.count do
+		(
+			local nodeData = nodeDataArray[i]
+			
+			-- Find node with matching name in hierarchy
+			local foundNode = undefined
+			for node in hierarchyNodes where node.name == nodeData.name do
+			(
+				foundNode = node
+				exit
+			)
+			
+			if foundNode == undefined then
+			(
+				logger.error "Could not find node '{}' in hierarchy"  args:#(nodeData.name)
+				allMatched = false
+				exit
+			)
+			logger.debug "Node {}: Found '{}'"  args:#(i, nodeData.name)
+			-- Verify parent relationship
+			local parentIndex = nodeData.parentNode
+			if parentIndex >= 0 and parentIndex < nodeDataArray.count then
+			(
+				-- Get expected parent name from node data
+				local expectedParentName = nodeDataArray[parentIndex + 1].name
+				
+				-- Check if found node's parent matches
+				if foundNode.parent == undefined then
+				(
+					logger.error "Node '{}' has no parent, expected '{}'"  args:#(nodeData.name, expectedParentName)
+					allMatched = false
+					exit
+				)
+				else if foundNode.parent.name != expectedParentName then
+				(
+					logger.error "Node '{}' parent is '{}', expected '{}'"  args:#(nodeData.name, foundNode.parent.name, expectedParentName)
+					allMatched = false
+					exit
+				)
+			)
+			else if parentIndex == -1 then
+			(
+				-- Root node should have no parent
+				if foundNode.parent != undefined then
+				(
+					logger.error "Root node '{}' has parent '{}'"  args:#(nodeData.name, foundNode.parent.name)
+					allMatched = false
+					exit
+				)
+			)
+			append orderedNodes foundNode
+		)
+		-- If all nodes matched, return the ordered array
+		if allMatched then
+		(
+			logger.debug "Found matching skeleton: {} nodes"  args:#(orderedNodes.count)
+			return orderedNodes
+		)
+	)
+	return undefined
+)
+
+-- Show dialog asking user if they want to reuse existing skeleton
+-- Returns true if user wants to reuse, false otherwise
+fn askReuseSkeletonDialog =
+(
+	local result = queryBox "Skeleton detected in the scene!\n\nWould you like to reuse the existing bones?" \
+		title:"Reuse Skeleton?" \
+		beep:false
+	
+	return result
+)
+
+fn askReuseMarkersDialog =
+(
+	local result = queryBox "Markers detected in the scene!\n\nWould you like to reuse the existing markers?" \
+		title:"Reuse Markers?" \
+		beep:false
+	
+	return result
 )
 
 -------------------------------------------------------
@@ -144,7 +193,7 @@ fn createGbxmodelNode nodeData nodeIndex allNodeData nodesLayer =
 	
 	-- Create ALL nodes as spheres at origin (matches old script approach)
 	-- Bone nodes will be converted to actual bones in a later pass
-	local nodeObj = Sphere radius:BONE_SIZE pos:[0,0,0] name:nodeName smooth:on
+	local nodeObj = Sphere radius:boneSize pos:[0,0,0] name:nodeName smooth:on
 	
 	-- Use isNodeObject from utils to check if this should be a bone
 	if isNodeObject nodeObj then
@@ -186,7 +235,7 @@ fn linkNodeHierarchy createdNodes nodeDataArray nodesLayer =
 		local rotation = nodeData.rotation  -- Already a quaternion value
 		
 		-- Scale translation from Halo units to 3ds Max units
-		local scaledTranslation = translation * HALO_SCALE
+		local scaledTranslation = translation * haloScale
 		
 		-- Apply quaternion directly (NO negation for spheres/helpers - only bones get negated)
 		local rotQuat = normalize rotation
@@ -222,19 +271,19 @@ fn linkNodeHierarchy createdNodes nodeDataArray nodesLayer =
 				if childObj != undefined then
 					boneEndPos = childObj.pos  -- Use world position
 				else
-					boneEndPos = nodeWorldPos + [BONE_SIZE, 0, 0]
+					boneEndPos = nodeWorldPos + [boneSize, 0, 0]
 			)
 			else
 			(
-				boneEndPos = nodeWorldPos + [BONE_SIZE, 0, 0]
+				boneEndPos = nodeWorldPos + [boneSize, 0, 0]
 			)
 			
 			-- Create bone using WORLD positions
 			local myBone = BoneSys.createBone nodeWorldPos boneEndPos [0, 0, 1]
 			myBone.name = nodeName
 			myBone.wirecolor = color 255 180 6 --#ffb406
-			myBone.width = BONE_SIZE
-			myBone.height = BONE_SIZE
+			myBone.width = boneSize
+			myBone.height = boneSize
 			myBone.setBoneEnable false 0  -- Disable bone scaling on X axis
 			myBone.setBoneEnable false 1  -- Disable bone scaling on Y axis  
 			myBone.setBoneEnable false 2  -- Disable bone scaling on Z axis
@@ -250,39 +299,39 @@ fn linkNodeHierarchy createdNodes nodeDataArray nodesLayer =
 			if lowerName == "bip01 spine1" then
 			(
 				myBone.length *= 0.8
-				myBone.width = BONE_SIZE
-				myBone.height = BONE_SIZE / 2.0
+				myBone.width = boneSize
+				myBone.height = boneSize / 2.0
 				myBone.taper = -180
 			)
 			else if lowerName == "bip01 pelvis" or lowerName == "bip01 spine" then
 			(
-				myBone.width = BONE_SIZE
-				myBone.height = BONE_SIZE / 2.0
+				myBone.width = boneSize
+				myBone.height = boneSize / 2.0
 				myBone.taper = -180
 			)
 			else if lowerName == "frame bone24" then
 			(
-				myBone.length = BONE_SIZE * 4
-				myBone.width = BONE_SIZE * 4
-				myBone.height = BONE_SIZE * 4
+				myBone.length = boneSize * 4
+				myBone.width = boneSize * 4
+				myBone.height = boneSize * 4
 				myBone.taper = 100
 			)
 			else if lowerName == "frame l wriste" or lowerName == "frame r wriste" then
 			(
 				myBone.length = 2.8
-				myBone.width = BONE_SIZE
-				myBone.height = BONE_SIZE * 0.3
+				myBone.width = boneSize
+				myBone.height = boneSize * 0.3
 				myBone.taper = -270
 			)
 			else if lowerName == "frame l forearm" or lowerName == "frame r forearm" then
 			(
-				myBone.width = BONE_SIZE * 2
-				myBone.height = BONE_SIZE * 2
+				myBone.width = boneSize * 2
+				myBone.height = boneSize * 2
 			)
 			else if lowerName == "frame l upperarm" or lowerName == "frame r upperarm" then
 			(
-				myBone.width = BONE_SIZE * 3
-				myBone.height = BONE_SIZE * 3
+				myBone.width = boneSize * 3
+				myBone.height = boneSize * 3
 			)
 			
 			-- Delete old object and replace in array
@@ -304,7 +353,7 @@ fn linkNodeHierarchy createdNodes nodeDataArray nodesLayer =
 			
 			-- Re-apply transforms (matches old script lines 1063-1064 exactly)
 			-- IMPORTANT: Negate x, y, z components of quaternion for bones (old importer does this)
-			local scaledTranslation = translation * HALO_SCALE
+			local scaledTranslation = translation * haloScale
 			local rotQuat = normalize (quat (-rotation.x) (-rotation.y) (-rotation.z) rotation.w)
 			in coordsys parent myBone.rotation = rotQuat
 			in coordsys parent myBone.pos = scaledTranslation
@@ -342,6 +391,31 @@ fn createGBXModelNodes nodes =
 	
 	local createdNodes = #()
 	
+	-- Check if a matching skeleton already exists in the scene
+	logger.info "Checking for matching skeleton..."
+	local existingSkeleton = findMatchingSkeleton gbxNodes
+	
+	if existingSkeleton != undefined then
+	(
+		logger.info "Found existing skeleton! Asking user..."
+		-- Ask user if they want to reuse the existing skeleton
+		local reuseExisting = askReuseSkeletonDialog()
+		
+		if reuseExisting then
+		(
+			logger.info "Reusing existing skeleton from scene"
+			return existingSkeleton
+		)
+		else
+		(
+			logger.info "Creating new skeleton"
+		)
+	)
+	else
+	(
+		logger.info "No matching skeleton found, creating new one"
+	)
+
 	-- First pass: create all nodes as spheres
 	for i = 1 to gbxNodes.count do
 	(
@@ -396,6 +470,46 @@ fn createGBXModelMarkers regions gbxNodes createdNodes =
 		)
 	)
 	
+	-- Check if any markers from the incoming data already exist
+	local hasExistingMarkers = false
+	if existingMarkers.count > 0 then
+	(
+		for region in gbxRegions do
+		(
+			for permutation in region.permutations do
+			(
+				for marker in permutation.localMarkers do
+				(
+					local markerNameWithPrefix = "#" + marker.name
+					if existingMarkers[markerNameWithPrefix] != undefined then
+					(
+						hasExistingMarkers = true
+						exit
+					)
+				)
+				if hasExistingMarkers then exit
+			)
+			if hasExistingMarkers then exit
+		)
+	)
+	
+	-- Ask user if they want to reuse existing markers
+	local reuseExisting = false
+	if hasExistingMarkers then
+	(
+		logger.info "Found existing markers! Asking user..."
+		reuseExisting = askReuseMarkersDialog()
+		
+		if reuseExisting then
+		(
+			logger.info "User chose to reuse existing markers"
+		)
+		else
+		(
+			logger.info "User chose to create new markers (duplicates allowed)"
+		)
+	)
+	
 	for region in gbxRegions do
 	(
 		for permutation in region.permutations do
@@ -412,7 +526,7 @@ fn createGBXModelMarkers regions gbxNodes createdNodes =
 				
 				-- Fast duplicate check using hashtable (O(1) instead of O(n))
 				local existingMarker = existingMarkers[markerNameWithPrefix]
-				if existingMarker != undefined then
+				if existingMarker != undefined and reuseExisting then
 				(
 					append createdMarkers existingMarker
 					continue
@@ -443,7 +557,7 @@ fn createGBXModelMarkers regions gbxNodes createdNodes =
 						
 						in coordsys parent (
 							markerObj.rotation = rotQuat
-							markerObj.pos = translation * HALO_SCALE
+							markerObj.pos = translation * haloScale
 						)
 					)
 				)
@@ -533,7 +647,7 @@ fn buildPartMesh fileHandle geometryIndex partIndex partStruct materialObj uScal
 			local vert = vertices[v]
 			
 			-- Position (already Point3)
-			vertexPositions[v] = vert.position * HALO_SCALE
+			vertexPositions[v] = vert.position * haloScale
 			
 			-- Decompress normal from packed uint32
 			normals[v] = decompressNormal vert.normal
@@ -574,7 +688,7 @@ fn buildPartMesh fileHandle geometryIndex partIndex partStruct materialObj uScal
 			local vert = vertices[v]
 			
 			-- Position (already Point3)
-			vertexPositions[v] = vert.position * HALO_SCALE
+			vertexPositions[v] = vert.position * haloScale
 			
 			-- Normal (already Vector3D)
 			normals[v] = normalize [vert.normal.x, vert.normal.y, vert.normal.z]
@@ -936,6 +1050,108 @@ fn createGBXModelGeometry regions geometries materialObj createdNodes =
 	)
 	
 	return createdMeshes
+)
+
+-------------------------------------------------------
+-- MATERIAL CREATION
+-------------------------------------------------------
+
+fn createGBXModelMultiMaterial gbxmodelPath shaders gbxModelName =
+(
+	if shaders == undefined or shaders.count == 0 then
+		return undefined
+	
+	-- Resolve shader textures using new parser approach
+	local textureResults = resolveAllShaderTextures gbxmodelPath shaders
+	
+	local multiMat = MultiMaterial numSubs:shaders.count
+	multiMat.name = gbxModelName
+	
+	for i = 1 to shaders.count do
+	(
+		local shader = shaders[i]
+		local subMat = StandardMaterial()
+		
+		-- Get shader name from tag reference path
+		local shaderTagRef = getFieldValue shader "shader"
+		local shaderName = "unknown"
+		if shaderTagRef != undefined and shaderTagRef[#path] != undefined then
+		(
+			local pathParts = filterString shaderTagRef[#path] "\\"
+			if pathParts.count > 0 then
+				shaderName = pathParts[pathParts.count]
+		)
+		
+		subMat.name = shaderName
+		subMat.showInViewport = true
+		
+		-- Find corresponding texture result
+		local textureResult = undefined
+		for result in textureResults where result != undefined and result.shaderIndex == (i - 1) do
+		(
+			textureResult = result
+			exit
+		)
+		
+		-- Apply texture if resolved successfully
+		if textureResult != undefined then
+		(
+			logger.debug "Material '{}': textureFilePath: '{}'" args:#(shaderName, textureResult.textureFilePath)
+		)
+		
+		if textureResult != undefined and textureResult.success and doesFileExist textureResult.textureFilePath then
+		(
+			logger.debug "Applying texture {} to material: '{}'" args:#((getFilenameFile textureResult.textureFilePath + getFilenameType textureResult.textureFilePath), shaderName)
+			local diffuseMap = Bitmaptexture fileName:textureResult.textureFilePath
+			subMat.diffusemap = diffuseMap
+			subMat.showInViewport = true
+			
+			-- For transparent shaders, apply texture to opacity channel
+			local shaderType = textureResult.shaderType
+			if shaderType == "shader_transparent_glass" or \
+				shaderType == "shader_transparent_chicago" or \
+				shaderType == "shader_transparent_chicago_extended" or \
+				shaderType == "shader_transparent_generic" then
+			(
+				local opacityMap = Bitmaptexture fileName:textureResult.textureFilePath
+				opacityMap.alphaSource = 2  -- Use image alpha
+				subMat.opacitymap = opacityMap
+			)
+			else if shaderType == "shader_transparent_meter" or \
+				shaderType == "shader_transparent_water" then
+			(
+				local opacityMap = Bitmaptexture fileName:textureResult.textureFilePath
+				opacityMap.rgbOutput = 1
+				subMat.opacitymap = opacityMap
+			)
+		)
+		else
+		(
+			-- Apply checker pattern for missing textures
+			if textureResult == undefined then
+				logger.warn "Material '{}': No texture result ('applying checker')" args:#(shaderName)
+			else if not textureResult.success then
+				logger.warn "Material '{}': Texture resolution failed ('applying checker')" args:#(shaderName)
+			else if textureResult.textureFilePath == undefined then
+				logger.warn "Material '{}': No texture file path ('applying checker')" args:#(shaderName)
+			else
+				logger.warn "Material '{}': Texture file not found ('applying checker'): {}" args:#(shaderName, textureResult.textureFilePath)
+			
+			local checkerMap = Checker()
+			checkerMap.color1 = color 25 25 25    -- #191919
+			checkerMap.color2 = color 136 136 136  -- #888888
+			checkerMap.coordinates.U_Tiling = 10.0
+			checkerMap.coordinates.V_Tiling = 10.0
+			
+			subMat.diffusemap = checkerMap
+			subMat.showInViewport = true
+		)
+		
+		multiMat[i] = subMat
+		multiMat.names[i] = shaderName
+	)
+	
+	return multiMat
 )
 
 -------------------------------------------------------
