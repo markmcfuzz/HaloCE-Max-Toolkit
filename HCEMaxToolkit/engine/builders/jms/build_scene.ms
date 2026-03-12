@@ -15,8 +15,8 @@
 -------------------------------------------------------
 
 -- JMS files already use 3ds Max units (no scaling needed)
-global HALO_SCALE = 1.0
-global BONE_SIZE = 1.0
+global haloScale = 1.0
+global boneSize = 1.0
 
 -------------------------------------------------------
 -- SKELETON DETECTION AND REUSE
@@ -152,6 +152,15 @@ fn askReuseSkeletonDialog =
 	return result
 )
 
+fn askReuseMarkersDialog =
+(
+	local result = queryBox "Markers detected in the scene!\n\nWould you like to reuse the existing markers?" \
+		title:"Reuse Markers?" \
+		beep:false
+	
+	return result
+)
+
 -------------------------------------------------------
 -- NODE/BONE CREATION
 -------------------------------------------------------
@@ -231,7 +240,7 @@ fn createJmsNode nodeData nodeIndex parentIndices =
 	local nodeName = nodeData.nodeName
 	
 	-- Create node as sphere at origin
-	local nodeObj = Sphere radius:BONE_SIZE pos:[0,0,0] name:nodeName smooth:on
+	local nodeObj = Sphere radius:boneSize pos:[0,0,0] name:nodeName smooth:on
 	
 	-- Color based on whether it's a bone node
 	if isNodeObject nodeObj then
@@ -275,7 +284,7 @@ fn linkAndTransformNodes createdNodes jmsData parentIndices =
 		local rotation = nodeData.nodeRotation
 		
 		-- Don't scale translation (JMS already uses 3ds Max units)
-		local scaledTranslation = translation * HALO_SCALE
+		local scaledTranslation = translation * haloScale
 		
 		-- Apply transform in parent-local space (matching gbxmodel importer)
 		in coordsys parent nodeObj.rotation = rotation
@@ -299,7 +308,7 @@ fn linkAndTransformNodes createdNodes jmsData parentIndices =
 			
 			-- Calculate bone end position in world space using rotation
 			-- This ensures the bone direction matches the desired rotation
-			local boneLength = BONE_SIZE
+			local boneLength = boneSize
 			local firstChildIdx = nodeData.firstChildNodeIndex
 			
 			-- If there's a child, calculate distance to it
@@ -325,8 +334,8 @@ fn linkAndTransformNodes createdNodes jmsData parentIndices =
 			local myBone = BoneSys.createBone nodeWorldPos boneEndPos [0, 0, 1]
 			myBone.name = nodeData.nodeName
 			myBone.wirecolor = color 255 180 6 --#ffb406
-			myBone.width = BONE_SIZE
-			myBone.height = BONE_SIZE
+			myBone.width = boneSize
+			myBone.height = boneSize
 			myBone.setBoneEnable false 0
 			myBone.setBoneEnable false 1
 			myBone.setBoneEnable false 2
@@ -342,39 +351,39 @@ fn linkAndTransformNodes createdNodes jmsData parentIndices =
 			if lowerName == "bip01 spine1" then
 			(
 				myBone.length *= 0.8
-				myBone.width = BONE_SIZE
-				myBone.height = BONE_SIZE / 2.0
+				myBone.width = boneSize
+				myBone.height = boneSize / 2.0
 				myBone.taper = -180
 			)
 			else if lowerName == "bip01 pelvis" or lowerName == "bip01 spine" then
 			(
-				myBone.width = BONE_SIZE
-				myBone.height = BONE_SIZE / 2.0
+				myBone.width = boneSize
+				myBone.height = boneSize / 2.0
 				myBone.taper = -180
 			)
 			else if lowerName == "frame bone24" then
 			(
-				myBone.length = BONE_SIZE * 4
-				myBone.width = BONE_SIZE * 4
-				myBone.height = BONE_SIZE * 4
+				myBone.length = boneSize * 4
+				myBone.width = boneSize * 4
+				myBone.height = boneSize * 4
 				myBone.taper = 100
 			)
 			else if lowerName == "frame l wriste" or lowerName == "frame r wriste" then
 			(
 				myBone.length = 2.8
-				myBone.width = BONE_SIZE
-				myBone.height = BONE_SIZE * 0.3
+				myBone.width = boneSize
+				myBone.height = boneSize * 0.3
 				myBone.taper = -270
 			)
 			else if lowerName == "frame l forearm" or lowerName == "frame r forearm" then
 			(
-				myBone.width = BONE_SIZE * 2
-				myBone.height = BONE_SIZE * 2
+				myBone.width = boneSize * 2
+				myBone.height = boneSize * 2
 			)
 			else if lowerName == "frame l upperarm" or lowerName == "frame r upperarm" then
 			(
-				myBone.width = BONE_SIZE * 3
-				myBone.height = BONE_SIZE * 3
+				myBone.width = boneSize * 3
+				myBone.height = boneSize * 3
 			)
 			
 			-- Delete the sphere helper
@@ -402,7 +411,7 @@ fn linkAndTransformNodes createdNodes jmsData parentIndices =
 			local translation = nodeData.nodeTranslation
 			local negatedQuat = quat (-rotation.x) (-rotation.y) (-rotation.z) rotation.w
 			in coordsys parent myBone.rotation = negatedQuat
-			in coordsys parent myBone.pos = translation * HALO_SCALE
+			in coordsys parent myBone.pos = translation * haloScale
 		)
 	)
 )
@@ -463,14 +472,62 @@ fn buildMarkers jmsData createdNodes =
 	
 	local createdMarkers = #()
 	
+	-- Check if any markers from the incoming data already exist in the scene
+	local hasExistingMarkers = false
 	for i = 1 to jmsData.markerCount do
 	(
 		local markerData = jmsData.markers[i]
 		local markerName = markerData.markerName
 		local parentIdx = markerData.parentNodeIndex
-		local translation = markerData.markerTranslation * HALO_SCALE
+		
+		-- Determine marker prefix
+		local prefix = if (findString (toLower markerName) "mp") != undefined then "+" else "#"
+		local markerNameWithPrefix = prefix + markerName
+		
+		-- Check if this marker exists on its parent node
+		if parentIdx >= 0 and parentIdx < createdNodes.count then
+		(
+			local parentNode = createdNodes[parentIdx + 1]
+			if parentNode != undefined then
+			(
+				for child in parentNode.children do
+				(
+					if child.name == markerNameWithPrefix then
+					(
+						hasExistingMarkers = true
+						exit
+					)
+				)
+			)
+		)
+		if hasExistingMarkers then exit
+	)
+	
+	-- Ask user if they want to reuse existing markers
+	local reuseExisting = false
+	if hasExistingMarkers then
+	(
+		logger.info "Found existing markers! Asking user..."
+		reuseExisting = askReuseMarkersDialog()
+		
+		if reuseExisting then
+		(
+			logger.info "User chose to reuse existing markers"
+		)
+		else
+		(
+			logger.info "User chose to create new markers (duplicates allowed)"
+		)
+	)
+	
+	for i = 1 to jmsData.markerCount do
+	(
+		local markerData = jmsData.markers[i]
+		local markerName = markerData.markerName
+		local parentIdx = markerData.parentNodeIndex
+		local translation = markerData.markerTranslation * haloScale
 		local rotation = markerData.markerRotation
-		local radius = markerData.markerRadius * HALO_SCALE
+		local radius = markerData.markerRadius * haloScale
 		
 		-- Determine marker prefix: "+" if name contains "mp", otherwise "#"
 		local prefix = if (findString (toLower markerName) "mp") != undefined then "+" else "#"
@@ -496,8 +553,8 @@ fn buildMarkers jmsData createdNodes =
 			)
 		)
 		
-		-- Skip creating this marker if it already exists
-		if markerExists then
+		-- Skip creating this marker if it already exists AND user chose to reuse
+		if markerExists and reuseExisting then
 			continue
 		
 		-- Create Halo marker helper
@@ -568,7 +625,7 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 	for i = 1 to jmsData.vertexCount do
 	(
 		local vert = jmsData.vertices[i]
-		vertPositions[i] = vert.position * HALO_SCALE
+		vertPositions[i] = vert.position * haloScale
 		vertNormals[i] = normalize vert.normal
 		vertUVs[i] = [vert.texturePos[1], vert.texturePos[2], 0]
 	)
