@@ -16,19 +16,19 @@
 -------------------------------------------------------
 
 -- Animation type field values
-ANIM_TYPE_BASE = 0
-ANIM_TYPE_OVERLAY = 1
-ANIM_TYPE_REPLACEMENT = 2
+animTypeBase = 0
+animTypeOverlay = 1
+animTypeReplacement = 2
 
 -- Frame info type field values
-FRAME_INFO_NONE = 0
-FRAME_INFO_DX_DY = 1
-FRAME_INFO_DX_DY_DYAW = 2
-FRAME_INFO_DX_DY_DZ_DYAW = 3
+frameInfoNone = 0
+frameInfoDxDy = 1
+frameInfoDxDyDyaw = 2
+frameInfoDxDyDzDyaw = 3
 
 -- Animation flag bits (bit.get index, 1-based)
-ANIM_FLAG_BIT_COMPRESSED = 1
-ANIM_FLAG_BIT_WORLD_RELATIVE = 2
+animFlagCompressed = 1
+animFlagWorldRelative = 2
 
 -------------------------------------------------------
 -- HELPERS
@@ -59,52 +59,17 @@ fn getNodeFlagBit flagArray nodeIndex =
 -- type/frameInfoType/flags combination.
 fn getAnimExtension animType frameInfoType animFlags =
 (
-    local worldRelative = bit.get animFlags ANIM_FLAG_BIT_WORLD_RELATIVE
+    local worldRelative = bit.get animFlags animFlagWorldRelative
     case of
     (
-        (animType == ANIM_TYPE_REPLACEMENT):                                               "JMR"
-        (animType == ANIM_TYPE_OVERLAY):                                                   "JMO"
-        (animType == ANIM_TYPE_BASE and frameInfoType == FRAME_INFO_NONE and worldRelative): "JMW"
-        (animType == ANIM_TYPE_BASE and frameInfoType == FRAME_INFO_DX_DY):                "JMA"
-        (animType == ANIM_TYPE_BASE and frameInfoType == FRAME_INFO_DX_DY_DYAW):           "JMT"
-        (animType == ANIM_TYPE_BASE and frameInfoType == FRAME_INFO_DX_DY_DZ_DYAW):        "JMZ"
+        (animType == animTypeReplacement):                                               "JMR"
+        (animType == animTypeOverlay):                                                   "JMO"
+        (animType == animTypeBase and frameInfoType == frameInfoNone and worldRelative): "JMW"
+        (animType == animTypeBase and frameInfoType == frameInfoDxDy):                "JMA"
+        (animType == animTypeBase and frameInfoType == frameInfoDxDyDyaw):           "JMT"
+        (animType == animTypeBase and frameInfoType == frameInfoDxDyDzDyaw):        "JMZ"
         default:                                                                            "JMM"
     )
-)
-
--------------------------------------------------------
--- BINARY READERS (big-endian, direct file handle)
--------------------------------------------------------
-
--- Read one big-endian signed short, return as normalised float (/32767).
--- Used for packed quaternion components stored as int16.
-fn readQuatComp fileHandle =
-(
-    local b1 = readByte fileHandle #unsigned
-    local b2 = readByte fileHandle #unsigned
-    local v  = b1 * 256 + b2
-    if v > 32768 then v = v - 65536
-    v as float / 32767.0
-)
-
--- Read one big-endian float (4 bytes, IEEE 754).
-fn readFloatBE fileHandle =
-(
-    local b1 = readByte fileHandle #unsigned
-    local b2 = readByte fileHandle #unsigned
-    local b3 = readByte fileHandle #unsigned
-    local b4 = readByte fileHandle #unsigned
-    if b4 == undefined then return 0.0
-    bit.intAsFloat (b1 * 16777216 + b2 * 65536 + b3 * 256 + b4)
-)
-
--- Normalise a quaternion given its four components; return #(i,j,k,w).
-fn normaliseQuat qi qj qk qw =
-(
-    local mag2 = qi*qi + qj*qj + qk*qk + qw*qw
-    if mag2 == 0.0 then return #(0.0, 0.0, 0.0, 1.0)
-    local inv = 1.0 / sqrt mag2
-    #(qi*inv, qj*inv, qk*inv, qw*inv)
 )
 
 -------------------------------------------------------
@@ -117,23 +82,23 @@ fn normaliseQuat qi qj qk qw =
 fn readFrameInfoData fileHandle frameCount frameInfoType =
 (
     local frameInfo = #()
-    if frameInfoType == FRAME_INFO_NONE then return frameInfo
+    if frameInfoType == frameInfoNone then return frameInfo
 
     for f = 1 to frameCount do
     (
-        local dx   = readFloatBE fileHandle * 100.0
-        local dy   = readFloatBE fileHandle * 100.0
+        local dx   = read.floatB() * 100.0
+        local dy   = read.floatB() * 100.0
         local dz   = 0.0
         local dyaw = 0.0
 
-        if frameInfoType == FRAME_INFO_DX_DY_DYAW then
+        if frameInfoType == frameInfoDxDyDyaw then
         (
-            dyaw = readFloatBE fileHandle
+            dyaw = read.floatB()
         )
-        else if frameInfoType == FRAME_INFO_DX_DY_DZ_DYAW then
+        else if frameInfoType == frameInfoDxDyDzDyaw then
         (
-            dz   = readFloatBE fileHandle * 100.0
-            dyaw = readFloatBE fileHandle
+            dz   = read.floatB() * 100.0
+            dyaw = read.floatB()
         )
 
         append frameInfo #(dx, dy, dz, dyaw)
@@ -152,32 +117,28 @@ fn readDefaultData fileHandle nodeCount transFlags rotFlags scaleFlags =
     for n = 1 to nodeCount do
     (
         local trans = [0.0, 0.0, 0.0]
-        local rot   = #(0.0, 0.0, 0.0, 1.0)
+        local rot = point4 0 0 0 1
         local scale = 1.0
 
         -- Rotation first (tag layout matches old importer order)
         if not (getNodeFlagBit rotFlags n) then
         (
-            local qi = readQuatComp fileHandle
-            local qj = readQuatComp fileHandle
-            local qk = readQuatComp fileHandle
-            local qw = readQuatComp fileHandle
-            rot = normaliseQuat qi qj qk qw
+            rot = math.readQuatCompressed()
         )
 
         -- Translation
         if not (getNodeFlagBit transFlags n) then
         (
-            local x = readFloatBE fileHandle * 100.0
-            local y = readFloatBE fileHandle * 100.0
-            local z = readFloatBE fileHandle * 100.0
+            local x = read.floatB() * 100.0
+            local y = read.floatB() * 100.0
+            local z = read.floatB() * 100.0
             trans = [x, y, z]
         )
 
         -- Scale
         if not (getNodeFlagBit scaleFlags n) then
         (
-            scale = readFloatBE fileHandle
+            scale = read.floatB()
         )
 
         append defaults #(trans, rot, scale)
@@ -203,31 +164,27 @@ fn readFrameData fileHandle nodeCount frameCount transFlags rotFlags scaleFlags 
             local transD = defaults[n][1]
             local trans  = [transD.x, transD.y, transD.z]
             local rotD   = defaults[n][2]
-            local rot    = #(rotD[1], rotD[2], rotD[3], rotD[4])
+            local rot    = rotD
             local scale  = defaults[n][3]
         if scale == undefined then scale = 1.0
             if getNodeFlagBit rotFlags n then
             (
-                local qi = readQuatComp fileHandle
-                local qj = readQuatComp fileHandle
-                local qk = readQuatComp fileHandle
-                local qw = readQuatComp fileHandle
-                rot = normaliseQuat qi qj qk qw
+                rot = math.readQuatCompressed()
             )
 
             -- Translation
             if getNodeFlagBit transFlags n then
             (
-                local x = readFloatBE fileHandle * 100.0
-                local y = readFloatBE fileHandle * 100.0
-                local z = readFloatBE fileHandle * 100.0
+                local x = read.floatB() * 100.0
+                local y = read.floatB() * 100.0
+                local z = read.floatB() * 100.0
                 trans = [x, y, z]
             )
 
             -- Scale
             if getNodeFlagBit scaleFlags n then
             (
-                scale = readFloatBE fileHandle
+                scale = read.floatB()
             )
 
             append frameNodes #(trans, rot, scale)
@@ -308,7 +265,7 @@ fn findIdleAnimForOverlay overlayName animationsBlock =
     (
         local ae    = animationsBlock[i]
         local aType = ae.type
-        if aType != ANIM_TYPE_BASE then continue
+        if aType != animTypeBase then continue
 
         local aName = ae.name as string
         if (findString aName "idle") == undefined then continue
@@ -445,6 +402,7 @@ fn extractModelAnimations tagPath tagDef =
         logger.error "Cannot open tag file: {}" args:#(tagPath)
         return false
     )
+    setCurrentFileHandle fileHandle
 
     local totalStartTime = timestamp()
 
@@ -563,7 +521,7 @@ fn extractModelAnimations tagPath tagDef =
         local scaleFlags    = animEntry.nodeScaleFlagData
 
         -- Skip compressed animations (decompression not yet implemented)
-        if bit.get animFlags ANIM_FLAG_BIT_COMPRESSED then
+        if bit.get animFlags animFlagCompressed then
         (
             logger.warn "Skipping '{}': compressed data not yet supported." args:#(animName)
             skipped += 1
@@ -597,7 +555,7 @@ fn extractModelAnimations tagPath tagDef =
 
         -- Read frame info
         local frameInfo = #()
-        if frameInfoSize > 0 and frameInfoType != FRAME_INFO_NONE then
+        if frameInfoSize > 0 and frameInfoType != frameInfoNone then
         (
             fseek fileHandle frameInfoFileOff #seek_set
             frameInfo = readFrameInfoData fileHandle frameCount frameInfoType
@@ -607,7 +565,7 @@ fn extractModelAnimations tagPath tagDef =
         -- The overlay tag stores delta transforms relative to identity.
         -- We compose every frame: cTrans = idleTrans + overlayDelta, cRot = idleRot * overlayDelta.
         local idleBaseFrame = undefined
-        if animType == ANIM_TYPE_OVERLAY then
+        if animType == animTypeOverlay then
         (
             local idleIdx = findIdleAnimForOverlay animName animationsBlock
             if idleIdx != undefined then
@@ -676,7 +634,7 @@ fn extractModelAnimations tagPath tagDef =
         local keyframes = #()
 
         -- OVERLAY: prepend the idle base as frame 0 so the import starts at the rest pose.
-        if animType == ANIM_TYPE_OVERLAY then
+        if animType == animTypeOverlay then
         (
             -- Frame 0: the base pose (idle first frame, or animation defaults as fallback)
             local baseSource = if idleBaseFrame != undefined then idleBaseFrame else defaults
@@ -709,7 +667,7 @@ fn extractModelAnimations tagPath tagDef =
         -- See composeOverlayWithBase for the per-component conventions.
         for f = 1 to frameCount do
         (
-            local frameData = if (animType == ANIM_TYPE_OVERLAY and idleBaseFrame != undefined) then \
+            local frameData = if (animType == animTypeOverlay and idleBaseFrame != undefined) then \
                 (composeOverlayWithBase idleBaseFrame frames[f] animNodeCount transFlags rotFlags scaleFlags) \
                 else frames[f]
 
@@ -728,7 +686,7 @@ fn extractModelAnimations tagPath tagDef =
 
         -- BASE / REPLACEMENT: append a looping base frame
         -- (copy of frame[1] with the full accumulated frame-info offset applied)
-        if animType == ANIM_TYPE_BASE or animType == ANIM_TYPE_REPLACEMENT then
+        if animType == animTypeBase or animType == animTypeReplacement then
         (
             append keyframes (buildFrameKeyframe frames[1] animNodeCount \
                 accumX accumY accumZ accumYaw)
