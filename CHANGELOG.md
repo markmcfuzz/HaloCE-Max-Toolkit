@@ -320,13 +320,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reorganized project structure.
 - Replaced legacy logging calls with a new structured logging system supporting log levels (info, warning, error, debug, trace) and log file output configuration via `config.ini`.
 - Export camera track tool was removed for now, it will be reimplemented in the next update.
+- **Model Animations Extractor Tool:**
+  - Use read functions in read_utils for better code reuse and maintainability.
+  - Renamed constants for better readability and consistency.
 ### Added
+- **GBX/Model Importer:**
+  - Reuses existing markers in the scene. A dialog prompts you to confirm whether to reuse them.
 - **Model Animations Extractor Tool:**
   - Extracts `.model_animations` tags to JMA-family source files (`.JMA`, `.JMO`, `.JMM`, etc.).
   - Supports overlay fixed animations.
 - **Global** 
   - `config.ini` for logging and performance configuration.
     - Includes `skip_uncompressed_vertices` option (enabled by default).
+- **JMS Importer:**
+  - Reuse existing markers in scene. A dialog prompts you to confirm whether to reuse them.
 ### Fixed
 - **GBX/Model Importer:** 
   - Improved import performance with enable `skipping uncompressed vertices` (up to 68% faster).
@@ -334,3 +341,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Import Scripts:** Fixed crash in gbxmodel, camera_track, collision, and physics importers when file path doesn't contain "tags\\" directory. The scripts now safely handle cases where `findString` returns `undefined`, falling back to displaying just the filename instead of causing an "Unable to convert: undefined to type: Integer" error in 3ds Max 2023.
   - Fixed path in macroscript for extract animation tool.
   - Added missing `readTagRefPath` function for reading shader references in gbxmodel importer.
+- **GBX/Model Importer:**
+  - Fixed reuse skeleton in scene.
