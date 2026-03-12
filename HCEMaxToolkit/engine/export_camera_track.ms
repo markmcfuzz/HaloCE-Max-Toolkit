@@ -1,19 +1,14 @@
-----------------------------------------------------------------------------
---	HCE Max Toolkit - Export Camera Track
---	Copyright (C) 2026 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)
---
---	Exports camera track control points from 3ds Max scene to .camera_track tag
---
---	Usage:
---	1. Create helpers in scene named 'control_point01', 'control_point02', etc.
---	2. Position and orient helpers to define camera path
---	3. Run this script to export .camera_track file
---
---	This program is free software; you can redistribute it and/or modify it
---	under the terms of the GNU General Public License as published by the
---	Free Software Foundation; either version 2 of the License, or (at your
---	option) any later version.
-----------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+--	Copyright (C) 2026 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
+--	license is available at http://www.gnu.org/licenses/gpl.txt.
+------------------------------------------------------------------------------------------------
 
 -- Clear listener
 clearListener()
