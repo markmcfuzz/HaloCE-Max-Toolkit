@@ -334,6 +334,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Includes `skip_uncompressed_vertices` option (enabled by default).
 - **JMS Importer:**
   - Reuse existing markers in scene. A dialog prompts you to confirm whether to reuse them.
+- **Camera Track Exporter:**
+  - Rewrite of camera track exporter.
+    - Creates a camera track tag file.
+- Generic tag writer for create tag files from MaxScript.
+  - Includes a writing functinos for each tag data type (e.g., int16, int32, float, vector3d, etc.) and a generic function to write reflexive data blocks based on the Gorilla definitions.
+  - Still need to test with more complex tags, only tested with camera track for now.
 ### Fixed
 - **GBX/Model Importer:** 
   - Improved import performance with enable `skipping uncompressed vertices` (up to 68% faster).
