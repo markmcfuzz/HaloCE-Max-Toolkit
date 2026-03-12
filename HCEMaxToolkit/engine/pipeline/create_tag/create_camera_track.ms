@@ -1,10 +1,14 @@
-----------------------------------------------------------------------------
---	HCE Max Toolkit - Camera Track Creator
---	Copyright (C) 2026 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)
---
---	Gathers camera track control points from the scene and prepares data
---	for writing to .camera_track binary file
-----------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+--	Copyright (C) 2026 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
+--	license is available at http://www.gnu.org/licenses/gpl.txt.
+------------------------------------------------------------------------------------------------
 
 -------------------------------------------------------
 -- GATHER CONTROL POINTS FROM SCENE
