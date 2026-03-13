@@ -1,5 +1,11 @@
 # HALO CE MAX TOOLKIT
 
+![GitHub release](https://img.shields.io/github/v/release/markmcfuzz/HaloCE-Max-Toolkit?style=for-the-badge) ![GitHub Pre-release](https://img.shields.io/github/v/release/markmcfuzz/HaloCE-Max-Toolkit?include_prereleases&label=pre-release&color=yellow&style=for-the-badge)
+
+![Wiki](https://img.shields.io/badge/Project-Wiki-ff5050?style=for-the-badge&logo=github)
+
+<br>
+
 ![icon](docs/images/banner.png)
 
 A toolkit for Autodesk 3ds Max that allows you to **import and export source and tag files** for Halo Custom Edition. 
@@ -7,8 +13,6 @@ A toolkit for Autodesk 3ds Max that allows you to **import and export source and
 
 > [!NOTE]
 > This toolkit is **not a modification of Bluestreak**. Although it covers all the functionality Bluestreak once offered, every tool has been rewritten from scratch, resulting in a faster, cleaner, and more robust system. In addition to major performance and workflow improvements, the toolkit introduces brand-new tools and features never seen before, designed to enhance productivity and modernize the 3ds Max pipeline.
-
-If you want to learn more in depth about the features and roadmap, check the [**Project Wiki**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/wiki).
 
 ## Features
 ### Import:
@@ -40,7 +44,7 @@ If you want to learn more in depth about the features and roadmap, check the [**
 > [!WARNING]
 > The toolkit is built and tested for 3ds Max **2023 up to 2026**. However, it may not work properly on versions older than 2023, and those versions are not officially supported. If you are using an older version, please report any issues you find.
 
-## Installation  
+## Installation
 1. Download the latest executable from the [**Releases**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/releases) page.
 2. If you have an older version (valid from version 4.0.0 onwards) of Halo CE Max Toolkit installed, simply install the new version over it.
 
@@ -107,8 +111,3 @@ If you want to learn more in depth about the features and roadmap, check the [**
 - MrChromed
   - Report bugs, feedback and suggestions that helped a lot to improve the toolkit.
 - All the users that have reported bugs and suggestions to improve the toolkit, you know who you are, thank you so much for your support and help to make this project better!
-
-## Labels
-### requirement 
-  > What is a requirement label?
-  > Specific feature or functionality is necessary for the project to function properly.
