@@ -408,37 +408,36 @@ fn readShaderTransparentGlassTag filePath =
 
     --if tagHeaderLogger then
     --(
-    --    logger "\n=== SHADER TRANSPARENT GLASS SUMMARY ===\n"
-    --    logger "Glass Shader:\n"
-    --    logger "    - Glass Flags: %\n" params:#(tagStruct.glassShader.glassFlags)
+    --    logger.log "=== SHADER TRANSPARENT GLASS SUMMARY ==="
+    --    logger.log "Glass Shader:"
+    --    logger.info "    - Glass Flags: {}\n" args:#(tagStruct.glassShader.glassFlags)
     --    
-    --    logger "\nBackground Tint Properties:\n"
-    --    logger "    - Tint Color: [%, %, %]\n" params:#(backgroundTintProps.tintColor[1], backgroundTintProps.tintColor[2], backgroundTintProps.tintColor[3])
-    --    logger "    - Map Scale: [%]\n" params:#(backgroundTintProps.tintMapScale)
-    --    logger "    - Map Path: '%'\n" params:#(backgroundTintProps.tintMapPath.path)
+    --    logger.log "Background Tint Properties:"
+    --    logger.info "    - Tint Color: [{}, {}, {}]" args:#(backgroundTintProps.tintColor[1], backgroundTintProps.tintColor[2], backgroundTintProps.tintColor[3])
+    --    logger.info "    - Map Scale: [{}]" args:#(backgroundTintProps.tintMapScale)
+    --    logger.info "    - Map Path: '{}'\n" args:#(backgroundTintProps.tintMapPath.path)
     --    
-    --    logger "\nReflection Properties:\n"
-    --    logger "    - Reflection Type: (%)\n" params:#(reflectionProps.reflectionType)
-    --    logger "    - Perpendicular Brightness: [%]\n" params:#(reflectionProps.perpendicularBrightness)
-    --    logger "    - Perpendicular Tint Color: [%, %, %]\n" params:#(reflectionProps.perpendicularTintColor[1], reflectionProps.perpendicularTintColor[2], reflectionProps.perpendicularTintColor[3])
-    --    logger "    - Parallel Brightness: [%]\n" params:#(reflectionProps.parallelBrightness)
-    --    logger "    - Parallel Tint Color: [%, %, %]\n" params:#(reflectionProps.parallelTintColor[1], reflectionProps.parallelTintColor[2], reflectionProps.parallelTintColor[3])
-    --    logger "    - Reflection Map Path: '%'\n" params:#(reflectionProps.reflectionMapPath.path)
-    --    logger "    - Bump Map Scale: [%]\n" params:#(reflectionProps.bumpMapScale)
-    --    logger "    - Bump Map Path: '%'\n" params:#(reflectionProps.bumpMapPath.path)
+    --    logger.log "Reflection Properties:"
+    --    logger.info "    - Reflection Type: ({})" args:#(reflectionProps.reflectionType)
+    --    logger.info "    - Perpendicular Brightness: [{}]" args:#(reflectionProps.perpendicularBrightness)
+    --    logger.info "    - Perpendicular Tint Color: [{}, {}, {}]" args:#(reflectionProps.perpendicularTintColor[1], reflectionProps.perpendicularTintColor[2], reflectionProps.perpendicularTintColor[3])
+    --    logger.info "    - Parallel Brightness: [{}]" args:#(reflectionProps.parallelBrightness)
+    --    logger.info "    - Parallel Tint Color: [{}, {}, {}]" args:#(reflectionProps.parallelTintColor[1], reflectionProps.parallelTintColor[2], reflectionProps.parallelTintColor[3])
+    --    logger.info "    - Reflection Map Path: '{}'" args:#(reflectionProps.reflectionMapPath.path)
+    --    logger.info "    - Bump Map Scale: [{}]" args:#(reflectionProps.bumpMapScale)
+    --    logger.info "    - Bump Map Path: '{}'\n" args:#(reflectionProps.bumpMapPath.path)
     --    
-    --    logger "\nDiffuse Properties:\n"
-    --    logger "    - Map Scale: [%]\n" params:#(diffuseProps.diffuseMapScale)
-    --    logger "    - Map Path: '%'\n" params:#(diffuseProps.diffuseMapPath.path)
-    --    logger "    - Detail Map Scale: [%]\n" params:#(diffuseProps.diffuseDetailMapScale)
-    --    logger "    - Detail Map Path: '%'\n" params:#(diffuseProps.diffuseDetailMapPath.path)
+    --    logger.log "Diffuse Properties:"
+    --    logger.info "    - Map Scale: [{}]" args:#(diffuseProps.diffuseMapScale)
+    --    logger.info "    - Map Path: '{}'" args:#(diffuseProps.diffuseMapPath.path)
+    --    logger.info "    - Detail Map Scale: [{}]" args:#(diffuseProps.diffuseDetailMapScale)
+    --    logger.info "    - Detail Map Path: '{}'\n" args:#(diffuseProps.diffuseDetailMapPath.path)
     --    
-    --    logger "\nSpecular Properties:\n"
-    --    logger "    - Map Scale: [%]\n" params:#(specularProps.specularMapScale)
-    --    logger "    - Map Path: '%'\n" params:#(specularProps.specularMapPath.path)
-    --    logger "    - Detail Map Scale: [%]\n" params:#(specularProps.specularDetailMapScale)
-    --    logger "    - Detail Map Path: '%'\n" params:#(specularProps.specularDetailMapPath.path)
-    --    logger "\n\n"
+    --    logger.log "Specular Properties:"
+    --    logger.info "    - Map Scale: [{}]" args:#(specularProps.specularMapScale)
+    --    logger.info "    - Map Path: '{}'" args:#(specularProps.specularMapPath.path)
+    --    logger.info "    - Detail Map Scale: [{}]" args:#(specularProps.specularDetailMapScale)
+    --    logger.info "    - Detail Map Path: '{}'\n\n" args:#(specularProps.specularDetailMapPath.path)
     --)
 
 	fclose fileHandle

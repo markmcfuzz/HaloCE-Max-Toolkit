@@ -45,5 +45,3 @@ struct returnExternalFunctionSource (
     gradientSource,
     flashExtension
 )
-
-logger "Shader Transparent Meter tag structure loaded.\n" logType: #success 

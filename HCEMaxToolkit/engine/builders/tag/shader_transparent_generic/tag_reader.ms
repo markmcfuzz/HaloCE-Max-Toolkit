@@ -36,14 +36,14 @@ fn readShaderGenericTagHeader =
 		-- If it's a gbxmodel, we're likely in preload mode - return undefined silently
 		return undefined
 	)
-	--if tagHeaderLogger then
-	--(		
-	--	logger "\n=== READING TAG HEADER ===\n"
-	--	logger "Tag Class: %\n" params: #( getTagClassInfo tagClass ) logType: #debug
-	--	--logger "Checksum: %\n" params:#(checksum) logType:#debug
-	--	logger "Version: %\n" params: #( version ) logType: #debug
-	--	logger "Engine ID: %\n\n" params: #( getEngineIdInfo engineId ) logType: #debug
-	--)
+    --if tagHeaderLogger then
+    --(
+    --    logger.log "=== READING TAG HEADER ==="
+    --    logger.debug "Tag Class: {}" args:#(getTagClassInfo tagClass)
+    --    logger.debug "Checksum: {}" args:#(checksum)
+    --    logger.debug "Version: {}" args:#(version)
+    --    logger.debug "Engine ID: {}" args:#(getEngineIdInfo engineId)
+    --)
 	local header = returnHeader()
 	header.tagClass = tagClass
 	header.checksum = checksum
@@ -548,56 +548,55 @@ fn readShaderTransparentGenericTag filePath =
 
     --if tagHeaderLogger then
     --(
-    --    logger "\n=== SHADER TRANSPARENT GENERIC SUMMARY ===\n"
-    --    logger "Generic Shader:\n"
-    --    logger "    - Numeric Counter Limit: [%]\n" params:#(tagStruct.genericShader.numericCounterLimit)
-    --    logger "    - Generic Flags: %\n" params:#(tagStruct.genericShader.genericFlags)
-    --    logger "    - First Map Type: (%)\n" params:#(firstMapTypeToString tagStruct.genericShader.firstMapType)
-    --    logger "    - Framebuffer Blend Function: (%)\n" params:#(framebufferBlendFunctionToString tagStruct.genericShader.framebufferBlendFunction)
-    --    logger "    - Framebuffer Fade Mode: (%)\n" params:#(framebufferFadeModeToString tagStruct.genericShader.framebufferFadeMode)
-    --    logger "    - Framebuffer Fade Source: (%)\n" params:#(framebufferFadeSourceToString tagStruct.genericShader.framebufferFadeSource)
-    --    logger "    - Lens Flare Spacing: [%]\n" params:#(tagStruct.genericShader.lensFlareSpacing)
-    --    logger "    - Lens Flare Path: '%'\n" params:#(tagStruct.genericShader.lensFlare.path)
+    --    logger.log "=== SHADER TRANSPARENT GENERIC SUMMARY ==="
+    --    logger.log "Generic Shader:"
+    --    logger.info "    - Numeric Counter Limit: [{}]" args:#(tagStruct.genericShader.numericCounterLimit)
+    --    logger.info "    - Generic Flags: {}" args:#(tagStruct.genericShader.genericFlags)
+    --    logger.info "    - First Map Type: ({})" args:#(firstMapTypeToString tagStruct.genericShader.firstMapType)
+    --    logger.info "    - Framebuffer Blend Function: ({})" args:#(framebufferBlendFunctionToString tagStruct.genericShader.framebufferBlendFunction)
+    --    logger.info "    - Framebuffer Fade Mode: ({})" args:#(framebufferFadeModeToString tagStruct.genericShader.framebufferFadeMode)
+    --    logger.info "    - Framebuffer Fade Source: ({})" args:#(framebufferFadeSourceToString tagStruct.genericShader.framebufferFadeSource)
+    --    logger.info "    - Lens Flare Spacing: [{}]" args:#(tagStruct.genericShader.lensFlareSpacing)
+    --    logger.info "    - Lens Flare Path: '{}'" args:#(tagStruct.genericShader.lensFlare.path)
     --    
-    --    logger "Extra Layers Count: [%]\n" params:#(tagStruct.extraLayers.count)
+    --    logger.info "Extra Layers Count: [{}]" args:#(tagStruct.extraLayers.count)
     --    for i = 1 to tagStruct.extraLayers.count do
     --    (
-    --        logger "    - Layer % Path: '%' | %\n" params:#(i, tagStruct.extraLayers[i].path, getTagClassInfo tagStruct.extraLayers[i].tagClass)
+    --        logger.info "    - Layer {} Path: '{}' | {}" args:#(i, tagStruct.extraLayers[i].path, getTagClassInfo tagStruct.extraLayers[i].tagClass)
     --    )
     --    
-    --    logger "Maps Count: [%]\n" params:#(tagStruct.maps.count)
+    --    logger.info "Maps Count: [{}]" args:#(tagStruct.maps.count)
     --    for i = 1 to tagStruct.maps.count do
     --    (
     --        local map = tagStruct.maps[i]
-    --        logger "    - Map %:\n" params:#(i)
-    --        --logger "        Flags: %\n" params:#(map.mapsProps.mapFlags)
-    --        --logger "        Scale: U=% V=%\n" params:#(map.mapsProps.mapUScale, map.mapsProps.mapVScale)
-    --        --logger "        Offset: U=% V=%\n" params:#(map.mapsProps.mapUOffset, map.mapsProps.mapVOffset)
-    --        --logger "        Rotation: [%]\n" params:#(map.mapsProps.mapRotation)
-    --        --logger "        Mipmap Bias: [%]\n" params:#(map.mapsProps.mipmapBias)
-    --        logger "        Bitmap Path: '%'\n" params:#(map.mapsProps.mapPath.path)
-    --        --logger "        U Animation: Source=% Function=% Period=%\n" params:#(sourceBlockToString map.animProps.uAnimationSource, animFunctionToString map.animProps.uAnimationFunction, map.animProps.uAnimationPeriod)
-    --        --logger "        V Animation: Source=% Function=% Period=%\n" params:#(sourceBlockToString map.animProps.vAnimationSource, animFunctionToString map.animProps.vAnimationFunction, map.animProps.vAnimationPeriod)
-    --        --logger "        Rotation Animation: Source=% Function=% Period=%\n" params:#(sourceBlockToString map.animProps.rotationAnimationSource, animFunctionToString map.animProps.rotationAnimationFunction, map.animProps.rotationAnimationPeriod)
+    --        logger.info "    - Map {}:" args:#(i)
+    --        --logger.info "        Flags: {}" args:#(map.mapsProps.mapFlags)
+    --        --logger.info "        Scale: U={} V={}" args:#(map.mapsProps.mapUScale, map.mapsProps.mapVScale)
+    --        --logger.info "        Offset: U={} V={}" args:#(map.mapsProps.mapUOffset, map.mapsProps.mapVOffset)
+    --        --logger.info "        Rotation: [{}]" args:#(map.mapsProps.mapRotation)
+    --        --logger.info "        Mipmap Bias: [{}]" args:#(map.mapsProps.mipmapBias)
+    --        logger.info "        Bitmap Path: '{}'" args:#(map.mapsProps.mapPath.path)
+    --        --logger.info "        U Animation: Source={} Function={} Period={}" args:#(sourceBlockToString map.animProps.uAnimationSource, animFunctionToString map.animProps.uAnimationFunction, map.animProps.uAnimationPeriod)
+    --        --logger.info "        V Animation: Source={} Function={} Period={}" args:#(sourceBlockToString map.animProps.vAnimationSource, animFunctionToString map.animProps.vAnimationFunction, map.animProps.vAnimationPeriod)
+    --        --logger.info "        Rotation Animation: Source={} Function={} Period={}" args:#(sourceBlockToString map.animProps.rotationAnimationSource, animFunctionToString map.animProps.rotationAnimationFunction, map.animProps.rotationAnimationPeriod)
     --    )
-    --    logger "Stages Count: [%]\n" params:#(tagStruct.stages.count)
+    --    logger.info "Stages Count: [{}]" args:#(tagStruct.stages.count)
     --    --for i = 1 to tagStruct.stages.count do
     --    --(
     --    --    local stage = tagStruct.stages[i]
-    --    --    logger "    - Stage %:\n" params:#(i)
-    --    --    logger "        Flags: %\n" params:#(stage.stageProps.flags)
-    --    --    logger "        Color0 Source: (%)\n" params:#(sourceBlockToString stage.stageProps.color0Source)
-    --    --    logger "        Color0 Animation Function: (%)\n" params:#(animFunctionToString stage.stageProps.color0AnimFunction)
-    --    --    logger "        Color0 Animation Period: [%]\n" params:#(stage.stageProps.color0AnimPeriod)
-    --    --    logger "        Color0 Lower Bound: A=% R=% G=% B=%\n" params:#(stage.stageProps.color0AnimLowerBound[1], stage.stageProps.color0AnimLowerBound[2], stage.stageProps.color0AnimLowerBound[3], stage.stageProps.color0AnimLowerBound[4])
-    --    --    logger "        Color0 Upper Bound: A=% R=% G=% B=%\n" params:#(stage.stageProps.color0AnimUpperBound[1], stage.stageProps.color0AnimUpperBound[2], stage.stageProps.color0AnimUpperBound[3], stage.stageProps.color0AnimUpperBound[4])
-    --    --    logger "        Color1: A=% R=% G=% B=%\n" params:#(stage.stageProps.color1[1], stage.stageProps.color1[2], stage.stageProps.color1[3], stage.stageProps.color1[4])
-    --    --    logger "        Color Inputs: A=(% | %) B=(% | %) C=(% | %) D=(% | %)\n" params:#(colorInputToString stage.stageProps.colorProps.inputA, colorInputMappingToString stage.stageProps.colorProps.inputAMapping, colorInputToString stage.stageProps.colorProps.inputB, colorInputMappingToString stage.stageProps.colorProps.inputBMapping, colorInputToString stage.stageProps.colorProps.inputC, colorInputMappingToString stage.stageProps.colorProps.inputCMapping, colorInputToString stage.stageProps.colorProps.inputD, colorInputMappingToString stage.stageProps.colorProps.inputDMapping)
-    --    --    logger "        Color Outputs: AB=(% | %) CD=(% | %) Mux/Sum=% Mapping=%\n" params:#(colorOutputToString stage.stageProps.colorProps.outputAB, colorOutputFunctionToString stage.stageProps.colorProps.outputABFunction, colorOutputToString stage.stageProps.colorProps.outputCD, colorOutputFunctionToString stage.stageProps.colorProps.outputCDFunction, colorOutputToString stage.stageProps.colorProps.outputABCDMuxSum, colorOutputMappingToString stage.stageProps.colorProps.outputMapping)
-    --    --    logger "        Alpha Inputs: A=(% | %) B=(% | %) C=(% | %) D=(% | %)\n" params:#(colorInputToString stage.stageProps.alphaProps.inputA, colorInputMappingToString stage.stageProps.alphaProps.inputAMapping, colorInputToString stage.stageProps.alphaProps.inputB, colorInputMappingToString stage.stageProps.alphaProps.inputBMapping, colorInputToString stage.stageProps.alphaProps.inputC, colorInputMappingToString stage.stageProps.alphaProps.inputCMapping, colorInputToString stage.stageProps.alphaProps.inputD, colorInputMappingToString stage.stageProps.alphaProps.inputDMapping)
-    --    --    logger "        Alpha Outputs: AB=% CD=% Mux/Sum=% Mapping=%\n" params:#(colorOutputToString stage.stageProps.alphaProps.outputAB, colorOutputToString stage.stageProps.alphaProps.outputCD, colorOutputToString stage.stageProps.alphaProps.outputABCDMuxSum, colorOutputMappingToString stage.stageProps.alphaProps.outputMapping)
+    --    --    logger.info "    - Stage {}:" args:#(i)
+    --    --    logger.info "        Flags: {}" args:#(stage.stageProps.flags)
+    --    --    logger.info "        Color0 Source: {}" args:#(sourceBlockToString stage.stageProps.color0Source)
+    --    --    logger.info "        Color0 Animation Function: {}" args:#(animFunctionToString stage.stageProps.color0AnimFunction)
+    --    --    logger.info "        Color0 Animation Period: {}" args:#(stage.stageProps.color0AnimPeriod)
+    --    --    logger.info "        Color0 Lower Bound: A={} R={} G={} B={}" args:#(stage.stageProps.color0AnimLowerBound[1], stage.stageProps.color0AnimLowerBound[2], stage.stageProps.color0AnimLowerBound[3], stage.stageProps.color0AnimLowerBound[4])
+    --    --    logger.info "        Color0 Upper Bound: A={} R={} G={} B={}" args:#(stage.stageProps.color0AnimUpperBound[1], stage.stageProps.color0AnimUpperBound[2], stage.stageProps.color0AnimUpperBound[3], stage.stageProps.color0AnimUpperBound[4])
+    --    --    logger.info "        Color1: A={} R={} G={} B={}" args:#(stage.stageProps.color1[1], stage.stageProps.color1[2], stage.stageProps.color1[3], stage.stageProps.color1[4])
+    --    --    logger.info "        Color Inputs: A=({} | {}) B=({} | {}) C=({} | {}) D=({} | {})" args:#(colorInputToString stage.stageProps.colorProps.inputA, colorInputMappingToString stage.stageProps.colorProps.inputAMapping, colorInputToString stage.stageProps.colorProps.inputB, colorInputMappingToString stage.stageProps.colorProps.inputBMapping, colorInputToString stage.stageProps.colorProps.inputC, colorInputMappingToString stage.stageProps.colorProps.inputCMapping, colorInputToString stage.stageProps.colorProps.inputD, colorInputMappingToString stage.stageProps.colorProps.inputDMapping)
+    --    --    logger.info "        Color Outputs: AB=({} | {}) CD=({} | {}) Mux/Sum={} Mapping={}" args:#(colorOutputToString stage.stageProps.colorProps.outputAB, colorOutputFunctionToString stage.stageProps.colorProps.outputABFunction, colorOutputToString stage.stageProps.colorProps.outputCD, colorOutputFunctionToString stage.stageProps.colorProps.outputCDFunction, colorOutputToString stage.stageProps.colorProps.outputABCDMuxSum, colorOutputMappingToString stage.stageProps.colorProps.outputMapping)
+    --    --    logger.info "        Alpha Inputs: A=({} | {}) B=({} | {}) C=({} | {}) D=({} | {})" args:#(colorInputToString stage.stageProps.alphaProps.inputA, colorInputMappingToString stage.stageProps.alphaProps.inputAMapping, colorInputToString stage.stageProps.alphaProps.inputB, colorInputMappingToString stage.stageProps.alphaProps.inputBMapping, colorInputToString stage.stageProps.alphaProps.inputC, colorInputMappingToString stage.stageProps.alphaProps.inputCMapping, colorInputToString stage.stageProps.alphaProps.inputD, colorInputMappingToString stage.stageProps.alphaProps.inputDMapping)
+    --    --    logger.info "        Alpha Outputs: AB={} CD={} Mux/Sum={} Mapping={}\n\n" args:#(colorOutputToString stage.stageProps.alphaProps.outputAB, colorOutputToString stage.stageProps.alphaProps.outputCD, colorOutputToString stage.stageProps.alphaProps.outputABCDMuxSum, colorOutputMappingToString stage.stageProps.alphaProps.outputMapping)
     --    --)
-    --    logger "\n"
     --)
 
     -- Close file and return tag struct

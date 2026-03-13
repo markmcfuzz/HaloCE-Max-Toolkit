@@ -39,14 +39,14 @@ fn readShaderMeterTagHeader =
 		-- If it's a gbxmodel, we're likely in preload mode - return undefined silently
 		return undefined
 	)
-	--if tagHeaderLogger then
-	--(		
-	--	logger "\n=== READING TAG HEADER ===\n"
-	--	logger "Tag Class: %\n" params: #( getTagClassInfo tagClass ) logType: #debug
-	--	--logger "Checksum: %\n" params:#(checksum) logType:#debug
-	--	logger "Version: %\n" params: #( version ) logType: #debug
-	--	logger "Engine ID: %\n\n" params: #( getEngineIdInfo engineId ) logType: #debug
-	--)
+    --if tagHeaderLogger then
+    --(
+    --    logger.log "=== READING TAG HEADER ==="
+    --    logger.debug "Tag Class: {}" args:#(getTagClassInfo tagClass)
+    --    logger.debug "Checksum: {}" args:#(checksum)
+    --    logger.debug "Version: {}" args:#(version)
+    --    logger.debug "Engine ID: {}" args:#(getEngineIdInfo engineId)
+    --)
 	local header = returnHeader()
 	header.tagClass = tagClass
 	header.checksum = checksum
@@ -315,26 +315,26 @@ fn readShaderTransparentMeterTag filePath =
 
     --if tagHeaderLogger then
     --(        
-    --    logger "\n=== SHADER TRANSPARENT METER TAG DATA ===\n"
-    --    logger "Meter Shader Properties:\n"
-    --    logger "  - Flags: %\n" params:#(meterShader.meterFlags)
-    --    logger "  - Map Path: '%'\n\n" params:#(meterShader.meterMapPath.path)
+    --    logger.log "=== SHADER TRANSPARENT METER TAG DATA ==="
+    --    logger.log "Meter Shader Properties:"
+    --    logger.info "  - Flags: {}" args:#(meterShader.meterFlags)
+    --    logger.info "  - Map Path: '{}'\n" args:#(meterShader.meterMapPath.path)
     --    
-    --    logger "Colors Properties:\n"
-    --    logger "  - Gradient Min Color: R=% G=% B=%\n" params:#(colors.gradientMin[1], colors.gradientMin[2], colors.gradientMin[3])
-    --    logger "  - Gradient Max Color: R=% G=% B=%\n" params:#(colors.gradientMax[1], colors.gradientMax[2], colors.gradientMax[3])
-    --    logger "  - Background Color: R=% G=% B=%\n" params:#(colors.background[1], colors.background[2], colors.background[3])
-    --    logger "  - Flash Color: R=% G=% B=%\n" params:#(colors.flash[1], colors.flash[2], colors.flash[3])
-    --    logger "  - Tint Color: R=% G=% B=%\n" params:#(colors.tint[1], colors.tint[2], colors.tint[3])
-    --    logger "  - Meter Transparency: [%]\n" params:#(colors.meterTransparency)
-    --    logger "  - Background Transparency: [%]\n\n" params:#(colors.backgroundTransparency)
+    --    logger.log "Colors Properties:"
+    --    logger.info "  - Gradient Min Color: R={} G={} B={}" args:#(colors.gradientMin[1], colors.gradientMin[2], colors.gradientMin[3])
+    --    logger.info "  - Gradient Max Color: R={} G={} B={}" args:#(colors.gradientMax[1], colors.gradientMax[2], colors.gradientMax[3])
+    --    logger.info "  - Background Color: R={} G={} B={}" args:#(colors.background[1], colors.background[2], colors.background[3])
+    --    logger.info "  - Flash Color: R={} G={} B={}" args:#(colors.flash[1], colors.flash[2], colors.flash[3])
+    --    logger.info "  - Tint Color: R={} G={} B={}" args:#(colors.tint[1], colors.tint[2], colors.tint[3])
+    --    logger.info "  - Meter Transparency: [{}]" args:#(colors.meterTransparency)
+    --    logger.info "  - Background Transparency: [{}]\n" args:#(colors.backgroundTransparency)
     --    
-    --    logger "External Function Source Properties:\n"
-    --    logger "  - Meter Brightness Source: (%)\n" params:#(framebufferFadeSourceToString externalFuncSource.meterBrightness)
-    --    logger "  - Flash Brightness Source: (%)\n" params:#(framebufferFadeSourceToString externalFuncSource.flashBrightness)
-    --    logger "  - Value Source: (%)\n" params:#(framebufferFadeSourceToString externalFuncSource.valueSource)
-    --    logger "  - Gradient Source: (%)\n" params:#(framebufferFadeSourceToString externalFuncSource.gradientSource)
-    --    logger "  - Flash Extension Source: (%)\n\n" params:#(framebufferFadeSourceToString externalFuncSource.flashExtension)
+    --    logger.log "External Function Source Properties:"
+    --    logger.info "  - Meter Brightness Source: ({})" args:#(framebufferFadeSourceToString externalFuncSource.meterBrightness)
+    --    logger.info "  - Flash Brightness Source: ({})" args:#(framebufferFadeSourceToString externalFuncSource.flashBrightness)
+    --    logger.info "  - Value Source: ({})" args:#(framebufferFadeSourceToString externalFuncSource.valueSource)
+    --    logger.info "  - Gradient Source: ({})" args:#(framebufferFadeSourceToString externalFuncSource.gradientSource)
+    --    logger.info "  - Flash Extension Source: ({})\n\n" args:#(framebufferFadeSourceToString externalFuncSource.flashExtension)
     --)
 
 	fclose fileHandle

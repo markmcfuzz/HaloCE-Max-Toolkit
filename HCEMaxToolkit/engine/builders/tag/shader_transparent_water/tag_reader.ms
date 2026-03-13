@@ -370,40 +370,38 @@ fn readShaderTransparentWaterTag filePath =
     -- Logger output
     --if tagHeaderLogger then
     --(
-    --    logger "\n=== SHADER TRANSPARENT WATER DATA ===\n"
-    --    logger "Water Shader:\n"
-    --    logger "    - Glass Flags: %\n" params:#(tagStruct.waterShader.waterFlags)
-    --    logger "    - Base Map Path: '%'\n" params:#(if waterShader.waterMapPath.path != undefined then waterShader.waterMapPath.path else "(NULL)")
-    --    logger "    - Perpendicular Brightness: [%]\n" params:#(waterShader.perpendicularBrightness)
-    --    logger "    - Perpendicular Tint Color: [R= %, G= %, B= %]\n" params:#(waterShader.perpendicularTintColor[1], waterShader.perpendicularTintColor[2], waterShader.perpendicularTintColor[3])
-    --    logger "    - Parallel Brightness: [%]\n" params:#(waterShader.parallelBrightness)
-    --    logger "    - Parallel Tint Color: [R= %, G= %, B= %]\n" params:#(waterShader.parallelTintColor[1], waterShader.parallelTintColor[2], waterShader.parallelTintColor[3])
-    --    logger "    - Reflection Map Path: '%'\n" params:#(if waterShader.reflectionMapPath.path != undefined then waterShader.reflectionMapPath.path else "(NULL)")
-    --    logger "    - Ripple Animation Angle: [%]\n" params:#(radiansToDegrees waterShader.rippleAnimAngle)
-    --    logger "    - Ripple Animation Velocity: [%]\n" params:#(waterShader.rippleAnimVelocity)
-    --    logger "    - Ripple Scale: [%]\n" params:#(waterShader.rippleScale)
-    --    logger "    - Ripple Maps Path: '%'\n" params:#(if waterShader.rippleMapsPath.path != undefined then waterShader.rippleMapsPath.path else "(NULL)")
-    --    logger "    - Ripple Mipmap Levels: [%]\n" params:#(waterShader.rippleMipMapLevels)
-    --    logger "    - Ripple Mipmap Fade Factor: [%]\n" params:#(waterShader.rippleMipMapFadeFactor)
-    --    logger "    - Ripple Mipmap Detail Bias: [%]\n" params:#(waterShader.rippleMipMapDetailBias)
+    --    logger.log "=== SHADER TRANSPARENT WATER DATA ==="
+    --    logger.log "Water Shader:"
+    --    logger.info "    - Glass Flags: {}" args:#(tagStruct.waterShader.waterFlags)
+    --    logger.info "    - Base Map Path: '{}'" args:#(if waterShader.waterMapPath.path != undefined then waterShader.waterMapPath.path else "(NULL)")
+    --    logger.info "    - Perpendicular Brightness: [{}]" args:#(waterShader.perpendicularBrightness)
+    --    logger.info "    - Perpendicular Tint Color: [R= {}, G= {}, B= {}]" args:#(waterShader.perpendicularTintColor[1], waterShader.perpendicularTintColor[2], waterShader.perpendicularTintColor[3])
+    --    logger.info "    - Parallel Brightness: [{}]" args:#(waterShader.parallelBrightness)
+    --    logger.info "    - Parallel Tint Color: [R= {}, G= {}, B= {}]" args:#(waterShader.parallelTintColor[1], waterShader.parallelTintColor[2], waterShader.parallelTintColor[3])
+    --    logger.info "    - Reflection Map Path: '{}'" args:#(if waterShader.reflectionMapPath.path != undefined then waterShader.reflectionMapPath.path else "(NULL)")
+    --    logger.info "    - Ripple Animation Angle: [{}]" args:#(radiansToDegrees waterShader.rippleAnimAngle)
+    --    logger.info "    - Ripple Animation Velocity: [{}]" args:#(waterShader.rippleAnimVelocity)
+    --    logger.info "    - Ripple Scale: [{}]" args:#(waterShader.rippleScale)
+    --    logger.info "    - Ripple Maps Path: '{}'" args:#(if waterShader.rippleMapsPath.path != undefined then waterShader.rippleMapsPath.path else "(NULL)")
+    --    logger.info "    - Ripple Mipmap Levels: [{}]" args:#(waterShader.rippleMipMapLevels)
+    --    logger.info "    - Ripple Mipmap Fade Factor: [{}]" args:#(waterShader.rippleMipMapFadeFactor)
+    --    logger.info "    - Ripple Mipmap Detail Bias: [{}]" args:#(waterShader.rippleMipMapDetailBias)
     --    -- Ripples reflexive
-    --    logger "\nRipples Count: [%]\n" params:#(reflexives.ripples.count)
+    --    logger.info "Ripples Count: [{}]" args:#(reflexives.ripples.count)
     --    if ripplesArray.count > 0 then
     --    (
     --        for i = 1 to ripplesArray.count do
     --        (
     --            local ripples = ripplesArray[i]
-    --            logger "  Ripple [%]:\n" params:#(i)
-    --            logger "    Contribution Factor: [%]\n" params:#(ripples.contributionFactor)
-    --            logger "    Animation Angle: [%]\n" params:#(radiansToDegrees ripples.animationAngle)
-    --            logger "    Animation Velocity: [%]\n" params:#(ripples.animationVelocity)
-    --            logger "    Map Offset: [i= %, j= %]\n" params:#(ripples.mapOffset[1], ripples.mapOffset[2])
-    --            logger "    Map Repeats: [%]\n" params:#(ripples.mapRepeats)
-    --            logger "    Map Index: [%]\n" params:#(ripples.mapIndex)
+    --            logger.info "  Ripple [{}]:" args:#(i)
+    --            logger.info "    Contribution Factor: [{}]" args:#(ripples.contributionFactor)
+    --            logger.info "    Animation Angle: [{}]" args:#(radiansToDegrees ripples.animationAngle)
+    --            logger.info "    Animation Velocity: [{}]" args:#(ripples.animationVelocity)
+    --            logger.info "    Map Offset: [i= {}, j= {}]" args:#(ripples.mapOffset[1], ripples.mapOffset[2])
+    --            logger.info "    Map Repeats: [{}]" args:#(ripples.mapRepeats)
+    --            logger.info "    Map Index: [{}]\n\n" args:#(ripples.mapIndex)
     --        )
     --    )
-    --    
-    --    logger "\n"
     --)
 
     -- Close file

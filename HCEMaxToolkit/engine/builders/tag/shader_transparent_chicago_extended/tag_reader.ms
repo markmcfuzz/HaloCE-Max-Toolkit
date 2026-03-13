@@ -35,14 +35,14 @@ fn readChicagoExtendedTagHeader =
 		-- If it's a gbxmodel, we're likely in preload mode - return undefined silently
 		return undefined
 	)
-	--if tagHeaderLogger then
-	--(		
-	--	logger "\n=== READING TAG HEADER ===\n"
-	--	logger "Tag Class: %\n" params: #( getTagClassInfo tagClass ) logType: #debug
-	--	--logger "Checksum: %\n" params:#(checksum) logType:#debug
-	--	logger "Version: %\n" params: #( version ) logType: #debug
-	--	logger "Engine ID: %\n\n" params: #( getEngineIdInfo engineId ) logType: #debug
-	--)
+    --if tagHeaderLogger then
+    --(
+    --    logger.log "=== READING TAG HEADER ==="
+    --    logger.debug "Tag Class: {}" args:#(getTagClassInfo tagClass)
+    --    logger.debug "Checksum: {}" args:#(checksum)
+    --    logger.debug "Version: {}" args:#(version)
+    --    logger.debug "Engine ID: {}" args:#(getEngineIdInfo engineId)
+    --)
 	local header = returnHeader()
 	header.tagClass = tagClass
 	header.checksum = checksum
@@ -305,7 +305,7 @@ fn readFourStageMaps fourStageMapReflexive lensFlarePathLen extraLayersArray =
 		
 		--if tagHeaderLogger then
 		--(
-		--	logger "Map %: tag_class=%, path_length=%\n" params:#(i, getTagClassInfo mapProps.mapPath.tagClass, mapProps.mapPath.pathLen) logType:#debug
+		--	logger.info "Map {}: tag_class={}, path_length={}" args:#(i, getTagClassInfo mapProps.mapPath.tagClass, mapProps.mapPath.pathLen) logType:#debug
 		--)
 		
 		append fourStageMaps mapResult
@@ -451,7 +451,7 @@ fn readShaderTransparentChicagoExtendedTag filePath =
 	local shaderAttrs = readShaderAttributes()
 	if shaderAttrs == undefined then
 	(		
-		logger "Failed to read shader attributes\n" logType: #error
+		logger.error "Failed to read shader attributes"
 		fclose fileHandle
 		return undefined
 	)
@@ -462,7 +462,7 @@ fn readShaderTransparentChicagoExtendedTag filePath =
 	local chicagoExtendedShader = readChicagoExtendedShaderProperties()
 	if chicagoExtendedShader == undefined then
 	(
-		logger "Failed to read chicago extended shader properties\n" logType:#error
+		logger.error "Failed to read chicago extended shader properties"
 		fclose fileHandle
 		return undefined
 	)
@@ -472,7 +472,7 @@ fn readShaderTransparentChicagoExtendedTag filePath =
 	local reflexives = readReflexiveHeaders()
 	if reflexives == undefined then
 	(
-		logger "Failed to read reflexive headers\n" logType:#error
+		logger.error "Failed to read reflexive headers"
 		fclose fileHandle
 		return undefined
 	)
@@ -540,33 +540,32 @@ fn readShaderTransparentChicagoExtendedTag filePath =
 	
 	--if tagHeaderLogger then
 	--(
-	--	logger "\n=== SHADER TRANSPARENT CHICAGO EXTENDED SUMMARY ===\n"
-	--	logger "Chicago Extended Shader:\n"
-	--	logger "    - Numeric Counter Limit: [%]\n" params:#(tagStruct.chicagoExtendedShader.numericCounterLimit)
-	--	logger "    - Chicago Flags: %\n" params:#(tagStruct.chicagoExtendedShader.chicagoFlags)
-	--	logger "    - First Map Type: (%)\n" params:#(firstMapTypeToString tagStruct.chicagoExtendedShader.firstMapType)
-	--	logger "    - Framebuffer Blend Function: (%)\n" params:#(framebufferBlendFunctionToString tagStruct.chicagoExtendedShader.framebufferBlendFunction)
-	--	logger "    - Framebuffer Fade Mode: (%)\n" params:#(framebufferFadeModeToString tagStruct.chicagoExtendedShader.framebufferFadeMode)
-	--	logger "    - Framebuffer Fade Source: (%)\n" params:#(framebufferFadeSourceToString tagStruct.chicagoExtendedShader.framebufferFadeSource)
-	--	logger "    - Lens Flare Spacing: [%]\n" params:#(tagStruct.chicagoExtendedShader.lensFlareSpacing)
-	--	logger "    - Lens Flare Path: '%'\n" params:#(tagStruct.chicagoExtendedShader.lensFlare.path)
-	--	logger "    - Extra Flags: %\n" params:#(tagStruct.extraFlags)
-	--	logger "Extra Layers Count: [%]\n" params:#(tagStruct.extraLayers.count)
+	--	logger.log "=== SHADER TRANSPARENT CHICAGO EXTENDED SUMMARY ==="
+	--	logger.log "Chicago Extended Shader"
+	--	logger.info "    - Numeric Counter Limit: [{}]" args:#(tagStruct.chicagoExtendedShader.numericCounterLimit)
+	--	logger.info "    - Chicago Flags: {}" args:#(tagStruct.chicagoExtendedShader.chicagoFlags)
+	--	logger.info "    - First Map Type: ({})" args:#(firstMapTypeToString tagStruct.chicagoExtendedShader.firstMapType)
+	--	logger.info "    - Framebuffer Blend Function: ({})" args:#(framebufferBlendFunctionToString tagStruct.chicagoExtendedShader.framebufferBlendFunction)
+	--	logger.info "    - Framebuffer Fade Mode: ({})" args:#(framebufferFadeModeToString tagStruct.chicagoExtendedShader.framebufferFadeMode)
+	--	logger.info "    - Framebuffer Fade Source: ({})" args:#(framebufferFadeSourceToString tagStruct.chicagoExtendedShader.framebufferFadeSource)
+	--	logger.info "    - Lens Flare Spacing: [{}]" args:#(tagStruct.chicagoExtendedShader.lensFlareSpacing)
+	--	logger.info "    - Lens Flare Path: '{}'" args:#(tagStruct.chicagoExtendedShader.lensFlare.path)
+	--	logger.info "    - Extra Flags: {}" args:#(tagStruct.extraFlags)
+	--	logger.info "Extra Layers Count: [{}]" args:#(tagStruct.extraLayers.count)
 	--	for i = 1 to tagStruct.extraLayers.count do
 	--	(
-	--		logger "    - Layer % Path: '%' | %\n" params:#(i, tagStruct.extraLayers[i].path, getTagClassInfo tagStruct.extraLayers[i].tagClass)
+	--		logger.info "    - Layer {} Path: '{}' | {}" args:#(i, tagStruct.extraLayers[i].path, getTagClassInfo tagStruct.extraLayers[i].tagClass)
 	--	)
-	--	logger "Four Stage Maps Count: [%]\n" params:#(tagStruct.fourStageMap.count)
+	--	logger.info "Four Stage Maps Count: [{}]" args:#(tagStruct.fourStageMap.count)
 	--	for i = 1 to tagStruct.fourStageMap.count do
 	--	(
-	--		logger "    - Map % Path: '%'\n" params:#(i, tagStruct.fourStageMap[i].mapsProps.mapPath.path)
+	--		logger.info "    - Map {} Path: '{}'" args:#(i, tagStruct.fourStageMap[i].mapsProps.mapPath.path)
 	--	)
-	--	logger "Two Stage Maps Count: [%]\n" params:#(tagStruct.twoStageMap.count)
+	--	logger.info "Two Stage Maps Count: [{}]" args:#(tagStruct.twoStageMap.count)
 	--	for i = 1 to tagStruct.twoStageMap.count do
 	--	(
-	--		logger "    - Map % Path: '%'\n" params:#(i, tagStruct.twoStageMap[i].mapsProps.mapPath.path)
+	--		logger.info "    - Map {} Path: '{}'\n\n" args:#(i, tagStruct.twoStageMap[i].mapsProps.mapPath.path)
 	--	)
-    --    logger "\n\n"
 	--)
 	-- Close file and return tag struct
 	fclose fileHandle

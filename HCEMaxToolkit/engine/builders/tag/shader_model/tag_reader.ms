@@ -545,58 +545,56 @@ fn readShaderModelTag filePath =
     --(
     --    logger.log "=== SHADER MODEL ==="
     --    --logger.log "Radiosity Properties:"
-    --    --logger "    - Flags: %\n" params:#(tagStruct.radiosityProperties.flags)
-    --    --logger "    - Detail Level: (%)\n" params:#(detailLevel tagStruct.radiosityProperties.detailLevel)
-    --    --logger "    - Light Power: [%]\n" params:#(tagStruct.radiosityProperties.lightPower)
-    --    --logger "    - Light Color: R=% G=% B=%\n" params:#(tagStruct.radiosityProperties.lightColor[1], tagStruct.radiosityProperties.lightColor[2], tagStruct.radiosityProperties.lightColor[3])
-    --    --logger "    - Tint Color: R=% G=% B=%\n" params:#(tagStruct.radiosityProperties.tintColor[1], tagStruct.radiosityProperties.tintColor[2], tagStruct.radiosityProperties.tintColor[3])
-    --    --logger "Physics Properties:\n"
-    --    --logger "    - Material Type: (%)\n" params:#(materialTypeToString tagStruct.physicsProperties.materialType)
-    --    --logger "Model Shader Properties:\n"
-    --    --logger "    - Flags: %\n" params:#(tagStruct.modelShader.flags)
-    --    --logger "    - Translucency: [%]\n" params:#(tagStruct.modelShader.translucency)
-    --    --logger "Color Change Properties:\n"
-    --    --logger "    - Change Color Source: (%)\n" params:#(sourceBlockToString tagStruct.changeColor.changeColorSource)
-    --    --logger "Self Illumination Properties:\n"
-    --    --logger "    - Flags: (%)\n" params:#(tagStruct.selfIllumination.flags)
-    --    --logger "    - Color Source: (%)\n" params:#(sourceBlockToString tagStruct.selfIllumination.colorSource)
-    --    --logger "    - Animation Function: (%)\n" params:#(animFunctionToString tagStruct.selfIllumination.animationFunction)
-    --    --logger "    - Animation Period: [%]\n" params:#(tagStruct.selfIllumination.animationPeriod)
-    --    --logger "    - Animation Color Lower Bound: R=% G=% B=%\n" params:#(tagStruct.selfIllumination.animColorLowerBound[1], tagStruct.selfIllumination.animColorLowerBound[2], tagStruct.selfIllumination.animColorLowerBound[3])
-    --    --logger "    - Animation Color Upper Bound: R=% G=% B=%\n" params:#(tagStruct.selfIllumination.animColorUpperBound[1], tagStruct.selfIllumination.animColorUpperBound[2], tagStruct.selfIllumination.animColorUpperBound[3])
-    --    logger "Maps Properties:\n"
-    --    --logger "    - Base Map U-Scale: [%]\n" params:#(tagStruct.maps.mapUScale)
-    --    --logger "    - Base Map V-Scale: [%]\n" params:#(tagStruct.maps.mapVScale)
-    --    logger "    - Base Map: %\n" params:#(tagStruct.maps.baseMap.path)
-    --    logger "    - Multipurpose Map: %\n" params:#(tagStruct.maps.multipurposeMap.path)
-    --    --logger "    - Detail Function: (%)\n" params:#(detailFunctionToString tagStruct.maps.detailFunction)
-    --    --logger "    - Detail Mask: (%)\n" params:#(detailMaskToString tagStruct.maps.detailMask)
-    --    --logger "    - Detail Map Scale: [%]\n" params:#(tagStruct.maps.detailMapScale)
-    --    logger "    - Detail Map: %\n" params:#(tagStruct.maps.detailMap.path)
-    --    --logger "    - Detail Map V-Scale: [%]\n" params:#(tagStruct.maps.detailMapVScale)
-    --    --logger "Texture Animation Properties:\n"
-    --    --logger "    - U Animation Source: (%)\n" params:#(sourceBlockToString tagStruct.textureAnimation.uAnimationSource)
-    --    --logger "    - U Animation Function: (%)\n" params:#(animFunctionToString tagStruct.textureAnimation.uAnimationFunction)
-    --    --logger "    - U Animation Period: [%]\n" params:#(tagStruct.textureAnimation.uAnimationPeriod)
-    --    --logger "    - V Animation Source: (%)\n" params:#(sourceBlockToString tagStruct.textureAnimation.vAnimationSource)
-    --    --logger "    - V Animation Function: (%)\n" params:#(animFunctionToString tagStruct.textureAnimation.vAnimationFunction)
-    --    --logger "    - V Animation Period: [%]\n" params:#(tagStruct.textureAnimation.vAnimationPeriod)
-    --    --logger "    - Rotation Animation Source: (%)\n" params:#(sourceBlockToString tagStruct.textureAnimation.rotationAnimationSource)
-    --    --logger "    - Rotation Animation Function: (%)\n" params:#(animFunctionToString tagStruct.textureAnimation.rotationAnimationFunction)
-    --    --logger "    - Rotation Animation Period: [%]\n" params:#(tagStruct.textureAnimation.rotationAnimationPeriod)
-    --    logger "Reflection Properties:\n"
-    --    --logger "    - Falloff Distance: [%]\n" params:#(tagStruct.reflectionProperties.falloffDistance)
-    --    --logger "    - Cutoff Distance: [%]\n" params:#(tagStruct.reflectionProperties.cutoffDistance)
-    --    --logger "    - Perpendicular Brightness: [%]\n" params:#(tagStruct.reflectionProperties.perpendicularBrightness)
-    --    --logger "    - Perpendicular Tint Color: R=% G=% B=%\n" params:#(tagStruct.reflectionProperties.perpendicularTintColor[1], tagStruct.reflectionProperties.perpendicularTintColor[2], tagStruct.reflectionProperties.perpendicularTintColor[3])
-    --    --logger "    - Parallel Brightness: [%]\n" params:#(tagStruct.reflectionProperties.parallelBrightness)
-    --    --logger "    - Parallel Tint Color: R=% G=% B=%\n" params:#(tagStruct.reflectionProperties.parallelTintColor[1], tagStruct.reflectionProperties.parallelTintColor[2], tagStruct.reflectionProperties.parallelTintColor[3])
+    --    --logger.info "    - Flags: {}" args:#(tagStruct.radiosityProperties.flags)
+    --    --logger.info "    - Detail Level: ({})" args:#(detailLevel tagStruct.radiosityProperties.detailLevel)
+    --    --logger.info "    - Light Power: [{}]" args:#(tagStruct.radiosityProperties.lightPower)
+    --    --logger.info "    - Light Color: R={} G={} B={}" args:#(tagStruct.radiosityProperties.lightColor[1], tagStruct.radiosityProperties.lightColor[2], tagStruct.radiosityProperties.lightColor[3])
+    --    --logger.info "    - Tint Color: R={} G={} B={}" args:#(tagStruct.radiosityProperties.tintColor[1], tagStruct.radiosityProperties.tintColor[2], tagStruct.radiosityProperties.tintColor[3])
+    --    --logger.log "Physics Properties:"
+    --    --logger.info "    - Material Type: ({})" args:#(materialTypeToString tagStruct.physicsProperties.materialType)
+    --    --logger.log "Model Shader Properties:"
+    --    --logger.info "    - Flags: {}" args:#(tagStruct.modelShader.flags)
+    --    --logger.info "    - Translucency: [{}]" args:#(tagStruct.modelShader.translucency)
+    --    --logger.log "Color Change Properties:"
+    --    --logger.info "    - Change Color Source: ({})" args:#(sourceBlockToString tagStruct.changeColor.changeColorSource)
+    --    --logger.log "Self Illumination Properties:"
+    --    --logger.info "    - Flags: ({})" args:#(tagStruct.selfIllumination.flags)
+    --    --logger.info "    - Color Source: ({})" args:#(sourceBlockToString tagStruct.selfIllumination.colorSource)
+    --    --logger.info "    - Animation Function: ({})" args:#(animFunctionToString tagStruct.selfIllumination.animationFunction)
+    --    --logger.info "    - Animation Period: [{}]" args:#(tagStruct.selfIllumination.animationPeriod)
+    --    --logger.info "    - Animation Color Lower Bound: R={} G={} B={}" args:#(tagStruct.selfIllumination.animColorLowerBound[1], tagStruct.selfIllumination.animColorLowerBound[2], tagStruct.selfIllumination.animColorLowerBound[3])
+    --    --logger.info "    - Animation Color Upper Bound: R={} G={} B={}" args:#(tagStruct.selfIllumination.animColorUpperBound[1], tagStruct.selfIllumination.animColorUpperBound[2], tagStruct.selfIllumination.animColorUpperBound[3])
+    --    logger.log "Maps Properties:"
+    --    --logger.info "    - Base Map U-Scale: [{}]" args:#(tagStruct.maps.mapUScale)
+    --    --logger.info "    - Base Map V-Scale: [{}]" args:#(tagStruct.maps.mapVScale)
+    --    logger.info "    - Base Map: {}" args:#(tagStruct.maps.baseMap.path)
+    --    logger.info "    - Multipurpose Map: {}" args:#(tagStruct.maps.multipurposeMap.path)
+    --    --logger.info "    - Detail Function: ({})" args:#(detailFunctionToString tagStruct.maps.detailFunction)
+    --    --logger.info "    - Detail Mask: ({})" args:#(detailMaskToString tagStruct.maps.detailMask)
+    --    --logger.info "    - Detail Map Scale: [{}]" args:#(tagStruct.maps.detailMapScale)
+    --    logger.info "    - Detail Map: {}" args:#(tagStruct.maps.detailMap.path)
+    --    --logger.info "    - Detail Map V-Scale: [{}]" args:#(tagStruct.maps.detailMapVScale)
+    --    --logger.log "Texture Animation Properties:"
+    --    --logger.info "    - U Animation Source: ({})" args:#(sourceBlockToString tagStruct.textureAnimation.uAnimationSource)
+    --    --logger.info "    - U Animation Function: ({})" args:#(animFunctionToString tagStruct.textureAnimation.uAnimationFunction)
+    --    --logger.info "    - U Animation Period: [{}]" args:#(tagStruct.textureAnimation.uAnimationPeriod)
+    --    --logger.info "    - V Animation Source: ({})" args:#(sourceBlockToString tagStruct.textureAnimation.vAnimationSource)
+    --    --logger.info "    - V Animation Function: ({})" args:#(animFunctionToString tagStruct.textureAnimation.vAnimationFunction)
+    --    --logger.info "    - V Animation Period: [{}]" args:#(tagStruct.textureAnimation.vAnimationPeriod)
+    --    --logger.info "    - Rotation Animation Source: ({})" args:#(sourceBlockToString tagStruct.textureAnimation.rotationAnimationSource)
+    --    --logger.info "    - Rotation Animation Function: ({})" args:#(animFunctionToString tagStruct.textureAnimation.rotationAnimationFunction)
+    --    --logger.info "    - Rotation Animation Period: [{}]" args:#(tagStruct.textureAnimation.rotationAnimationPeriod)
+    --    logger.info "Reflection Properties:\n"
+    --    --logger.info "    - Falloff Distance: [{}]" args:#(tagStruct.reflectionProperties.falloffDistance)
+    --    --logger.info "    - Cutoff Distance: [{}]" args:#(tagStruct.reflectionProperties.cutoffDistance)
+    --    --logger.info "    - Perpendicular Brightness: [{}]" args:#(tagStruct.reflectionProperties.perpendicularBrightness)
+    --    --logger.info "    - Perpendicular Tint Color: R={} G={} B={}" args:#(tagStruct.reflectionProperties.perpendicularTintColor[1], tagStruct.reflectionProperties.perpendicularTintColor[2], tagStruct.reflectionProperties.perpendicularTintColor[3])
+    --    --logger.info "    - Parallel Brightness: [{}]" args:#(tagStruct.reflectionProperties.parallelBrightness)
+    --    --logger.info "    - Parallel Tint Color: R={} G={} B={}" args:#(tagStruct.reflectionProperties.parallelTintColor[1], tagStruct.reflectionProperties.parallelTintColor[2], tagStruct.reflectionProperties.parallelTintColor[3])
     --    if hasProperty tagStruct.reflectionProperties "cubeMap" and classOf tagStruct.reflectionProperties == returnModelReflectionProperties then
     --    (
-    --        logger "    - Cube Map: %\n" params:#(tagStruct.reflectionProperties.cubeMap.path)
+    --        logger.info "    - Cube Map: {}\n\n" args:#(tagStruct.reflectionProperties.cubeMap.path)
     --    )
-    --    
-    --    logger "\n\n"
     --)
     -- Close file and return tag struct
     fclose fileHandle

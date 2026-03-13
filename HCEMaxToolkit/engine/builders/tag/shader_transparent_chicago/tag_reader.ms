@@ -399,27 +399,26 @@ fn readShaderTransparentChicagoTag filePath =
 	
 	--if tagHeaderLogger then
 	--(
-	--	logger "\n=== SHADER TRANSPARENT CHICAGO SUMMARY ===\n"
-	--	logger "Chicago Shader:\n"
-	--	logger "    - Numeric Counter Limit: [%]\n" params:#(tagStruct.chicagoShader.numericCounterLimit)
-	--	logger "    - Chicago Flags: %\n" params:#(tagStruct.chicagoShader.chicagoFlags)
-	--	logger "    - First Map Type: (%)\n" params:#(firstMapTypeToString tagStruct.chicagoShader.firstMapType)
-	--	logger "    - Framebuffer Blend Function: (%)\n" params:#(framebufferBlendFunctionToString tagStruct.chicagoShader.framebufferBlendFunction)
-	--	logger "    - Framebuffer Fade Mode: (%)\n" params:#(framebufferFadeModeToString tagStruct.chicagoShader.framebufferFadeMode)
-	--	logger "    - Framebuffer Fade Source: (%)\n" params:#(framebufferFadeSourceToString tagStruct.chicagoShader.framebufferFadeSource)
-	--	logger "    - Lens Flare Spacing: [%]\n" params:#(tagStruct.chicagoShader.lensFlareSpacing)
-	--	logger "    - Lens Flare Path: '%'\n" params:#(tagStruct.chicagoShader.lensFlare.path)
-	--	logger "Extra Layers Count: [%]\n" params:#(tagStruct.extraLayers.count)
+	--	logger.log "=== SHADER TRANSPARENT CHICAGO SUMMARY ==="
+	--	logger.log "Chicago Shader:"
+	--	logger.info "    - Numeric Counter Limit: [{}]" args:#(tagStruct.chicagoShader.numericCounterLimit)
+	--	logger.info "    - Chicago Flags: {}" args:#(tagStruct.chicagoShader.chicagoFlags)
+	--	logger.info "    - First Map Type: ({})" args:#(firstMapTypeToString tagStruct.chicagoShader.firstMapType)
+	--	logger.info "    - Framebuffer Blend Function: ({})" args:#(framebufferBlendFunctionToString tagStruct.chicagoShader.framebufferBlendFunction)
+	--	logger.info "    - Framebuffer Fade Mode: ({})" args:#(framebufferFadeModeToString tagStruct.chicagoShader.framebufferFadeMode)
+	--	logger.info "    - Framebuffer Fade Source: ({})" args:#(framebufferFadeSourceToString tagStruct.chicagoShader.framebufferFadeSource)
+	--	logger.info "    - Lens Flare Spacing: [{}]" args:#(tagStruct.chicagoShader.lensFlareSpacing)
+	--	logger.info "    - Lens Flare Path: '{}'" args:#(tagStruct.chicagoShader.lensFlare.path)
+	--	logger.info "Extra Layers Count: [{}]" args:#(tagStruct.extraLayers.count)
 	--	for i = 1 to tagStruct.extraLayers.count do
 	--	(
-	--		logger "    - Layer % Path: '%' | %\n" params:#(i, tagStruct.extraLayers[i].path, getTagClassInfo tagStruct.extraLayers[i].tagClass)
+	--		logger.info "    - Layer {} Path: '{}' | {}" args:#(i, tagStruct.extraLayers[i].path, getTagClassInfo tagStruct.extraLayers[i].tagClass)
 	--	)
-	--	logger "Maps Count: [%]\n" params:#(tagStruct.fourStageMap.count)
+	--	logger.info "Maps Count: [{}]" args:#(tagStruct.fourStageMap.count)
 	--	for i = 1 to tagStruct.fourStageMap.count do
 	--	(
-	--		logger "    - Map % Path: '%'\n" params:#(i, tagStruct.fourStageMap[i].mapsProps.mapPath.path)
+	--		logger.info "    - Map {} Path: '{}'\n\n" args:#(i, tagStruct.fourStageMap[i].mapsProps.mapPath.path)
 	--	)
-    --    logger "\n\n"
 	--)
 
 	-- Close file and return tag struct
