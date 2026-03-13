@@ -13,7 +13,7 @@ fn getDefaultConfigContent =
     content += "; without compressed vertices.\n"
     content += "; Disable this option to import that gbxmodel correctly,\n"
     content += "; but note that it will increase import time.\n"
-    content += "skip_uncompressed_vertices=1\n"
+    content += "skip_uncompressed_vertices=0\n"
     content += "; create_nodes=1\n"
     content += "; create_markers=1\n"
     content += "; create_geometry=1\n"
