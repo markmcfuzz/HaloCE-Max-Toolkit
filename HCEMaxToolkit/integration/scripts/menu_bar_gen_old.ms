@@ -75,7 +75,7 @@ fn createHaloCEToolkitMenu =
         print "Adding Export macros..."
         addMacroToMenu exportMenu "Halo CE" "ExportJMS" mm displayName:"JMS Model"
         addMacroToMenu exportMenu "Halo CE" "ExportJointedModelAnimation" mm displayName:"JMA Animation"
-        --addMacroToMenu exportMenu "Halo CE" "ExportCameraTrack" mm displayName:"Camera Track"
+        addMacroToMenu exportMenu "Halo CE" "ExportCameraTrack" mm displayName:"Camera Track"
 
         -- Add Tools macros
         print "Adding Tools macros..."
