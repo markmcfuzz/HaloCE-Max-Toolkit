@@ -164,7 +164,7 @@ fn importCameraTrack =
                     beep:false
     )
 
-    --clearListener()
+    clearListener()
     return createdPoints
 )
 

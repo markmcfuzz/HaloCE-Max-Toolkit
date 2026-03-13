@@ -121,6 +121,7 @@ fn importJmaFile jmaFile:undefined =
 		messageBox "Animation import failed!\n\nSee the MaxScript Listener for details." title:"Import Failed"
 		return undefined
 	)
+	clearListener()
 )
 
 importJmaFile()

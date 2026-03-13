@@ -107,7 +107,7 @@ fn importJmsFile jmsFile:undefined =
                 title:"Import Complete" \
                 beep:false
     )
-	--clearListener()
+	clearListener()
 	return jmsData
 )
 

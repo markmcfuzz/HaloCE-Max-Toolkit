@@ -71,7 +71,7 @@ fn exportJmsFile =
     logger.info "Export process completed in {} seconds" args:#(formattedPrint totalTime format:".3f")
     logger.log "JMS Export Complete\n\n"
 
-    --clearListener()
+    clearListener()
     return success
 )
 

@@ -117,6 +117,7 @@ fn spheresToHelpers =
 	messageBox resultMsg title:"Conversion Complete"
 	
 	return convertedCount
+	clearListener()
 )
 
 -- Only run if executed directly (not when included by another script)

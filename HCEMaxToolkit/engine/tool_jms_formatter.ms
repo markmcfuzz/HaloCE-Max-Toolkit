@@ -77,7 +77,7 @@ fn runLuaScript luaExe scriptPath inputFile outputFile =
 	)
 )
 
-fn main = 
+fn main =
 (	
 	-- Get toolkit root
 	local toolkitRoot = getToolkitRoot()
@@ -154,6 +154,7 @@ fn main =
 		logger.error "Conversion failed!"
 		return false
 	)
+	clearListener()
 )
 -- Execute main function
 main()

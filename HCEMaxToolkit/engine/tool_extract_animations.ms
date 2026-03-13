@@ -61,5 +61,6 @@ fn openModelAnimations =
 		logger.warn "Extraction did not complete successfully."
 		return undefined
 	)
+	clearListener()
 )
 openModelAnimations()

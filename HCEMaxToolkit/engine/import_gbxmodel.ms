@@ -165,7 +165,7 @@ fn ImportGbxModel =
                     beep:false
     )
     
-    --clearListener()
+    clearListener()
     return createdMeshes
 )
 -- === Run - auto-detects tag type from file ===

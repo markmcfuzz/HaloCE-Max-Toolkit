@@ -94,6 +94,7 @@ fn exportCameraTrack =
 		messageBox "Failed to export camera track!" title:"Export Failed"
 		return undefined
 	)
+	clearListener()
 )
 
 -------------------------------------------------------

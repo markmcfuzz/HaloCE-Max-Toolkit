@@ -74,7 +74,7 @@ fn exportJmaFile =
     logger.info "Export process completed in {} seconds" args:#(formattedPrint totalTime format:".3f")
     logger.log "Animation Export Complete\n\n"
 
-    --clearListener()
+    clearListener()
     return success
 )
 
