@@ -42,10 +42,10 @@ function menuCallback =
     -- Add Export submenu actions
     local exportJmsId = "ExportJMS`Halo CE"
     local exportJmaId = "ExportJointedModelAnimation`Halo CE"
-    --local exportCameraTrackId = "ExportCameraTrack`Halo CE"
+    local exportCameraTrackId = "ExportCameraTrack`Halo CE"
     exportMenu.CreateAction "9A8B7C6D-5E4F-3A2B-1C0D-EF1A2B3C4D5E" macroScriptTableId exportJmsId
     exportMenu.CreateAction "6F5E4D3C-2B1A-0D9C-8B7A-6E5F4D3C2B1A" macroScriptTableId exportJmaId
-    --exportMenu.CreateAction "0A1B2C3D-4E5F-6071-8293-A4B5C6D7E8F9" macroScriptTableId exportCameraTrackId
+    exportMenu.CreateAction "0A1B2C3D-4E5F-6071-8293-A4B5C6D7E8F9" macroScriptTableId exportCameraTrackId
     -- Add Tools submenu actions
     local sphereToHaloHelperId = "SphereToHaloMarkerHelper`Halo CE"
     local jmsFormatterId = "JmsFormatter`Halo CE"
