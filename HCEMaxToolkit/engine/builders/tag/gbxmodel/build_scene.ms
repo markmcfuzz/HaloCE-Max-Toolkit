@@ -819,7 +819,7 @@ fn buildPartMesh fileHandle geometryIndex partIndex partStruct materialObj uScal
 )
 
 -- Build all geometry meshes
-fn createGBXModelGeometry regions geometries materialObj createdNodes =
+fn createGBXModelGeometry regions geometries materialObj createdNodes uScale:1.0 vScale:1.0 =
 (
 	if regions == undefined or regions.count == 0 then
 		return #()
@@ -885,7 +885,7 @@ fn createGBXModelGeometry regions geometries materialObj createdNodes =
 				
 				for partIdx = 1 to parts.count do
 				(
-					local partResult = buildPartMesh undefined geometryIndex partIdx parts[partIdx] materialObj uScale:1.0 vScale:1.0
+					local partResult = buildPartMesh undefined geometryIndex partIdx parts[partIdx] materialObj uScale:uScale vScale:vScale
 					
 					if partResult == undefined then continue
 					
@@ -1167,6 +1167,16 @@ fn buildGBXModelMesh gbxModelData gbxModelName gbxmodelPath =
 	local regions = getFieldValue gbxModelData "regions"
 	local markers = getFieldValue gbxModelData "markers"  -- Root level markers
 	
+	-- Extract UV scales from tag (default to 1.0 if not present or zero)
+	local baseMapUScale = getFieldValue gbxModelData "baseMapUScale"
+	local baseMapVScale = getFieldValue gbxModelData "baseMapVScale"
+	
+	-- Default to 1.0 if undefined or near-zero
+	if baseMapUScale == undefined or (abs baseMapUScale) < 0.0001 then baseMapUScale = 1.0
+	if baseMapVScale == undefined or (abs baseMapVScale) < 0.0001 then baseMapVScale = 1.0
+	
+	logger.info "UV Scales: U: {}, V: {}" args:#(baseMapUScale, baseMapVScale)
+	
 	-- Create nodes (skeleton) FIRST
 	local t1 = timestamp()
 	local createdNodes = createGBXModelNodes nodes
@@ -1190,7 +1200,7 @@ fn buildGBXModelMesh gbxModelData gbxModelName gbxmodelPath =
 	-- Create geometry meshes (WITHOUT materials yet)
 	local t3 = timestamp()
 	local geometriesArray = getFieldValue gbxModelData "geometries"
-	local createdMeshes = createGBXModelGeometry regions geometriesArray undefined createdNodes
+	local createdMeshes = createGBXModelGeometry regions geometriesArray undefined createdNodes uScale:baseMapUScale vScale:baseMapVScale
 	logger.info "Geometry built: {} in {} ms" args:#(createdMeshes.count, (timestamp() - t3))
 	
 	-- Create materials LAST (reads shader tag files separately)
