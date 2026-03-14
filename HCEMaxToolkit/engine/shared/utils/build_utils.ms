@@ -20,7 +20,7 @@ fn decompressNormal normalPacked =
 fn decompressUV u16 v16 uScale:1.0 vScale:1.0 =
 (
     local u = (u16 / 32767.0) * uScale
-    local v_coord = 1.0 - ((v16 / 32767.0) * vScale)
+    local v_coord = (1.0 - (v16 / 32767.0)) * vScale
     return [u, v_coord, 0]
 )
 
