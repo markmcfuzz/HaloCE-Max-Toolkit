@@ -120,8 +120,8 @@ jobs:
           
           Write-Host "Creating ZIP: $zipName"
           
-          # Create zip from HCEMaxToolkit folder
-          Compress-Archive -Path "HCEMaxToolkit\*" -DestinationPath $zipName -Force
+          # Create zip with HCEMaxToolkit folder as top-level
+          Compress-Archive -Path "HCEMaxToolkit" -DestinationPath $zipName -Force
           
           if (Test-Path $zipName) {
             Write-Host "ZIP created successfully: $zipName"
