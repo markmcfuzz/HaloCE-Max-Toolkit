@@ -349,3 +349,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added missing `readTagRefPath` function for reading shader references in gbxmodel importer.
 - **GBX/Model Importer:**
   - Fixed reuse skeleton in scene.
+  - UV coordinates importing incorrectly on models with negative V-space UVs
+    - Importer was ignoring UV scale values stored in the model file (always using 1.0 instead of actual values)
+    - UV flipping formula was inconsistent between compressed and uncompressed vertices, causing distortion
