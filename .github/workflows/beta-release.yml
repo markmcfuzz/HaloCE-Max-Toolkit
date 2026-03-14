@@ -142,7 +142,7 @@ jobs:
             ## Beta Pre-release - v${{ steps.version.outputs.VERSION }}-beta.${{ steps.version.outputs.BETA_NUMBER }}
             
             This is a beta pre-release for testing purposes.
-            Extract the zip on next path: `C:\Users\yourUserName\AppData\Roaming\Autodesk\ApplicationPlugins`
+            Extract the zip on next path: `%APPDATA%\Autodesk\ApplicationPlugins`
             
             **Full Changelog:** [CHANGELOG.md](http://github.com/${{ github.repository }}/blob/beta/CHANGELOG.md#${{ steps.changelog.outputs.ANCHOR }})
           files: |
