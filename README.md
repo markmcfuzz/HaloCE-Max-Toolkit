@@ -1,6 +1,6 @@
 # HALO CE MAX TOOLKIT
 
-![GitHub release](https://img.shields.io/github/v/release/markmcfuzz/HaloCE-Max-Toolkit?style=for-the-badge) ![GitHub Pre-release](https://img.shields.io/github/v/release/markmcfuzz/HaloCE-Max-Toolkit?include_prereleases&label=pre-release&color=yellow&style=for-the-badge)
+![GitHub release](https://img.shields.io/github/v/release/markmcfuzz/HaloCE-Max-Toolkit?&label=release&style=for-the-badge) ![GitHub Pre-release](https://img.shields.io/github/v/release/markmcfuzz/HaloCE-Max-Toolkit?include_prereleases&label=pre-release&color=a1562b&style=for-the-badge)
 
 ![icon](docs/images/banner.png)
 
@@ -38,7 +38,8 @@ If you want to learn more in depth about the features and roadmap, check the [**
 
 ---
 ### Dependencies
-- **Autodesk 3ds Max 2023 - 2026**
+![3dsmax](https://img.shields.io/badge/3ds%20Max-2023%2B-39a5cc?style=for-the-badge&logo=autodesk&logoColor=white)
+
 > [!WARNING]
 > The toolkit is built and tested for 3ds Max **2023 up to 2026**. However, it may not work properly on versions older than 2023, and those versions are not officially supported. If you are using an older version, please report any issues you find.
 
@@ -78,7 +79,7 @@ If you want to learn more in depth about the features and roadmap, check the [**
   > The toolkit is built for **3ds Max 2023** and later, but may work on older versions. If you are using an older version, please report any issues you encounter. Maybe it can be fixed and added support for older versions in the future.
 
 - **How beta build works?**
-  > Beta builds are experimental versions that may contain new features or bug fixes not yet available in stable releases. They are intended for testing and feedback purposes. Use beta builds at your own risk, as they may be less stable than official releases and they are on zip format, so you need to manually install them by copying the `HCEMaxToolkit` and paste in the next path: `C:\Users\yourUserName\AppData\Roaming\Autodesk\ApplicationPlugins`.
+  > Beta builds are experimental versions that may contain new features or bug fixes not yet available in stable releases. They are intended for testing and feedback purposes. Use beta builds at your own risk, as they may be less stable than official releases and they are on zip format, so you need to manually install them by copying the `HCEMaxToolkit` and paste in the next path: `%APPDATA%\Autodesk\ApplicationPlugins`.
 
 - **Alternative get updated?**  
   > For more advanced users can follow these steps for get updated using symbolic link:
@@ -98,14 +99,15 @@ If you want to learn more in depth about the features and roadmap, check the [**
 - SnowyMouse
   - [Gorilla](https://github.com/SnowyMouse/gorilla) for tag definition dump to have a new definitions base to work with.
 - General-101
-  - Some math used in the Halo 1 tag importing code and project structure inspiration.
-  - [Halo-Asset-Blender-Development-Toolset](https://github.com/General-101/Halo-Asset-Blender-Development-Toolset)
+  - Some math used in Halo 1 tag importing code from his Halo Blender Toolset.
 - MosesofEgypt
-  - Camera track exporter.
+  - Initial camera track exporter.
 - CtrlAltDestroy
   - Initial animation exporter.
 - LaikaGlove
   - Initial animation source importer.
-- MrChromed
-  - Report bugs, feedback and suggestions that helped a lot to improve the toolkit.
+- Report bugs, feedback and suggestions:
+  - matta_clark
+  - MrChromed
+  - DG
 - All the users that have reported bugs and suggestions to improve the toolkit, you know who you are, thank you so much for your support and help to make this project better!
