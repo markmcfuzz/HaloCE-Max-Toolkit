@@ -1,9 +1,12 @@
 name: Feature request
 description: Suggest an idea for this project.
-  Select the "HCE Max Toolkit" Project.
 labels:
   - "enhancement"
 body:
+  - type: markdown
+    attributes:
+      value: |
+        :information_source: Please select the `HCE Max Toolkit` Project, in the right side.
   - type: textarea
     attributes:
       label: Is your feature request related to a problem? Please describe.

@@ -1,13 +1,12 @@
 name: Bug report
 description: Create a report to help us improve.
-  - Select the "HCE Max Toolkit" Project.
 labels:
   - "bug"
 body:
   - type: markdown
     attributes:
       value: |
-        :information_source: You can join my community and report bugs in the dedicated group. [Join now](https://chat.whatsapp.com/DM6WaaTQ4IJ3VOe2ly6KJD)!
+        :information_source: Please select the `HCE Max Toolkit` Project, in the right side.
   - type: textarea
     attributes:
       label: Describe the bug
