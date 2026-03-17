@@ -1,6 +1,13 @@
 # HALO CE MAX TOOLKIT
 
-![GitHub release](https://img.shields.io/github/v/release/markmcfuzz/HaloCE-Max-Toolkit?&label=release&style=for-the-badge) ![GitHub Pre-release](https://img.shields.io/github/v/release/markmcfuzz/HaloCE-Max-Toolkit?include_prereleases&label=pre-release&color=a1562b&style=for-the-badge)
+<div align="center">
+  <p><a href="https://github.com/markmcfuzz/HaloCE-Max-Toolkit/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml">Report Bugs</a> · <a href="https://github.com/markmcfuzz/HaloCE-Max-Toolkit/issues/new?assignees=&labels=enhancement&projects=&template=feature_request.yml">Request Feature</a> · <a href="https://github.com/markmcfuzz/HaloCE-Max-Toolkit/discussions/new?category=q-a">Ask Question</a></p>
+
+  <a href="https://github.com/markmcfuzz/HaloCE-Max-Toolkit/releases"><img src="https://custom-icon-badges.demolab.com/github/v/tag/markmcfuzz/HaloCE-Max-Toolkit?label=Version&labelColor=302d41&color=8ac4ff&logoColor=d9e0ee&logo=tag&style=for-the-badge" alt="GitHub HaloCE Max Toolkit Version"/></a>
+  <a href="https://github.com/markmcfuzz/HaloCE-Max-Toolkit/issues"><img src="https://custom-icon-badges.demolab.com/github/issues/markmcfuzz/HaloCE-Max-Toolkit?label=Issues&labelColor=302d41&color=f5a97f&logoColor=d9e0ee&logo=issue&style=for-the-badge" alt="GitHub HaloCE Max Toolkit Issues"/></a>
+  <a href="https://discord.gg/uGfxhTMXN3"><img src="https://img.shields.io/badge/Join%20To%20Community-blue?style=for-the-badge&logo=discord&color=302d41&logoColor=white" alt="Join to Community"/></a>
+</div>
+
 
 ![icon](docs/images/banner.png)
 
