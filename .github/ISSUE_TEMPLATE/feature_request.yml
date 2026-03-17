@@ -1,5 +1,6 @@
 name: Feature request
 description: Suggest an idea for this project.
+  Select the "HCE Max Toolkit" Project.
 labels:
   - "enhancement"
 body:
