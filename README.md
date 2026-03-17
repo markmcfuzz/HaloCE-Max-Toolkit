@@ -3,8 +3,8 @@
 <div align="center">
   <p><a href="https://github.com/markmcfuzz/HaloCE-Max-Toolkit/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml">Report Bugs</a> · <a href="https://github.com/markmcfuzz/HaloCE-Max-Toolkit/issues/new?assignees=&labels=enhancement&projects=&template=feature_request.yml">Request Feature</a> · <a href="https://github.com/markmcfuzz/HaloCE-Max-Toolkit/discussions/new?category=q-a">Ask Question</a></p>
 
-  <a href="https://github.com/markmcfuzz/HaloCE-Max-Toolkit/releases"><img src="https://custom-icon-badges.demolab.com/github/v/tag/markmcfuzz/HaloCE-Max-Toolkit?label=Version&labelColor=302d41&color=8ac4ff&logoColor=d9e0ee&logo=tag&style=for-the-badge" alt="GitHub HaloCE Max Toolkit Version"/></a>
-  <a href="https://github.com/markmcfuzz/HaloCE-Max-Toolkit/issues"><img src="https://custom-icon-badges.demolab.com/github/issues/markmcfuzz/HaloCE-Max-Toolkit?label=Issues&labelColor=302d41&color=f5a97f&logoColor=d9e0ee&logo=issue&style=for-the-badge" alt="GitHub HaloCE Max Toolkit Issues"/></a>
+  <a href="https://github.com/markmcfuzz/HaloCE-Max-Toolkit/releases"><img src="https://custom-icon-badges.demolab.com/github/v/tag/markmcfuzz/HaloCE-Max-Toolkit?label=Version&labelColor=302d41&color=85d2ff&logoColor=d9e0ee&logo=tag&style=for-the-badge" alt="GitHub HaloCE Max Toolkit Version"/></a>
+  <a href="https://github.com/markmcfuzz/HaloCE-Max-Toolkit/issues"><img src="https://custom-icon-badges.demolab.com/github/issues/markmcfuzz/HaloCE-Max-Toolkit?label=Issues&labelColor=302d41&color=ffa385&logoColor=d9e0ee&logo=issue&style=for-the-badge" alt="GitHub HaloCE Max Toolkit Issues"/></a>
   <a href="https://discord.gg/uGfxhTMXN3"><img src="https://img.shields.io/badge/Join%20To%20Community-blue?style=for-the-badge&logo=discord&color=302d41&logoColor=white" alt="Join to Community"/></a>
 </div>
 
@@ -95,26 +95,53 @@ If you want to learn more in depth about the features and roadmap, check the [**
 - **Can I contribute to the project?**  
   > Yes! Contributions are welcome. You can contribute by reporting issues, suggesting features, or submitting pull requests on the GitHub repository.
 
-## Special Thanks:
+## Special Thanks
 
-- TheGhost
-  - All original bluestreak scripts. At the start of this project.
-- [Sledmine](https://github.com/Sledmine)
-  - Modified scripts from [BlueStreak](https://github.com/Sledmine/bluestreak/tree/main)
-- [Sigmmma](https://github.com/Sigmmma)
-  - H1 Tag Definitions
-- SnowyMouse
-  - [Gorilla](https://github.com/SnowyMouse/gorilla) for tag definition dump to have a new definitions base to work with.
-- General-101
-  - Some math used in Halo 1 tag importing code from his Halo Blender Toolset.
-- MosesofEgypt
-  - Initial camera track exporter.
-- CtrlAltDestroy
-  - Initial animation exporter.
-- LaikaGlove
-  - Initial animation source importer.
-- Report bugs, feedback and suggestions:
-  - matta_clark
-  - MrChromed
-  - DG
-- All the users that have reported bugs and suggestions to improve the toolkit, you know who you are, thank you so much for your support and help to make this project better!
+- **TheGhost**  
+  - For the original Bluestreak scripts at the start of this project.
+  
+- **[Sledmine](https://github.com/Sledmine)**  
+  - For the modified scripts from [BlueStreak](https://github.com/Sledmine/bluestreak/tree/main).
+  
+- **[Sigmmma](https://github.com/Sigmmma)**  
+  - For the H1 tag definitions.
+  
+- **SnowyMouse**  
+  - For the [Gorilla](https://github.com/SnowyMouse/gorilla) tag definition dump, which provided a new base of definitions to work with.
+  
+- **General-101**  
+  - For the math used in the Halo 1 tag importing code from his Halo Blender Toolset.
+  
+- **MosesofEgypt**  
+  - For the initial camera track exporter.
+  
+- **CtrlAltDestroy**  
+  - For the initial animation exporter.
+  
+- **LaikaGlove**  
+  - For the initial animation source importer.
+  
+- **Report bugs, feedback, and suggestions**:  
+  - **matta_clark**
+  - **MrChromed**
+  - **DG**  
+
+- **And to all the users who reported bugs and provided suggestions** to improve the toolkit. You know who you are—thank you so much for your support and help in making this project better!
+
+---
+
+## Donate
+Love the project? Please consider donating to help it improve!
+
+<div align="left">
+  <a href="https://ko-fi.com/markmcfuzz" target="_blank"><img src="https://img.shields.io/badge/Ko%e2%80%91fi-Donate-blue?labelColor=302d41&color=adffc7&logo=ko-fi&logoColor=d9e0ee&style=for-the-badge" alt="Ko-fi"></a>
+</div>
+
+<br>
+
+---
+
+<p align="center">Copyright © 2025-present Mark McFuzz</p>
+<div align="center">
+  <a href="LICENSE"><img src="https://custom-icon-badges.demolab.com/github/license/markmcfuzz/HaloCE-Max-Toolkit?label=License&labelColor=302d41&color=91d7e3&logo=law&logoColor=d9e0ee&style=for-the-badge" alt="GitHub Readme Profile License"></a>
+</div>
