@@ -126,7 +126,7 @@ If you want to learn more in depth about the features and roadmap, check the [**
   - **MrChromed**
   - **DG**  
 
-- **And to all the users who reported bugs and provided suggestions** to improve the toolkit. You know who you are—thank you so much for your support and help in making this project better!
+- **And to all the users who reported bugs and provided suggestions** to improve the toolkit. You know who you are - thank you so much for your support and help in making this project better!
 
 ---
 
