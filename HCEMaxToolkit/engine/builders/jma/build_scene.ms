@@ -26,6 +26,32 @@ fn applyAnimationToScene jmaData =
 	logger.info "Frame Rate: {}" args:#(jmaData.frameRate)
 	logger.info "Nodes: {}" args:#(jmaData.nodeCount)
 	
+	-- Pre-cache scene nodes and visibility (do this ONCE, not per frame)
+	local nodeCache = #()
+	for n = 1 to jmaData.nodeCount do
+	(
+		local nodeName = jmaData.nodes[n].nodeName
+		local sceneNode = getNodeByName nodeName
+		
+		if sceneNode == undefined then
+		(
+			append nodeCache undefined
+			append missingNodeIndices n
+			append result[2] nodeName
+			logger.warn "Node not found in scene: '{}'" args:#(nodeName)
+		)
+		else if sceneNode.isHidden then
+		(
+			-- Store as undefined for hidden nodes (skip silently)
+			append nodeCache undefined
+		)
+		else
+		(
+			-- Store visible node reference
+			append nodeCache sceneNode
+		)
+	)
+	
 	-- Set animation mode
 	max tool animmode
 	set animate on
@@ -43,11 +69,11 @@ fn applyAnimationToScene jmaData =
 		-- Process each node in this frame
 		for n = 1 to jmaData.nodeCount do
 		(
-			local nodeName = jmaData.nodes[n].nodeName
-			local sceneNode = getNodeByName nodeName
+			local sceneNode = nodeCache[n]
 			
 			if sceneNode != undefined then
 			(
+				-- Only process visible nodes (hidden nodes are cached as undefined)
 				local nodeFrame = frameData.nodeFrames[n]
 				
 				-- Convert rotation (negate i, j, k for Halo to 3ds Max conversion)
@@ -72,16 +98,6 @@ fn applyAnimationToScene jmaData =
 				
 				addNewKey sceneNode.scale.controller frameIdx
 				at time frameIdx (in coordsys parent sceneNode.scale = nodeScale)
-			)
-			else
-			(
-				-- Track missing nodes (only log once per node)
-				if (findInArray missingNodeIndices n) == -1 then
-				(
-					append missingNodeIndices n
-					append result[2] nodeName
-					logger.warn "Warning: Node not found in scene: '{}'" args:#(nodeName)
-				)
 			)
 		)
 	)
