@@ -352,3 +352,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - UV coordinates importing incorrectly on models with negative V-space UVs
     - Importer was ignoring UV scale values stored in the model file (always using 1.0 instead of actual values)
     - UV flipping formula was inconsistent between compressed and uncompressed vertices, causing distortion
+## [5.0.1] - 2026-03-18
+### Changed
+- **JMA Importer:**
+  - Now only imports animation data for visible nodes
+    - Hidden nodes in the scene are silently skipped during import
+    - Enables selective animation import by hiding bones you don't want to animate
+    - Useful for workflows like importing only upper body animation while excluding leg movement
+  - Optimized node lookup performance
+    - Node visibility is now checked once at the start instead of on every frame
+    - Restores fast import speeds for animations with many frames
