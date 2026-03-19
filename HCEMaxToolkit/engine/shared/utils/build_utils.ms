@@ -96,6 +96,61 @@ fn isGeometryObject obj =
 	return false
 )
 
+-- Check if object is a helper container (non-node/non-geometry object used for rotation/transform helpers)
+-- These include shapes (Editable Spline), dummies, points, helpers
+fn isHelperContainer obj =
+(
+	if obj == undefined then return false
+	
+	-- Skip if it's already a node object
+	if isNodeObject obj then return false
+	
+	-- Skip if it's geometry
+	if isGeometryObject obj then return false
+	
+	-- Skip if it's a marker
+	if isMarkerObject obj then return false
+	
+	local objClass = classOf obj
+	
+	-- Check for common helper types
+	if objClass == Dummy or \
+		objClass == Point or \
+		objClass == SplineShape or \
+		superClassOf obj == shape or \
+		superClassOf obj == Helper then
+		return true
+	
+	return false
+)
+
+-- Find the actual root node, looking through helper containers if necessary
+-- Returns the node object that should be treated as root, or undefined
+fn findActualRootNode obj =
+(
+	if obj == undefined then return undefined
+	
+	-- If it's already a node, return it
+	if isNodeObject obj then return obj
+	
+	-- If it's a helper container with exactly one child that's a node, return that child
+	if isHelperContainer obj then
+	(
+		local nodeChildren = #()
+		for child in obj.children do
+		(
+			if isNodeObject child and not child.isHidden then
+				append nodeChildren child
+		)
+		
+		-- Only return child if there's exactly one valid node child
+		if nodeChildren.count == 1 then
+			return nodeChildren[1]
+	)
+	
+	return undefined
+)
+
 -- Get the Skin modifier from an object if it exists
 fn getSkinModifier obj =
 (
