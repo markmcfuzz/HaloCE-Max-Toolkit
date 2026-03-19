@@ -25,20 +25,44 @@ fn validateSceneForExport =
 	
 	for obj in objects do
 	(
-		if (not obj.isHidden) and (isNodeObject obj) and obj.parent == undefined then
+		if obj.isHidden then continue
+		
+		-- Direct root node (no parent)
+		if (isNodeObject obj) and obj.parent == undefined then
 		(
 			rootNode = obj
 			rootNodeCount += 1
+		)
+		-- Node parented to a helper container (e.g., Editable Spline for rotation)
+		else if obj.parent != undefined and \
+		        obj.parent.parent == undefined and \
+		        (not obj.parent.isHidden) and \
+		        (isNodeObject obj) and \
+		        (isHelperContainer obj.parent) then
+		(
+			-- Check if this is the only node child of the helper
+			local siblingNodeCount = 0
+			for sibling in obj.parent.children do
+			(
+				if (isNodeObject sibling) and (not sibling.isHidden) then
+					siblingNodeCount += 1
+			)
+			
+			if siblingNodeCount == 1 then
+			(
+				rootNode = obj
+				rootNodeCount += 1
+			)
 		)
 	)
 	
 	if rootNodeCount == 0 then
 	(
-		append errors "No valid root node found.\n\nA root node must exist and be visible.\nRoot nodes must have a prefix: 'b', 'b_', 'bone', 'frame', or 'bip01'"
+		append errors "No valid root node found.\n\nA root node must exist and be visible.\nRoot nodes must have a prefix: 'b', 'b_', 'bone', 'frame', or 'bip01'\n\nNote: Root nodes can be parented to helper objects (Splines, Dummies, Points) for rotation control."
 	)
 	else if rootNodeCount > 1 then
 	(
-		append errors "Multiple root nodes found.\n\nOnly one root node (visible, no parent) is allowed."
+		append errors "Multiple root nodes found.\n\nOnly one root node (visible, no parent or parented to a single helper container) is allowed."
 	)
 	
 	-- Validation 2: Check for animation keyframes on at least one node
