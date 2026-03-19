@@ -362,3 +362,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Optimized node lookup performance
     - Node visibility is now checked once at the start instead of on every frame
     - Restores fast import speeds for animations with many frames
+
+## [5.0.2] - 2026-03-18
+### Changed
+- **JMS Importer:**
+- Added support for importing from the old single-line JMS format without requiring conversion.
+  - The importer now automatically detects whether the JMS file is in the old single-line format or the new multi-line format and parses it accordingly.
+  - This allows users to import older JMS files directly without needing to run them through the `JMS Format Converter` utility first.
+- **JMS Format Converter:** 
+  - Deprecated utility for converting old JMS format to new JMS format, as the importer now supports both formats natively.
