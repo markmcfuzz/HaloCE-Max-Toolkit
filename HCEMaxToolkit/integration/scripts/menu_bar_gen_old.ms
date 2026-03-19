@@ -80,8 +80,8 @@ fn createHaloCEToolkitMenu =
         -- Add Tools macros
         print "Adding Tools macros..."
         addMacroToMenu toolsMenu "Halo CE" "SphereToHaloMarkerHelper" mm displayName:"Convert Spheres to Halo Helper Markers"
-        addMacroToMenu toolsMenu "Halo CE" "JmsFormatter" mm displayName:"JMS Formatter"
-        addMacroToMenu toolsMenu "Halo CE" "ModelAnimationsExtractor" mm displayName:"Model Animations To Source"
+        --addMacroToMenu toolsMenu "Halo CE" "JmsRepair" mm displayName:"JMS Repair"
+        addMacroToMenu toolsMenu "Halo CE" "ModelAnimationsExtractor" mm displayName:"Extract Model Animations"
 
 
         -- Add submenus to main menu

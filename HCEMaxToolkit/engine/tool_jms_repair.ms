@@ -9,6 +9,23 @@
 --	the GNU General Public License for more details. A full copy of this	
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
+--
+--	JMS FORMAT REPAIR TOOL
+--	
+--	PURPOSE: Repairs ultra-rare JMS edge case formats that cannot be directly imported.
+--	
+--	SUPPORTED FORMATS:
+--	  - Case 2: Ultra-inline format (ALL vertices + triangle count on ONE massive line)
+--	
+--	NOT NEEDED FOR:
+--	  - Standard format (HCE Max Toolkit, invader-recover) - Import directly
+--	  - Inline Case 1 format (each object on one line) - Import directly
+--	  - Blender format - Import directly
+--	
+--	All common formats are now natively supported by the JMS importer.
+--	Only use this tool for extremely unusual legacy files.
+--
+------------------------------------------------------------------------------------------------
 
 -- Get script directory
 scriptDir = getFilenamePath (getThisScriptFilename())
@@ -23,7 +40,7 @@ gc light:true
 scriptName = getFilenameFile (getThisScriptFilename())
 logger.loadConfig callerScriptName:scriptName
 
-logger.log "=== JMS FORMAT CONVERTER ==="
+logger.log "=== JMS FORMAT REPAIR TOOL ==="
 
 -- Get the toolkit root directory
 fn getToolkitRoot = 
@@ -86,7 +103,7 @@ fn main =
 	local luaInfo = findLuaExecutable()
 	if luaInfo == undefined then
 	(		
-		messageBox "LuaJIT executable not found!\n\n \Expected location:\n  engine\\runtime\\bin\\luajit.exe" \
+		messageBox "LuaJIT executable not found!\n\nExpected location:\n  engine\\runtime\\bin\\luajit.exe\n\nNote: This tool is only for ultra-rare JMS formats.\nMost JMS files can be imported directly." \
 		title: "LuaJIT Not Found" \
 		beep: false
 		
@@ -109,7 +126,7 @@ fn main =
 
 	-- Select input file
 	local inputFile = getOpenFileName \
-	caption: "Select Old Format JMS File" \
+	caption: "Select Corrupted JMS File" \
 	types: "JMS Files (*.jms)|*.jms|All Files (*.*)|*.*"
 
 	if inputFile == undefined then
@@ -120,10 +137,10 @@ fn main =
 	logger.info "Input file: '{}'" args:#( inputFile )
 	
     -- Get output file path
-	local defaultOutputPath = ( getFilenamePath inputFile )+( getFilenameFile inputFile )+ "_converted.jms"
+	local defaultOutputPath = ( getFilenamePath inputFile )+( getFilenameFile inputFile )+ "_repaired.jms"
 	
     local outputFile = getSaveFileName \
-	caption: "Save Converted JMS File" \
+	caption: "Save Repaired JMS File" \
 	filename: defaultOutputPath \
 	types: "JMS Files (*.jms)|*.jms|All Files (*.*)|*.*"
 
@@ -133,13 +150,13 @@ fn main =
 		return false
 	)
 	logger.info "Output file: '{}'" args:#( outputFile )
-	-- Run conversion
-	logger.log "Starting conversion..."
+	-- Run repair
+	logger.log "Starting repair process..."
 	local success = runLuaScript luaExe luaScriptPath inputFile outputFile
 	if success then
 	(		
-		messageBox( "Conversion completed successfully!\n\nOutput file:\n" + outputFile ) title: "Success" beep: false
-		logger.log "Conversion completed successfully!"
+		messageBox( "JMS file repaired successfully!\n\nOutput file:\n" + outputFile ) title: "Success" beep: false
+		logger.log "JMS file repaired successfully!"
 		-- Ask if user wants to open the output folder
 		if queryBox "Do you want to open the output folder?" title: "Open Folder?" then
 		(			
@@ -150,8 +167,8 @@ fn main =
 	)
 	else
 	(		
-		messageBox "Conversion failed! Check the MaxScript Listener for details." title: "Error" beep: false
-		logger.error "Conversion failed!"
+		messageBox "Repair failed!\n\nCheck the log file for details.\n\nNote: Standard and inline (Case 1) JMS files are already supported by the importer." title: "Error" beep: false
+		logger.error "Repair failed!"
 		return false
 	)
 	clearListener()

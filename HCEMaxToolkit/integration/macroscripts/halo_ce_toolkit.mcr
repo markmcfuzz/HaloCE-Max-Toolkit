@@ -224,30 +224,30 @@ macroScript SphereToHaloMarkerHelper
     )
 )
 
-macroScript JmsFormatter
-    category: "Halo CE"
-    toolTip: "JMS Format Converter"
-(
-    on execute do 
-    (
-        local thisScript = getThisScriptFilename()
-        local leafPath = pathConfig.removePathLeaf thisScript
-        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
-        local scriptPath = pluginRoot + "\\engine\\tool_jms_formatter.ms"
-        if doesFileExist scriptPath then
-        (
-            fileIn scriptPath
-        )
-        else
-        (
-            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
-        )
-    )
-)
+--macroScript JmsRepair
+--    category: "Halo CE"
+--    toolTip: "JMS Repair"
+--(
+--    on execute do 
+--    (
+--        local thisScript = getThisScriptFilename()
+--        local leafPath = pathConfig.removePathLeaf thisScript
+--        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+--        local scriptPath = pluginRoot + "\\engine\\tool_jms_repair.ms"
+--        if doesFileExist scriptPath then
+--        (
+--            fileIn scriptPath
+--        )
+--        else
+--        (
+--            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+--        )
+--    )
+--)
 
 macroScript ModelAnimationsExtractor
     category: "Halo CE"
-    toolTip: "Model Animations To Source"
+    toolTip: "Extract Model Animations"
 (
     on execute do 
     (

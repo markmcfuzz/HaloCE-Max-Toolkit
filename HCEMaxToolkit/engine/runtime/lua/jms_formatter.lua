@@ -1,13 +1,11 @@
 ------------------------------------------------------------------------------------------------
---	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
---	This program is free software; you can redistribute it and/or modify it	
---	under the terms of the GNU General Public License as published by the	
---	Free Software Foundation; either version 2 of the License, or (at your	
---	option) any later version. This program is distributed in the hope that	
---	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
---	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
---	the GNU General Public License for more details. A full copy of this	
---	license is available at http://www.gnu.org/licenses/gpl.txt.
+--	Copyright (C) 2025-present Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	JMS FORMAT REPAIR TOOL - Handles ultra-rare edge case formats
+--	Specifically designed for "ultra-inline" Case 2 format where ALL vertices
+--	are on a single line followed by triangle count.
+--
+--	Standard and inline (Case 1) formats are natively supported by the importer.
+--	This tool is ONLY for extremely unusual formats that can't be directly imported.
 ------------------------------------------------------------------------------------------------
 
 
@@ -51,6 +49,11 @@ local function convertJMS(inputPath, outputPath)
     local regionsProcessed = 0
     local verticesProcessed = 0
     local trianglesProcessed = 0
+    
+    -- Triangle validation buffer
+    local triangleBuffer = {}
+    local triangleCountWritten = false
+    local validTriangleCount = 0
 
     for rawLine in inputFile:lines() do
         lineNum = lineNum + 1
@@ -166,7 +169,8 @@ local function convertJMS(inputPath, outputPath)
                         outputFile:close()
                         return false, "Invalid vertex count at line " .. lineNum .. ": '" .. line .. "'"
                     end
-                    outputFile:write(vertexCount .. "\n")
+                    -- DON'T write vertex count yet - wait until after processing vertices
+                    -- in case we need to correct it (Case 2 data mismatch)
                     state = "vertices"
                 end
 
@@ -174,32 +178,111 @@ local function convertJMS(inputPath, outputPath)
             elseif state == "vertices" then
                 if verticesProcessed < vertexCount then
                     local parts = split(line, "\t")
-                    -- Format: node0 x y z nx ny nz node1 weight u v w
-                    if #parts >= 12 then
-                        outputFile:write(parts[1] .. "\n") -- node0_index
-                        -- Position (x y z)
-                        outputFile:write(string.format("%f\t%f\t%f\n", tonumber(parts[2]),
-                                                        tonumber(parts[3]), tonumber(parts[4])))
-                        -- Normal (i j k)
-                        outputFile:write(string.format("%f\t%f\t%f\t\n", tonumber(parts[5]),
-                                                        tonumber(parts[6]), tonumber(parts[7])))
-                        outputFile:write(parts[8] .. "\n") -- node1_index
-                        outputFile:write(string.format("%f\n", tonumber(parts[9]))) -- node1_weight
-                        -- Texture UV (u v w)
-                        outputFile:write(string.format("%f\n", tonumber(parts[10])))
-                        outputFile:write(string.format("%f\n", tonumber(parts[11])))
-                        outputFile:write(parts[12] .. "\n") -- w (integer)
-                        verticesProcessed = verticesProcessed + 1
+                    
+                    -- DETECTION: Determine if this is ultra-inline Case 2 or regular inline Case 1
+                    if verticesProcessed == 0 then
+                        local fieldsPerVertex = 12
+                        local expectedFieldsCase1 = fieldsPerVertex
+                        local expectedFieldsCase2 = (vertexCount * fieldsPerVertex) + 1  -- +1 for triangle count
+                        
+                        print(string.format("Detected %d fields on first vertex line", #parts))
+                        print(string.format("Expected for Case 1 (inline per vertex): %d", expectedFieldsCase1))
+                        print(string.format("Expected for Case 2 (ultra-inline): ~%d", expectedFieldsCase2))
+                        
+                        -- Case 1: Each vertex on separate line (NOW NATIVELY SUPPORTED!)
+                        if #parts >= 12 and #parts < 50 then
+                            inputFile:close()
+                            outputFile:close()
+                            return false, "ERROR: This file uses standard inline format (Case 1), which is now natively supported by the JMS importer.\n\n" ..
+                                         "Please import this file directly using:\n" ..
+                                         "  Tools > HCE Max Toolkit > Import JMS\n\n" ..
+                                         "The repair tool is only needed for ultra-rare Case 2 format (all vertices on one line)."
+                        end
+                        
+                        -- Case 2: ALL vertices on one massive line (ULTRA-INLINE)
+                        if #parts > 50 then
+                            print("Ultra-inline Case 2 format detected - processing...")
+                            
+                            -- Calculate actual vertex count from available data
+                            -- Last field should be triangle count, so: (totalFields - 1) / 12 = actual vertices
+                            local actualVertexCount = math.floor((#parts - 1) / fieldsPerVertex)
+                            local vertexFieldCount = actualVertexCount * fieldsPerVertex
+                            
+                            -- Show warning if declared count doesn't match actual data
+                            if actualVertexCount ~= vertexCount then
+                                print(string.format("WARNING: Declared vertex count (%d) doesn't match actual data (%d vertices found)", 
+                                                   vertexCount, actualVertexCount))
+                                print(string.format("  - Declared: %d vertices = %d fields expected", vertexCount, vertexCount * fieldsPerVertex))
+                                print(string.format("  - Found: %d fields total, %d vertex fields + 1 triangle count", #parts, vertexFieldCount))
+                                print("  - Using actual vertex count from data...")
+                                vertexCount = actualVertexCount
+                            end
+                            
+                            if vertexFieldCount + 1 > #parts then
+                                inputFile:close()
+                                outputFile:close()
+                                return false, string.format("ERROR: Insufficient vertex data - need at least %d fields, found %d", 
+                                                           vertexFieldCount + 1, #parts)
+                            end
+                            
+                            -- Write corrected vertex count to output
+                            outputFile:write(vertexCount .. "\n")
+                            
+                            -- Parse vertices from the massive line in chunks of 12
+                            for v = 1, vertexCount do
+                                local offset = (v - 1) * fieldsPerVertex
+                                
+                                outputFile:write(parts[offset + 1] .. "\n") -- node0_index
+                                -- Position (x y z)
+                                outputFile:write(string.format("%f\t%f\t%f\n", 
+                                    tonumber(parts[offset + 2]), tonumber(parts[offset + 3]), tonumber(parts[offset + 4])))
+                                -- Normal (nx ny nz)
+                                outputFile:write(string.format("%f\t%f\t%f\n", 
+                                    tonumber(parts[offset + 5]), tonumber(parts[offset + 6]), tonumber(parts[offset + 7])))
+                                outputFile:write(parts[offset + 8] .. "\n") -- node1_index
+                                outputFile:write(string.format("%f\n", tonumber(parts[offset + 9]))) -- node1_weight
+                                -- Texture coordinates
+                                outputFile:write(string.format("%f\n", tonumber(parts[offset + 10]))) -- texU
+                                outputFile:write(string.format("%f\n", tonumber(parts[offset + 11]))) -- texV
+                                outputFile:write(parts[offset + 12] .. "\n") -- texIndex
+                            end
+                            
+                            -- Extract triangle count from the end of the same line
+                            local triangleCountIndex = (vertexCount * fieldsPerVertex) + 1
+                            if triangleCountIndex <= #parts then
+                                triangleCount = tonumber(parts[triangleCountIndex])
+                                if triangleCount then
+                                    -- DON'T write triangle count yet - we need to validate triangles first
+                                    print(string.format("Extracted triangle count: %d (will validate before writing)", triangleCount))
+                                else
+                                    inputFile:close()
+                                    outputFile:close()
+                                    return false, "ERROR: Could not parse triangle count from ultra-inline vertex line"
+                                end
+                            else
+                                inputFile:close()
+                                outputFile:close()
+                                return false, "ERROR: Triangle count not found at expected position in ultra-inline format"
+                            end
+                            
+                            verticesProcessed = vertexCount  -- Mark all vertices as processed
+                            state = "triangles"
+                        else
+                            inputFile:close()
+                            outputFile:close()
+                            return false, string.format("ERROR: Unexpected format - found %d fields on first vertex line", #parts)
+                        end
                     end
                 else
-                    -- Next line should be triangle count
+                    -- This branch shouldn't be reached for ultra-inline Case 2
+                    -- Next line should be triangle count (for non ultra-inline formats)
                     triangleCount = tonumber(line)
                     if not triangleCount then
                         inputFile:close()
                         outputFile:close()
                         return false, "Invalid triangle count at line " .. lineNum .. ": '" .. line .. "'"
                     end
-                    outputFile:write(triangleCount .. "\n")
+                    -- DON'T write triangle count yet - we'll write it after validation
                     state = "triangles"
                 end
 
@@ -209,22 +292,76 @@ local function convertJMS(inputPath, outputPath)
                     local parts = split(line, "\t")
                     -- Format: region shader v0 v1 v2
                     if #parts >= 5 then
-                        -- Replace "undefined" with "0" for region index
-                        local regionIndex = parts[1]
-                        if regionIndex:lower() == "undefined" then
-                            regionIndex = "0"
+                        -- Validate vertex indices against corrected vertex count
+                        local v0 = tonumber(parts[3])
+                        local v1 = tonumber(parts[4])
+                        local v2 = tonumber(parts[5])
+                        
+                        -- Check if any vertex index is out of bounds (>= vertexCount since indices are 0-based)
+                        if v0 >= vertexCount or v1 >= vertexCount or v2 >= vertexCount then
+                            print(string.format("WARNING: Skipping triangle %d with out-of-bounds vertex indices [%d, %d, %d] (valid range: 0-%d)", 
+                                               trianglesProcessed + 1, v0, v1, v2, vertexCount - 1))
+                        else
+                            -- Replace "undefined" with "0" for region index
+                            local regionIndex = parts[1]
+                            if regionIndex:lower() == "undefined" then
+                                regionIndex = "0"
+                            end
+                            
+                            -- Buffer valid triangle
+                            table.insert(triangleBuffer, {
+                                region = regionIndex,
+                                shader = parts[2],
+                                v0 = parts[3],
+                                v1 = parts[4],
+                                v2 = parts[5]
+                            })
+                            validTriangleCount = validTriangleCount + 1
                         end
-                        outputFile:write(regionIndex .. "\n") -- face_region_index
-                        outputFile:write(parts[2] .. "\n") -- face_shader_index
-                        -- Vertex indices
-                        outputFile:write(string.format("%s\t%s\t%s\n", parts[3], parts[4], parts[5]))
                         trianglesProcessed = trianglesProcessed + 1
                     end
                 else
+                    -- Write corrected triangle count if not already written
+                    if not triangleCountWritten then
+                        outputFile:write(validTriangleCount .. "\n")
+                        triangleCountWritten = true
+                        
+                        if validTriangleCount < triangleCount then
+                            print(string.format("Corrected triangle count: %d valid triangles (skipped %d with invalid indices)", 
+                                               validTriangleCount, triangleCount - validTriangleCount))
+                        end
+                        
+                        -- Write all buffered valid triangles
+                        for _, tri in ipairs(triangleBuffer) do
+                            outputFile:write(tri.region .. "\n")
+                            outputFile:write(tri.shader .. "\n")
+                            outputFile:write(string.format("%s\t%s\t%s\n", tri.v0, tri.v1, tri.v2))
+                        end
+                    end
+                    
                     -- Finished parsing
                     state = "done"
                 end
             end
+        end
+    end
+
+    -- Write triangle count and buffered triangles if not already written
+    -- (handles case where we finish reading all triangles)
+    if triangleCount > 0 and not triangleCountWritten then
+        outputFile:write(validTriangleCount .. "\n")
+        triangleCountWritten = true
+        
+        if validTriangleCount < triangleCount then
+            print(string.format("Corrected triangle count: %d valid triangles (skipped %d with invalid indices)", 
+                               validTriangleCount, triangleCount - validTriangleCount))
+        end
+        
+        -- Write all buffered valid triangles
+        for _, tri in ipairs(triangleBuffer) do
+            outputFile:write(tri.region .. "\n")
+            outputFile:write(tri.shader .. "\n")
+            outputFile:write(string.format("%s\t%s\t%s\n", tri.v0, tri.v1, tri.v2))
         end
     end
 
