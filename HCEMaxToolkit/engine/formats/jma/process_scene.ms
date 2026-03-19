@@ -47,14 +47,42 @@ fn collectSceneNodes =
 	local tempNodeArray = #()
 	local sceneParent = undefined
 	
-	-- First, find the root node
+	-- First, find the root node (may be direct or through a helper container)
 	for obj in objects do
 	(
-		if (not obj.isHidden) and (isNodeObject obj) and obj.parent == undefined then
+		if obj.isHidden then continue
+		
+		local foundRoot = undefined
+		
+		-- Direct root node (no parent)
+		if (isNodeObject obj) and obj.parent == undefined then
+		(
+			foundRoot = obj
+		)
+		-- Node parented to a helper container
+		else if obj.parent != undefined and \
+		        obj.parent.parent == undefined and \
+		        (not obj.parent.isHidden) and \
+		        (isNodeObject obj) and \
+		        (isHelperContainer obj.parent) then
+		(
+			-- Verify this is the only node child of the helper
+			local siblingNodeCount = 0
+			for sibling in obj.parent.children do
+			(
+				if (isNodeObject sibling) and (not sibling.isHidden) then
+					siblingNodeCount += 1
+			)
+			
+			if siblingNodeCount == 1 then
+				foundRoot = obj
+		)
+		
+		if foundRoot != undefined then
 		(
 			if sceneParent != undefined then
-				return #()
-			sceneParent = obj
+				return #()  -- Multiple roots found
+			sceneParent = foundRoot
 		)
 	)
 	
@@ -162,14 +190,19 @@ fn getNodeRotationQuat obj =
 (
 	local rotQuat = undefined
 	
+	-- Check if parent is a helper container (treat as root, use world transforms)
+	local hasHelperParent = (obj.parent != undefined and isHelperContainer obj.parent)
+	
 	-- Handle Biped objects differently
 	if classOf obj == Biped_Object then
 	(
 		-- For Biped objects, use biped.getTransform
-		if obj.parent == undefined then
+		if obj.parent == undefined or hasHelperParent then
 		(
-			-- Root biped object - no coordinate conversion
+			-- Root biped object or parented to helper - use WORLD transform
+			-- (helper's rotation is automatically included in world transform)
 			rotQuat = biped.getTransform obj #rotation
+			-- Note: rotation is already in world space, no conversion needed
 		)
 		else
 		(
@@ -209,11 +242,24 @@ fn getNodeRotationQuat obj =
 	)
 	else
 	(
-		-- Regular objects - get rotation in parent space
-		in coordsys parent rotQuat = normalize obj.rotation
-		
-		-- Apply coordinate conversion (negate x, y, z)
-		rotQuat = quat -rotQuat.x -rotQuat.y -rotQuat.z rotQuat.w
+		-- Regular objects
+		if hasHelperParent or obj.parent == undefined then
+		(
+			-- Root bone (no parent) OR bone parented to helper - use WORLD transform
+			-- (helper's rotation is automatically baked into world transform)
+			rotQuat = normalize obj.rotation
+			
+			-- Apply coordinate conversion (negate x, y, z)
+			rotQuat = quat -rotQuat.x -rotQuat.y -rotQuat.z rotQuat.w
+		)
+		else
+		(
+			-- Child bone - get rotation in parent space
+			in coordsys parent rotQuat = normalize obj.rotation
+			
+			-- Apply coordinate conversion (negate x, y, z)
+			rotQuat = quat -rotQuat.x -rotQuat.y -rotQuat.z rotQuat.w
+		)
 	)
 	
 	-- Normalize to ensure unit quaternion
@@ -223,22 +269,28 @@ fn getNodeRotationQuat obj =
 	return #(rotQuat.x, rotQuat.y, rotQuat.z, rotQuat.w)
 )
 
--- Get node translation in parent space
+-- Get node translation in parent space (or world space for root/helper-parented nodes)
 fn getNodeTranslation obj =
 (
 	local pos
+	
+	-- Check if parent is a helper container
+	local hasHelperParent = (obj.parent != undefined and isHelperContainer obj.parent)
 	
 	-- Handle Biped objects differently
 	if classOf obj == Biped_Object then
 	(
 		-- For Biped objects, use biped.getTransform
-		if obj.parent == undefined then
+		if obj.parent == undefined or hasHelperParent then
 		(
+			-- Root biped or parented to helper - use WORLD position
+			-- (helper's transform is automatically included in world position)
 			pos = biped.getTransform obj #pos
+			-- Note: position is already in world space with helper transform applied
 		)
 		else
 		(
-			-- Get position in parent space using temporary meshes
+			-- Child biped - get position in parent space using temporary meshes
 			local m = mesh vertices:#() faces:#()
 			local mp = mesh vertices:#() faces:#()
 			m.parent = mp
@@ -268,8 +320,18 @@ fn getNodeTranslation obj =
 	)
 	else
 	(
-		-- Regular objects - get position in parent space
-		pos = in coordsys parent obj.pos
+		-- Regular objects
+		if hasHelperParent or obj.parent == undefined then
+		(
+			-- Root bone OR bone parented to helper - use WORLD position
+			-- (helper's transform is automatically baked into world position)
+			pos = obj.pos
+		)
+		else
+		(
+			-- Child bone - get position in parent space
+			pos = in coordsys parent obj.pos
+		)
 	)
 	
 	-- Return as array: [x, y, z]
@@ -292,9 +354,24 @@ fn getNodeScale obj =
 	)
 	else
 	(
+		-- Check if parent is a helper container
+		local hasHelperParent = (obj.parent != undefined and isHelperContainer obj.parent)
+		
 		-- For JMA, we typically use uniform scale
-		-- Get the average of all three scale components
-		local scaleVec = in coordsys parent obj.scale
+		local scaleVec
+		
+		if hasHelperParent or obj.parent == undefined then
+		(
+			-- Root bone OR bone parented to helper - use WORLD scale
+			-- (helper's scale is automatically baked into world scale)
+			scaleVec = obj.scale
+		)
+		else
+		(
+			-- Child bone - get scale in parent space
+			scaleVec = in coordsys parent obj.scale
+		)
+		
 		local uniformScale = (scaleVec.x + scaleVec.y + scaleVec.z) / 3.0
 		
 		return uniformScale
