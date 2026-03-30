@@ -226,6 +226,7 @@ fn readBlockTagdata blockDef =
 	local entry = #()
 	local deferredTagRefs = #()
 	local deferredReflexives = #()
+	local tagDataSkips = #()  -- Tracks tagData rawdata between sibling reflexives (CE format)
 	
 	-- Read all fields sequentially
 	for i = 1 to blockDef.fields.count do
@@ -233,9 +234,21 @@ fn readBlockTagdata blockDef =
 		local field = blockDef.fields[i]
 		local value = readFieldValue field &deferredTagRefs &deferredReflexives
 		append entry #(field.name, value, field)
+		
+		-- Track tagData fields that sit between reflexives in the parent struct.
+		-- afterReflexiveIndex = number of reflexives already collected before this tagData.
+		if field.type == #tagData then
+		(
+			if value != undefined and classOf value == Array and value.count >= 1 then
+			(
+				local dataSize = value[1]
+				if classOf dataSize == Integer and dataSize > 0 then
+					append tagDataSkips #(deferredReflexives.count, dataSize)
+			)
+		)
 	)
 	
-	#(entry, deferredTagRefs, deferredReflexives)
+	#(entry, deferredTagRefs, deferredReflexives, tagDataSkips)
 )
 
 -- Read tag-ref paths (null-terminated strings following tagdata)
@@ -287,13 +300,15 @@ fn readTagRefPaths deferredTagRefs =
 -- Read a single reflexive block entry
 fn readReflexiveEntry blockDef &entryTagRefs &entryReflexives =
 (
+	local n = blockDef.fields.count
 	local entry = #()
+	entry.count = n
 	
-	for i = 1 to blockDef.fields.count do
+	for i = 1 to n do
 	(
 		local field = blockDef.fields[i]
 		local value = readFieldValue field &entryTagRefs &entryReflexives
-		append entry #(field.name, value, field)
+		entry[i] = #(field.name, value, field)
 	)
 	
 	entry
@@ -301,7 +316,11 @@ fn readReflexiveEntry blockDef &entryTagRefs &entryReflexives =
 
 -- Read reflexive blocks and read paths immediately after each block's data (CE structure)
 -- skipBlocks: array of field names to skip reading (e.g., #("uncompressedVertices"))
-fn readReflexiveBlocks deferredReflexives parentEntry skipBlocks:#() =
+-- tagDataSkips: array of #(afterReflexiveIndex, byteCount) pairs for main-struct tagData between sibling blocks
+-- subBlockSkips: array of #(parentFieldName, #(childFieldName, ...)) pairs.
+-- When a block named parentFieldName is being read, the listed child names are
+-- automatically added to skipBlocks for that block's nested recursion only.
+fn readReflexiveBlocks deferredReflexives parentEntry skipBlocks:#() tagDataSkips:#() subBlockSkips:#() =
 (
 	if deferredReflexives.count == 0 then return ok
 	
@@ -309,6 +328,21 @@ fn readReflexiveBlocks deferredReflexives parentEntry skipBlocks:#() =
 	
 	for i = 1 to deferredReflexives.count do
 	(
+		-- Apply any main-struct tagData rawdata skips that belong before block i
+		-- (i.e., those recorded after reflexive i-1 in the parent struct definition)
+		if tagDataSkips.count > 0 then
+		(
+			local prevIndex = i - 1
+			for skipInfo in tagDataSkips do
+			(
+				if skipInfo[1] == prevIndex and skipInfo[2] > 0 then
+				(
+					local f = getCurrentFileHandle()
+					logger.debug "Skipping {} bytes of parent-struct tagData rawdata before block {}" args:#(skipInfo[2], i)
+					fseek f skipInfo[2] #seek_cur
+				)
+			)
+		)
 		local reflexiveInfo = deferredReflexives[i]
 		local blockDef = reflexiveInfo[#blockDef]
 		local count = reflexiveInfo[#count]
@@ -346,7 +380,9 @@ fn readReflexiveBlocks deferredReflexives parentEntry skipBlocks:#() =
 		
 		-- Read all entries in this reflexive block (binary data)
 		local entries = #()
-		local allEntryTagRefs = #()
+		entries.count = count
+		local allEntryTagRefsPerEntry = #()  -- per-entry arrays, NOT flattened
+		allEntryTagRefsPerEntry.count = count
 		local allEntryReflexivesIndexed = #()  -- Store reflexives with entry index
 		
 		for j = 1 to count do
@@ -354,8 +390,8 @@ fn readReflexiveBlocks deferredReflexives parentEntry skipBlocks:#() =
 			local entryTagRefs = #()
 			local entryReflexives = #()
 			local entry = readReflexiveEntry blockDef &entryTagRefs &entryReflexives
-			append entries entry
-			join allEntryTagRefs entryTagRefs
+			entries[j] = entry
+			allEntryTagRefsPerEntry[j] = entryTagRefs  -- store per-entry, not joined
 			
 			-- Tag each reflexive with its parent entry index
 			for k = 1 to entryReflexives.count do
@@ -365,22 +401,87 @@ fn readReflexiveBlocks deferredReflexives parentEntry skipBlocks:#() =
 			)
 		)
 		
-		-- Read tag-ref paths for THIS block immediately (CE structure: paths follow block data)
-		if allEntryTagRefs.count > 0 then
+		-- CE source format: rawdata for entry j immediately follows entry j's tag-ref path strings.
+		-- Process per-entry: [entry j paths] → [entry j rawdata skip] → [entry j+1 paths] → ...
+		-- Batching all paths then all rawdata is WRONG for blocks with multiple entries.
+		for j = 1 to entries.count do
 		(
-			logger.debug "Reading {} tag-ref path(s) for '{}' block" args:#(allEntryTagRefs.count, blockDef.name)
-			readTagRefPaths allEntryTagRefs
+			local entryTagRefs = allEntryTagRefsPerEntry[j]
+			if entryTagRefs.count > 0 then
+			(
+				logger.debug "Reading {} tag-ref path(s) for entry [{}] of '{}' block" args:#(entryTagRefs.count, j, blockDef.name)
+				readTagRefPaths entryTagRefs
+			)
+			
+			local entryRawSkip = 0
+			local entry = entries[j]
+			for k = 1 to entry.count do
+			(
+				local field = entry[k]
+				if field[3].type == #tagData then
+				(
+					local tagDataValue = field[2]
+					if tagDataValue != undefined and classOf tagDataValue == Array and tagDataValue.count >= 1 then
+					(
+						local dataSize = tagDataValue[1]
+						if classOf dataSize == Integer and dataSize > 0 then
+							entryRawSkip += dataSize
+					)
+				)
+			)
+			if entryRawSkip > 0 then
+			(
+				local f = getCurrentFileHandle()
+				local rawDataFilePos = ftell f
+				-- Annotate each tagData field with its file position so callers can seek back and read raw bytes
+				local cumulativeOffset = 0
+				for k = 1 to entry.count do
+				(
+					if entry[k][3].type == #tagData then
+					(
+						local tdv = entry[k][2]
+						if tdv != undefined and classOf tdv == Array and tdv.count >= 3 then
+						(
+							local dataSize = tdv[1]
+							if classOf dataSize == Integer and dataSize > 0 then
+							(
+								entry[k][2] = #(tdv[1], tdv[2], tdv[3], rawDataFilePos + cumulativeOffset)
+								cumulativeOffset += dataSize
+							)
+						)
+					)
+				)
+				logger.debug "Skipping {} bytes of rawdata after entry [{}] in '{}' block at 0x{}" args:#(entryRawSkip, j, blockDef.name, bit.intAsHex rawDataFilePos)
+				fseek f entryRawSkip #seek_cur
+			)
 		)
 		
-		-- Process nested reflexives after reading ALL entries
+		-- Process nested reflexives after reading ALL entries.
+		-- If subBlockSkips has an entry for this block, merge its child names into skipBlocks
+		-- for the nested recursion only (does not affect sibling or parent blocks).
 		if allEntryReflexivesIndexed.count > 0 then
 		(
+			local childSkipBlocks = skipBlocks
+			for subSkipEntry in subBlockSkips do
+			(
+				if subSkipEntry[1] == fieldName then
+				(
+					-- copy on an array returns OK in MaxScript; use join into a fresh array instead
+					local newSkips = #()
+					join newSkips skipBlocks
+					for childName in subSkipEntry[2] do
+						if findItem newSkips childName == 0 then
+							append newSkips childName
+					childSkipBlocks = newSkips
+					exit
+				)
+			)
 			for k = 1 to allEntryReflexivesIndexed.count do
 			(
 				local reflexiveWithIndex = allEntryReflexivesIndexed[k]
 				local entryIndex = reflexiveWithIndex[#entryIndex]
 				local targetEntry = entries[entryIndex]
-				readReflexiveBlocks #(reflexiveWithIndex) targetEntry skipBlocks:skipBlocks
+				readReflexiveBlocks #(reflexiveWithIndex) targetEntry skipBlocks:childSkipBlocks subBlockSkips:subBlockSkips
 			)
 		)
 		
@@ -447,11 +548,12 @@ fn readParentBlock parentDef parentNumber =
 	local entry = result[1]
 	local deferredTagRefs = result[2]
 	local deferredReflexives = result[3]
+	local tagDataSkips = result[4]
 	
 	local f = getCurrentFileHandle()
 	if f != undefined then logger.debug "After parent [{}] tagdata, file pos={}" args:#(parentNumber, ftell f)
 	
-	#(entry, parentDef, deferredTagRefs, deferredReflexives)
+	#(entry, parentDef, deferredTagRefs, deferredReflexives, tagDataSkips)
 )
 
 -- Read main tag block (tagdata only, defer reflexives AND tag-refs for global reading)
@@ -464,11 +566,12 @@ fn readMainBlock tagDef =
 	local entry = result[1]
 	local deferredTagRefs = result[2]
 	local deferredReflexives = result[3]
+	local tagDataSkips = result[4]
 	
 	local f = getCurrentFileHandle()
 	if f != undefined then logger.debug "After main tagdata, file pos: '{}'" args:#(ftell f)
 	
-	#(entry, tagDef, deferredTagRefs, deferredReflexives)
+	#(entry, tagDef, deferredTagRefs, deferredReflexives, tagDataSkips)
 )
 
 -----------------------------------------
@@ -476,7 +579,7 @@ fn readMainBlock tagDef =
 -----------------------------------------
 
 -- Read a single-level tag (no parents) - for tags like collision geometry, physics, etc.
-fn readTag tagDefOrBlock skipBlocks:#() printData:false =
+fn readTag tagDefOrBlock skipBlocks:#() readOnlyBlocks:#() subBlockSkips:#() printData:false =
 (
 	-- Handle both tagDef and blockDef inputs
 	local blockDef = if (iskindof tagDefOrBlock tagDef) then tagDefOrBlock.tagBlock else tagDefOrBlock
@@ -488,6 +591,7 @@ fn readTag tagDefOrBlock skipBlocks:#() printData:false =
 	local entry = result[1]
 	local deferredTagRefs = result[2]
 	local deferredReflexives = result[3]
+	local tagDataSkips = result[4]
 	
 	local f = getCurrentFileHandle()
 	if f != undefined then logger.debug "After tagdata, file pos: '{}'" args:#(ftell f)
@@ -499,13 +603,46 @@ fn readTag tagDefOrBlock skipBlocks:#() printData:false =
 		readTagRefPaths deferredTagRefs
 	)
 	
+	-- If a whitelist is provided, keep only those blocks.
+	-- Non-whitelisted blocks that sit BETWEEN whitelisted ones are auto-added to
+	-- skipBlocks so readReflexiveBlocks seeks past them correctly (file stays in sync).
+	-- Non-whitelisted blocks that sit AFTER the last whitelisted block are simply
+	-- dropped from the list — we stop reading before reaching them.
+	if readOnlyBlocks.count > 0 then
+	(
+		-- Find the index of the last whitelisted block in deferredReflexives
+		local lastWLIdx = 0
+		for i = 1 to deferredReflexives.count do
+		(
+			if findItem readOnlyBlocks deferredReflexives[i][#fieldName] > 0 then
+				lastWLIdx = i
+		)
+
+		-- Build filtered list up to lastWLIdx; keep ALL blocks in filtered so
+		-- readReflexiveBlocks can traverse the file sequentially and seek past gaps.
+		-- Non-whitelisted blocks are added to skipBlocks so they get skipped.
+		local filtered = #()
+		for i = 1 to lastWLIdx do
+		(
+			local fieldName = deferredReflexives[i][#fieldName]
+			if findItem readOnlyBlocks fieldName == 0 and findItem skipBlocks fieldName == 0 then
+				append skipBlocks fieldName  -- non-whitelisted gap: will be skipped
+			append filtered deferredReflexives[i]  -- always include in filtered
+		)
+		deferredReflexives = filtered
+		-- Note: tagDataSkips are intentionally preserved. Skips recorded beyond
+		-- lastWLIdx can never trigger (prevIndex is bounded by lastWLIdx-1), so
+		-- they are harmless. Skips within the range (e.g. clusterData between
+		-- clusters and clusterPortals) MUST be preserved to keep file position correct.
+	)
+	
 	-- Process reflexives
 	if deferredReflexives.count > 0 then
 	(
 		logger.debug "Processing [{}] reflexive block(s)" args:#(deferredReflexives.count)
-		readReflexiveBlocks deferredReflexives entry skipBlocks:skipBlocks
+		readReflexiveBlocks deferredReflexives entry skipBlocks:skipBlocks tagDataSkips:tagDataSkips subBlockSkips:subBlockSkips
 	)
-	
+
 	if printData then
 	(
 		logger.info "Tag: '{}'" args:#(blockDef.name)
@@ -517,9 +654,9 @@ fn readTag tagDefOrBlock skipBlocks:#() printData:false =
 )
 
 -- Backward compatibility alias
-fn readRootTagData blockDef skipBlocks:#() =
+fn readRootTagData blockDef skipBlocks:#() readOnlyBlocks:#() subBlockSkips:#() =
 (
-	readTag blockDef skipBlocks:skipBlocks
+	readTag blockDef skipBlocks:skipBlocks readOnlyBlocks:readOnlyBlocks subBlockSkips:subBlockSkips
 )
 
 -----------------------------------------
@@ -545,11 +682,12 @@ fn readTagWithParents tagDef skipBlocks:#() printParents:true printMain:true =
 		local parentDef = parentResult[2]
 		local tagRefs = parentResult[3]
 		local reflexives = parentResult[4]
+		local parentTagDataSkips = parentResult[5]
 		
 		append result #(entry, parentDef)
 		-- Store for later processing (don't read paths yet!)
 		append allDeferredTagRefs #(entry, parentDef, tagRefs, "parent")
-		append allDeferredReflexives #(entry, parentDef, reflexives)
+		append allDeferredReflexives #(entry, parentDef, reflexives, parentTagDataSkips)
 	)
 	
 	-- Read main tag tagdata
@@ -558,10 +696,11 @@ fn readTagWithParents tagDef skipBlocks:#() printParents:true printMain:true =
 	local mainDef = mainResult[2]
 	local mainTagRefs = mainResult[3]
 	local mainReflexives = mainResult[4]
+	local mainTagDataSkips = mainResult[5]
 	
 	append result #(mainEntry, mainDef)
 	append allDeferredTagRefs #(mainEntry, mainDef, mainTagRefs, "main")
-	append allDeferredReflexives #(mainEntry, mainDef, mainReflexives)
+	append allDeferredReflexives #(mainEntry, mainDef, mainReflexives, mainTagDataSkips)
 	
 	local f = getCurrentFileHandle()
 	logger.info "All tagdata read, now at position {} (should be 1332 for research.biped)" args:#(ftell f)
@@ -584,10 +723,11 @@ fn readTagWithParents tagDef skipBlocks:#() printParents:true printMain:true =
 		
 		-- Process reflexives for this block (reads data + paths per-block)
 		local reflexives = allDeferredReflexives[i][3]
+		local blockTagDataSkips = if allDeferredReflexives[i].count >= 4 then allDeferredReflexives[i][4] else #()
 		if reflexives.count > 0 then
 		(
 			logger.info "Processing {} reflexive block(s) for '{}' (data+paths per block)" args:#(reflexives.count, def.tagBlock.name)
-			readReflexiveBlocks reflexives entry skipBlocks:skipBlocks
+			readReflexiveBlocks reflexives entry skipBlocks:skipBlocks tagDataSkips:blockTagDataSkips
 		)
 	)
 	
@@ -622,7 +762,7 @@ fn readTagWithParents tagDef skipBlocks:#() printParents:true printMain:true =
 -- PRINT FUNCTION
 -----------------------------------------
 
-fn printBlockRecursively data blockDef indent:0 =
+fn printBlockRecursively data blockDef indent:0 onlyBlock:"" =
 (
 	local pad = ""
 	for i = 1 to indent do pad += "    "
@@ -662,10 +802,13 @@ fn printBlockRecursively data blockDef indent:0 =
 					-- Skip padding fields
 					if fDef.type == #padding then continue
 					
+					-- Block filter: skip any field that is not the requested block
+					if onlyBlock != "" and fieldName != onlyBlock then continue
+					
 					if fDef.type == #block or fDef.type == #Block then
 					(
 						-- This is a reflexive block
-						logger.debug "{}'{}Block':" args:#(pad, fieldName)
+						logger.debug "{}'{}':" args:#(pad, fieldName)
 						if classOf fieldValue == Array and fieldValue.count > 0 then
 						(
 							-- Print each entry in the reflexive
