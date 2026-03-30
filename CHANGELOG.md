@@ -380,7 +380,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **JMA Exporter:**
   - Root bones parented to helpers now export correctly with the helper's rotation baked into the animation.
 ## [5.1.0] - 2026-03-20
-## Added
+### Added
 - **Settings Menu:**
   - New settings menu to configure various import/export options and global settings.
     - Found under `Halo CE Toolkit` > `Settings`
@@ -394,11 +394,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `skipBlocks` **parameter** - byte-skips entire reflexive blocks by name, avoiding wasted allocations for unused data.
   - `readOnlyBlocks` **parameter** - whitelist of blocks to fully parse; gap blocks before the last whitelisted entry are auto-skipped, everything after is dropped entirely.
   - `subBlockSkips` **parameter** - skips specific child blocks inside a given parent block, scoped only to that recursion level.
-## Changed
+### Changed
 - **Parser:** 
   - `readReflexiveBlocks` refactored from "batch all entries' paths then batch all rawdata" to a per-entry loop: reads tag-ref paths for entry N, skips rawdata for entry N, then moves to entry N+1. Matches the actual CE source format interleaving.
   - `tagDataSkips` is now threaded through `readParentBlock`, `readMainBlock`, `readTag`, and `readTagWithParents`. Existing importers remain backward-compatible.
-## Fixed
+### Fixed
 - **Read Utils:** 
   - `shortB` / `longB` signed conversion - boundary check changed from `>` to `>=`, so the most-negative values (`0x8000` → `-32768`, `0x80000000` → `-2147483648`) now parse correctly.
 - **Parser:** 
