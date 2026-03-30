@@ -280,7 +280,7 @@ scenarioStructureBspScenariostructurebspleavesFields = #(
     tagField \
         name:"surfaceReferences" \
         hidden:false \
-        type:#index
+        type:#int32
 )
 
 scenarioStructureBspScenariostructurebspleavesBlock = tagBlock \
@@ -293,11 +293,11 @@ scenarioStructureBspLeafsurfacesFields = #(
     tagField \
         name:"surface" \
         hidden:false \
-        type:#index, \
+        type:#int32, \
     tagField \
         name:"node" \
         hidden:false \
-        type:#index
+        type:#int32
 )
 
 scenarioStructureBspLeafsurfacesBlock = tagBlock \
@@ -308,20 +308,17 @@ scenarioStructureBspLeafsurfacesBlock = tagBlock \
 
 scenarioStructureBspScenariostructurebspsurfacesFields = #(
     tagField \
-        name:"vertices" \
-        hidden:false \
-        type:#int32 \
-        count:3, \
-    tagField \
-        name:"a" \
+        name:"vertex0Index" \
         hidden:false \
         type:#int16, \
     tagField \
-        name:"unnamed" \
+        name:"vertex1Index" \
         hidden:false \
-        type:#padding \
-        size:#int32 \
-        count:1
+        type:#int16, \
+    tagField \
+        name:"vertex2Index" \
+        hidden:false \
+        type:#int16
 )
 
 scenarioStructureBspScenariostructurebspsurfacesBlock = tagBlock \
@@ -348,7 +345,7 @@ scenarioStructureBspMaterialsFields = #(
     tagField \
         name:"surfaces" \
         hidden:false \
-        type:#index, \
+        type:#int32, \
     tagField \
         name:"surfaceCount" \
         hidden:false \
@@ -420,44 +417,68 @@ scenarioStructureBspMaterialsFields = #(
         size:#int8 \
         count:2, \
     tagField \
-        name:"vertexBuffers" \
+        name:"renderedVerticesType" \
+        hidden:false \
+        type:#int8, \
+    tagField \
+        name:"unnamed" \
+        hidden:false \
+        type:#padding \
+        size:#int8 \
+        count:3, \
+    tagField \
+        name:"renderedVerticesCount" \
+        hidden:false \
+        type:#int32, \
+    tagField \
+        name:"renderedVerticesOffset" \
+        hidden:false \
+        type:#int32, \
+    tagField \
+        name:"unknownPointer0" \
+        hidden:false \
+        type:#int32, \
+    tagField \
+        name:"renderedVerticesIndexPointer" \
+        hidden:false \
+        type:#int32, \
+    tagField \
+        name:"lightmapVerticesType" \
+        hidden:false \
+        type:#int8, \
+    tagField \
+        name:"unnamed" \
+        hidden:false \
+        type:#padding \
+        size:#int8 \
+        count:3, \
+    tagField \
+        name:"lightmapVerticesCount" \
+        hidden:false \
+        type:#int32, \
+    tagField \
+        name:"lightmapVerticesOffset" \
+        hidden:false \
+        type:#int32, \
+    tagField \
+        name:"unknownPointer1" \
+        hidden:false \
+        type:#int32, \
+    tagField \
+        name:"lightmapVerticesIndexPointer" \
         hidden:false \
         type:#int32 \
-        count:2, \
-    tagField \
-        name:"unnamed" \
-        hidden:false \
-        type:#padding \
-        size:#int8 \
-        count:4, \
-    tagField \
-        name:"count" \
-        hidden:false \
-        type:#int32, \
-    tagField \
-        name:"offset" \
-        hidden:false \
-        type:#int32, \
-    tagField \
-        name:"unnamed" \
-        hidden:false \
-        type:#padding \
-        size:#int8 \
-        count:8, \
-    tagField \
-        name:"unnamed" \
-        hidden:false \
-        type:#padding \
-        size:#int32 \
-        count:1, \
+        description:"(Xbox only) an indirect pointer to the lightmap vertices", \
     tagField \
         name:"uncompressedVertices" \
         hidden:false \
-        type:#tagData, \
+        type:#tagData \
+        maximum:4864000, \
     tagField \
         name:"compressedVertices" \
         hidden:false \
-        type:#tagData
+        type:#tagData \
+        maximum:2560000
 )
 
 scenarioStructureBspMaterialsBlock = tagBlock \
@@ -693,11 +714,13 @@ scenarioStructureBspClustersFields = #(
         hidden:false \
         type:#int16, \
     tagField \
-        name:"unnamed" \
+        name:"firstDecalIndex" \
         hidden:false \
-        type:#padding \
-        size:#int8 \
-        count:4, \
+        type:#int16, \
+    tagField \
+        name:"decalCount" \
+        hidden:false \
+        type:#int16, \
     tagField \
         name:"unnamed" \
         hidden:false \
@@ -1401,7 +1424,7 @@ scenarioStructureBspLeafmapportalsBlock = tagBlock \
 
 scenarioStructureBspFields = #(
     tagField \
-        name:"lightmaps" \
+        name:"lightmapBitmaps" \
         hidden:false \
         type:#tagReference \
         allowed:#(#bitmap), \
