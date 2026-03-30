@@ -1,14 +1,14 @@
-----------------------------------------------------------------------------
---	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)
---	This program is free software; you can redistribute it and/or modify it
---	under the terms of the GNU General Public License as published by the
---	Free Software Foundation; either version 2 of the License, or (at your
---	option) any later version. This program is distributed in the hope that
---	it will be useful, but WITHOUT ANY WARRANTY; without even the implied
---	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
---	the GNU General Public License for more details. A full copy of this
+------------------------------------------------------------------------------
+--	Copyright (C) 2025 - Present Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
-----------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 -- Clear listener
 clearListener()
@@ -95,6 +95,8 @@ fn importJmaFile jmaFile:undefined =
 	
 	logger.info "Animation applied in {} seconds" args:#(buildTime)
 	
+	local showDialogs = configManager.getBool "feedback" "show_completion_dialogs" true
+
 	if success then
 	(
 		local totalTime = readTime + buildTime
@@ -111,14 +113,15 @@ fn importJmaFile jmaFile:undefined =
 		if missingNodes.count > 0 then
 			successMsg += "\nNote: " + (missingNodes.count as string) + " node(s) were not found in scene."
 		
-		messageBox successMsg title:"Import Complete" beep:false
+		if showDialogs then
+			messageBox successMsg title:"Import Complete" beep:false
 		
 		return jmaData
 	)
 	else
 	(
 		logger.error "Animation import failed"
-		messageBox "Animation import failed!\n\nSee the MaxScript Listener for details." title:"Import Failed"
+			messageBox "Animation import failed!\n\nSee the MaxScript Listener for details." title:"Import Failed"
 		return undefined
 	)
 	clearListener()

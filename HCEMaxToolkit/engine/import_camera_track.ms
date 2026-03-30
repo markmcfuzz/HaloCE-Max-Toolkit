@@ -1,14 +1,14 @@
-----------------------------------------------------------------------------
---	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)
---	This program is free software; you can redistribute it and/or modify it
---	under the terms of the GNU General Public License as published by the
---	Free Software Foundation; either version 2 of the License, or (at your
---	option) any later version. This program is distributed in the hope that
---	it will be useful, but WITHOUT ANY WARRANTY; without even the implied
---	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
---	the GNU General Public License for more details. A full copy of this
+------------------------------------------------------------------------------
+--	Copyright (C) 2025 - Present Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
-----------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 -- Clear listener
 clearListener()
@@ -129,19 +129,32 @@ fn importCameraTrack =
 
     logger.info "Control points built: {} seconds" args:#(buildTime)
 
-    local cameraSetup = createCameraSetup createdPoints
-    local cam = cameraSetup[1]
-    local dummyObj = cameraSetup[2]
+    local importCameraAnimation = configManager.getBool "import_camera_track" "import_camera_animation" true
 
-    if createdPoints.count > 0 then
+    if importCameraAnimation then
     (
-        animateCameraPath dummyObj createdPoints
-        logger.info "Camera Track import completed successfully.\n"
-        select createdPoints
+        local cameraSetup = createCameraSetup createdPoints
+        local cam = cameraSetup[1]
+        local dummyObj = cameraSetup[2]
+
+        if createdPoints.count > 0 then
+        (
+            animateCameraPath dummyObj createdPoints
+            logger.info "Camera Track import completed successfully.\n"
+            select createdPoints
+        )
+        else
+        (
+            logger.warn "No control points were created.\n"
+        )
     )
     else
     (
-        logger.warn "No control points were created.\n"
+        logger.info "Camera animation skipped (import_camera_animation=0).\n"
+        if createdPoints.count > 0 then
+            select createdPoints
+        else
+            logger.warn "No control points were created.\n"
     )
 
     CompleteRedraw()
@@ -153,7 +166,9 @@ fn importCameraTrack =
     logger.info "Total time: {} seconds" args:#(elapsedTime)
     logger.log "Camera Track import completed successfully.\n\n" 
 
-    if createdPoints != undefined and createdPoints.count > 0 then
+    local showDialogs = configManager.getBool "feedback" "show_completion_dialogs" true
+
+    if showDialogs and createdPoints != undefined and createdPoints.count > 0 then
     (
         local fileName = filenameFromPath trakFile
         messageBox ("Camera Track imported successfully!\n\n" + \

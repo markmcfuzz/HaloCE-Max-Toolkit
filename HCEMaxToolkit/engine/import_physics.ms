@@ -1,5 +1,5 @@
-------------------------------------------------------------------------------------------------
---	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+------------------------------------------------------------------------------
+--	Copyright (C) 2025 - Present Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
 --	This program is free software; you can redistribute it and/or modify it	
 --	under the terms of the GNU General Public License as published by the	
 --	Free Software Foundation; either version 2 of the License, or (at your	
@@ -8,7 +8,7 @@
 --	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
 --	the GNU General Public License for more details. A full copy of this	
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
-------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 -- Clear listener
 clearListener()
@@ -174,7 +174,9 @@ fn ImportPhysics =
     logger.info "Total time: {} seconds" args:#(elapsedTime)
     logger.log "Physics import complete\n\n"
     
-    if createdSpheres != undefined and createdSpheres.count > 0 then
+    local showDialogs = configManager.getBool "feedback" "show_completion_dialogs" true
+
+    if showDialogs and createdSpheres != undefined and createdSpheres.count > 0 then
     (
         local fileName = filenameFromPath physicsFile
         messageBox ("Physics mass points imported successfully!\n\n" + \

@@ -1,5 +1,5 @@
-------------------------------------------------------------------------------------------------
---	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+------------------------------------------------------------------------------
+--	Copyright (C) 2025 - Present Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
 --	This program is free software; you can redistribute it and/or modify it	
 --	under the terms of the GNU General Public License as published by the	
 --	Free Software Foundation; either version 2 of the License, or (at your	
@@ -8,7 +8,7 @@
 --	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
 --	the GNU General Public License for more details. A full copy of this	
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
-------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 -- Clear listener
 clearListener()
@@ -107,14 +107,16 @@ fn spheresToHelpers =
 			try (delete sphereObj) catch()
 		)
 	)
-	
+	--
+	local showDialogs = configManager.getBool "feedback" "show_completion_dialogs" true
 	-- Show results
 	local resultMsg = "Conversion complete!\n\n"
 	resultMsg += "Converted: " + (convertedCount as string) + " marker(s)\n"
 	if skippedCount > 0 then
 		resultMsg += "Skipped: " + (skippedCount as string) + " marker(s)"
 	
-	messageBox resultMsg title:"Conversion Complete"
+	if showDialogs then
+		messageBox resultMsg title:"Conversion Complete"
 	
 	return convertedCount
 	clearListener()
