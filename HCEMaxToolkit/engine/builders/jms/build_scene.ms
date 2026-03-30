@@ -419,6 +419,9 @@ fn linkAndTransformNodes createdNodes jmsData parentIndices =
 -- Build all nodes
 fn buildNodes jmsData =
 (
+	local reuseExistingNodes = configManager.getBool "import_jms" "reuse_existing_nodes" true
+	local showDialogs = configManager.getBool "feedback" "show_completion_dialogs" true
+
 	logger.info "Building {} nodes..." args:#(jmsData.nodeCount)
 
 	local parentIndices = calculateParentIndices jmsData useSimpleHierarchy:jmsData.useSimpleHierarchy
@@ -427,10 +430,13 @@ fn buildNodes jmsData =
 	-- Check if a matching skeleton already exists in the scene
 	local existingSkeleton = findMatchingSkeleton jmsData parentIndices
 	
-	if existingSkeleton != undefined then
+	if reuseExistingNodes and existingSkeleton != undefined then
 	(
-		-- Ask user if they want to reuse the existing skeleton
-		local reuseExisting = askReuseSkeletonDialog()
+		local reuseExisting = true
+		
+		-- Only ask when dialogs are enabled; otherwise auto-reuse silently
+		if showDialogs then
+			reuseExisting = askReuseSkeletonDialog()
 		
 		if reuseExisting then
 		(
@@ -465,6 +471,9 @@ fn buildNodes jmsData =
 -- Create markers as Halo marker helpers
 fn buildMarkers jmsData createdNodes =
 (
+	local reuseExistingMarkers = configManager.getBool "import_jms" "reuse_existing_markers" true
+	local showDialogs = configManager.getBool "feedback" "show_completion_dialogs" true
+
 	if jmsData.markerCount == 0 then
 		return #()
 	
@@ -503,20 +512,25 @@ fn buildMarkers jmsData createdNodes =
 		if hasExistingMarkers then exit
 	)
 	
-	-- Ask user if they want to reuse existing markers
+	-- Determine whether to reuse existing markers
 	local reuseExisting = false
-	if hasExistingMarkers then
+	if hasExistingMarkers and reuseExistingMarkers then
 	(
-		logger.info "Found existing markers! Asking user..."
-		reuseExisting = askReuseMarkersDialog()
-		
-		if reuseExisting then
+		-- Only ask when dialogs are enabled; otherwise auto-reuse silently
+		if showDialogs then
 		(
-			logger.info "User chose to reuse existing markers"
+			logger.info "Found existing markers! Asking user..."
+			reuseExisting = askReuseMarkersDialog()
+			
+			if reuseExisting then
+				logger.info "User chose to reuse existing markers"
+			else
+				logger.info "User chose to create new markers (duplicates allowed)"
 		)
 		else
 		(
-			logger.info "User chose to create new markers (duplicates allowed)"
+			reuseExisting = true
+			logger.info "Auto-reusing existing markers (reuse_existing_markers=1)"
 		)
 	)
 	
