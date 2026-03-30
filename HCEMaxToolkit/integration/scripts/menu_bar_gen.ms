@@ -1,14 +1,14 @@
-----------------------------------------------------------------------------
---	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)
---	This program is free software; you can redistribute it and/or modify it
---	under the terms of the GNU General Public License as published by the
---	Free Software Foundation; either version 2 of the License, or (at your
---	option) any later version. This program is distributed in the hope that
---	it will be useful, but WITHOUT ANY WARRANTY; without even the implied
---	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
---	the GNU General Public License for more details. A full copy of this
+------------------------------------------------------------------------------
+--	Copyright (C) 2025 - Present Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
-----------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 -- Menu callback function that contains our custom menu code
 function menuCallback =
@@ -27,18 +27,20 @@ function menuCallback =
     local macroScriptTableId = 647394
     -- Our action identifier for the test action is the with '`' concatinated string of our macro script name and category
     -- Add Import submenu actions
+    local importJmsId = "ImportJMS`Halo CE"
     local importAnimDataId = "ImportAnimationData`Halo CE"
     local importGbxId = "ImportGBX`Halo CE"
     local importCollisionId = "ImportCollisionGeometry`Halo CE"
     local importPhysicsId = "ImportPhysics`Halo CE"
     local importCameraTrackId = "ImportCameraTrack`Halo CE"
-    local importJmsId = "ImportJMS`Halo CE"
+    local importStructureBspId = "ImportStructureBSP`Halo CE"
     importMenu.CreateAction "2B3C4D5E-6F70-8192-A3B4-C5D6E7F8091A" macroScriptTableId importJmsId
     importMenu.CreateAction "EFD414B5-0B36-4092-BE7E-39D785F91B05" macroScriptTableId importAnimDataId
     importMenu.CreateAction "ADB41E81-D249-4539-8F5B-2406E02D8352" macroScriptTableId importGbxId
     importMenu.CreateAction "3C4D1F2E-1C7C-4D2C-8F1E-4F6D1E2B8C9A" macroScriptTableId importCollisionId
     importMenu.CreateAction "5F6A7B8C-9D0E-4F1A-8B2C-3D4E5F6A7B8C" macroScriptTableId importPhysicsId
     importMenu.CreateAction "1A2B3C4D-5E6F-7081-92A3-B4C5D6E7F809" macroScriptTableId importCameraTrackId
+    importMenu.CreateAction "2B3C4D5E-6F70-8192-A3B4-C5D6E7F8091B" macroScriptTableId importStructureBspId
     -- Add Export submenu actions
     local exportJmsId = "ExportJMS`Halo CE"
     local exportJmaId = "ExportJointedModelAnimation`Halo CE"
@@ -48,11 +50,13 @@ function menuCallback =
     exportMenu.CreateAction "0A1B2C3D-4E5F-6071-8293-A4B5C6D7E8F9" macroScriptTableId exportCameraTrackId
     -- Add Tools submenu actions
     local sphereToHaloHelperId = "SphereToHaloMarkerHelper`Halo CE"
-    --local jmsRepairId = "JmsRepair`Halo CE"
     local modelAnimationsExtractorId = "ModelAnimationsExtractor`Halo CE"
     toolsMenu.CreateAction "05C59238-B2A9-47D1-BA72-A781492FEDB4" macroScriptTableId sphereToHaloHelperId
-    --toolsMenu.CreateAction "D4E5F6A7-B8C9-4D1E-2B3C-4F5A6B7C8D9E" macroScriptTableId jmsRepairId
     toolsMenu.CreateAction "7E8F9A0B-1C2D-3E4F-5A6B-7C8D9E0F1A2B" macroScriptTableId modelAnimationsExtractorId
+    -- Add Settings action (direct item on main menu, not a submenu)
+    local separatorB = mainMenu.CreateSeparator("A1B2C3D4-E5F6-7890-ABCD-EF1234567890")
+    local settingsId = "HCEMaxToolkitSettings`Halo CE"
+    mainMenu.CreateAction "12345678-9ABC-DEF0-1234-56789ABCDEF0" macroScriptTableId settingsId
 )
 -- Register our menu creation callback so that it can be executed whenever the menu structure is evaluated.
 callbacks.removeScripts id:#haloceToolkitMenu
