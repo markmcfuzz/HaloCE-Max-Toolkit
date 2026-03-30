@@ -50,7 +50,7 @@ plugin helper HaloMarker
 	(
 		edittext txt_name "Name:" text:"" fieldWidth:120 align:#center
 		spinner spn_radius "Radius:" range:[0.01,10000.0,1.0] type:#worldunits
-		colorpicker col_color "Color:" color:(color 0 255 0) align:#center
+		colorpicker col_color "Color:" color:(color 0 240 255) align:#center
 
 		on txt_name entered val do
 		(
