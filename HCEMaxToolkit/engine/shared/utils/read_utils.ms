@@ -1,3 +1,15 @@
+------------------------------------------------------------------------------
+--	Copyright (C) 2025 - Present Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
+--	license is available at http://www.gnu.org/licenses/gpl.txt.
+------------------------------------------------------------------------------
+
 -------------------------------------------------------
 -- File Handle
 -------------------------------------------------------
@@ -8,14 +20,12 @@ global in_file = undefined
 global tagMemoryBaseAddress = undefined
 
 -- Set the global file handle (call this before using any read functions)
-fn setCurrentFileHandle fileHandle =
-(
+fn setCurrentFileHandle fileHandle = (
 	halo_file_handle = fileHandle
 )
 
 -- Get the current file handle (check both global variables for compatibility)
-fn getCurrentFileHandle =
-(
+fn getCurrentFileHandle = (
 	if halo_file_handle != undefined then
 		halo_file_handle
 	else if in_file != undefined then
@@ -25,8 +35,7 @@ fn getCurrentFileHandle =
 )
 
 -- Get the current file size without moving the caller's position
-fn getCurrentFileSize =
-(
+fn getCurrentFileSize = (
 	local f = getCurrentFileHandle()
 	if f == undefined then return 0
 	local cur = ftell f
@@ -37,22 +46,19 @@ fn getCurrentFileSize =
 )
 
 -- Set the base address for tag memory (read from tag header)
-fn setTagMemoryBaseAddress tagAddress = 
-(
+fn setTagMemoryBaseAddress tagAddress = (
 	tagMemoryBaseAddress = tagAddress
 )
 
 fn getTagMemoryBaseAddress = tagMemoryBaseAddress
 
 -- Alias to match old module naming convention
-fn setFileHandle fileHandle =
-(
+fn setFileHandle fileHandle = (
 	setCurrentFileHandle fileHandle
 )
 
 -- Get current file position
-fn getCurrentFilePosition = 
-(
+fn getCurrentFilePosition = (
 	local fileHandle = getCurrentFileHandle()
 	if fileHandle != undefined then
 		ftell fileHandle
@@ -61,27 +67,23 @@ fn getCurrentFilePosition =
 )
 
 -- Seek to an absolute position in the current file handle
-fn seekToPosition position seekMode:#seek_set =
-(
+fn seekToPosition position seekMode:#seek_set = (
 	local fileHandle = getCurrentFileHandle()
 	if fileHandle != undefined then
 		fseek fileHandle position seekMode
 )
 
 -- Skip N bytes by reading and discarding them
-fn skipBytes count =
-(
+fn skipBytes count = (
 	local fileHandle = getCurrentFileHandle()
 	for i = 1 to count do
 		readByte fileHandle #unsigned
 )
 
 -- Decode flag bits into an array of active flag name strings
-fn decodeFlagBits flagValue flagNames =
-(
+fn decodeFlagBits flagValue flagNames = (
 	local activeFlagsArray = #()
-	for i = 1 to flagNames.count do
-	(
+	for i = 1 to flagNames.count do (
 		if bit.get flagValue i then
 			append activeFlagsArray flagNames[i]
 	)
@@ -93,32 +95,25 @@ fn decodeFlagBits flagValue flagNames =
 -------------------------------------------------------
 
 -- Fast accessor struct - builds field index once for O(1) lookups
-struct FastTupleAccess
-(
+struct FastTupleAccess (
 	_data,        -- Original tuple array
 	_index,       -- Field name -> array position mapping
 	
-	fn init tupleArray =
-	(
+	fn init tupleArray = (
 		_data = tupleArray
 		_index = #()
-		
 		-- Build index: array of #(fieldName, arrayIndex) pairs
-		for i = 1 to tupleArray.count do
-		(
+		for i = 1 to tupleArray.count do (
 			local fieldName = tupleArray[i][1]
 			if fieldName != "" and fieldName != "unnamed" then
 				append _index #(fieldName, i)
 		)
 		ok
 	),
-	
 	-- O(1) access after building index (much faster than searching each time)
-	fn get fieldName =
-	(
+	fn get fieldName = (
 		-- Find in index (small array, very fast)
-		for entry in _index do
-		(
+		for entry in _index do (
 			if entry[1] == fieldName then
 				return _data[entry[2]][2]
 		)
@@ -127,8 +122,7 @@ struct FastTupleAccess
 )
 
 -- Wrap tuple array for fast access
-fn wrapTupleArray tupleArray =
-(
+fn wrapTupleArray tupleArray = (
 	if tupleArray == undefined or classOf tupleArray != Array then
 		return undefined
 	
@@ -138,14 +132,12 @@ fn wrapTupleArray tupleArray =
 )
 
 -- Wrap reflexive array (array of tuple arrays)
-fn wrapReflexiveArray reflexiveArray =
-(
+fn wrapReflexiveArray reflexiveArray = (
 	if reflexiveArray == undefined or classOf reflexiveArray != Array then
 		return #()
 	
 	local wrapped = #()
-	for entry in reflexiveArray do
-	(
+	for entry in reflexiveArray do (
 		if classOf entry == Array and entry.count > 0 and classOf entry[1] == Array then
 			append wrapped (wrapTupleArray entry)
 		else
@@ -155,11 +147,9 @@ fn wrapReflexiveArray reflexiveArray =
 )
 
 -- Build field index from first tuple - returns position map
-fn buildFieldIndex tupleArray =
-(
+fn buildFieldIndex tupleArray = (
 	local index = #()
-	for i = 1 to tupleArray.count do
-	(
+	for i = 1 to tupleArray.count do (
 		local fieldName = tupleArray[i][1]
 		append index #(fieldName, i)
 	)
@@ -167,10 +157,8 @@ fn buildFieldIndex tupleArray =
 )
 
 -- Get array position for a field name from index
-fn getFieldPosition fieldIndex fieldName =
-(
-	for i = 1 to fieldIndex.count do
-	(
+fn getFieldPosition fieldIndex fieldName = (
+	for i = 1 to fieldIndex.count do (
 		if fieldIndex[i][1] == fieldName then
 			return fieldIndex[i][2]
 	)
@@ -179,28 +167,21 @@ fn getFieldPosition fieldIndex fieldName =
 
 -- Extract a field value from parser tuple array #(#(name, value, fieldDef), ...)
 -- Legacy function - prefer using FastTupleAccess for repeated access
-fn getFieldValue dataArray fieldName =
-(
+fn getFieldValue dataArray fieldName = (
 	if dataArray == undefined then return undefined
-	
 	-- Type check: ensure dataArray is an array
 	if classOf dataArray != Array then return undefined
-	
 	-- Use indexed access (faster than for-in loop)
-	for i = 1 to dataArray.count do
-	(
+	for i = 1 to dataArray.count do (
 		if dataArray[i][1] == fieldName then
 			return dataArray[i][2]
 	)
-	
 	return undefined
 )
 
 -- Optimized multi-field extraction - get multiple fields at once
-fn getFieldValues dataArray fieldNames =
-(
+fn getFieldValues dataArray fieldNames = (
 	if dataArray == undefined then return #()
-	
 	-- Type check: ensure dataArray is an array
 	if classOf dataArray != Array then return #()
 	
@@ -208,22 +189,17 @@ fn getFieldValues dataArray fieldNames =
 	results.count = fieldNames.count
 	local found = 0
 	local needed = fieldNames.count
-	
 	-- Single pass through data array
-	for i = 1 to dataArray.count while found < needed do
-	(
+	for i = 1 to dataArray.count while found < needed do (
 		local name = dataArray[i][1]
-		for j = 1 to needed do
-		(
-			if fieldNames[j] == name then
-			(
+		for j = 1 to needed do (
+			if fieldNames[j] == name then (
 				results[j] = dataArray[i][2]
 				found += 1
 				exit
 			)
 		)
 	)
-	
 	return results
 )
 
@@ -254,24 +230,21 @@ struct tagData (
 )
 
 global read = undefined
-struct read
-(	
+struct read (	
 	-- Read big endian short (2 bytes)
-	fn shortB strType =
-	(
+	fn shortB strType = (
 		local f = getCurrentFileHandle()
 		local b1 = readByte f #unsigned
 		local b2 = readByte f #unsigned
 		local val = ( b1 * 256 + b2 )
 		if strType == "#signed" do
-			if val > 32768 then
+			if val >= 32768 then
 			val = val - 65536
 		val
 	),
 
 	-- Read big endian long (4 bytes)
-	fn longB strType =
-	(
+	fn longB strType = (
 		local f = getCurrentFileHandle()
 		local b1 = readByte f #unsigned
 		local b2 = readByte f #unsigned
@@ -279,22 +252,20 @@ struct read
 		local b4 = readByte f #unsigned
 		local val = b1 * 16777216 + b2 * 65536 + b3 * 256 + b4
 		if strType == "#signed" do
-			if val > 2147483648 then
+			if val >= 2147483648 then
 			val = val - 4294967296
 		val
 	),
 
 	-- Read big endian float (4 bytes)
-	fn floatB =
-	(
+	fn floatB = (
 		local f = getCurrentFileHandle()
 		local b1 = readByte f #unsigned
 		local b2 = readByte f #unsigned
 		local b3 = readByte f #unsigned
 		local b4 = readByte f #unsigned
 		-- Check for EOF
-		if b1 == undefined or b2 == undefined or b3 == undefined or b4 == undefined then
-		(			
+		if b1 == undefined or b2 == undefined or b3 == undefined or b4 == undefined then (	
 			--format "ERROR: Unexpected EOF at position % (b1:%, b2:%, b3:%, b4:%)\n"( ftell f ) b1 b2 b3 b4
 			return 0.0
 		)
@@ -302,12 +273,10 @@ struct read
 		packed
 	),
 
-	fn tagString size = 
-	(		
+	fn tagString size = (		
 		local f = getCurrentFileHandle()
 		local str = ""
-		for i = 1 to size do
-		(			
+		for i = 1 to size do (			
 			local c = readByte f #unsigned
 			if c != 0 do
 				str += bit.intAsChar c
@@ -315,45 +284,37 @@ struct read
 		str
 	),
 	
-	fn nullTerminatedString = 
-	(		
+	fn nullTerminatedString = (		
 		local f = getCurrentFileHandle()
 		local str = ""
 		local c = readByte f #unsigned
 		while
-			c != 0 and c != undefined do
-		(			
+			c != 0 and c != undefined do (			
 			str += bit.intAsChar c
 			c = readByte f #unsigned
 		)
 		str
 	),
 
-	fn tagRef deferredTagRefs: = 
-	(		
+	fn tagRef deferredTagRefs: = (		
 		-- Tag Reference: class(4) + pathPtr(4) + pathLen(4) + tagID(4) = 16 bytes
 		-- CE source tags have pathPtr=0, MCC cached tags have pathPtr>0
 		local tagClass = read.longB "#unsigned"
 		local pathPtr = read.longB "#signed"
 		local pathLen = read.longB "#signed"
 		local tagID = read.longB "#unsigned"
-		
 		-- Store tag ref info for deferred path reading
 		local tagRefInfo = tagRefData tagClass pathPtr pathLen tagID ""
-		
 		-- CE source tags (pathPtr==0) always have sequential null-terminated strings
 		-- Queue for deferred reading ONLY if pathLen is valid or pathPtr is 0 (CE)
-		if deferredTagRefs != unsupplied and (pathLen > 0 or pathPtr == 0) then
-		(
+		if deferredTagRefs != unsupplied and (pathLen > 0 or pathPtr == 0) then (
 			append deferredTagRefs tagRefInfo
 		)
 		tagRefInfo
 	),
 
-	fn padding fieldDef =
-	(
-		local byteSize = case fieldDef.size of
-		(
+	fn padding fieldDef = (
+		local byteSize = case fieldDef.size of (
 			#int8: 1
 			#int16: 2
 			#int32: 4
@@ -365,8 +326,7 @@ struct read
 		undefined
 	),
 
-	fn rawTagData = 
-	(		
+	fn rawTagData = (		
 		-- RawdataRef structure (20 bytes total)
 		-- int32 size, int32 flags, uint32 rawPointer, uint32 pointer, uint32 id
 		local dataSize = read.longB "#signed"
@@ -378,25 +338,21 @@ struct read
 		tagData dataSize flags rawPointer pointer dataId
 	),
 	-- Read reflexive structure (12 bytes)
-	fn reflex =
-	(
+	fn reflex = (
 		local count = read.longB "#signed"
 		local pointer = read.longB "#unsigned"
 		local id = read.longB "#unsigned"
 		reflexiveData count pointer id
 	)
-
 )
 
 -------------------------------------------------------
 -- Math readers
 -------------------------------------------------------
 global math = undefined
-struct math
-(	
+struct math (	
 	-- Read quaternion
-	fn readQuat = 
-	(		
+	fn readQuat = (		
 		i = read.floatB()
 		j = read.floatB()
 		k = read.floatB()
@@ -405,53 +361,46 @@ struct math
 		--#( i, j, k, w )
 	),
     -- Read 2D Euler angles (yaw, pitch)
-    fn readEuler2D = 
-    (
+    fn readEuler2D = (
         yaw = read.floatB()
         pitch = read.floatB()
 		[yaw, pitch]
         --#( yaw, pitch )
     ),
-    fn readBounds = 
-    (
+    fn readBounds = (
         a = read.floatB()
         b = read.floatB()
         [a, b]
     ),
 	-- Read 2D Point
-	fn readPoint2 = 
-	(		
+	fn readPoint2 = (		
 		x = read.floatB()
 		y = read.floatB()
 		point2 x y  -- Return Point2 object
 	),
 	-- Read 3D point
-	fn readPoint3 = 
-	(		
+	fn readPoint3 = (		
 		x = read.floatB()
 		y = read.floatB()
 		z = read.floatB()
 		[x, y, z]  -- Return Point3 object (square brackets)
 	),
 	-- Read 3D vector (same as Point3 in MaxScript)
-	fn readVector3D = 
-	(		
+	fn readVector3D = (		
 		x = read.floatB()
 		y = read.floatB()
 		z = read.floatB()
 		[x, y, z]  -- Return Point3 object (vectors and points are both Point3 in MaxScript)
 	),
     -- Read RGB color
-    fn readColorRGB =
-    (
+    fn readColorRGB = (
         r = read.floatB()
         g = read.floatB()
         b = read.floatB()
         color r g b  -- Return Color object
     ),
     -- Read ARGB color
-    fn readColorARGB =
-    (
+    fn readColorARGB = (
         a = read.floatB()
         r = read.floatB()
         g = read.floatB()
@@ -460,16 +409,14 @@ struct math
         point4 r g b a
     ),
 	-- Read 2D plane (ax + by + c = 0)
-	fn readPlane2D =
-	(
+	fn readPlane2D = (
 		a = read.floatB()
 		b = read.floatB()
 		c = read.floatB()
 		[a, b, c]  -- Return array for plane coefficients
 	),
     -- Read 3D plane (normal x, y, z + distance d)
-    fn readPlane3D =
-    (
+    fn readPlane3D = (
         x = read.floatB()
         y = read.floatB()
         z = read.floatB()
@@ -477,21 +424,18 @@ struct math
         point4 x y z d  -- Return Point4 for plane
     ),
 	-- Read compressed quaternion component (16-bit signed normalized)
-	fn readQuatComp =
-    (
+	fn readQuatComp = (
         (read.shortB "#signed") / 32767.0
     ),
 	-- Normalize quaternion components to unit length (returns Point4 with i,j,k,w)
-    fn normalizeQuat qi qj qk qw =
-    (
+    fn normalizeQuat qi qj qk qw = (
         local mag2 = qi*qi + qj*qj + qk*qk + qw*qw
         if mag2 == 0.0 then return point4 0 0 0 1
         local inv = 1.0 / sqrt mag2
         point4 (qi*inv) (qj*inv) (qk*inv) (qw*inv)
     ),
     -- Read compressed quaternion (4 components, each 16-bit signed normalized)
-    fn readQuatCompressed =
-    (
+    fn readQuatCompressed = (
         local qi = readQuatComp()
         local qj = readQuatComp()
         local qk = readQuatComp()

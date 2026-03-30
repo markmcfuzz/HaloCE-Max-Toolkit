@@ -1,17 +1,27 @@
+------------------------------------------------------------------------------
+--	Copyright (C) 2025 - Present Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
+--	license is available at http://www.gnu.org/licenses/gpl.txt.
+------------------------------------------------------------------------------
+
 -------------------------------------------------------
 -- Line Text readers
 -------------------------------------------------------
 
 -- Read a single line from file and trim whitespace
-fn readLineFromStream fileStream =
-(
+fn readLineFromStream fileStream = (
 	local line = readLine fileStream
 	trimRight (trimLeft line)
 )
 
 -- Read an integer value from the next line
-fn readIntValue fileStream =
-(
+fn readIntValue fileStream = (
 	local line = readLineFromStream fileStream
 	-- Handle special case: "undefined" string in old JMS files
 	if line == "undefined" then
@@ -20,15 +30,13 @@ fn readIntValue fileStream =
 )
 
 -- Read a float value from the next line
-fn readFloatValue fileStream =
-(
+fn readFloatValue fileStream = (
 	local line = readLineFromStream fileStream
 	line as float
 )
 
 -- Read a 3D point (vector) from the next line (space or tab separated)
-fn readVectorValue fileStream =
-(
+fn readVectorValue fileStream = (
 	local line = readLineFromStream fileStream
 	local values = filterString line " \t"
 	
@@ -39,13 +47,11 @@ fn readVectorValue fileStream =
 )
 
 -- Read a quaternion from the next line (i j k w format, space or tab separated)
-fn readQuatValue fileStream =
-(
+fn readQuatValue fileStream = (
 	local line = readLineFromStream fileStream
 	local values = filterString line " \t"
 	
-	if values.count >= 4 then
-	(
+	if values.count >= 4 then (
 		local i = values[1] as float
 		local j = values[2] as float
 		local k = values[3] as float
@@ -57,8 +63,7 @@ fn readQuatValue fileStream =
 )
 
 -- Read 2D texture coordinates from the next line
-fn readUVValue fileStream =
-(
+fn readUVValue fileStream = (
 	local line = readLineFromStream fileStream
 	local values = filterString line " \t"
 	
@@ -69,8 +74,7 @@ fn readUVValue fileStream =
 )
 
 -- Legacy function for compatibility
-fn clearTokenBuffer =
-(
+fn clearTokenBuffer = (
 	-- No-op - kept for compatibility
 	return undefined
 )
@@ -80,16 +84,14 @@ fn clearTokenBuffer =
 -------------------------------------------------------
 
 -- Format a float value for output with 6 decimal places minimum
-fn formatFloat val =
-(
+fn formatFloat val = (
 	-- Use formattedPrint to ensure at least 6 decimal places
 	local str = formattedPrint val format:".6f"
 	return str
 )
 
 -- Format quaternion rotation (i, j, k, w)
-fn formatRotation rotArray =
-(
+fn formatRotation rotArray = (
 	local str = ""
 	str += formatFloat rotArray[1] + "\t"
 	str += formatFloat rotArray[2] + "\t"
@@ -99,8 +101,7 @@ fn formatRotation rotArray =
 )
 
 -- Format translation (x, y, z)
-fn formatTranslation posArray =
-(
+fn formatTranslation posArray = (
 	local str = ""
 	str += formatFloat posArray[1] + "\t"
 	str += formatFloat posArray[2] + "\t"

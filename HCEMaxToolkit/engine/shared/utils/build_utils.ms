@@ -1,10 +1,23 @@
+------------------------------------------------------------------------------
+--	Copyright (C) 2025 - Present Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
+--	license is available at http://www.gnu.org/licenses/gpl.txt.
+------------------------------------------------------------------------------
+
+global haloScale = 100.0
+
 -------------------------------------------------------
 -- COMPRESSED VERTEX DECOMPRESSION
 -------------------------------------------------------
 
 -- Decompress normal vector from packed 32-bit format | Fixed
-fn decompressNormal normalPacked =
-(
+fn decompressNormal normalPacked = (
     local i = (bit.and normalPacked 1023) / 1023.0
     local j = (bit.and (bit.shift normalPacked -11) 1023) / 1023.0
     local k = (bit.and (bit.shift normalPacked -22) 511) / 511.0
@@ -17,24 +30,21 @@ fn decompressNormal normalPacked =
 )
 
 -- Decompress UV coordinates from signed 16-bit format
-fn decompressUV u16 v16 uScale:1.0 vScale:1.0 =
-(
+fn decompressUV u16 v16 uScale:1.0 vScale:1.0 = (
     local u = (u16 / 32767.0) * uScale
     local v_coord = (1.0 - (v16 / 32767.0)) * vScale
     return [u, v_coord, 0]
 )
 
 -- Decompress node indices (stored * 3 in compressed format)
-fn decompressNodeIndices node0Raw node1Raw =
-(
+fn decompressNodeIndices node0Raw node1Raw = (
     local node0Index = (node0Raw / 3) + 1  -- Convert to 1-based
     local node1Index = (node1Raw / 3) + 1  -- Convert to 1-based
     return #(node0Index, node1Index)
 )
 
 -- Decompress node weight from signed 16-bit to float (0.0-1.0)
-fn decompressNodeWeight weightRaw =
-(
+fn decompressNodeWeight weightRaw = (
     local weight = weightRaw / 32767.0
     return weight
 )
@@ -44,8 +54,7 @@ fn decompressNodeWeight weightRaw =
 -------------------------------------------------------
 
 -- Check if object name indicates it should be exported as a node
-fn isNodeObject obj =
-(
+fn isNodeObject obj = (
 	if obj == undefined then return false
 	
 	local objName = toLower obj.name
@@ -61,22 +70,19 @@ fn isNodeObject obj =
 )
 
 -- Check if object is a marker (names starting with '#' or '+')
-fn isMarkerObject obj =
-(
+fn isMarkerObject obj = (
 	if obj == undefined then return false
 	return (obj.name[1] == "#" or obj.name[1] == "+")
 )
 
 -- Check if object is a physics/pathfinding object (names starting with '+')
-fn isPhysicsObject obj =
-(
+fn isPhysicsObject obj = (
 	if obj == undefined then return false
 	return (obj.name[1] == "+")
 )
 
 -- Check if object is geometry (Editable Mesh or Editable Poly)
-fn isGeometryObject obj =
-(
+fn isGeometryObject obj = (
 	if obj == undefined then return false
 	
 	local objClass = classOf obj
@@ -86,8 +92,7 @@ fn isGeometryObject obj =
 		return true
 	
 	-- Check base object (for objects with modifiers)
-	if obj.baseObject != undefined then
-	(
+	if obj.baseObject != undefined then (
 		local baseClass = classOf obj.baseObject
 		if baseClass == Editable_mesh or baseClass == Editable_Poly then
 			return true
@@ -98,8 +103,7 @@ fn isGeometryObject obj =
 
 -- Check if object is a helper container (non-node/non-geometry object used for rotation/transform helpers)
 -- These include shapes (Editable Spline), dummies, points, helpers
-fn isHelperContainer obj =
-(
+fn isHelperContainer obj = (
 	if obj == undefined then return false
 	
 	-- Skip if it's already a node object
@@ -126,36 +130,27 @@ fn isHelperContainer obj =
 
 -- Find the actual root node, looking through helper containers if necessary
 -- Returns the node object that should be treated as root, or undefined
-fn findActualRootNode obj =
-(
+fn findActualRootNode obj = (
 	if obj == undefined then return undefined
-	
 	-- If it's already a node, return it
 	if isNodeObject obj then return obj
-	
 	-- If it's a helper container with exactly one child that's a node, return that child
-	if isHelperContainer obj then
-	(
+	if isHelperContainer obj then (
 		local nodeChildren = #()
-		for child in obj.children do
-		(
+		for child in obj.children do (
 			if isNodeObject child and not child.isHidden then
 				append nodeChildren child
 		)
-		
 		-- Only return child if there's exactly one valid node child
 		if nodeChildren.count == 1 then
 			return nodeChildren[1]
 	)
-	
 	return undefined
 )
 
 -- Get the Skin modifier from an object if it exists
-fn getSkinModifier obj =
-(
-	for i = 1 to obj.modifiers.count do
-	(
+fn getSkinModifier obj = (
+	for i = 1 to obj.modifiers.count do (
 		if classOf obj.modifiers[i] == Skin then
 			return obj.modifiers[i]
 	)
@@ -167,8 +162,7 @@ fn getSkinModifier obj =
 ------------------------------------------------------------
 
 -- Create a standard Marker helper (uses HaloMarker/Point)
-fn createHaloMarker pos:[0,0,0] radius:1.0 name:"marker" wireColor:(color 0 255 0) =
-(
+fn createHaloMarker pos:[0,0,0] radius:1.0 name:"marker" wireColor:(color 0 255 0) = (
 	local marker = HaloMarker pos:pos
 	marker.markerRadius = radius
 	marker.markerType = "Marker"
@@ -176,8 +170,7 @@ fn createHaloMarker pos:[0,0,0] radius:1.0 name:"marker" wireColor:(color 0 255 
 	marker.wirecolor = wireColor
 	
 	-- Set name with "#" prefix
-	if name != "" then
-	(
+	if name != "" then (
 		if name[1] != "#" and name[1] != "+" then
 			marker.name = "#" + name
 		else
@@ -189,8 +182,8 @@ fn createHaloMarker pos:[0,0,0] radius:1.0 name:"marker" wireColor:(color 0 255 
 
 -- Create a Physics or Pathfinding helper (uses HaloPhysics/InfluenceHelper)
 --
-fn createHaloPhysics pos:[0,0,0] radius:1.0 markerType:"Physics" name:"massPoint" wireColor:(color 0 200 0) nearColor:(color 0 200 0) farColor:(color 0 200 0) =
-(
+fn createHaloPhysics pos:[0,0,0] radius:1.0 markerType:"Physics" name:"massPoint" \ 
+	wireColor:(color 0 200 0) nearColor:(color 0 200 0) farColor:(color 0 200 0) = (
 	local marker = HaloPhysics pos:pos
 	marker.physicsRadius = radius
 	marker.markerType = markerType
@@ -209,6 +202,125 @@ fn createHaloPhysics pos:[0,0,0] radius:1.0 markerType:"Physics" name:"massPoint
 			marker.name = name
 	)
 	marker
+)
+
+-- Create a Container helper
+fn createHaloContainer name:"haloContainer" size:25 displayLabel:on \
+	contentBoundingBox:on displayStatus:on pos:[0, 0, 0] wireColor:(color 255 255 255) = (
+	-- Create "/Markers" container and parent to frame
+    local haloContainer = Container()
+	haloContainer.name = name
+    haloContainer.size = size
+    haloContainer.displayLabel = displayLabel
+    haloContainer.contentBoundingBox = contentBoundingBox
+    haloContainer.displayStatus = displayStatus
+	haloContainer.pos = pos
+	haloContainer.wirecolor = wireColor
+	haloContainer
+)
+
+
+-------------------------------------------------------
+-- GEOMETRY UTILITIES
+-------------------------------------------------------
+
+fn getSurfaceEdgeSet edges surf surfaceIndex0Based = (
+	local edgeSet = #()
+	local faceVerts = #()
+	local currentEdgeIndex = surf.firstEdge
+	local startEdgeIndex = surf.firstEdge
+	local edgesProcessed = 0
+	local maxEdges = edges.count
+
+	while edgesProcessed < maxEdges do (
+		if currentEdgeIndex < 0 or currentEdgeIndex >= edges.count then
+			exit
+		local edge = edges[currentEdgeIndex + 1]
+		local isLeftSurface = (edge.leftSurface == surfaceIndex0Based)
+		if isLeftSurface then (
+			append faceVerts (edge.startVertex + 1)
+			currentEdgeIndex = edge.forwardEdge
+		)
+		else if edge.rightSurface == surfaceIndex0Based then (
+			append faceVerts (edge.endVertex + 1)
+			currentEdgeIndex = edge.reverseEdge
+		)
+		else
+			exit
+		edgesProcessed += 1
+		if currentEdgeIndex == startEdgeIndex then
+			exit
+	)
+	for i = 1 to faceVerts.count do (
+		local v1 = faceVerts[i]
+		local v2 = if i < faceVerts.count then faceVerts[i + 1] else faceVerts[1]
+		if v1 < v2 then
+			append edgeSet #(v1, v2)
+		else
+			append edgeSet #(v2, v1)
+	)
+	qsort edgeSet (fn comparer a b = (if a[1] < b[1] then -1 else if a[1] > b[1] then 1 else (if a[2] < b[2] then -1 else if a[2] > b[2] then 1 else 0)))
+	return edgeSet
+)
+
+fn edgeSetsMatch edgeSet1 edgeSet2 = (
+	if edgeSet1.count != edgeSet2.count then
+		return false
+	for i = 1 to edgeSet1.count do (
+		if edgeSet1[i][1] != edgeSet2[i][1] or edgeSet1[i][2] != edgeSet2[i][2] then
+			return false
+	)
+	return true
+)
+
+-- Compute the intersection point of 3 planes using scalar triple product formula.
+-- Each plane: point4(nx, ny, nz, d)  →  n·p = d
+-- Returns point3, or undefined if planes are parallel/degenerate.
+fn wpIntersect3Planes p1 p2 p3 = (
+	local n1 = point3 p1.x p1.y p1.z
+	local n2 = point3 p2.x p2.y p2.z
+	local n3 = point3 p3.x p3.y p3.z
+	local n2xn3 = cross n2 n3
+	local det   = dot n1 n2xn3
+	if abs det < 0.0001 then return undefined
+	((n2xn3 * p1.w) + ((cross n3 n1) * p2.w) + ((cross n1 n2) * p3.w)) / det
+)
+
+-- Return true if point pt is on the positive side (or on) every plane.
+fn wpIsInsideAllPlanes pt planes tol = (
+	for p in planes do (
+		local n = point3 p.x p.y p.z
+		if (dot pt n) < p.w - tol then return false
+	)
+	true
+)
+
+-- Sort vertex indices by angle around centroid projected onto a plane.
+fn wpSortVertsByAngle idxArray verts normal = (
+	if idxArray.count < 2 then return idxArray
+	local center = [0,0,0]
+	for idx in idxArray do center += verts[idx]
+	center /= idxArray.count
+
+	local ref = verts[idxArray[1]] - center
+	if length ref < 0.0001 then return idxArray
+	ref = normalize ref
+	local orth = normalize (cross normal ref)
+
+	local pairs = #()
+	for idx in idxArray do (
+		local d = verts[idx] - center
+		append pairs #( (atan2 (dot d orth) (dot d ref)), idx )
+	)
+	-- bubble sort by angle
+	for i = 1 to pairs.count - 1 do
+		for j = 1 to pairs.count - i do
+			if pairs[j][1] > pairs[j+1][1] then (
+				local tmp = pairs[j]; pairs[j] = pairs[j+1]; pairs[j+1] = tmp
+			)
+	local result = #()
+	for pair in pairs do append result pair[2]
+	result
 )
 
 scriptName = getFilenameFile (getThisScriptFilename()) + getFilenameType (getThisScriptFilename())
