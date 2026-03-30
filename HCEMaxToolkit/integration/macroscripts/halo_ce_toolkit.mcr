@@ -1,14 +1,14 @@
-----------------------------------------------------------------------------
---	Copyright (C) 2025 Mark McFuzz (mailto:mark.mcfuzz@gmail.com)
---	This program is free software; you can redistribute it and/or modify it
---	under the terms of the GNU General Public License as published by the
---	Free Software Foundation; either version 2 of the License, or (at your
---	option) any later version. This program is distributed in the hope that
---	it will be useful, but WITHOUT ANY WARRANTY; without even the implied
---	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
---	the GNU General Public License for more details. A full copy of this
+------------------------------------------------------------------------------
+--	Copyright (C) 2025 - Present Mark McFuzz (mailto:mark.mcfuzz@gmail.com)				
+--	This program is free software; you can redistribute it and/or modify it	
+--	under the terms of the GNU General Public License as published by the	
+--	Free Software Foundation; either version 2 of the License, or (at your	
+--	option) any later version. This program is distributed in the hope that	
+--	it will be useful, but WITHOUT ANY WARRANTY; without even the implied	
+--	warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See	
+--	the GNU General Public License for more details. A full copy of this	
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
-----------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 macroScript ImportGBX
     category: "Halo CE"
@@ -136,6 +136,26 @@ macroScript ImportJMS
     )
 )
 
+macroScript ImportStructureBSP
+    category: "Halo CE"
+    toolTip: "Structure BSP Tag"
+(
+    on execute do 
+    (
+        local thisScript = getThisScriptFilename()
+        local leafPath = pathConfig.removePathLeaf thisScript
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+        local scriptPath = pluginRoot + "\\engine\\import_structure_bsp.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
 
 -- Export Scripts
 
@@ -224,27 +244,6 @@ macroScript SphereToHaloMarkerHelper
     )
 )
 
---macroScript JmsRepair
---    category: "Halo CE"
---    toolTip: "JMS Repair"
---(
---    on execute do 
---    (
---        local thisScript = getThisScriptFilename()
---        local leafPath = pathConfig.removePathLeaf thisScript
---        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
---        local scriptPath = pluginRoot + "\\engine\\tool_jms_repair.ms"
---        if doesFileExist scriptPath then
---        (
---            fileIn scriptPath
---        )
---        else
---        (
---            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
---        )
---    )
---)
-
 macroScript ModelAnimationsExtractor
     category: "Halo CE"
     toolTip: "Extract Model Animations"
@@ -255,6 +254,29 @@ macroScript ModelAnimationsExtractor
         local leafPath = pathConfig.removePathLeaf thisScript
         local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
         local scriptPath = pluginRoot + "\\engine\\tool_extract_animations.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
+
+-- Settings
+
+macroScript HCEMaxToolkitSettings
+    category: "Halo CE"
+    toolTip: "Settings"
+(
+    on execute do 
+    (
+        local thisScript = getThisScriptFilename()
+        local leafPath = pathConfig.removePathLeaf thisScript
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+        local scriptPath = pluginRoot + "\\engine\\settings.ms"
         if doesFileExist scriptPath then
         (
             fileIn scriptPath
