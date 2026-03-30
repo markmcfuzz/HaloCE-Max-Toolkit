@@ -379,3 +379,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **JMA Exporter:**
   - Root bones parented to helpers now export correctly with the helper's rotation baked into the animation.
+## [5.1.0] - 2026-03-20
+## Added
+- **Settings Menu:**
+  - New settings menu to configure various import/export options and global settings.
+    - Found under `Halo CE Toolkit` > `Settings`
+- **Coplanar Checker Utility:**
+  - New utility for checking nearly coplanar geometry in models.
+    - Found under `Command Panel` > `Utilities` > `Halo CE Toolkit` > `Check Coplanar Surfaces`
+- **Structure BSP Importer:**
+  - New importer for Halo CE Structure BSP (`.scenario_structure_bsp`) tags.
+- **Parser:** 
+  - `tagDataSkips` **mechanism** - detects `#tagData` (raw byte) fields in the main struct and records skip entries so the parser correctly seeks past inline rawdata between sibling reflexive blocks.
+  - `skipBlocks` **parameter** - byte-skips entire reflexive blocks by name, avoiding wasted allocations for unused data.
+  - `readOnlyBlocks` **parameter** - whitelist of blocks to fully parse; gap blocks before the last whitelisted entry are auto-skipped, everything after is dropped entirely.
+  - `subBlockSkips` **parameter** - skips specific child blocks inside a given parent block, scoped only to that recursion level.
+## Changed
+- **Parser:** 
+  - `readReflexiveBlocks` refactored from "batch all entries' paths then batch all rawdata" to a per-entry loop: reads tag-ref paths for entry N, skips rawdata for entry N, then moves to entry N+1. Matches the actual CE source format interleaving.
+  - `tagDataSkips` is now threaded through `readParentBlock`, `readMainBlock`, `readTag`, and `readTagWithParents`. Existing importers remain backward-compatible.
+## Fixed
+- **Read Utils:** 
+  - `shortB` / `longB` signed conversion - boundary check changed from `>` to `>=`, so the most-negative values (`0x8000` → `-32768`, `0x80000000` → `-2147483648`) now parse correctly.
+- **Parser:** 
+  - BSP crash at EOF - `clusterData` (8 bytes) and `soundPasData` (1 byte) inline rawdata in the `scenario_structure_bsp` main struct were not being skipped, causing byte-offset drift that corrupted all block reads from `clusterPortals` onward.
+  - Garbage tag-ref paths with 2+ entries containing `#tagData` - the batch path/rawdata approach broke for multi-entry blocks (e.g., `materialsBlock` with multiple materials). The per-entry loop resolves corrupted paths for entries 2+.
