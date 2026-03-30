@@ -182,48 +182,47 @@ fn writeTriangles fileStream jmsData =
 	)
 )
 
+
 -- Write extended metadata section (optional, for enhanced workflows)
-fn writeExtendedMetadata fileStream jmsData =
-(
+fn writeExtendedMetadata fileStream jmsData = (
+	
 	-- Only write if we have smoothing groups
+    local exportExtendedMetadata = configManager.getBool "export_jms_jma" "export_extended_metadata" true
+    if not exportExtendedMetadata then return ok
+	
 	if jmsData.smoothingGroups == undefined or jmsData.smoothingGroups.count == 0 then
 		return ok
-	
+
 	-- Check if ANY smoothing group is non-zero (if all are 0, skip extended metadata entirely)
 	local hasNonZeroSmoothingGroup = false
-	for sg in jmsData.smoothingGroups do
-	(
-		if sg != 0 then
-		(
+
+	for sg in jmsData.smoothingGroups do (
+		if sg != 0 then (
 			hasNonZeroSmoothingGroup = true
 			exit
 		)
 	)
 	
-	if not hasNonZeroSmoothingGroup then
-	(
+	if not hasNonZeroSmoothingGroup then (
 		--logger.info "No smoothing groups found:"
 		--logger.info "Skipping extended metadata"
 		return ok
 	)
-	
 	-- Blank line separator
 	format "\n" to:fileStream
-	
+
 	-- Write smoothing groups
 	format ";### SMOOTHING GROUPS ###\n" to:fileStream
 	format "%\n" jmsData.smoothingGroups.count to:fileStream
-	
+
 	-- Write in batches for performance
 	local batchSize = 500000
 	local ss = StringStream ""
 	
-	for i = 1 to jmsData.smoothingGroups.count do
-	(
+	for i = 1 to jmsData.smoothingGroups.count do (
 		format "%\n" jmsData.smoothingGroups[i] to:ss
 		
-		if (mod i batchSize) == 0 or i == jmsData.smoothingGroups.count then
-		(
+		if (mod i batchSize) == 0 or i == jmsData.smoothingGroups.count then (
 			format "%" (ss as string) to:fileStream
 			ss = StringStream ""
 		)
