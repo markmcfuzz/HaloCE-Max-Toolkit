@@ -25,8 +25,9 @@ configManager.init()
 logger.loadConfig callerScriptName:scriptName
 
 fileIn (rootEngine + "builders\\helper_builder.ms")
-fileIn (scriptDir + "utils\\coplanar_checker.ms")
+fileIn (rootEngine + "utility_coplanar_checker.ms")
 fileIn (scriptDir + "utils\\read_utils.ms")
 fileIn (scriptDir + "utils\\build_utils.ms")
 fileIn (scriptDir + "utils\\text_utils.ms")
 fileIn (scriptDir + "utils\\write_utils.ms")
+
