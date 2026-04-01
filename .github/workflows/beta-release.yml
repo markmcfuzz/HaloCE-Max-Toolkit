@@ -26,7 +26,7 @@ jobs:
         run: |
           # Extract the latest version from CHANGELOG.md (last occurrence)
           $changelog = Get-Content CHANGELOG.md
-          $versionLine = $changelog | Where-Object { $_ -match '^## \[(\d+\.\d+\.\d+)\]' } | Select-Object -Last 1
+          $versionLine = $changelog | Where-Object { $_ -match '^## \[(\d+\.\d+\.\d+)\]' } | Select-Object -First 1
           
           if ($versionLine -match '^## \[(\d+\.\d+\.\d+)\]') {
             $version = $matches[1]
