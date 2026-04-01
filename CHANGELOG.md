@@ -6,8 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [5.2.0] - 2026-04-01
 ### Added
+
 - **GlyphFX:**
   - New submodule for DirectX Shaders based on Halo CE's shaders.
+
+### Changed
+
+- **Coplanar Checker Utility:**
+  - Moved files for better organization under `engine\utility_coplanar_checker.ms` and `engine\shaders\hlsl\coplanar_checker.fx`.
+    - Updated `init.ms` to reflect new file paths.
 
 ## [5.1.0] - 2026-03-20
 ### Added
