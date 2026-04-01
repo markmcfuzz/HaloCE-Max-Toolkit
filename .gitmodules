@@ -1,0 +1,3 @@
+[submodule "HCEMaxToolkit/engine/shaders/GlyphFX"]
+	path = HCEMaxToolkit/engine/shaders/GlyphFX
+	url = https://github.com/markmcfuzz/GlyphFX.git
