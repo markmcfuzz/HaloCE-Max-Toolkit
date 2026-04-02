@@ -25,7 +25,7 @@ jobs:
       - name: Strip GlyphFX to fx/ only
         run: |
           $glyphfx = "HCEMaxToolkit\engine\shaders\GlyphFX"
-          Get-ChildItem $glyphfx -Exclude "fx" | Remove-Item -Recurse -Force
+          Get-ChildItem $glyphfx -Exclude "src" | Remove-Item -Recurse -Force
         shell: powershell
 
       - name: Set version and beta number
