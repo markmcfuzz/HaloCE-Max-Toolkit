@@ -28,7 +28,7 @@ include "core\\halo1\\parser.ms"
 include "formats\\jma\\jma_struct.ms"
 include "formats\\jma\\process_file.ms"
 include "pipeline\\extract_model_animations\\constants.ms"
-include "pipeline\\extract_model_animations\\antr_reader.ms"
+include "pipeline\\extract_model_animations\\struct_mapper.ms"
 include "pipeline\\extract_model_animations\\animation_extractor.ms"
 
 -------------------------------------------------------
