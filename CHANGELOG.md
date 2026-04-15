@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.1] - 2026-04-15
+### Changed
+- **Model Animations Extractor Tool:**
+  - Refactored code.
+    - Removed `antr_reader.ms` as it's no longer needed after refactoring the struct mapping logic into `struct_mapper.ms` using the `parser.ms` instead.
+### Added
+- **Model Animations Extractor Tool:**
+  - Support for compressed animation data.
+- **Read Utils:**
+  - Short, long and float functions for little-endian.
+- **Build Utils:**
+  - Decompression for quaternion.
+  - Interpolation functions for quaternion and vector3.
+
 ## [5.2.0] - 2026-04-01
 ### Added
 
