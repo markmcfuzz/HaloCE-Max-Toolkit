@@ -13,7 +13,7 @@
 global haloScale = 100.0
 
 -------------------------------------------------------
--- COMPRESSED VERTEX DECOMPRESSION
+-- DECOMPRESSION UTILITIES
 -------------------------------------------------------
 
 -- Decompress normal vector from packed 32-bit format | Fixed
@@ -47,6 +47,54 @@ fn decompressNodeIndices node0Raw node1Raw = (
 fn decompressNodeWeight weightRaw = (
     local weight = weightRaw / 32767.0
     return weight
+)
+-- Decompress quaternion from four 12-bit signed integers packed into 3 words
+fn decompressQuaternion w0 w1 w2 =
+(
+    local ww = bit.and w2 0x0FFF
+    local kk = bit.or (bit.shift w2 -12) (bit.shift (bit.and w1 0x00FF) 4)
+    local jj = bit.or (bit.shift w1 -8)  (bit.shift (bit.and w0 0x000F) 8)
+    local ii = bit.shift w0 -4
+
+    if (bit.and ww 0x800) != 0 then ww -= 4095
+    if (bit.and kk 0x800) != 0 then kk -= 4095
+    if (bit.and jj 0x800) != 0 then jj -= 4095
+    if (bit.and ii 0x800) != 0 then ii -= 4095
+
+    local mag2 = (ii as float)^2 + (jj as float)^2 \
+		+ (kk as float)^2 + (ww as float)^2
+    if mag2 == 0.0 then 
+		return #(0.0, 0.0, 0.0, 1.0)
+
+    local inv = 1.0 / (sqrt mag2)
+    #(ii * inv, jj * inv, kk * inv, ww * inv)
+)
+
+-------------------------------------------------------
+-- Blending functions for animation interpolation
+-------------------------------------------------------
+-- Normalized linear quaternion blend (NLERP) with anti-flip.
+-- Returns a possibly-unnormalized #(i,j,k,w); caller normalizes.
+fn blendQuaternion a b ratio =
+(
+    local r0 = 1.0 - ratio
+    local r1 = ratio
+    local dot = a[1]*b[1] + a[2]*b[2] + a[3]*b[3] + a[4]*b[4]
+    if dot < 0.0 then r1 = -r1
+    #(a[1]*r0 + b[1]*r1, a[2]*r0 + b[2]*r1, a[3]*r0 + b[3]*r1, a[4]*r0 + b[4]*r1)
+)
+-- Linear interpolation of two 3-element translation arrays.
+fn blendVector3 a b ratio =
+(
+    local r1 = if ratio < 0.0 then 0.0 else if ratio > 1.0 then 1.0 else ratio
+    local r0 = 1.0 - r1
+    #(a[1]*r0 + b[1]*r1, a[2]*r0 + b[2]*r1, a[3]*r0 + b[3]*r1)
+)
+-- Linear interpolation of two float scalars (for scale).
+fn blendScalar a b ratio =
+(
+    local r1 = if ratio < 0.0 then 0.0 else if ratio > 1.0 then 1.0 else ratio
+    a * (1.0 - r1) + b * r1
 )
 
 -------------------------------------------------------
