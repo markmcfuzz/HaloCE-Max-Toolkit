@@ -195,6 +195,348 @@ fn readFrameData fileHandle nodeCount frameCount transFlags rotFlags scaleFlags 
 )
 
 -------------------------------------------------------
+-- COMPRESSED ANIMATION READER
+-- Supports animations with animFlagCompressed set.
+-- Binary format is little-endian (unlike the rest of the tag).
+-------------------------------------------------------
+
+-- Evaluate a channel value at 0-based frame index `frameIdx` using keyframe data.
+-- kfStart / kfEnd : 1-based inclusive indices into kfNums / kfData for this node.
+--   kfStart >= kfEnd  → no usable keyframes; always returns defVal.
+-- kfNums  : global UInt16 array of frame-index numbers (shared across all nodes).
+-- defVal  : value at frame 0 (returned for frame 0 and non-animated nodes).
+-- kfData  : global array of decoded channel values matching kfNums positions.
+-- blendFn : function(a, b, ratio) that interpolates between two values.
+fn getKeyframeValue frameIdx kfStart kfEnd kfNums defVal kfData blendFn =
+(
+    -- No usable keyframes (kf_ct <= 1) or frame 0 always maps to default.
+    if kfStart >= kfEnd or frameIdx == 0 then return defVal
+
+    -- Past (or at) the last stored keyframe: hold the last value.
+    local lastFrame = kfNums[kfEnd]
+    if frameIdx >= lastFrame then return kfData[kfEnd]
+
+    -- Before the first stored keyframe: blend from default to the first keyframe.
+    local firstFrame = kfNums[kfStart]
+    if frameIdx < firstFrame then
+    (
+        if firstFrame == 0 then return defVal
+        local ratio = frameIdx as float / firstFrame as float
+        return blendFn defVal kfData[kfStart] ratio
+    )
+
+    -- Within stored keyframe range: find the surrounding pair.
+    -- NOTE: frameIdx >= firstFrame and < lastFrame guarantees a valid pair exists.
+    local kf_i = kfStart
+    for k = kfStart to (kfEnd - 1) do
+    (
+        if kfNums[k] <= frameIdx and kfNums[k+1] > frameIdx then
+        (
+            kf_i = k
+            exit
+        )
+    )
+
+    if frameIdx == kfNums[kf_i] then return kfData[kf_i]
+
+    local span = kfNums[kf_i + 1] - kfNums[kf_i]
+    if span == 0 then return kfData[kf_i]
+    local ratio = (frameIdx - kfNums[kf_i]) as float / span as float
+    blendFn kfData[kf_i] kfData[kf_i + 1] ratio
+)
+
+-- Read and decompress a compressed animation's per-frame node data.
+-- Parameters:
+--   fileHandle              : open file handle
+--   frameCount              : number of animation frames to produce
+--   nodeCount               : total node count for this animation
+--   transFlags / rotFlags / scaleFlags : per-node animation flag arrays
+--   frameDataFileOff        : file offset where frame_data blob begins
+--   offsetToCompressedData  : byte offset WITHIN frame_data to compressed block
+--   fdSize                  : total size of frame_data blob in bytes
+-- Returns an array of frameCount arrays, each nodeCount entries of
+--   #([x,y,z], #(i,j,k,w), scale), matching the output of readFrameData.
+fn readCompressedFrameData fileHandle frameCount nodeCount transFlags rotFlags scaleFlags \
+    frameDataFileOff offsetToCompressedData fdSize = (
+    local compStart = frameDataFileOff + offsetToCompressedData
+
+    -- Parse the 44-byte little-endian header.
+    -- Byte layout (all UInt32 LE, offsets measured from compStart):
+    --   [0 .. 11]  rotation offsets  : keyframes, default_data, keyframe_data
+    --                                  (rotation keyframe_head is ALWAYS at +44)
+    --   [12 .. 27] translation offsets: keyframe_head, keyframes, default_data, keyframe_data
+    --   [28 .. 43] scale offsets      : keyframe_head, keyframes, default_data, keyframe_data
+    fseek fileHandle compStart #seek_set
+    setCurrentFileHandle fileHandle
+    local rKfOff  = read.longL()  -- rotation keyframes array
+    local rDdOff  = read.longL()  -- rotation default_data array
+    local rFdOff  = read.longL()  -- rotation keyframe_data array
+    local tKhOff  = read.longL()  -- translation keyframe_head array
+    local tKfOff  = read.longL()  -- translation keyframes array
+    local tDdOff  = read.longL()  -- translation default_data array
+    local tFdOff  = read.longL()  -- translation keyframe_data array
+    local sKhOff  = read.longL()  -- scale keyframe_head array
+    local sKfOff  = read.longL()  -- scale keyframes array
+    local sDdOff  = read.longL()  -- scale default_data array
+    local sFdOff  = read.longL()  -- scale keyframe_data array
+
+    -- Rotation keyframe_head always starts at offset 44 from compStart.
+    local rKhOff = 44
+
+    -- Count nodes animated per transform type (used for keyframe_head array sizes).
+    local nR = 0; local nT = 0; local nS = 0
+    for ni = 1 to nodeCount do
+    (
+        if getNodeFlagBit rotFlags   ni then nR += 1
+        if getNodeFlagBit transFlags ni then nT += 1
+        if getNodeFlagBit scaleFlags ni then nS += 1
+    )
+
+    -- -------------------------------------------------------
+    -- Read rotation streams
+    -- -------------------------------------------------------
+
+    -- keyframe_head: nR × UInt32 LE at compStart+44.
+    -- Each UInt32: bits[11:0] = kf count, bits[31:12] = kf start offset.
+    local rotKh = #()
+    if nR > 0 then
+    (
+        fseek fileHandle (compStart + rKhOff) #seek_set
+        for i = 1 to nR do append rotKh (read.longL())
+    )
+
+    -- keyframes: UInt16 LE array of frame-index numbers.
+    local rKfCount  = (rDdOff - rKfOff) / 2
+    local rotKfNums = #()
+    if rKfCount > 0 then
+    (
+        fseek fileHandle (compStart + rKfOff) #seek_set
+        for i = 1 to rKfCount do append rotKfNums (read.shortL())
+    )
+
+    -- default_data: 3 × UInt16 per node (all nodeCount nodes)  →  compressed quat48.
+    local rotDdRaw = #()
+    fseek fileHandle (compStart + rDdOff) #seek_set
+    for i = 1 to (nodeCount * 3) do append rotDdRaw (read.shortL())
+
+    -- keyframe_data: 3 × UInt16 per stored keyframe  →  compressed quat48.
+    local rFdCount  = (tKhOff - rFdOff) / 2
+    local rotFdRaw  = #()
+    if rFdCount > 0 then
+    (
+        fseek fileHandle (compStart + rFdOff) #seek_set
+        for i = 1 to rFdCount do append rotFdRaw (read.shortL())
+    )
+
+    -- Decode rotation defaults (one per node) and keyframe values.
+    local rotNodeDef = #()
+    for ni = 1 to nodeCount do
+    (
+        local b = (ni - 1) * 3 + 1
+        append rotNodeDef (decompressQuaternion rotDdRaw[b] rotDdRaw[b+1] rotDdRaw[b+2])
+    )
+
+    local rotKfData = #()
+    local numRotKfs = rFdCount / 3
+    for ki = 1 to numRotKfs do
+    (
+        local b = (ki - 1) * 3 + 1
+        append rotKfData (decompressQuaternion rotFdRaw[b] rotFdRaw[b+1] rotFdRaw[b+2])
+    )
+
+    -- -------------------------------------------------------
+    -- Read translation streams
+    -- -------------------------------------------------------
+
+    -- keyframe_head: nT × UInt32 LE.
+    local transKh = #()
+    if nT > 0 then
+    (
+        fseek fileHandle (compStart + tKhOff) #seek_set
+        for i = 1 to nT do append transKh (read.longL())
+    )
+
+    -- keyframes: UInt16 LE frame-index array.
+    local tKfCount   = (tDdOff - tKfOff) / 2
+    local transKfNums = #()
+    if tKfCount > 0 then
+    (
+        fseek fileHandle (compStart + tKfOff) #seek_set
+        for i = 1 to tKfCount do append transKfNums (read.shortL())
+    )
+
+    -- default_data: 3 × float LE per node (all nodeCount); scaled * 100 to world units.
+    local transNodeDef = #()
+    fseek fileHandle (compStart + tDdOff) #seek_set
+    for ni = 1 to nodeCount do
+    (
+        local x = read.floatL() * 100.0
+        local y = read.floatL() * 100.0
+        local z = read.floatL() * 100.0
+        append transNodeDef #(x, y, z)
+    )
+
+    -- keyframe_data: 3 × float LE per stored keyframe; scaled * 100.
+    local tFdCount  = (sKhOff - tFdOff) / 4
+    local transKfData = #()
+    if tFdCount > 0 then
+    (
+        fseek fileHandle (compStart + tFdOff) #seek_set
+        for ki = 1 to (tFdCount / 3) do
+        (
+            local x = read.floatL() * 100.0
+            local y = read.floatL() * 100.0
+            local z = read.floatL() * 100.0
+            append transKfData #(x, y, z)
+        )
+    )
+
+    -- -------------------------------------------------------
+    -- Read scale streams
+    -- -------------------------------------------------------
+
+    -- keyframe_head: nS × UInt32 LE.
+    local scaleKh = #()
+    if nS > 0 then
+    (
+        fseek fileHandle (compStart + sKhOff) #seek_set
+        for i = 1 to nS do append scaleKh (read.longL())
+    )
+
+    -- keyframes: UInt16 LE frame-index array.
+    local sKfCount    = (sDdOff - sKfOff) / 2
+    local scaleKfNums = #()
+    if sKfCount > 0 then
+    (
+        fseek fileHandle (compStart + sKfOff) #seek_set
+        for i = 1 to sKfCount do append scaleKfNums (read.shortL())
+    )
+
+    -- default_data: 1 × float per ANIMATED scale node (nS entries, NOT nodeCount).
+    local sDdCount     = (sFdOff - sDdOff) / 4
+    local scaleDefaults = #()
+    if sDdCount > 0 then
+    (
+        fseek fileHandle (compStart + sDdOff) #seek_set
+        for i = 1 to sDdCount do append scaleDefaults (read.floatL())
+    )
+
+    -- keyframe_data: 1 × float per stored keyframe.
+    local compSize  = fdSize - offsetToCompressedData
+    local sFdCount  = (compSize - sFdOff) / 4
+    local scaleKfData = #()
+    if sFdCount > 0 then
+    (
+        fseek fileHandle (compStart + sFdOff) #seek_set
+        for i = 1 to sFdCount do append scaleKfData (read.floatL())
+    )
+
+    -- -------------------------------------------------------
+    -- Pre-compute per-node keyframe range (1-based indices into global arrays).
+    -- kfStart >= kfEnd  →  no usable keyframes (treated as static/default).
+    -- -------------------------------------------------------
+    local nodeRKfStart = #()
+    local nodeRKfEnd   = #()
+    local nodeTKfStart = #()
+    local nodeTKfEnd   = #()
+    local nodeSKfStart = #()
+    local nodeSKfEnd   = #()
+    local nodeSDef     = #()   -- scale default (1.0 for non-animated nodes)
+
+    local ri = 0; local ti = 0; local si = 0
+    for ni = 1 to nodeCount do
+    (
+        if getNodeFlagBit rotFlags ni then
+        (
+            ri += 1
+            local rKhVal  = rotKh[ri]
+            local rKfCt   = bit.and rKhVal 0x0FFF
+            local rKfOff_ = bit.shift rKhVal -12    -- 0-based start in global rotKfNums
+            append nodeRKfStart (rKfOff_ + 1)       -- convert to 1-based
+            append nodeRKfEnd   (rKfOff_ + rKfCt)   -- 1-based inclusive end
+        )
+        else
+        (
+            append nodeRKfStart 1
+            append nodeRKfEnd   0   -- kfStart >= kfEnd → static, always use default
+        )
+
+        if getNodeFlagBit transFlags ni then
+        (
+            ti += 1
+            local tKhVal  = transKh[ti]
+            local tKfCt   = bit.and tKhVal 0x0FFF
+            local tKfOff_ = bit.shift tKhVal -12
+            append nodeTKfStart (tKfOff_ + 1)
+            append nodeTKfEnd   (tKfOff_ + tKfCt)
+        )
+        else
+        (
+            append nodeTKfStart 1
+            append nodeTKfEnd   0
+        )
+
+        if getNodeFlagBit scaleFlags ni then
+        (
+            si += 1
+            local sKhVal  = scaleKh[si]
+            local sKfCt   = bit.and sKhVal 0x0FFF
+            local sKfOff_ = bit.shift sKhVal -12
+            append nodeSKfStart (sKfOff_ + 1)
+            append nodeSKfEnd   (sKfOff_ + sKfCt)
+            append nodeSDef     scaleDefaults[si]
+        )
+        else
+        (
+            append nodeSKfStart 1
+            append nodeSKfEnd   0
+            append nodeSDef     1.0
+        )
+    )
+
+    -- -------------------------------------------------------
+    -- Decompress all frames  (outer = frame, inner = node)
+    -- -------------------------------------------------------
+    local allFrames = #()
+    for f = 1 to frameCount do
+    (
+        local fi        = f - 1   -- 0-based frame index for getKeyframeValue
+        local frameNodes = #()
+
+        for ni = 1 to nodeCount do
+        (
+            -- Rotation: get blended (possibly unnormalized) quaternion, then normalize.
+            local rRaw = getKeyframeValue fi nodeRKfStart[ni] nodeRKfEnd[ni] \
+                rotKfNums rotNodeDef[ni] rotKfData blendQuaternion
+            local rMag2 = rRaw[1]*rRaw[1] + rRaw[2]*rRaw[2] + rRaw[3]*rRaw[3] + rRaw[4]*rRaw[4]
+            local rot
+            if rMag2 == 0.0 then
+                rot = #(0.0, 0.0, 0.0, 1.0)
+            else
+            (
+                local inv = 1.0 / (sqrt rMag2)
+                rot = #(rRaw[1]*inv, rRaw[2]*inv, rRaw[3]*inv, rRaw[4]*inv)
+            )
+
+            -- Translation: get blended #(x,y,z), convert to Point3.
+            local tArr  = getKeyframeValue fi nodeTKfStart[ni] nodeTKfEnd[ni] \
+                transKfNums transNodeDef[ni] transKfData blendVector3
+            local trans = [tArr[1], tArr[2], tArr[3]]
+
+            -- Scale: get blended float.
+            local scale = getKeyframeValue fi nodeSKfStart[ni] nodeSKfEnd[ni] \
+                scaleKfNums nodeSDef[ni] scaleKfData blendScalar
+
+            append frameNodes #(trans, rot, scale)
+        )
+
+        append allFrames frameNodes
+    )
+
+    allFrames
+)
+
+-------------------------------------------------------
 -- JMA KEYFRAME BUILDER
 -------------------------------------------------------
 
@@ -284,7 +626,7 @@ fn findIdleAnimForOverlay overlayName animationsBlock =
 
 -- Read the absolute pose of the first frame of animation at animIdx (1-based).
 -- Returns array of nodeCount entries, each #(point3_trans, rot_array, scale).
-fn readAnimFirstFrame animIdx animationsBlock animDataOffsets fileHandle =
+fn readAnimFirstFrame animIdx animationsBlock fileHandle =
 (
     local ae          = animationsBlock[animIdx]
     local animNC      = ae.nodeCount
@@ -293,12 +635,26 @@ fn readAnimFirstFrame animIdx animationsBlock animDataOffsets fileHandle =
     local aScaleFlags = ae.nodeScaleFlagData
     local ddSz        = ae.defaultDataSize
     local fdSz        = ae.frameDataSize
-    local offsets     = animDataOffsets[animIdx]
+
+    -- Compressed animations embed all state in the frame_data blob.
+    if bit.get ae.flags animFlagCompressed then
+    (
+        if fdSz > 0 then
+        (
+            local cf = readCompressedFrameData fileHandle 1 animNC aTransFlags aRotFlags \
+                aScaleFlags ae.frameDataFileOff ae.offsetToCompressedData fdSz
+            if cf.count > 0 then return cf[1]
+        )
+        -- Fallback: identity transforms.
+        local fb = #()
+        for n = 1 to animNC do append fb #([0,0,0], #(0.0,0.0,0.0,1.0), 1.0)
+        return fb
+    )
 
     local iDefaults = #()
     if ddSz > 0 then
     (
-        fseek fileHandle offsets[2] #seek_set
+        fseek fileHandle ae.defaultDataFileOff #seek_set
         iDefaults = readDefaultData fileHandle animNC aTransFlags aRotFlags aScaleFlags
     )
     else
@@ -309,7 +665,7 @@ fn readAnimFirstFrame animIdx animationsBlock animDataOffsets fileHandle =
 
     if fdSz > 0 then
     (
-        fseek fileHandle offsets[3] #seek_set
+        fseek fileHandle ae.frameDataFileOff #seek_set
         local iFrames = readFrameData fileHandle animNC 1 aTransFlags aRotFlags aScaleFlags iDefaults
         if iFrames.count > 0 then return iFrames[1]
     )
@@ -402,25 +758,25 @@ fn extractModelAnimations tagPath tagDef =
         return false
     )
     setCurrentFileHandle fileHandle
+    setTagMemoryBaseAddress 0x40440000
+    fseek fileHandle 64 #seek_set
 
     local totalStartTime = timestamp()
 
     logger.info "Parsing model_animations tag..."
     local parseStartTime = timestamp()
-    local tagResult = readAntrTagDirect fileHandle
-    logger.info "Tag parse: {} ms" args:#(timestamp() - parseStartTime)
-
-    if tagResult == undefined then
+    local parsedEntry = readTag tagDef
+    if parsedEntry == undefined then
     (
-        logger.error "readAntrTagDirect failed | cannot extract animations."
+        logger.error "Parser failed | cannot extract animations."
         fclose fileHandle
         return false
     )
+    local tagResult = convertAntrData parsedEntry
+    logger.info "Tag parse: {} ms" args:#(timestamp() - parseStartTime)
 
     local nodesBlock      = tagResult[1]
     local animationsBlock = tagResult[2]
-    local rawDataBase     = tagResult[3]
-    logger.info "Raw data section begins at file offset: '{}'" args:#(rawDataBase)
 
     local nodeCount = nodesBlock.count
     logger.info "Nodes: {}, Animations: {}\n" args:#(nodeCount, animationsBlock.count)
@@ -487,20 +843,6 @@ fn extractModelAnimations tagPath tagDef =
     local totalExtractMs = 0
     local totalWriteMs   = 0
 
-    -- Pre-compute sequential file offsets for each animation's three data blobs.
-    -- Layout per animation: [frameInfo][defaultData][frameData] packed end-to-end.
-    local animDataOffsets = #()
-    local runningOffset   = rawDataBase
-    for aIdx = 1 to animationsBlock.count do
-    (
-        local ae    = animationsBlock[aIdx]
-        local fiSz  = ae.frameInfoSize
-        local ddSz  = ae.defaultDataSize
-        local fdSz  = ae.frameDataSize
-        append animDataOffsets #(runningOffset, runningOffset + fiSz, runningOffset + fiSz + ddSz)
-        runningOffset += fiSz + ddSz + fdSz
-    )
-
     --ProgressStart "Extracting animations..."
 
     for animIdx = 1 to total do
@@ -519,15 +861,6 @@ fn extractModelAnimations tagPath tagDef =
         local rotFlags      = animEntry.nodeRotFlagData
         local scaleFlags    = animEntry.nodeScaleFlagData
 
-        -- Skip compressed animations (decompression not yet implemented)
-        if bit.get animFlags animFlagCompressed then
-        (
-            logger.warn "Skipping '{}': compressed data not yet supported." args:#(animName)
-            skipped += 1
-            --ProgressUpdate (animIdx as float / total * 100.0)
-            continue
-        )
-
         -- Skip animations with no useful node count
         if animNodeCount == 0 then
         (
@@ -541,10 +874,9 @@ fn extractModelAnimations tagPath tagDef =
         local defaultDataSize  = animEntry.defaultDataSize
         local frameDataSize    = animEntry.frameDataSize
 
-        local animOffsets        = animDataOffsets[animIdx]
-        local frameInfoFileOff   = animOffsets[1]
-        local defaultDataFileOff = animOffsets[2]
-        local frameDataFileOff   = animOffsets[3]
+        local frameInfoFileOff   = animEntry.frameInfoFileOff
+        local defaultDataFileOff = animEntry.defaultDataFileOff
+        local frameDataFileOff   = animEntry.frameDataFileOff
 
         logger.log "=== EXTRACT ANIMATION SOURCE ==="
         logger.info "[{}/{}] '{}' | type = {} | frameInfoType = {} | frames = {}" args:#(\
@@ -572,7 +904,7 @@ fn extractModelAnimations tagPath tagDef =
                 logger.info "Using '{}' as idle base for overlay '{}'" args:#(\
                     animationsBlock[idleIdx].name, animName)
                 idleBaseFrame = readAnimFirstFrame idleIdx animationsBlock \
-                    animDataOffsets fileHandle
+                    fileHandle
             )
             else
             (
@@ -580,35 +912,59 @@ fn extractModelAnimations tagPath tagDef =
             )
         )
 
-        -- Read default data
+        -- Read default data and per-frame data.
+        -- Compressed animations embed all node state in the frame_data blob.
         local defaults = #()
-        if defaultDataSize > 0 then
-        (
-            fseek fileHandle defaultDataFileOff #seek_set
-            defaults = readDefaultData fileHandle animNodeCount transFlags rotFlags scaleFlags
-        )
-        else
-        (
-            -- No default data: fill with identity transforms
-            for n = 1 to animNodeCount do
-                append defaults #([0,0,0], #(0.0,0.0,0.0,1.0), 1.0)
-        )
+        local frames   = #()
 
-        -- Read per-frame data
-        local frames = #()
-        if frameDataSize > 0 then
+        if bit.get animFlags animFlagCompressed then
         (
-            fseek fileHandle frameDataFileOff #seek_set
-            frames = readFrameData fileHandle animNodeCount frameCount \
-                transFlags rotFlags scaleFlags defaults
+            -- Decompress all frameCount frames from the compressed block.
+            if frameDataSize > 0 then
+                frames = readCompressedFrameData fileHandle frameCount animNodeCount \
+                    transFlags rotFlags scaleFlags frameDataFileOff \
+                    animEntry.offsetToCompressedData frameDataSize
+
+            -- Frame[1] at fi=0 always holds the default (rest) pose for compressed
+            -- animations.  Use it as the stand-in for `defaults` so the overlay
+            -- pre-pend logic and the rest of the pipeline work unmodified.
+            if frames.count > 0 then
+                defaults = frames[1]
+            else
+            (
+                for n = 1 to animNodeCount do
+                    append defaults #([0,0,0], #(0.0,0.0,0.0,1.0), 1.0)
+            )
         )
         else
         (
-            -- No frame data: every frame is the default pose.
-            -- All frames are identical so we just reference defaults directly;
-            -- frame data is never mutated after this point.
-            for f = 1 to frameCount do
-                append frames defaults
+            -- Uncompressed path (original logic).
+            if defaultDataSize > 0 then
+            (
+                fseek fileHandle defaultDataFileOff #seek_set
+                defaults = readDefaultData fileHandle animNodeCount transFlags rotFlags scaleFlags
+            )
+            else
+            (
+                -- No default data: fill with identity transforms.
+                for n = 1 to animNodeCount do
+                    append defaults #([0,0,0], #(0.0,0.0,0.0,1.0), 1.0)
+            )
+
+            if frameDataSize > 0 then
+            (
+                fseek fileHandle frameDataFileOff #seek_set
+                frames = readFrameData fileHandle animNodeCount frameCount \
+                    transFlags rotFlags scaleFlags defaults
+            )
+            else
+            (
+                -- No frame data: every frame is the default pose.
+                -- All frames are identical so we just reference defaults directly;
+                -- frame data is never mutated after this point.
+                for f = 1 to frameCount do
+                    append frames defaults
+            )
         )
 
         -- Determine output extension
