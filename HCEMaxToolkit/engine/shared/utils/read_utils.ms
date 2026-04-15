@@ -230,7 +230,43 @@ struct tagData (
 )
 
 global read = undefined
-struct read (	
+struct read (
+	-- Read little endian short (2 bytes)
+	fn shortL strType:"" = (
+		local f = getCurrentFileHandle()
+		local b1 = readByte f #unsigned
+		local b2 = readByte f #unsigned
+		local val = ( b2 * 256 + b1 )
+		if strType == "#signed" do
+			if val >= 32768 then
+			val = val - 65536
+		val
+	),
+	-- Read little endian long (4 bytes)
+	fn longL strType:"" = (
+		local f = getCurrentFileHandle()
+		local b1 = readByte f #unsigned
+		local b2 = readByte f #unsigned
+		local b3 = readByte f #unsigned
+		local b4 = readByte f #unsigned
+		local val = b1 + b2 * 256 + b3 * 65536 + b4 * 16777216
+		if strType == "#signed" do
+			if val >= 2147483648 then
+			val = val - 4294967296
+		val
+	),
+	-- Read little endian float (4 bytes)
+	fn floatL = (
+		local f = getCurrentFileHandle()
+		local b1 = readByte f #unsigned
+		local b2 = readByte f #unsigned
+		local b3 = readByte f #unsigned
+		local b4 = readByte f #unsigned
+		if b1 == undefined or b2 == undefined or b3 == undefined or b4 == undefined then (
+			return 0.0
+		)
+		bit.intAsFloat (b1 + b2 * 256 + b3 * 65536 + b4 * 16777216)
+	),
 	-- Read big endian short (2 bytes)
 	fn shortB strType = (
 		local f = getCurrentFileHandle()
