@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Decompression for quaternion.
   - Interpolation functions for quaternion and vector3.
 - **GlyphFX:**
-  - Added `shader_transparent_chicago`, `shader_transparent_meter` and `shader_environment` shader modules to the GlyphFX submodule for DirectX Shaders based on Halo CE's shaders.
+  - Added `shader_transparent_chicago`, `shader_transparent_meter`, `shader_environment`, `shader_transparent_glass` and `shader_transparent_water` shader modules to the GlyphFX submodule for DirectX Shaders based on Halo CE's shaders.
 
 ## [5.2.0] - 2026-04-01
 ### Added
