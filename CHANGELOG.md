@@ -260,7 +260,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Starting with this version, all updates will be made via the **plugin package** system.
 
 ### Fixed
-- Max version detection to maintain support in 2023–2026.
+- Max version detection to maintain support in 2023-2026.
   - Previous versions to 2023 may not work, depending on the MaxScript API changes. Reporting issues is appreciated.
 
 ## [3.7.0] - 2025-12-12

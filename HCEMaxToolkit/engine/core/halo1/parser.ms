@@ -607,7 +607,7 @@ fn readTag tagDefOrBlock skipBlocks:#() readOnlyBlocks:#() subBlockSkips:#() pri
 	-- Non-whitelisted blocks that sit BETWEEN whitelisted ones are auto-added to
 	-- skipBlocks so readReflexiveBlocks seeks past them correctly (file stays in sync).
 	-- Non-whitelisted blocks that sit AFTER the last whitelisted block are simply
-	-- dropped from the list — we stop reading before reaching them.
+	-- dropped from the list - we stop reading before reaching them.
 	if readOnlyBlocks.count > 0 then
 	(
 		-- Find the index of the last whitelisted block in deferredReflexives

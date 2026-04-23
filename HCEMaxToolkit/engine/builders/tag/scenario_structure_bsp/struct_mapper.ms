@@ -307,8 +307,8 @@ fn mapBSPWeatherPolyhedra weatherPolyhedra =
 
 struct BSPMarkerData (
 	name,       -- string
-	markerRot,  -- quaternion (Halo convention)  [NOT 'rotation' — reserved MaxScript node property]
-	markerPos   -- point3, world-space (haloScale applied)  [NOT 'position' — reserved MaxScript node property]
+	markerRot,  -- quaternion (Halo convention)  [NOT 'rotation' - reserved MaxScript node property]
+	markerPos   -- point3, world-space (haloScale applied)  [NOT 'position' - reserved MaxScript node property]
 )
 
 -- Convert top-level markers block to BSPMarkerData array.

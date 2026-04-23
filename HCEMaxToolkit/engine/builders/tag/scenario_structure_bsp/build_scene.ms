@@ -495,7 +495,7 @@ fn buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName frameNode bsp
 			newMesh.material = multiMat
 			newMesh.parent   = frameNode
 			bspModelLayer.addNode newMesh
-			-- Apply UVs, clear smoothing groups, set normals — all under disableRefMsgs
+			-- Apply UVs, clear smoothing groups, set normals - all under disableRefMsgs
 			-- so Max only fires one cache-invalidation (the final update) instead of one per element.
 			disableRefMsgs()
 			setNumTVerts newMesh uvArray.count
@@ -1057,7 +1057,7 @@ fn buildBSPMesh bspData lightmapsRenderData bspName = (
 
 	-- Extract the compact collision materials for render post-processing.
 	-- ssMat/tsMat are always built inside buildBSPCollisionMesh when faces exist,
-	-- regardless of the import flags — so they're available even when the meshes
+	-- regardless of the import flags - so they're available even when the meshes
 	-- themselves were suppressed (e.g. importSingleSided=false).
 	local createdMeshes = #()
 	local ssMat = collMeshes[4]
