@@ -6,10 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [5.2.1] - 2026-04-15
 ### Changed
+
 - **Model Animations Extractor Tool:**
   - Refactored code.
     - Removed `antr_reader.ms` as it's no longer needed after refactoring the struct mapping logic into `struct_mapper.ms` using the `parser.ms` instead.
+- **JMA Exporter:**
+  - Improved animation export reliability for rigs using helpers, IK, and similar setups.
+  - Optimized the export process by removing unnecessary operations, resulting in faster exports.
+- Unified the export logic to ensure both JMS/JMA exporters produce consistent results.
+
 ### Added
+
 - **Model Animations Extractor Tool:**
   - Support for compressed animation data.
 - **Read Utils:**
@@ -18,9 +25,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Decompression for quaternion.
   - Interpolation functions for quaternion and vector3.
 - **GlyphFX:**
-  - Added `shader_transparent_chicago`, `shader_transparent_meter`, `shader_environment`, `shader_transparent_glass` and `shader_transparent_water` shader modules to the GlyphFX submodule for DirectX Shaders based on Halo CE's shaders.
+  - Added `shader_transparent_chicago`, `shader_transparent_meter`, `shader_environment`, `shader_transparent_glass` and `shader_transparent_water` shader modules to the GlyphFX submodule for DirectX Shaders based on Halo CE's shaders
+
+### Fixed
+
+- **Model Collision Geometry Importer:**
+  - Fixed an issue that could cause some collision tags to import incorrectly or fail to load.
+  - Improved validation to catch invalid or corrupted tag data and provide clearer error messages instead of incomplete imports.
+- **Parser:**
+  - Improved how tag data is read, making imports more reliable across different tag layouts.
+  - Maintained full compatibility with tags that were already importing correctly.
+  - Improved diagnostics to make it easier to identify malformed tags or definition issues.
+- **JMA Exporter:**
+  - Fixed an issue where animations driven by helpers could export without movement.
 
 ## [5.2.0] - 2026-04-01
+
 ### Added
 
 - **GlyphFX:**
@@ -33,7 +53,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Updated `init.ms` to reflect new file paths.
 
 ## [5.1.0] - 2026-03-20
+
 ### Added
+
 - **Settings Menu:**
   - New settings menu to configure various import/export options and global settings.
     - Found under `Halo CE Toolkit` > `Settings`
@@ -47,11 +69,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `skipBlocks` **parameter** - byte-skips entire reflexive blocks by name, avoiding wasted allocations for unused data.
   - `readOnlyBlocks` **parameter** - whitelist of blocks to fully parse; gap blocks before the last whitelisted entry are auto-skipped, everything after is dropped entirely.
   - `subBlockSkips` **parameter** - skips specific child blocks inside a given parent block, scoped only to that recursion level.
+
 ### Changed
+
 - **Parser:** 
   - `readReflexiveBlocks` refactored from "batch all entries' paths then batch all rawdata" to a per-entry loop: reads tag-ref paths for entry N, skips rawdata for entry N, then moves to entry N+1. Matches the actual CE source format interleaving.
   - `tagDataSkips` is now threaded through `readParentBlock`, `readMainBlock`, `readTag`, and `readTagWithParents`. Existing importers remain backward-compatible.
+
 ### Fixed
+
 - **Read Utils:** 
   - `shortB` / `longB` signed conversion - boundary check changed from `>` to `>=`, so the most-negative values (`0x8000` → `-32768`, `0x80000000` → `-2147483648`) now parse correctly.
 - **Parser:** 
