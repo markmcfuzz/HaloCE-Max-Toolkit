@@ -242,24 +242,18 @@ fn getNodeRotationQuat obj =
 	)
 	else
 	(
-		-- Regular objects
-		if hasHelperParent or obj.parent == undefined then
-		(
-			-- Root bone (no parent) OR bone parented to helper - use WORLD transform
-			-- (helper's rotation is automatically baked into world transform)
-			rotQuat = normalize obj.rotation
-			
-			-- Apply coordinate conversion (negate x, y, z)
-			rotQuat = quat -rotQuat.x -rotQuat.y -rotQuat.z rotQuat.w
-		)
-		else
-		(
-			-- Child bone - get rotation in parent space
-			in coordsys parent rotQuat = normalize obj.rotation
-			
-			-- Apply coordinate conversion (negate x, y, z)
-			rotQuat = quat -rotQuat.x -rotQuat.y -rotQuat.z rotQuat.w
-		)
+		-- Regular objects: decompose the evaluated world transform matrix.
+		-- Do NOT read obj.rotation / in coordsys parent here: those return the
+		-- raw PRS controller value, which is a constant offset when the node is
+		-- driven at the transform-controller level (Link Constraint, IK, helper
+		-- rigs). obj.transform is always the fully evaluated result; dividing
+		-- by the parent TM yields the true parent-relative rotation.
+		-- Note: matrix rotationpart already matches the JMA quat convention,
+		-- so no x/y/z negation is needed (unlike .rotation property reads)
+		local tm = obj.transform
+		if not (hasHelperParent or obj.parent == undefined) then
+			tm = tm * inverse obj.parent.transform
+		rotQuat = tm.rotationpart
 	)
 	
 	-- Normalize to ensure unit quaternion
@@ -320,18 +314,12 @@ fn getNodeTranslation obj =
 	)
 	else
 	(
-		-- Regular objects
-		if hasHelperParent or obj.parent == undefined then
-		(
-			-- Root bone OR bone parented to helper - use WORLD position
-			-- (helper's transform is automatically baked into world position)
-			pos = obj.pos
-		)
-		else
-		(
-			-- Child bone - get position in parent space
-			pos = in coordsys parent obj.pos
-		)
+		-- Regular objects: decompose the evaluated world transform matrix
+		-- (see getNodeRotationQuat for why property reads are not used here)
+		local tm = obj.transform
+		if not (hasHelperParent or obj.parent == undefined) then
+			tm = tm * inverse obj.parent.transform
+		pos = tm.translationpart
 	)
 	
 	-- Return as array: [x, y, z]
@@ -356,24 +344,17 @@ fn getNodeScale obj =
 	(
 		-- Check if parent is a helper container
 		local hasHelperParent = (obj.parent != undefined and isHelperContainer obj.parent)
-		
+
+		-- Decompose the evaluated world transform matrix
+		-- (see getNodeRotationQuat for why property reads are not used here)
+		local tm = obj.transform
+		if not (hasHelperParent or obj.parent == undefined) then
+			tm = tm * inverse obj.parent.transform
+
 		-- For JMA, we typically use uniform scale
-		local scaleVec
-		
-		if hasHelperParent or obj.parent == undefined then
-		(
-			-- Root bone OR bone parented to helper - use WORLD scale
-			-- (helper's scale is automatically baked into world scale)
-			scaleVec = obj.scale
-		)
-		else
-		(
-			-- Child bone - get scale in parent space
-			scaleVec = in coordsys parent obj.scale
-		)
-		
+		local scaleVec = tm.scalepart
 		local uniformScale = (scaleVec.x + scaleVec.y + scaleVec.z) / 3.0
-		
+
 		return uniformScale
 	)
 )
@@ -415,6 +396,66 @@ fn extractNodeData =
 )
 
 -------------------------------------------------------
+-- CONSTRAINT AND HELPER TRACKING
+-------------------------------------------------------
+
+-- Log information about animated helpers and constraints
+fn logConstraintInfo nodeArray =
+(
+	local constraintedNodes = #()
+	local animatedHelpers = #()
+	
+	-- Collect all nodes with constraints
+	for obj in nodeArray do
+	(
+		-- Check for constraint sources
+		local sources = getConstraintSourceObjects obj
+		if sources.count > 0 then
+		(
+			append constraintedNodes #(obj.name, sources)
+		)
+	)
+	
+	-- Collect all helpers with keyframes
+	for obj in objects do
+	(
+		if obj.isHidden then continue
+		if isNodeObject obj then continue
+		
+		if objectHasKeyframes obj then
+		(
+			append animatedHelpers obj.name
+		)
+	)
+	
+	-- Log the information
+	if constraintedNodes.count > 0 then
+	(
+		logger.info "Detected {} nodes with constraint-based animation" args:#(constraintedNodes.count)
+		for item in constraintedNodes do
+		(
+			local nodeName = item[1]
+			local sourceNames = ""
+			for i = 1 to item[2].count do
+			(
+				sourceNames += item[2][i].name
+				if i < item[2].count then sourceNames += ", "
+			)
+			logger.debug "  Node '{}' constrained to: {}" args:#(nodeName, sourceNames)
+		)
+	)
+	
+	if animatedHelpers.count > 0 then
+	(
+		logger.info "Detected {} helpers/controllers with keyframes" args:#(animatedHelpers.count)
+		for helperName in animatedHelpers do
+		(
+			logger.debug "  Helper: {}" args:#(helperName)
+		)
+	)
+)
+
+-------------------------------------------------------
 -- KEYFRAME DATA EXTRACTION
 -------------------------------------------------------
 
@@ -430,13 +471,17 @@ fn extractKeyframeData nodeArray =
 	local startFrame = animationRange.start.frame as integer
 	local endFrame = animationRange.end.frame as integer
 	local frameCount = endFrame - startFrame + 1
-	
+
+	-- Remember slider position to restore it after export
+	local originalTime = sliderTime
+
 	-- Iterate through each frame
 	for frameNum = startFrame to endFrame do
 	(
-		-- Set current time to this frame
+		-- Set current time to this frame; reading obj.transform afterwards
+		-- forces full evaluation of constraint/helper-driven controllers
 		sliderTime = frameNum as time
-		
+
 		-- Create keyframe struct for this frame
 		local keyframeData = jmaKeyframes()
 		keyframeData.nodeTranslation = #()
@@ -446,22 +491,25 @@ fn extractKeyframeData nodeArray =
 		-- Extract transform data for each node at this frame
 		for obj in nodeArray do
 		(
-			-- Get translation
+			-- Get translation (will reflect constraint results)
 			local trans = getNodeTranslation obj
 			append keyframeData.nodeTranslation trans
 			
-			-- Get rotation
+			-- Get rotation (will reflect constraint results)
 			local rot = getNodeRotationQuat obj
 			append keyframeData.nodeRotation rot
 			
-			-- Get scale
+			-- Get scale (will reflect constraint results)
 			local scl = getNodeScale obj
 			append keyframeData.nodeScale scl
 		)
 		
 		append keyframeDataArray keyframeData
 	)
-	
+
+	-- Restore original slider position
+	sliderTime = originalTime
+
 	return keyframeDataArray
 )
 
@@ -509,6 +557,9 @@ fn processSceneForJMA =
 	jmaData.nodeCount = nodeDataArray.count
 	local nodeTime = timestamp() - nodeStartTime
 	logger.info "Node extraction {} ms ({} nodes)" args:#(nodeTime, nodeDataArray.count)
+	
+	-- Log constraint and helper information
+	logConstraintInfo nodeObjectArray
 	
 	-- Get frame count from animation range
 	local startFrame = animationRange.start.frame as integer
