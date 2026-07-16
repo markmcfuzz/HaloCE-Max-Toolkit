@@ -225,11 +225,17 @@ fn getNodeRotationQuat obj =
 	)
 	else
 	(
-		-- Regular objects - get rotation in parent space
-		in coordsys parent rotQuat = normalize obj.rotation
-		
-		-- Apply coordinate conversion (negate x, y, z)
-		rotQuat = quat -rotQuat.x -rotQuat.y -rotQuat.z rotQuat.w
+		-- Regular objects: decompose the evaluated world transform matrix.
+		-- Do NOT read obj.rotation / in coordsys parent here: those return the
+		-- raw PRS controller value, which is a constant offset when the node is
+		-- driven at the transform-controller level (Link Constraint, IK, helper
+		-- rigs). obj.transform is always the fully evaluated result.
+		-- Note: matrix rotationpart already matches the JMS quat convention,
+		-- so no x/y/z negation is needed (unlike .rotation property reads)
+		local tm = obj.transform
+		if obj.parent != undefined then
+			tm = tm * inverse obj.parent.transform
+		rotQuat = tm.rotationpart
 	)
 	
 	-- Normalize to ensure unit quaternion
@@ -290,7 +296,14 @@ fn getNodeTranslation obj parentNode:undefined =
 		if parentNode != undefined then
 			pos = obj.pos * inverse(parentNode.transform)  -- World to parent node space
 		else
-			pos = in coordsys parent obj.pos  -- Parent space position
+		(
+			-- Decompose the evaluated world transform matrix
+			-- (see getNodeRotationQuat for why property reads are not used here)
+			local tm = obj.transform
+			if obj.parent != undefined then
+				tm = tm * inverse obj.parent.transform
+			pos = tm.translationpart
+		)
 	)
 	
 	-- Return as array: [x, y, z]
