@@ -32,6 +32,7 @@ fn calculateBlockSize blockDef =
 			#colorRGB: fieldSize = 12
 			#colorARGB: fieldSize = 16
 			#euler2d: fieldSize = 8
+			#vector2d: fieldSize = 8
 			#vector3d: fieldSize = 12
 			#point2d: fieldSize = 8
 			#point3d: fieldSize = 12
@@ -104,6 +105,7 @@ fn readFieldValue fieldDef &deferredTagRefs &deferredReflexives =
 		#colorRGB:   value = math.readColorRGB()
 		#colorARGB:  value = math.readColorARGB()
 		#euler2d:    value = math.readEuler2D()
+		#vector2d:   value = math.readPoint2()
 		#vector3d:   value = math.readVector3D()
 		#point2d:    value = math.readPoint2()
 		#point3d:    value = math.readPoint3()
@@ -184,12 +186,15 @@ fn readFieldValue fieldDef &deferredTagRefs &deferredReflexives =
 			local offset = read.longB "#unsigned"
 			local unused = read.longB "#unsigned"
 			
-			-- Clamp count to maximum
+			-- A count outside [0, maximum] means the file position has desynced from the
+			-- real tag layout (or the tag is corrupt). Clamping and reading on would
+			-- silently produce garbage, so fail loudly instead.
 			local maximum = if fieldDef.fieldBlock.maximum != unsupplied then fieldDef.fieldBlock.maximum else 65535
-			if count > maximum and count > 0 then
+			if count < 0 or count > maximum then
 			(
-				logger.warn "Clamping reflexive '{}' count from {} to 0 (max {})" args:#(fieldDef.fieldBlock.name, count, maximum)
-				count = 0
+				local msg = "Reflexive '" + fieldDef.fieldBlock.name + "' has invalid count " + (count as string) + " (valid range 0-" + (maximum as string) + ") - parser desynced from tag layout or corrupt tag"
+				logger.error "{}" args:#(msg)
+				throw msg
 			)
 			
 			logger.debug "Reflexive header '{}': rawCount: {} rawOffset: 0x{}" args:#(fieldDef.name, count, (bit.intAsHex offset))
@@ -279,9 +284,25 @@ fn readTagRefPaths deferredTagRefs =
 		-- Try to read as null-terminated string if pathLen > 0
 		if pathLen > 0 then
 		(
+			local pathStartPos = ftell f
 			local pathStr = read.nullTerminatedString()
 			tagRefInfo[#path] = pathStr
-			
+
+			-- The tag-ref header stores the exact path length (without the null). A
+			-- mismatch means the file position has desynced from the real tag layout,
+			-- so anything read from here on would be garbage - fail loudly instead.
+			if pathStr.count != pathLen then
+			(
+				local msg = "Tag-ref path length mismatch at 0x" + (bit.intAsHex pathStartPos) + ": header says " + (pathLen as string) + " chars but read " + (pathStr.count as string) + " ('" + pathStr + "') - parser desynced from tag layout"
+				if pathPtr == 0 then
+				(
+					logger.error "{}" args:#(msg)
+					throw msg
+				)
+				else
+					logger.warn "{} (MCC cached tag, continuing)" args:#(msg)
+			)
+
 			if pathPtr == 0 then
 				logger.debug "  [{}/{}] CE tag-ref: '{}'" args:#(i, deferredTagRefs.count, pathStr)
 			else
@@ -381,63 +402,62 @@ fn readReflexiveBlocks deferredReflexives parentEntry skipBlocks:#() tagDataSkip
 		-- Read all entries in this reflexive block (binary data)
 		local entries = #()
 		entries.count = count
-		local allEntryTagRefsPerEntry = #()  -- per-entry arrays, NOT flattened
-		allEntryTagRefsPerEntry.count = count
-		local allEntryReflexivesIndexed = #()  -- Store reflexives with entry index
-		
+		local allEntryReflexivesPerEntry = #()  -- per-entry deferred child blocks, in field order
+		allEntryReflexivesPerEntry.count = count
+
 		for j = 1 to count do
 		(
 			local entryTagRefs = #()
 			local entryReflexives = #()
 			local entry = readReflexiveEntry blockDef &entryTagRefs &entryReflexives
 			entries[j] = entry
-			allEntryTagRefsPerEntry[j] = entryTagRefs  -- store per-entry, not joined
-			
-			-- Tag each reflexive with its parent entry index
-			for k = 1 to entryReflexives.count do
+			allEntryReflexivesPerEntry[j] = entryReflexives
+		)
+
+		-- If subBlockSkips has an entry for this block, merge its child names into skipBlocks
+		-- for the nested recursion only (does not affect sibling or parent blocks).
+		local childSkipBlocks = skipBlocks
+		for subSkipEntry in subBlockSkips do
+		(
+			if subSkipEntry[1] == fieldName then
 			(
-				entryReflexives[k][#entryIndex] = j
-				append allEntryReflexivesIndexed entryReflexives[k]
+				-- copy on an array returns OK in MaxScript; use join into a fresh array instead
+				local newSkips = #()
+				join newSkips skipBlocks
+				for childName in subSkipEntry[2] do
+					if findItem newSkips childName == 0 then
+						append newSkips childName
+				childSkipBlocks = newSkips
+				exit
 			)
 		)
-		
-		-- CE source format: rawdata for entry j immediately follows entry j's tag-ref path strings.
-		-- Process per-entry: [entry j paths] → [entry j rawdata skip] → [entry j+1 paths] → ...
-		-- Batching all paths then all rawdata is WRONG for blocks with multiple entries.
+
+		-- CE source format: deferred data is interleaved PER ENTRY, in field order.
+		-- Entry j's tag-ref paths, tagData rawdata and child block data appear in the
+		-- order their fields are declared, then entry j+1's data follows. Batching all
+		-- paths first and all child blocks afterwards desyncs the file position for any
+		-- block whose entries carry a non-empty tag-ref path AND a non-empty child block
+		-- (e.g. coll regions with a destroyed-effect path followed by permutations).
 		for j = 1 to entries.count do
 		(
-			local entryTagRefs = allEntryTagRefsPerEntry[j]
-			if entryTagRefs.count > 0 then
-			(
-				logger.debug "Reading {} tag-ref path(s) for entry [{}] of '{}' block" args:#(entryTagRefs.count, j, blockDef.name)
-				readTagRefPaths entryTagRefs
-			)
-			
-			local entryRawSkip = 0
 			local entry = entries[j]
+			local entryReflexives = allEntryReflexivesPerEntry[j]
+			local reflexiveIdx = 0
+
 			for k = 1 to entry.count do
 			(
-				local field = entry[k]
-				if field[3].type == #tagData then
+				case entry[k][3].type of
 				(
-					local tagDataValue = field[2]
-					if tagDataValue != undefined and classOf tagDataValue == Array and tagDataValue.count >= 1 then
+					#tagReference:
 					(
-						local dataSize = tagDataValue[1]
-						if classOf dataSize == Integer and dataSize > 0 then
-							entryRawSkip += dataSize
+						local tagRefInfo = entry[k][2]
+						if classOf tagRefInfo == Dictionary and tagRefInfo[#pathLen] != 0 then
+						(
+							logger.debug "Reading tag-ref path '{}' for entry [{}] of '{}' block" args:#(entry[k][1], j, blockDef.name)
+							readTagRefPaths #(tagRefInfo)
+						)
 					)
-				)
-			)
-			if entryRawSkip > 0 then
-			(
-				local f = getCurrentFileHandle()
-				local rawDataFilePos = ftell f
-				-- Annotate each tagData field with its file position so callers can seek back and read raw bytes
-				local cumulativeOffset = 0
-				for k = 1 to entry.count do
-				(
-					if entry[k][3].type == #tagData then
+					#tagData:
 					(
 						local tdv = entry[k][2]
 						if tdv != undefined and classOf tdv == Array and tdv.count >= 3 then
@@ -445,43 +465,21 @@ fn readReflexiveBlocks deferredReflexives parentEntry skipBlocks:#() tagDataSkip
 							local dataSize = tdv[1]
 							if classOf dataSize == Integer and dataSize > 0 then
 							(
-								entry[k][2] = #(tdv[1], tdv[2], tdv[3], rawDataFilePos + cumulativeOffset)
-								cumulativeOffset += dataSize
+								local f = getCurrentFileHandle()
+								local rawDataFilePos = ftell f
+								-- Annotate the field with its absolute file position so callers can seek back and read raw bytes
+								entry[k][2] = #(tdv[1], tdv[2], tdv[3], rawDataFilePos)
+								logger.debug "Skipping {} bytes of '{}' rawdata for entry [{}] in '{}' block at 0x{}" args:#(dataSize, entry[k][1], j, blockDef.name, bit.intAsHex rawDataFilePos)
+								fseek f dataSize #seek_cur
 							)
 						)
 					)
+					#block:
+					(
+						reflexiveIdx += 1
+						readReflexiveBlocks #(entryReflexives[reflexiveIdx]) entry skipBlocks:childSkipBlocks subBlockSkips:subBlockSkips
+					)
 				)
-				logger.debug "Skipping {} bytes of rawdata after entry [{}] in '{}' block at 0x{}" args:#(entryRawSkip, j, blockDef.name, bit.intAsHex rawDataFilePos)
-				fseek f entryRawSkip #seek_cur
-			)
-		)
-		
-		-- Process nested reflexives after reading ALL entries.
-		-- If subBlockSkips has an entry for this block, merge its child names into skipBlocks
-		-- for the nested recursion only (does not affect sibling or parent blocks).
-		if allEntryReflexivesIndexed.count > 0 then
-		(
-			local childSkipBlocks = skipBlocks
-			for subSkipEntry in subBlockSkips do
-			(
-				if subSkipEntry[1] == fieldName then
-				(
-					-- copy on an array returns OK in MaxScript; use join into a fresh array instead
-					local newSkips = #()
-					join newSkips skipBlocks
-					for childName in subSkipEntry[2] do
-						if findItem newSkips childName == 0 then
-							append newSkips childName
-					childSkipBlocks = newSkips
-					exit
-				)
-			)
-			for k = 1 to allEntryReflexivesIndexed.count do
-			(
-				local reflexiveWithIndex = allEntryReflexivesIndexed[k]
-				local entryIndex = reflexiveWithIndex[#entryIndex]
-				local targetEntry = entries[entryIndex]
-				readReflexiveBlocks #(reflexiveWithIndex) targetEntry skipBlocks:childSkipBlocks subBlockSkips:subBlockSkips
 			)
 		)
 		
