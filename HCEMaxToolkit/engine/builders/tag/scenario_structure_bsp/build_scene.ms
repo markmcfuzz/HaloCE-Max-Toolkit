@@ -414,7 +414,7 @@ fn stripTrailingSymbols name = (
 -- ssMat : "bspName single_sided" collision MultiMaterial  (used for "!" detection)
 -- tsMat : "bspName symbols"      collision MultiMaterial  (used for symbol restoration)
 fn buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName frameNode bspModelLayer \
-	mergeAllClusters:false ssMat:undefined tsMat:undefined = (
+	mergeAllClusters:false ssMat:undefined tsMat:undefined bspFilePath:undefined useDxMaterials:true = (
 	if lightmapsRenderData == undefined or lightmapsRenderData.count == 0 then
 		return #()
 
@@ -474,12 +474,11 @@ fn buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName frameNode bsp
 					faceArray[faceOffset + si]  = [surf[3] + vertOffset + 1, surf[2] + vertOffset + 1, surf[1] + vertOffset + 1]
 					matIDArray[faceOffset + si] = mi
 				)
-				-- Sub-material for this shader
-				local subMat = StandardMaterial()
+				-- Sub-material for this shader (GlyphFX DX material, else textured/checker)
 				local matName = if mat.shaderName != "" then mat.shaderName else ("material_" + mi as string)
-				subMat.name         = matName
-				subMat.diffuse      = stringToColor matName
-				subMat.showInViewport = true
+				local textureResult = if mat.shaderStruct != undefined then \
+					resolveShaderTexture bspFilePath mat.shaderStruct else undefined
+				local subMat = buildShaderViewportMaterial textureResult matName useDxMaterials:useDxMaterials
 				multiMat[mi]       = subMat
 				multiMat.names[mi] = matName
 				vertOffset += mat.vertexCount
@@ -564,14 +563,13 @@ fn buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName frameNode bsp
 					uvArray[vOff + vi]     = v.uv
 					normalArray[vOff + vi] = v.normal
 				)
-				-- Register or look up global material ID
+				-- Register or look up global material ID (GlyphFX DX material, else textured/checker)
 				local shaderName = if mat.shaderName != "" then mat.shaderName else "material_unknown"
 				local gMatID = globalNameToID[shaderName]
 				if gMatID == undefined then (
-					local subMat = StandardMaterial()
-					subMat.name = shaderName
-					subMat.diffuse = stringToColor shaderName
-					subMat.showInViewport = true
+					local textureResult = if mat.shaderStruct != undefined then \
+						resolveShaderTexture bspFilePath mat.shaderStruct else undefined
+					local subMat = buildShaderViewportMaterial textureResult shaderName useDxMaterials:useDxMaterials
 					append globalMaterials subMat
 					append globalNames shaderName
 					gMatID = globalMaterials.count
@@ -642,8 +640,11 @@ fn buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName frameNode bsp
 			if not inSingle and not inSymbols then
 				finalName += "!"
 
-			globalMaterials[gi].name   = finalName
-			globalMaterials[gi].diffuse = stringToColor finalName
+			globalMaterials[gi].name = finalName
+			-- DirectX_9_Shader materials have no .diffuse property; only recolor
+			-- the StandardMaterial fallback (textured or checker placeholder)
+			if isProperty globalMaterials[gi] #diffuse then
+				globalMaterials[gi].diffuse = stringToColor finalName
 		)
 		-- Build the single "main bspName" MultiMaterial.
 		-- IDs 1-5 are reserved special-surface slots; shader materials start at ID 6.
@@ -983,8 +984,12 @@ fn buildBSPMarkers markersData frameNode markersLayer \
 -- MAIN ENTRY POINT
 -------------------------------------------------------
 
-fn buildBSPMesh bspData lightmapsRenderData bspName = (
+fn buildBSPMesh bspData lightmapsRenderData bspName bspFilePath = (
+	-- Fresh shader parse cache for this import (tags may have changed on disk)
+	resetShaderResolverCache()
+
 	-- Read import settings
+	local useDxMaterials       = configManager.getBool "visual" "use_directx_materials" true
 	local mergeAllClusters    = configManager.getBool "import_structure_bsp" "merge_all_clusters"          false
 	local importSSColl         = configManager.getBool "import_structure_bsp" "import_single_sided_coll_mesh" true
 	local importSpecialColl    = configManager.getBool "import_structure_bsp" "import_special_coll_mesh"    true
@@ -1074,7 +1079,7 @@ fn buildBSPMesh bspData lightmapsRenderData bspName = (
 
 	if lightmapsRenderData != undefined and lightmapsRenderData.count > 0 then (
 		local renderMeshes = buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName bspContainer renderBspLayer \
-			mergeAllClusters:mergeAllClusters ssMat:ssMat tsMat:tsMat
+			mergeAllClusters:mergeAllClusters ssMat:ssMat tsMat:tsMat bspFilePath:bspFilePath useDxMaterials:useDxMaterials
 		for m in renderMeshes do append createdMeshes m
 	)
 
