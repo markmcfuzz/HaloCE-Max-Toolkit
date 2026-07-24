@@ -131,6 +131,8 @@ struct BSPRenderVertex (
 -- Per-material data extracted from a lightmap's materials sub-block
 struct BSPRenderMaterialData (
 	shaderName,    -- string: shader filename (basename only)
+	shaderStruct,  -- raw parser tuple array for this material entry (has a "shader"
+	               -- tagReference field); pass to resolveShaderTexture for texturing
 	surfacesStart, -- int: 0-based start index into global surfaces array
 	surfaceCount,  -- int: number of triangles for this material
 	vertexCount,   -- int: number of render vertices
