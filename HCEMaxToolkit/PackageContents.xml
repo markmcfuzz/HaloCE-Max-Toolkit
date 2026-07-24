@@ -8,15 +8,14 @@
         ProductCode="{08eecb86-3e0c-467d-8340-c00a9e4a5434}" 
         UpgradeCode="{68b04f36-d00b-436e-9386-7337afcffa4a}">
     <CompanyDetails />
-    <!-- Este es un comentario -->
+    <!-- This is a comment -->
     <Components Description="pre-start-up scripts parts">
-        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2025" SeriesMax="2026" />
+        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2025" SeriesMax="2027" />
         <ComponentEntry AppName="MenuGeneration" Version="1.0.0" ModuleName="./integration/scripts/menu_bar_gen.ms" />
-        <!--ComponentEntry AppName="HaloHelpersGeneration" Version="1.0.0" ModuleName="./integration/scripts/bootstrap.ms" /> -->
         <ComponentEntry AppName="init" Version="1.0.0" ModuleName="./engine/shared/init.ms" />
     </Components>
     <Components Description="macroscripts parts">
-        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2020" SeriesMax="2026" />
+        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2020" SeriesMax="2027" />
         <ComponentEntry AppName="HaloCEMacros" Version="1.0.0" ModuleName="./integration/macroscripts/halo_ce_toolkit.mcr" />
     </Components>
     <Components Description="post-start-up scripts parts">
