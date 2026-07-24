@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.3.0] - 2026-07-21
+
+### Changed
+
+- Deleted all read shader modules to use the general tag parser.
+- Refactored code for shader resolver.
+
+### Added
+
+- Compatibility plugin with **3ds Max 2027**.
+- **GlyphFX**
+  - Added in the settings window to choose instead 3ds Max stantard material.
+  - Integration for `GBXModel Importer` and `Structure BSP Importer`.
+    - Now the materials are automatically created with the original shaders type and tag data.
+
 ## [5.2.1] - 2026-04-15
 ### Changed
 
