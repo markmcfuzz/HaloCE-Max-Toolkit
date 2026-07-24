@@ -179,6 +179,22 @@ fn getFieldValue dataArray fieldName = (
 	return undefined
 )
 
+-- Extract the Nth occurrence of a field from a parser tuple array. Some tag
+-- blocks repeat field names (e.g. the generic shader stage block declares
+-- "inputA".."outputMapping" twice: color side first, then alpha side).
+fn getFieldValueNth dataArray fieldName occurrence = (
+	if dataArray == undefined then return undefined
+	if classOf dataArray != Array then return undefined
+	local seen = 0
+	for i = 1 to dataArray.count do (
+		if dataArray[i][1] == fieldName then (
+			seen += 1
+			if seen == occurrence then return dataArray[i][2]
+		)
+	)
+	return undefined
+)
+
 -- Optimized multi-field extraction - get multiple fields at once
 fn getFieldValues dataArray fieldNames = (
 	if dataArray == undefined then return #()
