@@ -121,8 +121,13 @@ rollout settingsExportRollout "Export Settings" width:225 (
 
 -- General Rollout
 rollout settingsGeneralRollout "General Settings" width:225 (
+	
+	group "Visual" (
+		checkbox chk_useDirectXMaterials "Use GlyphFX Shaders"
+			tooltip:"Builds DirectX viewport materials from shader tag data when the shader type is supported."
+	)
 	group "Feedback" (
-		checkbox chk_showDialogs "Show Completion Dialogs"
+		checkbox chk_showDialogs "Show Completion Task Dialogs"
 			tooltip:"Displays a dialog box upon completion of operations."
 	)
 	group "Developer" (
@@ -134,11 +139,13 @@ rollout settingsGeneralRollout "General Settings" width:225 (
 	)
 
 	on settingsGeneralRollout open do (
+		chk_useDirectXMaterials.checked = configManager.getBool "visual" "use_directx_materials" true
 		chk_showDialogs.checked   = configManager.getBool "feedback" "show_completion_dialogs" true
 		chk_enableLogging.checked = configManager.getBool "logger" "enable_logging" false
 		chk_saveLogFile.checked   = configManager.getBool "logger" "enable_save_log_file" false
 	)
 
+	on chk_useDirectXMaterials changed val do writeSetting "visual" "use_directx_materials" val
 	on chk_showDialogs changed val do writeSetting "feedback" "show_completion_dialogs" val
 	on chk_enableLogging changed val do writeSetting "logger" "enable_logging" val
 	on chk_saveLogFile changed val do writeSetting "logger" "enable_save_log_file" val
@@ -149,7 +156,7 @@ if settingsFloater != undefined then (
 	try( closeRolloutFloater settingsFloater ) catch()
 )
 
-settingsFloater = newRolloutFloater "HCE Toolkit Settings" 270 675
+settingsFloater = newRolloutFloater "HCE Toolkit Settings" 270 715
 addRollout settingsImportRollout settingsFloater
 addRollout settingsExportRollout settingsFloater
 addRollout settingsGeneralRollout settingsFloater
