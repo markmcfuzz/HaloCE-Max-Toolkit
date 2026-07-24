@@ -27,28 +27,51 @@ If you want to learn more in depth about the features and roadmap, check the [**
   - `Model Collision Geometry`
   - `Scenario Structure BSP`
 ### Export:
- - `JMS`
- - `JMA`
- - `Camera Track`
+  - `JMS`
+  - `JMA`
+  - `Camera Track`
 ### Tools:
- - `Sphere to Halo Marker Helper`
+  - `Sphere to Halo Marker Helper`
     - Change the spheres with symbol `#` to new Halo Marker helpers.
- - `Model Animation Extractor`
+  - `Model Animation Extractor`
     - Extracts all animation source from a `.model_animations` tag.
+### Settings:
+  - **Import Settings:**
+    - `GBXModel Importer`
+      - Skip Uncompressed vertices for fast import.
+    - `JMS Importer`
+      - Reuse existing nodes and markers.
+    - `Scenario Structure BSP`
+      - Merge render geometry, single-sided collision mesh, sky collision mesh. special collision mesh, portals, fogplanes, weather polyhedra, markers.
+    - `Camera Track`
+      - Keyframe animation.
+  - **Export Settings:**
+    - `JMS/JMA Exporter`
+      - Include extended metadata.
+  - **General Settings:**
+    - `Visual`
+      - Use GlyphFX shaders.
+    - `Feedback`
+      - Show completion task dialogs.
+    - `Developer`
+      - Enable debug logging
+      - Save log file
 ### Utilities:
-- `Coplanar Surface Checker`
-  - Checks if the selected objects have coplanar faces (red, green, blue). It provides visual feedback to help identify and fix nearly-coplanar issues before exporting.
-- Additional validations and clear error handling for JMS Exporter.
-- Improved performance for large models and animations compared to bluestreak.
-- Adds a new **Halo CE Toolkit** menu bar section inside 3ds Max for quick access to import/export/tools.
-- Executable installer for easy installation and uninstallation of the toolkit.
+  - `Coplanar Surface Checker`
+    - Checks if the selected objects have coplanar faces (red, green, blue). It provides visual feedback to help identify and fix nearly-coplanar issues before exporting.
+### Other    
+  - Additional validations and clear error handling for JMS Exporter.
+  - Improved performance for large models and animations compared to bluestreak.
+  - [**GlyphFX**](https://github.com/markmcfuzz/GlyphFX) integration to have Halo CE shaders in 3ds max.
+  - Adds a new **Halo CE Toolkit** menu bar section inside 3ds Max for quick access to import/export/tools.
+  - Executable installer for easy installation and uninstallation of the toolkit.
 
 ---
 ### Dependencies
 ![3dsmax](https://img.shields.io/badge/3ds%20Max-2023%2B-39a5cc?style=for-the-badge&logo=autodesk&logoColor=white)
 
 > [!WARNING]
-> The toolkit is built and tested for 3ds Max **2023 up to 2026**. However, it may not work properly on versions older than 2023, and those versions are not officially supported. If you are using an older version, please report any issues you find.
+> The toolkit is built and tested for 3ds Max **2023 up to 2027**. However, it may not work properly on versions older than 2023, and those versions are not officially supported. If you are using an older version, please report any issues you find.
 
 ## Installation
 1. Download the latest executable from the [**Releases**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/releases) page.
@@ -62,17 +85,6 @@ If you want to learn more in depth about the features and roadmap, check the [**
 
 > [!TIP]
 > For any issues or questions, please refer to the [**FAQ section**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit?tab=readme-ov-file#faq--troubleshooting) below or for better support, open a new issue in the [**GitHub Issues**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/issues) section. This is very important to keep improving the toolkit and fix any bugs that may arise.
-
-## Screenshots
-
-### Import Menu 
-![Installer](docs/images/import_menu.png)
-
-### Export Menu 
-![Installer](docs/images/export_menu.png)
-
-### Tools Menu
-![Installer](docs/images/tools_menu.png)
 
 ## FAQ / Troubleshooting  
 
@@ -100,11 +112,12 @@ If you want to learn more in depth about the features and roadmap, check the [**
 - **TheGhost**  
   - For the original Bluestreak scripts at the start of this project.
   
-- **[Sledmine](https://github.com/Sledmine)**  
+- **Sledmine** 
   - For the modified scripts from [BlueStreak](https://github.com/Sledmine/bluestreak/tree/main).
   
-- **[Sigmmma](https://github.com/Sigmmma)**  
+- **Sigmmma**
   - For the H1 tag definitions.
+  - For MEK to figure out how to make the animation extractor possible.
   
 - **SnowyMouse**  
   - For the [Gorilla](https://github.com/SnowyMouse/gorilla) tag definition dump, which provided a new base of definitions to work with.
@@ -113,7 +126,7 @@ If you want to learn more in depth about the features and roadmap, check the [**
   - For the math used in the Halo 1 tag importing code from his Halo Blender Toolset.
   
 - **MosesofEgypt**  
-  - For the initial camera track exporter.
+  - For the initial camera track exporter 
   
 - **CtrlAltDestroy**  
   - For the initial animation exporter.
