@@ -26,7 +26,20 @@ logger.log "=== IMPORTING STRUCTURE BSP DATA ==="
 include "core\\halo1\\core_defs.ms"
 include "core\\halo1\\parser.ms"
 include "core\\halo1\\groups\\scenario_structure_bsp.ms"
+include "core\\halo1\\groups\\shader.ms"
+include "core\\halo1\\groups\\shader_environment.ms"
+include "core\\halo1\\groups\\shader_model.ms"
+include "core\\halo1\\groups\\shader_transparent_chicago.ms"
+include "core\\halo1\\groups\\shader_transparent_chicago_extended.ms"
+include "core\\halo1\\groups\\shader_transparent_generic.ms"
+include "core\\halo1\\groups\\shader_transparent_glass.ms"
+include "core\\halo1\\groups\\shader_transparent_meter.ms"
+include "core\\halo1\\groups\\shader_transparent_plasma.ms"
+include "core\\halo1\\groups\\shader_transparent_water.ms"
 include "builders\\tag\\scenario_structure_bsp\\struct_mapper.ms"
+include "builders\\tag\\shared\\shader_resolver.ms"
+include "builders\\tag\\shared\\dx_material_builder.ms"
+include "builders\\tag\\shared\\viewport_material.ms"
 include "builders\\tag\\scenario_structure_bsp\\build_scene.ms"
 
 -------------------------------------------------------
@@ -108,6 +121,7 @@ fn readBSPRenderVertexData fileBSP bspData = (
                 )
                 materialsData[mi] = BSPRenderMaterialData \
                     shaderName:shaderName \
+                    shaderStruct:mat \
                     surfacesStart:surfacesStart \
                     surfaceCount:surfaceCount \
                     vertexCount:vertexCount \
@@ -240,9 +254,10 @@ fn importBSP = (
     logger.log "=== BUILDING SCENE FROM BSP DATA ==="
     local bspName = getFilenameFile bspFile
 
-    -- buildBSPMesh expects the parsed data and builds 3d meshes
+    -- buildBSPMesh expects the parsed data, builds 3d meshes, and resolves shader
+    -- textures relative to bspFile's tags\ root (same as gbxmodel's tagFilePath)
     local buildStartTime = timestamp()
-    local createdMeshes = buildBSPMesh bspData lightmapsRenderData bspName
+    local createdMeshes = buildBSPMesh bspData lightmapsRenderData bspName bspFile
     local buildEndTime = timestamp()
     local buildTime = (buildEndTime - buildStartTime) / 1000.0
 
