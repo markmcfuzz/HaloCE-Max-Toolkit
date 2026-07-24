@@ -1063,6 +1063,9 @@ fn createGBXModelMultiMaterial gbxmodelPath shaders gbxModelName =
 	
 	-- Resolve shader textures using new parser approach
 	local textureResults = resolveAllShaderTextures gbxmodelPath shaders
+
+	-- GlyphFX DirectX materials (supported shader types; falls back to StandardMaterial)
+	local useDxMaterials = configManager.getBool "visual" "use_directx_materials" true
 	
 	local multiMat = MultiMaterial numSubs:shaders.count
 	multiMat.name = gbxModelName
@@ -1070,7 +1073,6 @@ fn createGBXModelMultiMaterial gbxmodelPath shaders gbxModelName =
 	for i = 1 to shaders.count do
 	(
 		local shader = shaders[i]
-		local subMat = StandardMaterial()
 		
 		-- Get shader name from tag reference path
 		local shaderTagRef = getFieldValue shader "shader"
@@ -1082,9 +1084,6 @@ fn createGBXModelMultiMaterial gbxmodelPath shaders gbxModelName =
 				shaderName = pathParts[pathParts.count]
 		)
 		
-		subMat.name = shaderName
-		subMat.showInViewport = true
-		
 		-- Find corresponding texture result
 		local textureResult = undefined
 		for result in textureResults where result != undefined and result.shaderIndex == (i - 1) do
@@ -1092,61 +1091,8 @@ fn createGBXModelMultiMaterial gbxmodelPath shaders gbxModelName =
 			textureResult = result
 			exit
 		)
-		
-		-- Apply texture if resolved successfully
-		if textureResult != undefined then
-		(
-			logger.debug "Material '{}': textureFilePath: '{}'" args:#(shaderName, textureResult.textureFilePath)
-		)
-		
-		if textureResult != undefined and textureResult.success and doesFileExist textureResult.textureFilePath then
-		(
-			logger.debug "Applying texture {} to material: '{}'" args:#((getFilenameFile textureResult.textureFilePath + getFilenameType textureResult.textureFilePath), shaderName)
-			local diffuseMap = Bitmaptexture fileName:textureResult.textureFilePath
-			subMat.diffusemap = diffuseMap
-			subMat.showInViewport = true
-			
-			-- For transparent shaders, apply texture to opacity channel
-			local shaderType = textureResult.shaderType
-			if shaderType == "shader_transparent_glass" or \
-				shaderType == "shader_transparent_chicago" or \
-				shaderType == "shader_transparent_chicago_extended" or \
-				shaderType == "shader_transparent_generic" then
-			(
-				local opacityMap = Bitmaptexture fileName:textureResult.textureFilePath
-				opacityMap.alphaSource = 2  -- Use image alpha
-				subMat.opacitymap = opacityMap
-			)
-			else if shaderType == "shader_transparent_meter" or \
-				shaderType == "shader_transparent_water" then
-			(
-				local opacityMap = Bitmaptexture fileName:textureResult.textureFilePath
-				opacityMap.rgbOutput = 1
-				subMat.opacitymap = opacityMap
-			)
-		)
-		else
-		(
-			-- Apply checker pattern for missing textures
-			if textureResult == undefined then
-				logger.warn "Material '{}': No texture result ('applying checker')" args:#(shaderName)
-			else if not textureResult.success then
-				logger.warn "Material '{}': Texture resolution failed ('applying checker')" args:#(shaderName)
-			else if textureResult.textureFilePath == undefined then
-				logger.warn "Material '{}': No texture file path ('applying checker')" args:#(shaderName)
-			else
-				logger.warn "Material '{}': Texture file not found ('applying checker'): {}" args:#(shaderName, textureResult.textureFilePath)
-			
-			local checkerMap = Checker()
-			checkerMap.color1 = color 25 25 25    -- #191919
-			checkerMap.color2 = color 136 136 136  -- #888888
-			checkerMap.coordinates.U_Tiling = 10.0
-			checkerMap.coordinates.V_Tiling = 10.0
-			
-			subMat.diffusemap = checkerMap
-			subMat.showInViewport = true
-		)
-		
+
+		local subMat = buildShaderViewportMaterial textureResult shaderName useDxMaterials:useDxMaterials
 		multiMat[i] = subMat
 		multiMat.names[i] = shaderName
 	)
