@@ -83,6 +83,7 @@ fn createHaloCEToolkitMenu =
         addMacroToMenu toolsMenu "Halo CE" "SphereToHaloMarkerHelper" mm displayName:"Convert Spheres to Halo Helper Markers"
         --addMacroToMenu toolsMenu "Halo CE" "JmsRepair" mm displayName:"JMS Repair"
         addMacroToMenu toolsMenu "Halo CE" "ModelAnimationsExtractor" mm displayName:"Extract Model Animations"
+        addMacroToMenu toolsMenu "Halo CE" "CameraTrackGenerator" mm displayName:"Camera Track Generator"
 
         -- Add Settings macros
         print "Adding Settings macros..."
