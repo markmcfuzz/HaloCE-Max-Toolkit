@@ -267,6 +267,20 @@ fn createHaloContainer name:"haloContainer" size:25 displayLabel:on \
 	haloContainer
 )
 
+-- Create a camera track control point: a pyramid whose tip points along the node's local +X
+-- (Halo camera forward) with local +Z up. Pyramids from the Create panel point their tip along +Z.
+fn createCameraControlPoint index size:5 wireColor:(color 0 240 255) = (
+	local ctrlPoint = pyramid()
+	ctrlPoint.width = size
+	ctrlPoint.depth = size
+	ctrlPoint.height = size
+	ctrlPoint.objectOffsetRot = quat 0.0 -0.707107 0.0 0.707107
+	-- Zero-padded index starting from 00 (control_point_00, control_point_01, etc.)
+	ctrlPoint.name = "control_point_" + (formattedPrint index format:"02d")
+	ctrlPoint.wirecolor = wireColor
+	ctrlPoint
+)
+
 
 -------------------------------------------------------
 -- GEOMETRY UTILITIES
