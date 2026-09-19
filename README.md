@@ -35,6 +35,8 @@ If you want to learn more in depth about the features and roadmap, check the [**
     - Change the spheres with symbol `#` to new Halo Marker helpers.
   - `Model Animation Extractor`
     - Extracts all animation source from a `.model_animations` tag.
+  - `Camera Track Generator`
+    - Generate camera points taking a spline as reference.
 ### Settings:
   - **Import Settings:**
     - `GBXModel Importer`
