@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [5.4.0] - 2026-09-18
 ### Added
 - **Camera Track Generator Tool:**
-  - New tool to generate camera points from with a spline. 
+  - New tool to generate camera points with a spline. 
     - Found under `Halo CE Toolkit` > `Tools` > `Camera Track Generator`
 
 ## [5.3.0] - 2026-07-21
