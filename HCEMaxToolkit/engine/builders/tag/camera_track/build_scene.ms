@@ -50,24 +50,12 @@ fn buildControlPoints controlPointsArray =
         )
 
         -- Create pyramid shape for control point
-        local ctrlPoint = pyramid()
-        ctrlPoint.width = 15
-        ctrlPoint.depth = 15
-        ctrlPoint.height = 15
-        
-        -- Set object offset rotation to make pyramid tip point correctly
-        ctrlPoint.objectOffsetRot = quat 0.0 -0.707107 0.0 0.707107
-        
-        -- Name with zero-padded index starting from 00 (control_point00, control_point01, etc.)
-        ctrlPoint.name = "control_point_" + (formattedPrint (i - 1) format:"02d")
-        
+        local ctrlPoint = createCameraControlPoint (i - 1)
+
         -- Set position and rotation
         ctrlPoint.rotation = rot
         ctrlPoint.position = pos
-        
-        -- Set wirecolor (cyan for camera control points)
-        ctrlPoint.wirecolor = color 0 240 255
-        
+
         -- Add to layer
         camLayer.addNode ctrlPoint
         
