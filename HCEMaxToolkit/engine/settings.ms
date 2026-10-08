@@ -21,6 +21,11 @@ fn writeSetting section key val = (
 		setINISetting configManager.iniPath section key (if val then "1" else "0")
 )
 
+fn writeStringSetting section key val = (
+	if configManager.iniPath != undefined then
+		setINISetting configManager.iniPath section key val
+)
+
 global settingsFloater
 
 -- Close existing dialog if already open
@@ -130,6 +135,11 @@ rollout settingsGeneralRollout "General Settings" width:225 (
 		checkbox chk_showDialogs "Show Completion Task Dialogs"
 			tooltip:"Displays a dialog box upon completion of operations."
 	)
+	group "External Tools" (
+		edittext edt_invaderEditPath "invader-edit.exe:" labelOnTop:true width:178 across:2
+			tooltip:"Path to invader-edit.exe, used by Build Shaders to create shader tags. Invader is not shipped with the toolkit."
+		button btn_browseInvaderEdit "..." width:24 offset:[42,16]
+	)
 	group "Developer" (
 		checkbox chk_enableLogging "Enable Debug Logging"
 			tooltip:"Enables detailed logging for debugging purposes in Max Listener. Can impact performance."
@@ -143,12 +153,21 @@ rollout settingsGeneralRollout "General Settings" width:225 (
 		chk_showDialogs.checked   = configManager.getBool "feedback" "show_completion_dialogs" true
 		chk_enableLogging.checked = configManager.getBool "logger" "enable_logging" false
 		chk_saveLogFile.checked   = configManager.getBool "logger" "enable_save_log_file" false
+		edt_invaderEditPath.text  = configManager.getString "paths" "invader_edit_path" ""
 	)
 
 	on chk_useDirectXMaterials changed val do writeSetting "visual" "use_directx_materials" val
 	on chk_showDialogs changed val do writeSetting "feedback" "show_completion_dialogs" val
 	on chk_enableLogging changed val do writeSetting "logger" "enable_logging" val
 	on chk_saveLogFile changed val do writeSetting "logger" "enable_save_log_file" val
+	on edt_invaderEditPath changed val do writeStringSetting "paths" "invader_edit_path" (trimLeft (trimRight val))
+	on btn_browseInvaderEdit pressed do (
+		local exePath = getOpenFileName caption:"Select invader-edit.exe" types:"invader-edit.exe|invader-edit.exe|Executables (*.exe)|*.exe"
+		if exePath != undefined then (
+			edt_invaderEditPath.text = exePath
+			writeStringSetting "paths" "invader_edit_path" exePath
+		)
+	)
 )
 
 -- Close previous instance if it exists
@@ -156,7 +175,7 @@ if settingsFloater != undefined then (
 	try( closeRolloutFloater settingsFloater ) catch()
 )
 
-settingsFloater = newRolloutFloater "HCE Toolkit Settings" 270 715
+settingsFloater = newRolloutFloater "HCE Toolkit Settings" 270 785
 addRollout settingsImportRollout settingsFloater
 addRollout settingsExportRollout settingsFloater
 addRollout settingsGeneralRollout settingsFloater
