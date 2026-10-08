@@ -55,6 +55,8 @@ function menuCallback =
     toolsMenu.CreateAction "05C59238-B2A9-47D1-BA72-A781492FEDB4" macroScriptTableId sphereToHaloHelperId
     toolsMenu.CreateAction "7E8F9A0B-1C2D-3E4F-5A6B-7C8D9E0F1A2B" macroScriptTableId modelAnimationsExtractorId
     toolsMenu.CreateAction "1EED9B0E-55BC-4054-A1E7-398370A8A898" macroScriptTableId cameraTrackGeneratorId
+    local buildShadersId = "BuildShaders`Halo CE"
+    toolsMenu.CreateAction "6B1F2C3D-8E4A-4F5B-9C6D-7E8F9A0B1C2D" macroScriptTableId buildShadersId
     -- Add Settings action (direct item on main menu, not a submenu)
     local separatorB = mainMenu.CreateSeparator("A1B2C3D4-E5F6-7890-ABCD-EF1234567890")
     local settingsId = "HCEMaxToolkitSettings`Halo CE"
