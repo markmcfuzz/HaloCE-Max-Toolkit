@@ -37,6 +37,8 @@ If you want to learn more in depth about the features and roadmap, check the [**
     - Extracts all animation source from a `.model_animations` tag.
   - `Camera Track Generator`
     - Generate camera points taking a spline as reference.
+  - `Build Shaders`
+    - Creates shader tags from the GlyphFX materials of a Multi/Sub-Object material with `gfx` in its name (requires [invader-edit](https://github.com/SnowyMouse/invader)).
 ### Settings:
   - **Import Settings:**
     - `GBXModel Importer`
@@ -55,6 +57,8 @@ If you want to learn more in depth about the features and roadmap, check the [**
       - Use GlyphFX shaders.
     - `Feedback`
       - Show completion task dialogs.
+    - `External Tools`
+      - Path to `invader-edit.exe` (used by `Build Shaders`).
     - `Developer`
       - Enable debug logging
       - Save log file
