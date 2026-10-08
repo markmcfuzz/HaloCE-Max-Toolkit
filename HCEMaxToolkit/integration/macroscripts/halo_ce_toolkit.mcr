@@ -286,6 +286,27 @@ macroScript CameraTrackGenerator
     )
 )
 
+macroScript BuildShaders
+    category: "Halo CE"
+    toolTip: "Build Shaders"
+(
+    on execute do
+    (
+        local thisScript = getThisScriptFilename()
+        local leafPath = pathConfig.removePathLeaf thisScript
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+        local scriptPath = pluginRoot + "\\engine\\tool_build_shaders.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
+
 -- Settings
 
 macroScript HCEMaxToolkitSettings
