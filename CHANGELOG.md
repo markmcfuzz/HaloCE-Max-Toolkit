@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.5.0]
+### Added
+- **Build Shaders Tool:**
+  - New tool to create shader tags from GlyphFX materials.
+    - Found under `Halo CE Toolkit` > `Tools` > `Build Shaders`
+    - Reads every DirectX material of a Multi/Sub-Object material with `gfx` in its name (e.g. `cyborg gfx`).
+    - The shader type comes from the material's `.fx` file, or from a FourCC tag in the material name (`armor #soso`). `shader_transparent_chicago_extended` needs `#scex`.
+    - Bitmap references are taken from the texture paths (`D:\halo\data\test\bitmaps\a.png` -> `test\bitmaps\a`).
+    - Tags are written with `invader-edit.exe`, which is not shipped with the toolkit.
+- **Settings:** new `External Tools` group to set the path to `invader-edit.exe`.
+
 ## [5.4.0] - 2026-09-18
 ### Added
 - **Camera Track Generator Tool:**
