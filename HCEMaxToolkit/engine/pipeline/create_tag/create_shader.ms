@@ -22,7 +22,7 @@
 -------------------------------------------------------
 
 -- FourCC name tags accepted in material names ("armor #soso")
-global _shaderFourCCs = #("soso", "schi", "scex", "sotr", "sgla", "smet", "swat", "spla", "senv")
+global _shaderFourCCs = #("soso", "sose", "schi", "scex", "sotr", "sgla", "smet", "swat", "spla", "senv")
 
 -- Effect file each shader type is previewed with (chicago_extended shares chicago's)
 fn shaderTypeToFxName shaderType =
@@ -39,7 +39,7 @@ fn shaderTypeFromFxFile fxFile =
 (
 	if fxFile == undefined or fxFile == "" then return undefined
 	local fxName = toLower (getFilenameFile fxFile)
-	local known = #("shader_model", "shader_transparent_chicago", "shader_transparent_generic", "shader_transparent_glass", \
+	local known = #("shader_model", "shader_model_extended", "shader_transparent_chicago", "shader_transparent_generic", "shader_transparent_glass", \
 		"shader_transparent_meter", "shader_transparent_water", "shader_transparent_plasma", "shader_environment")
 	if (findItem known fxName) > 0 then fxName else undefined
 )
@@ -309,6 +309,7 @@ fn readShaderModelOps r =
 	r.fieldFlag #NoRandomPhaseFlag "shader_model_more_flags.no_random_phase"
 	r.fieldEnum #SelfIlluminationColorSource "color_source"
 	r.fieldEnum #SelfIlluminationAnimationFunction "animation_function"
+	r.fieldFloat #SelfIlluminationAnimationPeriod "animation_period"
 	r.fieldRGB #AnimationColorLowerBound "animation_color_lower_bound"
 	r.fieldRGB #AnimationColorUpperBound "animation_color_upper_bound"
 
@@ -341,6 +342,44 @@ fn readShaderModelOps r =
 	r.fieldFloat #ParallelBrightness "parallel_brightness"
 	r.fieldRGB #ParallelTintColor "parallel_tint_color"
 	r.fieldBitmap #ReflectionCubeTexture "reflection_cube_map" enableParam:#EnableReflectionCube
+)
+
+-------------------------------------------------------
+-- shader_model_extended
+-------------------------------------------------------
+-- EnableExtended is a viewport-only comparison toggle, so the extension is always written
+fn readShaderModelExtendedOps r =
+(
+	readShaderModelOps r
+
+	-- Detail map 2
+	r.fieldEnum #Detail2Function "detail_2_function"
+	r.fieldEnum #Detail2Mask "detail_2_mask"
+	r.fieldFloat #Detail2MapScale "detail_2_map_scale"
+	r.fieldBitmap #Detail2MapTexture "detail_2_map" enableParam:#EnableDetail2Map
+	r.fieldFloat #Detail2MapVScale "detail_2_map_v_scale"
+
+	-- Bump
+	r.fieldBitmap #BaseNormalMapTexture "base_normal_map" enableParam:#EnableBaseNormalMap
+	r.fieldFloat #BaseNormalCoefficient "base_normal_coefficient"
+	for n in #("1", "2") do
+	(
+		local pre = "DetailNormal" + n
+		local key = "detail_normal_" + n
+		r.fieldBitmap ((pre + "MapTexture") as name) (key + "_map") enableParam:((("Enable" + pre + "Map") as name))
+		r.fieldFloat ((pre + "Coefficient") as name) (key + "_coefficient")
+		r.fieldFloat ((pre + "Scale") as name) (key + "_scale")
+		r.fieldFloat ((pre + "VScale") as name) (key + "_v_scale")
+	)
+
+	-- Specular
+	r.fieldBitmap #SpecularColorMapTexture "specular_color_map" enableParam:#EnableSpecularColorMap
+	r.fieldFloat #SpecularColorCoefficient "specular_color_coefficient"
+	r.fieldFloat #SpecularColorExponent "specular_color_exponent"
+	r.fieldFlag #AlphaAsExponentMask "specular_color_flags.alpha_as_exponent_mask"
+	r.fieldFloat #SpecularLightingExponent "specular_lighting_exponent"
+	r.fieldFloat #SpecularLightingCoefficient "specular_lighting_coefficient"
+	r.fieldFlag #DoNotUseDlmsBsp "diffuse_lighting_flags.do_not_use_dlms_bsp"
 )
 
 -------------------------------------------------------
@@ -655,6 +694,7 @@ fn readDxMaterialShaderOps dxMat shaderType =
 	case shaderType of
 	(
 		"shader_model": readShaderModelOps r
+		"shader_model_extended": readShaderModelExtendedOps r
 		"shader_transparent_chicago": readShaderChicagoOps r "maps" "shader_transparent_chicago_flags"
 		"shader_transparent_chicago_extended": readShaderChicagoOps r "maps_4_stage" "shader_transparent_chicago_extended_flags"
 		"shader_transparent_generic": readShaderGenericOps r
