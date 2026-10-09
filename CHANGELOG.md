@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [5.5.0]
+
 ### Added
 - **Build Shaders Tool:**
   - New tool to create shader tags from GlyphFX materials.
@@ -14,6 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Bitmap references are taken from the texture paths (`D:\halo\data\test\bitmaps\a.png` -> `test\bitmaps\a`).
     - Tags are written with `invader-edit.exe`, which is not shipped with the toolkit.
 - **Settings:** new `External Tools` group to set the path to `invader-edit.exe`.
+- **shader_model_extended (`sose`, Ringworld):**
+  - New tag definition, rebuilt from tag binaries: the full `shader_model` body followed by the extension (detail map 2, base/detail normal maps, specular color map and lighting, diffuse lighting flags).
+  - `GBXModel Importer` and `Structure BSP Importer` build it with the GlyphFX `shader_model_extended.fx` effect.
+  - `Build Shaders` creates `.shader_model_extended` tags from that effect (or `#sose` in the material name).
+
+### Fixed
+- **GlyphFX shader_model:** imported materials now also get the parent shader fields (radiosity/physics), `Use Xbox Channel Order` and the self-illumination animation period; `Build Shaders` writes the animation period too.
 
 ## [5.4.0] - 2026-09-18
 ### Added
