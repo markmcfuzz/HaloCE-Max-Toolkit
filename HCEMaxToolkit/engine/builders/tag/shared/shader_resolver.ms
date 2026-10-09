@@ -29,6 +29,7 @@ fn shaderTagClassToString tagClass =
 	case tagClass of
 	(
 		1936683887: "shader_model"                         -- 'soso'
+		1936683877: "shader_model_extended"                -- 'sose'
 		1935894633: "shader_transparent_chicago"           -- 'schi'
 		1935893880: "shader_transparent_chicago_extended"  -- 'scex'
 		1936684146: "shader_transparent_generic"           -- 'sotr'
@@ -47,6 +48,7 @@ fn shaderTagClassStrToString classStr =
 	case classStr of
 	(
 		"soso": "shader_model"
+		"sose": "shader_model_extended"
 		"schi": "shader_transparent_chicago"
 		"scex": "shader_transparent_chicago_extended"
 		"sotr": "shader_transparent_generic"
@@ -101,6 +103,7 @@ fn buildShaderFilePath tagFilePath shaderRelativePath shaderType:undefined =
 	local ext = case shaderType of
 	(
 		"shader_model":                        ".shader_model"
+		"shader_model_extended":               ".shader_model_extended"
 		"shader_transparent_chicago":          ".shader_transparent_chicago"
 		"shader_transparent_chicago_extended": ".shader_transparent_chicago_extended"
 		"shader_transparent_generic":          ".shader_transparent_generic"
@@ -274,6 +277,19 @@ fn collectShaderMapRefs shaderType mainEntry =
 			_addShaderMapRef coll "multipurposeMap" (getFieldValue mainEntry "multipurposeMap")
 			_addShaderMapRef coll "detailMap" (getFieldValue mainEntry "detailMap")
 			_addShaderMapRef coll "reflectionCubeMap" (getFieldValue mainEntry "reflectionCubeMap")
+		)
+		"shader_model_extended":
+		(
+			-- shader_model maps + the extension appended after the cube map
+			coll.primaryKey = _addShaderMapRef coll "baseMap" (getFieldValue mainEntry "baseMap")
+			_addShaderMapRef coll "multipurposeMap" (getFieldValue mainEntry "multipurposeMap")
+			_addShaderMapRef coll "detailMap" (getFieldValue mainEntry "detailMap")
+			_addShaderMapRef coll "reflectionCubeMap" (getFieldValue mainEntry "reflectionCubeMap")
+			_addShaderMapRef coll "detail2Map" (getFieldValue mainEntry "detail2Map")
+			_addShaderMapRef coll "baseNormalMap" (getFieldValue mainEntry "baseNormalMap")
+			_addShaderMapRef coll "detailNormal1Map" (getFieldValue mainEntry "detailNormal1Map")
+			_addShaderMapRef coll "detailNormal2Map" (getFieldValue mainEntry "detailNormal2Map")
+			_addShaderMapRef coll "specularColorMap" (getFieldValue mainEntry "specularColorMap")
 		)
 		"shader_transparent_chicago":
 		(
