@@ -227,6 +227,7 @@ fn getTagDefByClass tagClass =
 	global shaderDef
 	global shaderEnvironmentDef
 	global shaderModelDef
+	global shaderModelExtendedDef
 	global shaderTransparentChicagoDef
 	global shaderTransparentChicagoExtendedDef
 	global shaderTransparentGenericDef
@@ -313,6 +314,7 @@ fn getTagDefByClass tagClass =
 		"shdr": shaderDef
 		"senv": shaderEnvironmentDef
 		"soso": shaderModelDef
+		"sose": shaderModelExtendedDef
 		"schi": shaderTransparentChicagoDef
 		"scex": shaderTransparentChicagoExtendedDef
 		"sotr": shaderTransparentGenericDef
@@ -412,6 +414,7 @@ global h1_tag_classes_engine = #(
 	#("smet", "shader_transparent_meter", 1936549236),
 	#("snd!", "sound", 1936614433),
 	#("snde", "sound_environment", 1936614501),
+	#("sose", "shader_model_extended", 1936683877),
 	#("soso", "shader_model", 1936683887),
 	#("sotr", "shader_transparent_generic", 1936684146),
 	#("Soul", "ui_widget_collection", 1399813484),
