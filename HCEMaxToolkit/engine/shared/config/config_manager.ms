@@ -63,7 +63,7 @@ fn getDefaultConfigContent =
     content += "[visual]\n"
     content += "; Build GlyphFX DirectX viewport materials from shader tag data\n"
     content += "; when the shader type is supported (1 = enable, 0 = disable).\n"
-    content += "; Currently supported: shader_model, shader_transparent_chicago,\n"
+    content += "; Currently supported: shader_model, shader_model_extended, shader_transparent_chicago,\n"
     content += "; chicago_extended (uses the chicago effect), shader_transparent_generic,\n"
     content += "; shader_transparent_meter, shader_transparent_water, shader_transparent_plasma,\n"
     content += "; shader_transparent_glass and shader_environment.\n"
