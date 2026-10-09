@@ -13,7 +13,7 @@
 -- GlyphFX DirectX Material Builder
 -- Creates DirectX_9_Shader materials from parsed shader tag data (ShaderTextureResult)
 -- and fills every exposed effect parameter with the tag values.
--- Currently supported: shader_model, shader_transparent_chicago,
+-- Currently supported: shader_model, shader_model_extended, shader_transparent_chicago,
 -- shader_transparent_chicago_extended (rendered with the chicago effect using its
 -- 4-stage maps only; the 2-stage fallback block exists solely for legacy hardware),
 -- shader_transparent_generic (maps + combiner stages), shader_transparent_meter,
@@ -78,6 +78,17 @@ fn tagColorToMaxColor tagColor =
 		Point3: color (amin (tagColor.x * 255.0) 255.0) (amin (tagColor.y * 255.0) 255.0) (amin (tagColor.z * 255.0) 255.0)
 		default: undefined
 	)
+)
+
+-- Brighter of two Max colors by luminance (Rec. 709 weights); ties keep the first.
+-- Either may be undefined, in which case the other one is returned.
+fn brighterMaxColor colorA colorB =
+(
+	if colorA == undefined then return colorB
+	if colorB == undefined then return colorA
+	local lumA = 0.2126 * colorA.r + 0.7152 * colorA.g + 0.0722 * colorA.b
+	local lumB = 0.2126 * colorB.r + 0.7152 * colorB.g + 0.0722 * colorB.b
+	if lumB > lumA then colorB else colorA
 )
 
 -- Tag semantics: a black colorRGB (0,0,0) means "default to white" (1,1,1) -
@@ -150,6 +161,25 @@ fn dxLoadBitmapForKey textureResult mapKey =
 	bmp
 )
 
+-- Parent 'shader' block (radiosity + physics), exposed by every GlyphFX effect
+fn _dxApplyBaseShaderParams dxMat shaderEntry =
+(
+	if shaderEntry == undefined then return false
+	local radFlags = getFieldValue shaderEntry "flags"
+	if classOf radFlags == Integer then
+	(
+		dxSetParam dxMat #SimpleParameterization (bit.get radFlags 1)
+		dxSetParam dxMat #IgnoreNormals (bit.get radFlags 2)
+		dxSetParam dxMat #TransparentLit (bit.get radFlags 3)
+	)
+	dxSetParam dxMat #DetailLevel (getFieldValue shaderEntry "detailLevel")
+	dxSetParam dxMat #Power (getFieldValue shaderEntry "power")
+	dxSetParam dxMat #ColorOfEmittedLight (tagColorToMaxColor (getFieldValue shaderEntry "colorOfEmittedLight"))
+	dxSetParam dxMat #TintColor (tagColorToMaxColor (getFieldValue shaderEntry "tintColor"))
+	dxSetParam dxMat #MaterialType (getFieldValue shaderEntry "materialType")
+	true
+)
+
 -------------------------------------------------------
 -- shader_model -> shader_model.fx
 -------------------------------------------------------
@@ -169,6 +199,8 @@ fn buildShaderModelDxMaterial textureResult fxFile =
 		return undefined
 	)
 
+	_dxApplyBaseShaderParams dxMat textureResult.shaderEntry
+
 	-- Model flags bitfield (first 'flags' field of the soso block)
 	local flagsVal = getFieldValue mainEntry "flags"
 	if classOf flagsVal == Integer then
@@ -179,6 +211,7 @@ fn buildShaderModelDxMaterial textureResult fxFile =
 		dxSetParam dxMat #AlphaBlendedDecal (bit.get flagsVal 4)
 		dxSetParam dxMat #TrueAtmosphericFog (bit.get flagsVal 5)
 		dxSetParam dxMat #DisableTwoSidedCulling (bit.get flagsVal 6)
+		dxSetParam dxMat #UseXboxChannelOrder (bit.get flagsVal 7)
 	)
 
 	-- Exposed only when its UIName is active in shader_model.params.fxh
@@ -194,13 +227,16 @@ fn buildShaderModelDxMaterial textureResult fxFile =
 
 	dxSetParam dxMat #SelfIlluminationColorSource (getFieldValue mainEntry "colorSource")
 	dxSetParam dxMat #SelfIlluminationAnimationFunction (getFieldValue mainEntry "animationFunction")
-	dxSetParam dxMat #AnimationColorLowerBound (tagColorToMaxColor (getFieldValue mainEntry "animationColorLowerBound"))
-	dxSetParam dxMat #AnimationColorUpperBound (tagColorToMaxColor (getFieldValue mainEntry "animationColorUpperBound"))
+	dxSetParam dxMat #SelfIlluminationAnimationPeriod (getFieldValue mainEntry "animationPeriod")
+	local lowerBound = tagColorToMaxColor (getFieldValue mainEntry "animationColorLowerBound")
+	local upperBound = tagColorToMaxColor (getFieldValue mainEntry "animationColorUpperBound")
+	dxSetParam dxMat #AnimationColorLowerBound lowerBound
+	dxSetParam dxMat #AnimationColorUpperBound upperBound
 
-	-- SelfIlluminationColor stays sourced from the upper bound - it's the artist-facing
-	-- "on" color for viewport visualization, kept independent of the raw Lower/Upper Bound
-	-- fields above per Mark's design (manual override, not meant to be tag-driven).
-	dxSetParam dxMat #SelfIlluminationColor (tagColorToMaxColor (getFieldValue mainEntry "animationColorUpperBound"))
+	-- SelfIlluminationColor (3ds Max only) starts from the brighter bound - it's the
+	-- artist-facing color for viewport visualization, kept as its own param so it can
+	-- still be overridden by hand independently of the raw Lower/Upper Bound fields.
+	dxSetParam dxMat #SelfIlluminationColor (brighterMaxColor lowerBound upperBound)
 
 	-- Base map UV scales (tag: 0 defaults to 1)
 	dxSetParam dxMat #MapUScale (zeroDefaultsToOne (getFieldValue mainEntry "mapUScale"))
@@ -261,32 +297,68 @@ fn buildShaderModelDxMaterial textureResult fxFile =
 	if cubeBmp != undefined then dxSetParam dxMat #ReflectionCubeTexture cubeBmp
 	dxSetParam dxMat #EnableReflectionCube (cubeBmp != undefined)
 
-	logger.info "DX material created: '{}' (shader_model)" args:#(textureResult.shaderName)
+	logger.info "DX material created: '{}' ({})" args:#(textureResult.shaderName, textureResult.shaderType)
 	return dxMat
+)
+
+-------------------------------------------------------
+-- shader_model_extended -> shader_model_extended.fx
+-------------------------------------------------------
+-- Same fields as shader_model plus the extension appended after the cube map:
+-- detail map 2, base/detail normal maps, specular color map + lighting, DLM flag.
+-- "0 = 1" fields of the extension stay raw; the effect substitutes 1 itself.
+fn buildShaderModelExtendedDxMaterial textureResult fxFile =
+(
+	local dxMat = buildShaderModelDxMaterial textureResult fxFile
+	if dxMat == undefined then return undefined
+	local mainEntry = textureResult.mainEntry
+
+	-- Detail map 2 (scale: tag 0 defaults to 1, V scale 0 is handled by the effect)
+	dxSetParam dxMat #Detail2Function (getFieldValue mainEntry "detail2Function")
+	dxSetParam dxMat #Detail2Mask (getFieldValue mainEntry "detail2Mask")
+	dxSetParam dxMat #Detail2MapScale (zeroDefaultsToOne (getFieldValue mainEntry "detail2MapScale"))
+	dxSetParam dxMat #Detail2MapVScale (getFieldValue mainEntry "detail2MapVScale")
+
+	-- Bump properties
+	dxSetParam dxMat #BaseNormalCoefficient (getFieldValue mainEntry "baseNormalCoefficient")
+	for n in #("1", "2") do
+	(
+		local pre = "DetailNormal" + n
+		local fieldPre = "detailNormal" + n
+		dxSetParam dxMat ((pre + "Coefficient") as name) (getFieldValue mainEntry (fieldPre + "Coefficient"))
+		dxSetParam dxMat ((pre + "Scale") as name) (getFieldValue mainEntry (fieldPre + "Scale"))
+		dxSetParam dxMat ((pre + "VScale") as name) (getFieldValue mainEntry (fieldPre + "VScale"))
+	)
+
+	-- Specular properties
+	dxSetParam dxMat #SpecularColorCoefficient (getFieldValue mainEntry "specularColorCoefficient")
+	dxSetParam dxMat #SpecularColorExponent (getFieldValue mainEntry "specularColorExponent")
+	local specFlags = getFieldValue mainEntry "specularColorFlags"
+	if classOf specFlags == Integer then
+		dxSetParam dxMat #AlphaAsExponentMask (bit.get specFlags 1)
+	dxSetParam dxMat #SpecularLightingExponent (getFieldValue mainEntry "specularLightingExponent")
+	dxSetParam dxMat #SpecularLightingCoefficient (getFieldValue mainEntry "specularLightingCoefficient")
+
+	local diffuseFlags = getFieldValue mainEntry "diffuseLightingFlags"
+	if classOf diffuseFlags == Integer then
+		dxSetParam dxMat #DoNotUseDlmsBsp (bit.get diffuseFlags 1)
+
+	-- Textures + enable flags (unbound DX11 textures sample black, so disable missing ones)
+	for slot in #(#("detail2Map", "Detail2Map"), #("baseNormalMap", "BaseNormalMap"), \
+		#("detailNormal1Map", "DetailNormal1Map"), #("detailNormal2Map", "DetailNormal2Map"), \
+		#("specularColorMap", "SpecularColorMap")) do
+	(
+		local bmp = dxLoadBitmapForKey textureResult slot[1]
+		if bmp != undefined then dxSetParam dxMat ((slot[2] + "Texture") as name) bmp
+		dxSetParam dxMat (("Enable" + slot[2]) as name) (bmp != undefined)
+	)
+
+	dxMat
 )
 
 -------------------------------------------------------
 -- Shared transparent-shader helpers
 -------------------------------------------------------
-
--- Parent 'shader' block (radiosity + physics), exposed by the transparent effects
-fn _dxApplyBaseShaderParams dxMat shaderEntry =
-(
-	if shaderEntry == undefined then return false
-	local radFlags = getFieldValue shaderEntry "flags"
-	if classOf radFlags == Integer then
-	(
-		dxSetParam dxMat #SimpleParameterization (bit.get radFlags 1)
-		dxSetParam dxMat #IgnoreNormals (bit.get radFlags 2)
-		dxSetParam dxMat #TransparentLit (bit.get radFlags 3)
-	)
-	dxSetParam dxMat #DetailLevel (getFieldValue shaderEntry "detailLevel")
-	dxSetParam dxMat #Power (getFieldValue shaderEntry "power")
-	dxSetParam dxMat #ColorOfEmittedLight (tagColorToMaxColor (getFieldValue shaderEntry "colorOfEmittedLight"))
-	dxSetParam dxMat #TintColor (tagColorToMaxColor (getFieldValue shaderEntry "tintColor"))
-	dxSetParam dxMat #MaterialType (getFieldValue shaderEntry "materialType")
-	true
-)
 
 -- Apply one map stage (flags, blend functions, UV transform, texture, animation).
 -- layout:#chicago has alpha-replicate + per-map color/alpha functions;
@@ -1015,6 +1087,7 @@ fn buildDxMaterialForShader textureResult =
 	local fxName = case textureResult.shaderType of
 	(
 		"shader_model": "shader_model.fx"
+		"shader_model_extended": "shader_model_extended.fx"
 		"shader_transparent_chicago": "shader_transparent_chicago.fx"
 		"shader_transparent_chicago_extended": "shader_transparent_chicago.fx"
 		"shader_transparent_generic": "shader_transparent_generic.fx"
@@ -1040,6 +1113,7 @@ fn buildDxMaterialForShader textureResult =
 		dxMat = case textureResult.shaderType of
 		(
 			"shader_model": buildShaderModelDxMaterial textureResult fxFile
+			"shader_model_extended": buildShaderModelExtendedDxMaterial textureResult fxFile
 			"shader_transparent_chicago": buildShaderChicagoDxMaterial textureResult fxFile "maps" "map"
 			"shader_transparent_chicago_extended": buildShaderChicagoDxMaterial textureResult fxFile "4StageMaps" "4StageMap"
 			"shader_transparent_generic": buildShaderGenericDxMaterial textureResult fxFile
