@@ -27,7 +27,7 @@ luac.out
 
 # Folders
 *.vscode/
-*releaseOld/
+*releases/
 *hek_defs/
 *tags/
 *guides/
