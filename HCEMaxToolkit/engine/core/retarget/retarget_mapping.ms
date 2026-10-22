@@ -10,16 +10,15 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--- Retarget preset: bone mapping (target <- source) plus the captured "match pose" of both rigs.
--- The match pose is what makes the retarget independent of bone axis conventions: every mapped
--- target bone keeps, over time, the same offset to its source bone it had in that pose.
+-- Retarget preset: bone mapping (target <- source), per bone corrections and the captured rest
+-- pose of both rigs (see retarget_solver.ms for how they're used).
 
 -- A rig captured in Halo node order (parents first)
 struct retargetRigPose
 (
 	names = #(),
 	parents = #(),  -- 1-based parent index, 0 = rig root
-	worlds = #()    -- matrix3 world transform at the match pose
+	worlds = #()    -- matrix3 world transform at the rest pose
 )
 
 struct retargetPreset
@@ -27,6 +26,8 @@ struct retargetPreset
 	sourceRoot = "",
 	targetRoot = "",
 	pairs = #(),       -- #(targetName, sourceName)
+	adjusts = #(),     -- #(targetName, [x, y, z] degrees); kept for both rigs, so Swap doesn't lose them
+	cameraNode = "",   -- source node every pose is taken relative to ("" = keep camera motion)
 	rootScale = 1.0,
 	sourcePose = undefined,
 	targetPose = undefined
@@ -107,6 +108,13 @@ fn retargetKeyEndsWith nodeName suffix =
 	key.count >= suffix.count and (substring key (key.count - suffix.count + 1) -1) == suffix
 )
 
+-- "l", "r" or "" (centre bones)
+fn retargetBoneSide nodeName =
+(
+	local tokens = filterString (retargetBoneKey nodeName) " "
+	if tokens.count > 0 and (tokens[1] == "l" or tokens[1] == "r") then tokens[1] else ""
+)
+
 -------------------------------------------------------
 -- MAPPING
 -------------------------------------------------------
@@ -126,6 +134,23 @@ fn retargetSetSource preset targetName sourceName =
 	for i = preset.pairs.count to 1 by -1 do
 		if (toLower preset.pairs[i][1]) == lowered do deleteItem preset.pairs i
 	if sourceName != undefined do append preset.pairs #(targetName, sourceName)
+)
+
+fn retargetGetAdjust preset targetName =
+(
+	local lowered = toLower targetName
+	for a in preset.adjusts do
+		if (toLower a[1]) == lowered do return a[2]
+	undefined
+)
+
+-- Zero angles remove the correction
+fn retargetSetAdjust preset targetName angles =
+(
+	local lowered = toLower targetName
+	for i = preset.adjusts.count to 1 by -1 do
+		if (toLower preset.adjusts[i][1]) == lowered do deleteItem preset.adjusts i
+	if angles != undefined and (length angles) > 1e-4 do append preset.adjusts #(targetName, angles)
 )
 
 -- Both name lists in rig order, so index 1 is each rig's root and the roots always pair up.
@@ -160,13 +185,13 @@ fn retargetAutoMap targetNames sourceNames =
 	pairs
 )
 
--- Same preset with source and target exchanged. The match pose is symmetric, so the
--- capture stays valid.
+-- Same preset with source and target exchanged. The capture holds both rigs, so it stays valid.
 fn retargetSwapPreset preset =
 (
 	local swapped = retargetPreset sourceRoot:preset.targetRoot targetRoot:preset.sourceRoot \
-		rootScale:preset.rootScale sourcePose:preset.targetPose targetPose:preset.sourcePose
+		rootScale:preset.rootScale cameraNode:preset.cameraNode sourcePose:preset.targetPose targetPose:preset.sourcePose
 	swapped.pairs = #()
+	swapped.adjusts = preset.adjusts
 	for p in preset.pairs do
 		if (retargetGetSource swapped p[2]) == undefined do append swapped.pairs #(p[2], p[1])
 	swapped
@@ -217,7 +242,10 @@ fn retargetWritePreset filePath preset =
 	format "source_root\t%\n" preset.sourceRoot to:fileStream
 	format "target_root\t%\n" preset.targetRoot to:fileStream
 	format "root_scale\t%\n" (formatFloat preset.rootScale) to:fileStream
+	if preset.cameraNode != "" do format "camera\t%\n" preset.cameraNode to:fileStream
 	for p in preset.pairs do format "map\t%\t%\n" p[1] p[2] to:fileStream
+	for a in preset.adjusts do
+		format "adjust\t%\t%\t%\t%\n" a[1] (formatFloat a[2].x) (formatFloat a[2].y) (formatFloat a[2].z) to:fileStream
 	if preset.sourcePose != undefined do retargetWritePoseLines fileStream "source_node" preset.sourcePose
 	if preset.targetPose != undefined do retargetWritePoseLines fileStream "target_node" preset.targetPose
 	close fileStream
@@ -239,6 +267,7 @@ fn retargetReadPreset filePath =
 	if fileStream == undefined do return undefined
 	local preset = retargetPreset()
 	preset.pairs = #()
+	preset.adjusts = #()
 	local sourcePose = retargetRigPose()
 	local targetPose = retargetRigPose()
 	while not eof fileStream do
@@ -251,7 +280,10 @@ fn retargetReadPreset filePath =
 			"source_root": if tokens.count > 1 do preset.sourceRoot = tokens[2]
 			"target_root": if tokens.count > 1 do preset.targetRoot = tokens[2]
 			"root_scale": if tokens.count > 1 do preset.rootScale = tokens[2] as float
+			"camera": if tokens.count > 1 do preset.cameraNode = tokens[2]
 			"map": if tokens.count > 2 do append preset.pairs #(tokens[2], tokens[3])
+			"adjust": if tokens.count > 4 do
+				append preset.adjusts #(tokens[2], [tokens[3] as float, tokens[4] as float, tokens[5] as float])
 			"source_node": retargetAddPoseLine sourcePose tokens
 			"target_node": retargetAddPoseLine targetPose tokens
 		)
