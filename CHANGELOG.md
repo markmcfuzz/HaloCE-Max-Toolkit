@@ -4,7 +4,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [5.5.0]
+## [5.6.0] - 2026-10-11
+
+### Added
+
+- **Retargeting Tool:**
+  - Transfers animations between different skeletons, even when bone names, axes or rest poses differ.
+  - Found under `Halo CE Toolkit` > `Tools` > `HCE` > `Retargeting`.
+  - Both rigs only need to be in their bind pose to capture the rest pose; they don't need to look alike.
+  - Bone mapping with `Auto Map` or by hand, with per-bone angle adjustments. `Swap` inverts source and target.
+  - Keeps target bone lengths and copies animated translations. Optional hand IK (with shoulder reach) and camera motion removal.
+  - Weapons follow the target hand if they're linked to it before capturing.
+  - Retargets the scene animation or a folder of JMA-family files. `Halo CE file names` renames them to stock Halo CE names; animations without an equivalent go to `not_in_halo_ce`.
+  - Mapping, adjustments and rest pose are saved as presets in `Documents\HCE Max Toolkit\retarget_presets`.
+
+### Changed
+
+- **Menu reorganization:**
+  - `Build Shaders` moved to `Export` and renamed to `Shaders`.
+  - `Tools` is now split by game: `HCE`, (I'll add more games in the future).
+    - `HCE`: `Sphere to Helper Converter`, `Model Animations Extractor` (was `Extract Model Animations`), `Retargeting` and `Camera Track Builder` (was `Camera Track Generator`).
+
+## [5.5.0] - 2026-10-01
 
 ### Added
 - **Build Shaders Tool:**
