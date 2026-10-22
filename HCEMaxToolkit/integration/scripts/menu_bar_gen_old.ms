@@ -77,14 +77,28 @@ fn createHaloCEToolkitMenu =
         addMacroToMenu exportMenu "Halo CE" "ExportJMS" mm displayName:"JMS Model"
         addMacroToMenu exportMenu "Halo CE" "ExportJointedModelAnimation" mm displayName:"JMA Animation"
         addMacroToMenu exportMenu "Halo CE" "ExportCameraTrack" mm displayName:"Camera Track"
+        addMacroToMenu exportMenu "Halo CE" "BuildShaders" mm displayName:"Shaders"
 
-        -- Add Tools macros
+        -- Add Tools macros, grouped by target game
         print "Adding Tools macros..."
-        addMacroToMenu toolsMenu "Halo CE" "SphereToHaloMarkerHelper" mm displayName:"Convert Spheres to Halo Helper Markers"
-        --addMacroToMenu toolsMenu "Halo CE" "JmsRepair" mm displayName:"JMS Repair"
-        addMacroToMenu toolsMenu "Halo CE" "ModelAnimationsExtractor" mm displayName:"Extract Model Animations"
-        addMacroToMenu toolsMenu "Halo CE" "CameraTrackGenerator" mm displayName:"Camera Track Generator"
-        addMacroToMenu toolsMenu "Halo CE" "BuildShaders" mm displayName:"Build Shaders"
+        local toolsHceMenu = mm.createMenu "HCE"
+        --local toolsCerMenu = mm.createMenu "CER"
+        --local toolsH5Menu = mm.createMenu "H5"
+
+        addMacroToMenu toolsHceMenu "Halo CE" "SphereToHaloMarkerHelper" mm displayName:"Convert Spheres to Halo Helper Markers"
+        addMacroToMenu toolsHceMenu "Halo CE" "ModelAnimationsExtractor" mm displayName:"Model Animations Extractor"
+        addMacroToMenu toolsHceMenu "Halo CE" "NodeRenamer" mm displayName:"Node Renamer"
+        addMacroToMenu toolsHceMenu "Halo CE" "SkinBoneLimiter" mm displayName:"Bone Weight Limiter"
+        addMacroToMenu toolsHceMenu "Halo CE" "CameraTrackGenerator" mm displayName:"Camera Track Builder"
+        addMacroToMenu toolsHceMenu "Halo CE" "Retargeting" mm displayName:"Retargeting"
+
+        --addMacroToMenu toolsCerMenu "Halo CE" "PackedUvFixer" mm displayName:"Packed UV Fixer"
+
+        --addMacroToMenu toolsH5Menu "Halo CE" "H5AnimationsImporter" mm displayName:"H5 Animation Tool"
+
+        toolsMenu.addItem (mm.createSubMenuItem "HCE" toolsHceMenu) -1
+        --toolsMenu.addItem (mm.createSubMenuItem "CER" toolsCerMenu) -1
+        --toolsMenu.addItem (mm.createSubMenuItem "H5" toolsH5Menu) -1
 
         -- Add Settings macros
         print "Adding Settings macros..."
