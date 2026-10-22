@@ -25,6 +25,9 @@ luac.out
 *.def
 *.exp
 
+# cache files
+*.pyc
+
 # Folders
 *.vscode/
 *releases/
