@@ -16,12 +16,13 @@
 --	first person arm rigs with different bone names and bone axes.
 --
 --	1. Pick both rigs and map their bones (Auto Map, then fix by hand).
---	2. Pose both rigs alike, overlapping (Auto Align helps), and Capture Match Pose.
+--	2. With both rigs in their bind pose, Capture Rest Pose. They don't need to look alike.
 --	3. Retarget the scene animation onto the target rig, or a folder of JMA-family files.
 --
---	Every target bone keeps the offset to its source bone it had in the match pose, so bone
---	axis conventions don't matter. Target bone lengths are kept; optional hand IK pins the
---	target hands to the source hands. Mapping and capture are saved together as a preset.
+--	Same method as the Halo 5 animation tool: each bone's rest offset is found by lining up a
+--	frame built the same way on both rigs (bone direction + palm normal), so bone axes and rest
+--	poses can differ. Target bone lengths are kept, animated translations (shoulders) carry over,
+--	and optional hand IK lines up the knuckles. Mapping and capture are saved as a preset.
 --
 ------------------------------------------------------------------------------
 
@@ -42,6 +43,7 @@ include "formats\\jma\\process_scene.ms"
 include "formats\\jma\\process_file.ms"
 include "core\\retarget\\retarget_mapping.ms"
 include "core\\retarget\\retarget_solver.ms"
+include "core\\retarget\\retarget_naming.ms"
 
 (
     global RetargetingRollout
@@ -51,6 +53,7 @@ include "core\\retarget\\retarget_solver.ms"
     local iniSection = "retargeting"
     local animationTypes = #(".jma", ".jmm", ".jmo", ".jmr", ".jmt", ".jmw", ".jmz")
     local noSource = "-"
+    local otherFolder = "not_in_halo_ce"
 
     fn pickFilter obj = isNodeObject obj
 
@@ -133,26 +136,38 @@ include "core\\retarget\\retarget_solver.ms"
             listbox lbxMap "" height:16 width:350
             label lblSourceBone "Source bone:" align:#left across:2 offset:[0,3]
             dropdownList ddlSource "" width:270 align:#right
+            label lblAdjust "Adjust (deg):" align:#left across:4 offset:[0,1]
+            spinner spnAdjustX "X " range:[-180, 180, 0] fieldwidth:40 \
+                tooltip:"Constant correction of the selected target bone, like rotating it in Local: X, then Y, then Z"
+            spinner spnAdjustY "Y " range:[-180, 180, 0] fieldwidth:40
+            spinner spnAdjustZ "Z " range:[-180, 180, 0] fieldwidth:40
             button btnAutoMap "Auto Map" width:84 across:4
             button btnClear "Clear" width:84
             button btnLoad "Load..." width:84
             button btnSave "Save..." width:84
             label lblMap "" align:#left width:350
         )
-        group "Match Pose"
+        group "Rest Pose"
         (
-            label lblHelp1 "Pose both rigs alike and overlapping (bind pose, no keys)." align:#left
-            label lblHelp2 "Auto Align aims the target bones like the source ones." align:#left
-            button btnAlign "Auto Align Target" width:170 across:2
-            button btnCapture "Capture Match Pose" width:170
+            label lblHelp1 "Both rigs in their bind pose, without animation, at their" align:#left
+            label lblHelp2 "imported place. They don't need to look alike." align:#left
+            button btnCapture "Capture Rest Pose" width:350 \
+                tooltip:"Weapon: link it to the target hand before capturing and leave its nodes unmapped. Nodes with the same name in the animation (b_gun...) then follow it."
             label lblCapture "" align:#left width:350
         )
         group "Options"
         (
-            checkbox chkIK "Match hand positions (IK)" checked:true \
-                tooltip:"Moves the target arms so the hands sit where the source hands are (needed for weapons to line up). Off: only rotations are copied."
-            spinner spnRootScale "Root translation scale: " range:[0, 100, 1] scale:0.01 fieldwidth:50 align:#left \
-                tooltip:"Scales how far the root moves away from the match pose"
+            checkbox chkIK "Match hand positions (IK)" checked:true across:2 \
+                tooltip:"Moves the target arms so their middle knuckles land on the source ones (needed for weapons to line up). Off: only rotations are copied."
+            spinner spnShoulderReach "Shoulder reach: " range:[0, 100, 2] fieldwidth:40 align:#right \
+                tooltip:"When a hand can't reach its goal, the shoulder slides toward it by up to this distance (0 = never)"
+            checkbox chkTranslations "Copy bone translations" checked:true across:2 \
+                tooltip:"Bones the source animation moves (first person shoulders) move the same on the target. Bone lengths are kept."
+            spinner spnRootScale "Root move scale: " range:[0, 100, 1] scale:0.01 fieldwidth:40 align:#right \
+                tooltip:"Scales how far the root moves away from its rest place"
+            checkbox chkCamera "Remove camera motion, node:" checked:true across:2 \
+                tooltip:"Takes every source pose relative to this node, like a fixed first person camera (Halo 5: b_camera_control). Ignored when the animation doesn't have it."
+            edittext edtCamera "" text:"b_camera_control" fieldWidth:150 align:#right
         )
         group "Scene"
         (
@@ -165,6 +180,8 @@ include "core\\retarget\\retarget_solver.ms"
             button btnIn "..." width:30 align:#right offset:[0,-2]
             edittext edtOut "Output:" fieldWidth:265 across:2
             button btnOut "..." width:30 align:#right offset:[0,-2]
+            checkbox chkHaloNames "Halo CE file names (first-person reload-full, fire-1%0...)" checked:true \
+                tooltip:"Renames first person animations to stock Halo CE names so the folder compiles as is. Animations Halo CE doesn't have go to a subfolder."
             label lblFiles "" align:#left width:350
             button btnBatch "Retarget Folder" width:350 height:28
         )
@@ -197,7 +214,8 @@ include "core\\retarget\\retarget_solver.ms"
             lbxMap.items = for t in targetNames collect
             (
                 local s = retargetGetSource preset t
-                t + "   <-   " + (if s == undefined then noSource else s)
+                t + "   <-   " + (if s == undefined then noSource else s) + \
+                    (if (retargetGetAdjust preset t) != undefined then "   (adjusted)" else "")
             )
             if sel > 0 and sel <= targetNames.count then lbxMap.selection = sel
             else if targetNames.count > 0 do lbxMap.selection = 1
@@ -214,11 +232,28 @@ include "core\\retarget\\retarget_solver.ms"
             if sel < 1 or sel > targetNames.count do
             (
                 ddlSource.selection = 1
+                spnAdjustX.value = 0
+                spnAdjustY.value = 0
+                spnAdjustZ.value = 0
                 return false
             )
             local s = retargetGetSource preset targetNames[sel]
             local idx = if s == undefined then 0 else retargetFindName (currentSourceNames()) s
             ddlSource.selection = idx + 1
+            local angles = retargetGetAdjust preset targetNames[sel]
+            if angles == undefined do angles = [0, 0, 0]
+            spnAdjustX.value = angles.x
+            spnAdjustY.value = angles.y
+            spnAdjustZ.value = angles.z
+        )
+
+        fn setAdjust =
+        (
+            local targetNames = currentTargetNames()
+            local sel = lbxMap.selection
+            if sel < 1 or sel > targetNames.count do return false
+            retargetSetAdjust preset targetNames[sel] [spnAdjustX.value, spnAdjustY.value, spnAdjustZ.value]
+            refreshMapping()
         )
 
         fn refreshCapture =
@@ -252,6 +287,13 @@ include "core\\retarget\\retarget_solver.ms"
             refreshSelection()
             refreshCapture()
             spnRootScale.value = preset.rootScale
+            chkCamera.checked = preset.cameraNode != ""
+            if preset.cameraNode != "" do edtCamera.text = preset.cameraNode
+        )
+
+        fn syncCamera =
+        (
+            preset.cameraNode = if chkCamera.checked then trimRight (trimLeft edtCamera.text) else ""
         )
 
         fn setRig picked isSource =
@@ -326,42 +368,31 @@ include "core\\retarget\\retarget_solver.ms"
         (
             if preset.sourcePose == undefined or preset.targetPose == undefined do
             (
-                messageBox "Capture the match pose first (Match Pose > Capture Match Pose)." title:toolTitle
+                messageBox "Capture the rest pose first (Rest Pose > Capture Rest Pose)." title:toolTitle
                 return undefined
             )
             preset.rootScale = spnRootScale.value
-            local ctx = retargetPrepare preset useIK:chkIK.checked
+            syncCamera()
+            local ctx = retargetPrepare preset useIK:chkIK.checked copyTranslations:chkTranslations.checked \
+                shoulderReach:spnShoulderReach.value
             for w in ctx.warnings do logger.warn "{}" args:#(w)
             if ctx.warnings.count > 0 and not (queryBox ((joinLines ctx.warnings) + "\nContinue anyway?") title:toolTitle) do
                 return undefined
             ctx
         )
 
-        fn runAutoAlign =
-        (
-            if not (checkRigs()) do return false
-            if (rigHasKeys targetRig) and not (queryBox ("The target rig has keyframes. Auto Align works best on the bind pose " + \
-                "without keys, otherwise it changes the keys at the current frame.\n\nContinue?") title:toolTitle) do
-                return false
-            local aligned = 0
-            undo "Retarget Auto Align" on
-            (
-                with animate off aligned = retargetAutoAlign preset sourceRig targetRig
-            )
-            redrawViews()
-            setStatus ((aligned as string) + " bones aligned. Tweak by hand if needed, then Capture Match Pose.")
-        )
-
         fn runCapture =
         (
             if not (checkRigs()) do return false
+            local animated = for rig in #(sourceRig, targetRig) where rigHasKeys rig collect rig[1].name
+            if animated.count > 0 and not (queryBox ("These rigs have keyframes: " + (joinLines animated) + \
+                "\nThe rest pose must be the bind pose. Capture at the current frame anyway?") title:toolTitle) do
+                return false
             preset.sourcePose = retargetCapturePose sourceRig
             preset.targetPose = retargetCapturePose targetRig
             local warnings = (retargetPoseWarnings preset.sourcePose "Source") + (retargetPoseWarnings preset.targetPose "Target")
-            local rootGap = distance sourceRig[1].transform.row4 targetRig[1].transform.row4
             refreshCapture()
-            setStatus ("Match pose captured at frame " + ((sliderTime.frame as integer) as string) + ". Save the preset to keep it.")
-            logger.info "Match pose captured: root gap {}" args:#(rootGap)
+            setStatus ("Rest pose captured at frame " + ((sliderTime.frame as integer) as string) + ". Save the preset to keep it.")
             if warnings.count > 0 do messageBox (joinLines warnings) title:toolTitle
         )
 
@@ -411,15 +442,37 @@ include "core\\retarget\\retarget_solver.ms"
             if ctx == undefined do return false
             if not doesDirectoryExist outDir do makeDir outDir all:true
 
+            -- Halo CE names: files without an equivalent go to a subfolder, so outDir compiles as is
+            local ceNames = if chkHaloNames.checked then retargetHaloCENames files else undefined
+            local otherDir = outDir + otherFolder + "\\"
+            local renamed = 0
+            local others = 0
+
             local start = timestamp()
             local written = 0
             local report = #()
             for i = 1 to files.count do
             (
                 local fileName = filenameFromPath files[i]
+                local outPath = outDir + fileName
+                if ceNames != undefined do
+                (
+                    if ceNames[i] != undefined then
+                    (
+                        outPath = outDir + ceNames[i] + (getFilenameType files[i])
+                        logger.info "'{}' -> '{}'" args:#(fileName, filenameFromPath outPath)
+                        renamed += 1
+                    )
+                    else
+                    (
+                        if not doesDirectoryExist otherDir do makeDir otherDir all:true
+                        outPath = otherDir + fileName
+                        others += 1
+                    )
+                )
                 setStatus ("Retargeting " + fileName + " (" + (i as string) + "/" + (files.count as string) + ")")
                 local result = #(false, #("unexpected error"))
-                try (result = retargetJmaFile ctx files[i] (outDir + fileName))
+                try (result = retargetJmaFile ctx files[i] outPath)
                 catch (result = #(false, #(getCurrentException())))
                 if result[1] do written += 1
                 for m in result[2] do
@@ -434,17 +487,21 @@ include "core\\retarget\\retarget_solver.ms"
             saveSetting "last_output" outDir
             setStatus ((written as string) + " of " + (files.count as string) + " files written in " + \
                 (((timestamp() - start) / 1000.0) as string) + " s")
+            local namesText = if ceNames == undefined then "" else \
+                "\n" + (renamed as string) + " with Halo CE names, " + (others as string) + " without a Halo CE equivalent (in '" + otherFolder + "')."
             local showDialogs = configManager.getBool "feedback" "show_completion_dialogs" true
             if report.count > 0 then
-                messageBox ((written as string) + " of " + (files.count as string) + " files written.\n\n" + (joinLines report)) title:toolTitle
+                messageBox ((written as string) + " of " + (files.count as string) + " files written." + namesText + "\n\n" + (joinLines report)) title:toolTitle
             else if showDialogs do
-                messageBox ((written as string) + " files written to:\n" + outDir) title:toolTitle
+                messageBox ((written as string) + " files written to:\n" + outDir + namesText) title:toolTitle
         )
 
         on RetargetingRollout open do
         (
             preset = retargetPreset()
             preset.pairs = #()
+            preset.adjusts = #()
+            preset.cameraNode = "b_camera_control"
             local lastPreset = loadSetting "last_preset"
             if lastPreset != "" and doesFileExist lastPreset then loadPresetFile lastPreset
             else refreshAll()
@@ -513,6 +570,7 @@ include "core\\retarget\\retarget_solver.ms"
             if filePath != undefined do
             (
                 preset.rootScale = spnRootScale.value
+                syncCamera()
                 if retargetWritePreset filePath preset then
                 (
                     saveSetting "last_preset" filePath
@@ -521,9 +579,13 @@ include "core\\retarget\\retarget_solver.ms"
                 else messageBox ("Could not write the preset:\n" + filePath) title:toolTitle
             )
         )
-        on btnAlign pressed do runAutoAlign()
+        on spnAdjustX changed val do setAdjust()
+        on spnAdjustY changed val do setAdjust()
+        on spnAdjustZ changed val do setAdjust()
         on btnCapture pressed do runCapture()
         on spnRootScale changed val do preset.rootScale = val
+        on chkCamera changed state do syncCamera()
+        on edtCamera changed txt do syncCamera()
         on btnScene pressed do runScene()
         on btnIn pressed do
         (
