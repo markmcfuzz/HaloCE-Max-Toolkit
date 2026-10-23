@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.7.0] - 2026-10-22
+
+### Added
+
+- **Node Renamer Tool:**
+  - Batch-renames nodes in JMA-family and JMS files to follow Halo CE naming conventions.
+  - Located in `Halo CE Toolkit > Tools > HCE > Node Renamer`.
+  - Supports adding or replacing prefixes and finding/replacing text, with a preview before applying changes.
+  - Exports to a separate folder (`converted` by default), preserving originals and other file data. Skips invalid, duplicate, empty, or over-31-character names and warns about inconsistent node lists.
+- **Skin Bone Limiter Tool:**
+  - Limits each vertex to a maximum of 2 bone influences, as required by Halo CE.
+  - Located in `Halo CE Toolkit > Tools > HCE > Bone Weight Limiter`.
+  - Supports hierarchy-based bone selection, transferring removed weights to the nearest retained bone, or keeping the two strongest influences and normalizing their weights.
+  - Analyzes and selects affected vertices, logs sample weight changes, and optionally sets the Skin `Bone Affect Limit` to 2.
+- **Packed UV Fixer Tool:**
+  - Fixes UVs on Halo Campaign Evolved models using horizontally packed texture tiles, where U coordinates extend beyond `0..1`.
+  - Located in `Halo CE Toolkit > Tools > CER > Packed UV Fixer`.
+  - Scales U coordinates per material using texture dimensions, detected UV ranges, or a manual factor.
+  - Updates the appropriate `Unwrap UVW` modifier or base mesh while preserving Skin modifiers.
+  - `Analyze Selection` reports UV ranges, texture dimensions, and scaling factors. Materials already within `0..1` are skipped by default to prevent unnecessary changes on repeated runs.
+- **Menu reorganization:**
+  - Added new tools in `Tools` > `HCE`: `Node Renamer`, `Bone Weight Limiter`
+
 ## [5.6.0] - 2026-10-22
 
 ### Added
