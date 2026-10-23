@@ -51,28 +51,30 @@ function menuCallback =
     exportMenu.CreateAction "0A1B2C3D-4E5F-6071-8293-A4B5C6D7E8F9" macroScriptTableId exportCameraTrackId
     local buildShadersId = "BuildShaders`Halo CE"
     exportMenu.CreateAction "6B1F2C3D-8E4A-4F5B-9C6D-7E8F9A0B1C2D" macroScriptTableId buildShadersId
+    
     -- Add Tools submenus, grouped by target game
     local toolsHceMenu = toolsMenu.CreateSubMenu "91D68F7F-7A26-4A02-9A20-B9CCBFA76A94" "HCE"
-    --local toolsCerMenu = toolsMenu.CreateSubMenu "487BBA51-2199-4549-A640-42A65AAB0834" "CER"
+    local toolsCerMenu = toolsMenu.CreateSubMenu "487BBA51-2199-4549-A640-42A65AAB0834" "CER"
     --local toolsH5Menu = toolsMenu.CreateSubMenu "C8D0D409-B6B3-47E0-9C78-4C1DDEE07F10" "H5"
     
     -- Add Tools > HCE actions
     local sphereToHaloHelperId = "SphereToHaloMarkerHelper`Halo CE"
     local modelAnimationsExtractorId = "ModelAnimationsExtractor`Halo CE"
-    --local nodeRenamerId = "NodeRenamer`Halo CE"
-    --local skinBoneLimiterId = "SkinBoneLimiter`Halo CE"
+    local nodeRenamerId = "NodeRenamer`Halo CE"
+    local skinBoneLimiterId = "SkinBoneLimiter`Halo CE"
     local cameraTrackGeneratorId = "CameraTrackGenerator`Halo CE"
     local retargetingId = "Retargeting`Halo CE"
     toolsHceMenu.CreateAction "05C59238-B2A9-47D1-BA72-A781492FEDB4" macroScriptTableId sphereToHaloHelperId
     toolsHceMenu.CreateAction "7E8F9A0B-1C2D-3E4F-5A6B-7C8D9E0F1A2B" macroScriptTableId modelAnimationsExtractorId
-    --toolsHceMenu.CreateAction "2FFD9520-7961-4575-B7BE-C8673365D395" macroScriptTableId nodeRenamerId
-    --toolsHceMenu.CreateAction "742D1CC2-B20B-4A02-BC6D-07840785E430" macroScriptTableId skinBoneLimiterId
+    toolsHceMenu.CreateAction "2FFD9520-7961-4575-B7BE-C8673365D395" macroScriptTableId nodeRenamerId
+    toolsHceMenu.CreateAction "742D1CC2-B20B-4A02-BC6D-07840785E430" macroScriptTableId skinBoneLimiterId
     toolsHceMenu.CreateAction "1EED9B0E-55BC-4054-A1E7-398370A8A898" macroScriptTableId cameraTrackGeneratorId
     toolsHceMenu.CreateAction "51891738-CBF2-4468-ACE3-F0EAD2094B0B" macroScriptTableId retargetingId
     
     -- Add Tools > CER actions
-    --local packedUvFixerId = "PackedUvFixer`Halo CE"
-    --toolsCerMenu.CreateAction "2A10A667-0476-48F8-94D8-18ADCC54B254" macroScriptTableId packedUvFixerId
+    local packedUvFixerId = "PackedUvFixer`Halo CE"
+    toolsCerMenu.CreateAction "2A10A667-0476-48F8-94D8-18ADCC54B254" macroScriptTableId packedUvFixerId
+    
     -- Add Tools > H5 actions
     --local h5AnimationsImporterId = "H5AnimationsImporter`Halo CE"
     --toolsH5Menu.CreateAction "4D2A9E61-7B3C-4F85-A0D2-6C1E8B5F3A97" macroScriptTableId h5AnimationsImporterId

@@ -82,7 +82,7 @@ fn createHaloCEToolkitMenu =
         -- Add Tools macros, grouped by target game
         print "Adding Tools macros..."
         local toolsHceMenu = mm.createMenu "HCE"
-        --local toolsCerMenu = mm.createMenu "CER"
+        local toolsCerMenu = mm.createMenu "CER"
         --local toolsH5Menu = mm.createMenu "H5"
 
         addMacroToMenu toolsHceMenu "Halo CE" "SphereToHaloMarkerHelper" mm displayName:"Convert Spheres to Halo Helper Markers"
@@ -92,12 +92,12 @@ fn createHaloCEToolkitMenu =
         addMacroToMenu toolsHceMenu "Halo CE" "CameraTrackGenerator" mm displayName:"Camera Track Builder"
         addMacroToMenu toolsHceMenu "Halo CE" "Retargeting" mm displayName:"Retargeting"
 
-        --addMacroToMenu toolsCerMenu "Halo CE" "PackedUvFixer" mm displayName:"Packed UV Fixer"
+        addMacroToMenu toolsCerMenu "Halo CE" "PackedUvFixer" mm displayName:"Packed UV Fixer"
 
         --addMacroToMenu toolsH5Menu "Halo CE" "H5AnimationsImporter" mm displayName:"H5 Animation Tool"
 
         toolsMenu.addItem (mm.createSubMenuItem "HCE" toolsHceMenu) -1
-        --toolsMenu.addItem (mm.createSubMenuItem "CER" toolsCerMenu) -1
+        toolsMenu.addItem (mm.createSubMenuItem "CER" toolsCerMenu) -1
         --toolsMenu.addItem (mm.createSubMenuItem "H5" toolsH5Menu) -1
 
         -- Add Settings macros

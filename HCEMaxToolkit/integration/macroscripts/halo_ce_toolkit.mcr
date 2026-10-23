@@ -286,47 +286,47 @@ macroScript ModelAnimationsExtractor
 --    )
 --)
 
---macroScript NodeRenamer
---    category: "Halo CE"
---    toolTip: "Node Renamer"
---(
---    on execute do
---    (
---        local thisScript = getThisScriptFilename()
---        local leafPath = pathConfig.removePathLeaf thisScript
---        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
---        local scriptPath = pluginRoot + "\\engine\\tool_node_renamer.ms"
---        if doesFileExist scriptPath then
---        (
---            fileIn scriptPath
---        )
---        else
---        (
---            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
---        )
---    )
---)
+macroScript NodeRenamer
+    category: "Halo CE"
+    toolTip: "Node Renamer"
+(
+    on execute do
+    (
+        local thisScript = getThisScriptFilename()
+        local leafPath = pathConfig.removePathLeaf thisScript
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+        local scriptPath = pluginRoot + "\\engine\\tool_node_renamer.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
 
---macroScript SkinBoneLimiter
---    category: "Halo CE"
---    toolTip: "Bone Weight Limiter"
---(
---    on execute do
---    (
---        local thisScript = getThisScriptFilename()
---        local leafPath = pathConfig.removePathLeaf thisScript
---        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
---        local scriptPath = pluginRoot + "\\engine\\tool_skin_bone_limiter.ms"
---        if doesFileExist scriptPath then
---        (
---            fileIn scriptPath
---        )
---        else
---        (
---            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
---        )
---    )
---)
+macroScript SkinBoneLimiter
+    category: "Halo CE"
+    toolTip: "Bone Weight Limiter"
+(
+    on execute do
+    (
+        local thisScript = getThisScriptFilename()
+        local leafPath = pathConfig.removePathLeaf thisScript
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+        local scriptPath = pluginRoot + "\\engine\\tool_skin_bone_limiter.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
 
 macroScript Retargeting
     category: "Halo CE"
@@ -349,26 +349,26 @@ macroScript Retargeting
     )
 )
 
---macroScript PackedUvFixer
---    category: "Halo CE"
---    toolTip: "Packed UV Fixer"
---(
---    on execute do
---    (
---        local thisScript = getThisScriptFilename()
---        local leafPath = pathConfig.removePathLeaf thisScript
---        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
---        local scriptPath = pluginRoot + "\\engine\\tool_packed_uv_fixer.ms"
---        if doesFileExist scriptPath then
---        (
---            fileIn scriptPath
---        )
---        else
---        (
---            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
---        )
---    )
---)
+macroScript PackedUvFixer
+    category: "Halo CE"
+    toolTip: "Packed UV Fixer"
+(
+    on execute do
+    (
+        local thisScript = getThisScriptFilename()
+        local leafPath = pathConfig.removePathLeaf thisScript
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+        local scriptPath = pluginRoot + "\\engine\\tool_packed_uv_fixer.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
 
 macroScript CameraTrackGenerator
     category: "Halo CE"
