@@ -25,7 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updates the appropriate `Unwrap UVW` modifier or base mesh while preserving Skin modifiers.
   - `Analyze Selection` reports UV ranges, texture dimensions, and scaling factors. Materials already within `0..1` are skipped by default to prevent unnecessary changes on repeated runs.
 - **Menu reorganization:**
-  - Added new tools in `Tools` > `HCE`: `Node Renamer`, `Bone Weight Limiter`
+  - `Tools` added `HCE`, `CER` submenus.
+    - `HCE`: `Node Renamer`, `Bone Weight Limiter`
+    - `CER`: `Packed UV Fixer`
 
 ## [5.6.0] - 2026-10-22
 
