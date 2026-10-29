@@ -23,7 +23,8 @@
 --   rotation(t) = rotation of (offset * S(t))
 --   position(t) = target rest local position under the new parent, plus how far the source bone
 --                 moved from its rest place (first person animations move the shoulders a lot)
--- The rig root follows offset * S(t) rigidly. Hand IK lines up the middle knuckles of both rigs,
+-- The rig root takes the rotation of offset * S(t) and the source position plus the rest position
+-- difference as a fixed world vector (as the Halo 5 tool does). Hand IK lines up the middle knuckles of both rigs,
 -- sliding the shoulder toward the hand when the arm is too short.
 --
 -- Followers: unmapped target nodes whose name is also in the source animation (weapon nodes such
@@ -41,7 +42,9 @@ struct retargetContext
 	sourceParentNames = #(),  -- per target node: source bone's parent (for animated translations)
 	sourceRestLocal = #(),    -- per target node: source bone rest position in its parent, or undefined
 	offsets = #(),            -- per target node: matrix3, or undefined when unmapped
+	rootDeltas = #(),         -- per target node: target rest position - source rest position (world)
 	adjusts = #(),            -- per target node: local correction matrix3, or undefined
+	hasAdjusts = false,
 	ikChains = #(),           -- #(upper, fore, hand, grip) target indices; grip = #(sourceGrip, targetGrip)
 	useIK = true,
 	copyTranslations = true,
@@ -258,6 +261,7 @@ fn retargetPrepare preset useIK:true copyTranslations:true shoulderReach:0.0 =
 	ctx.sourceParentNames = #()
 	ctx.sourceRestLocal = #()
 	ctx.offsets = #()
+	ctx.rootDeltas = #()
 	ctx.adjusts = #()
 	ctx.ikChains = #()
 	ctx.warnings = #()
@@ -275,7 +279,6 @@ fn retargetPrepare preset useIK:true copyTranslations:true shoulderReach:0.0 =
 		local normals = if bones == undefined then undefined else #(retargetPalmNormal tp bones[1], retargetPalmNormal sp bones[2])
 		append palms (if normals == undefined or normals[1] == undefined or normals[2] == undefined then undefined else normals)
 	)
-
 	for i = 1 to tp.names.count do
 	(
 		local srcName = retargetGetSource preset tp.names[i]
@@ -284,12 +287,14 @@ fn retargetPrepare preset useIK:true copyTranslations:true shoulderReach:0.0 =
 			append ctx.warnings ("Source bone '" + srcName + "' is not in the captured source rest pose")
 		local angles = retargetGetAdjust preset tp.names[i]
 		append ctx.adjusts (if angles == undefined then undefined else retargetAdjustMatrix angles)
+		if angles != undefined do ctx.hasAdjusts = true
 		if si == 0 then
 		(
 			append ctx.sourceNames undefined
 			append ctx.sourceParentNames undefined
 			append ctx.sourceRestLocal undefined
 			append ctx.offsets undefined
+			append ctx.rootDeltas undefined
 			continue
 		)
 
@@ -317,6 +322,7 @@ fn retargetPrepare preset useIK:true copyTranslations:true shoulderReach:0.0 =
 
 		append ctx.sourceNames sp.names[si]
 		append ctx.offsets (tp.worlds[i] * (inverse ct) * cs * (inverse sp.worlds[si]))
+		append ctx.rootDeltas (tp.worlds[i].row4 - sp.worlds[si].row4)
 		local sParent = sp.parents[si]
 		append ctx.sourceParentNames (if sParent > 0 then sp.names[sParent] else undefined)
 		append ctx.sourceRestLocal (if sParent > 0 then (retargetPoseLocal sp si).row4 else undefined)
@@ -498,17 +504,15 @@ fn retargetSolveFrame ctx srcWorlds srcParentWorlds follow:undefined =
 		)
 		else if parentWorld == undefined then
 		(
-			-- Rig root: follows its source bone rigidly
-			local w = offset * src
+			-- Rig root: source rotation with the rest offset; position = source position plus the
+			-- rest difference as a fixed world vector, like the Halo 5 tool
 			local restPos = ctx.restWorld[i].row4
-			local rotMatrix = retargetRotationOnly w
-			if ctx.adjusts[i] != undefined do rotMatrix = ctx.adjusts[i] * rotMatrix
-			worlds[i] = retargetWithPosition rotMatrix (restPos + (w.row4 - restPos) * ctx.rootScale)
+			local pos = src.row4 + ctx.rootDeltas[i]
+			worlds[i] = retargetWithPosition (retargetRotationOnly (offset * src)) (restPos + (pos - restPos) * ctx.rootScale)
 		)
 		else
 		(
 			local rotMatrix = if rotOverride[i] != undefined then rotOverride[i] else retargetRotationOnly (offset * src)
-			if ctx.adjusts[i] != undefined do rotMatrix = ctx.adjusts[i] * rotMatrix
 			local pos = ctx.restLocal[i].row4 * parentWorld
 			-- Plus how far the source bone moved from its rest place, in its parent's space
 			local sp = srcParentWorlds[i]
@@ -523,6 +527,22 @@ fn retargetSolveFrame ctx srcWorlds srcParentWorlds follow:undefined =
 		if ctx.useIK do
 			for chain in ctx.ikChains where chain[1] == i do
 				retargetSolveChain ctx chain worlds srcWorlds rotOverride residuals
+	)
+
+	-- Adjust angles go on the final local rotations, so children (and a weapon on the hand)
+	-- follow them, as when the bone is rotated by hand in 'Local' (same as the Halo 5 tool)
+	if ctx.hasAdjusts do
+	(
+		local adjusted = #()
+		adjusted.count = count
+		for i = 1 to count do
+		(
+			local p = ctx.parents[i]
+			local localTm = if p > 0 then worlds[i] * inverse worlds[p] else worlds[i]
+			if ctx.adjusts[i] != undefined do localTm = ctx.adjusts[i] * localTm
+			adjusted[i] = if p > 0 then localTm * adjusted[p] else localTm
+		)
+		worlds = adjusted
 	)
 	worlds
 )
