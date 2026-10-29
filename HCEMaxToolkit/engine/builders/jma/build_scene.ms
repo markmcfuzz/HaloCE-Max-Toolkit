@@ -52,13 +52,22 @@ fn applyAnimationToScene jmaData =
 		)
 	)
 	
+	-- Remove keys left by a previous import. Otherwise each new rotation is
+	-- converted to Euler angles close to the OLD animation's value at that frame,
+	-- so neighbouring keys can end up 360 degrees apart and the bone spins
+	-- between frames during playback.
+	for sceneNode in nodeCache where sceneNode != undefined do
+		deleteKeys sceneNode.controller #allKeys
+
+	-- Set frame rate first so the range and keys use the file's frames
+	frameRate = jmaData.frameRate
+
+	-- Set animation range (0-based frame indices)
+	animationRange = interval 0 (jmaData.frameCount - 1)
+
 	-- Set animation mode
 	max tool animmode
 	set animate on
-	
-	-- Set animation range (0-based frame indices)
-	animationRange = interval 0 (jmaData.frameCount - 1)
-	frameRate = jmaData.frameRate
 	
 	-- Process each frame
 	for f = 1 to jmaData.frameCount do
@@ -105,6 +114,9 @@ fn applyAnimationToScene jmaData =
 	-- Exit animation mode
 	max tool animmode
 	set animate off
+
+	-- Start the new animation at its first frame
+	sliderTime = 0
 	
 	-- Report results
 	if missingNodeIndices.count > 0 then
