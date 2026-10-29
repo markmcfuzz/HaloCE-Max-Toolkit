@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.8.0] - 2026-10-28
+
+### Added
+
+- **H5 Animation Tool:**
+  - Converts Halo 5 `model_animation_graph` tags into JMA-family animations and applies them to the scene skeleton by node name.
+  - Found under `Halo CE Toolkit` > `Tools` > `H5` > `H5 Animation Tool`.
+  - Takes the rest pose from the `render_model` tags; `Auto Detect` finds the first person arms and weapon. `Build H5 Skeleton` creates the rig and `Check Scene Skeleton` compares the scene with it.
+  - Graphs converted before are reloaded without decoding them again.
+  - Retargets to the Halo CE first person arms (`Halo CE FP Arms Pistol` / `Rifle` presets) after `Capture Target Rest Pose`, with hand IK, `Shoulder reach` and optional camera motion removal. `Retarget All...` exports the whole graph.
+  - The retarget keeps Halo 5's animated shoulders and lines up the middle knuckles, so the hands reach their targets (e.g. the magazine in reloads).
+  - Runs on 3ds Max's bundled Python. Animation decoding is based on H5AnimExtractor by Generalkidd.
+
+### Changed
+
+- **Menu reorganization:**
+  - `Tools` added `H5` submenu with `H5 Animation Tool`.
+
 ## [5.7.1] - 2026-10-28
 
 ### Added
