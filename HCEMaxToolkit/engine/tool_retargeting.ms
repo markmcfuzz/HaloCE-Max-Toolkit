@@ -117,6 +117,7 @@ include "core\\retarget\\retarget_naming.ms"
         local preset = undefined
         local sourceRig = #()
         local targetRig = #()
+        local sceneRetargeted = false
 
         group "Skeletons"
         (
@@ -173,6 +174,8 @@ include "core\\retarget\\retarget_naming.ms"
         (
             button btnScene "Retarget Scene Animation" width:350 height:28 \
                 tooltip:"Samples the source rig over the animation range and keys the target rig (its old keys are replaced)"
+            checkbox chkLive "Live preview: retarget the scene again while changing Adjust" checked:true \
+                tooltip:"After a Retarget Scene Animation, every Adjust change re-keys the target rig right away (no undo), so you can tune thumbs by eye"
         )
         group "Batch (JMA, JMM, JMO, JMR, JMT, JMW, JMZ)"
         (
@@ -247,6 +250,24 @@ include "core\\retarget\\retarget_naming.ms"
             spnAdjustZ.value = angles.z
         )
 
+        -- Quiet scene retarget for live Adjust tuning: no dialogs, no undo. Only after a
+        -- 'Retarget Scene Animation' this session, so keys loaded by hand aren't replaced by surprise.
+        fn previewScene =
+        (
+            if not sceneRetargeted or sourceRig.count == 0 or targetRig.count == 0 or sourceRig[1] == targetRig[1] do return false
+            if preset.sourcePose == undefined or preset.targetPose == undefined or preset.pairs.count == 0 do return false
+            preset.rootScale = spnRootScale.value
+            preset.cameraNode = if chkCamera.checked then trimRight (trimLeft edtCamera.text) else ""
+            local ctx = retargetPrepare preset useIK:chkIK.checked copyTranslations:chkTranslations.checked \
+                shoulderReach:spnShoulderReach.value
+            undo off
+            (
+                with redraw off retargetBakeScene ctx sourceRig targetRig
+            )
+            redrawViews()
+            true
+        )
+
         fn setAdjust =
         (
             local targetNames = currentTargetNames()
@@ -254,6 +275,8 @@ include "core\\retarget\\retarget_naming.ms"
             if sel < 1 or sel > targetNames.count do return false
             retargetSetAdjust preset targetNames[sel] [spnAdjustX.value, spnAdjustY.value, spnAdjustZ.value]
             refreshMapping()
+            if chkLive.checked and (previewScene()) do
+                lblStatus.text = "Preview: " + targetNames[sel] + " adjusted. Save the preset to keep it."
         )
 
         fn refreshCapture =
@@ -315,6 +338,7 @@ include "core\\retarget\\retarget_naming.ms"
                 targetRig = rig
                 preset.targetRoot = root.name
             )
+            sceneRetargeted = false
             refreshAll()
             true
         )
@@ -407,6 +431,7 @@ include "core\\retarget\\retarget_naming.ms"
             (
                 with redraw off result = retargetBakeScene ctx sourceRig targetRig progressBar:pbProgress
             )
+            sceneRetargeted = true
             pbProgress.value = 0
             redrawViews()
             for m in result[2] do logger.warn "{}" args:#(m)
@@ -518,6 +543,7 @@ include "core\\retarget\\retarget_naming.ms"
             local rig = sourceRig
             sourceRig = targetRig
             targetRig = rig
+            sceneRetargeted = false
             refreshAll()
             setStatus "Source and target swapped."
         )
