@@ -1,0 +1,71 @@
+# Halo 5 first person arms -> Halo CE first person arms (frame bone24 rig).
+# Tab separated. Target names may list alternatives separated by '|' (the first one found in the scene is used).
+#
+# bone   <h5 node>  <target node>  <h5 aim child>  <target aim child>  <up: world|palm_l|palm_r>  [root]
+#        The aim child gives the bone direction; '-' uses the direction from the parent joint (finger tips).
+#        'root' bones follow the Halo 5 node position; the others keep the target bone lengths.
+# palm   <side>  <h5 wrist> <h5 middle> <h5 index> <h5 ring>  <target wrist> <target middle> <target index> <target ring>
+#        Palm normal = (middle - wrist) x (index - ring): the twist reference shared by both skeletons.
+#        Use fingers parented straight to the wrist: a Halo 5 pinky hangs from an animated metacarpal (b_*_pinky0).
+# ik     <side>  <h5 upperarm> <h5 forearm> <h5 hand>  <target upperarm> <target forearm> <target hand>
+#        Two-bone IK puts the target wrist where the Halo 5 wrist is; the Halo 5 elbow gives the bend direction.
+# gun    <h5 gun> <h5 hand> <target hand>
+#        Halo 5 weapon nodes keep their placement relative to the hand.
+# camera <h5 camera node>
+#        With 'Remove camera motion', every pose is taken relative to this node.
+# adjust <target node>  <x> <y> <z>
+#        Constant correction in degrees about the target bone's local axes (X, then Y, then Z), like rotating
+#        it in 'Local' in 3ds Max. For bones whose anatomy differs between the two rigs (thumbs).
+
+camera	b_camera_control
+gun	b_gun	b_r_hand	frame r wriste
+
+palm	l	b_l_hand	b_l_middle1	b_l_index1	b_l_ring1	frame l wriste	frame l middle low|frame l middlelow	frame l index low	frame l ring low
+palm	r	b_r_hand	b_r_middle1	b_r_index1	b_r_ring1	frame r wriste	frame r middle low|frame r middlelow	frame r index low	frame r ring low
+
+ik	l	b_l_upperarm	b_l_forearm	b_l_hand	frame l upperarm	frame l forearm	frame l wriste
+ik	r	b_r_upperarm	b_r_forearm	b_r_hand	frame r upperarm	frame r forearm	frame r wriste
+
+bone	b_base	frame bone24	-	-	world	root
+
+# The Halo CE left thumb sits further out than the Halo 5 one
+adjust	frame l thumb low	0	15	-12
+adjust	frame l thumb mid	0	-20	0
+
+bone	b_l_upperarm	frame l upperarm	b_l_forearm	frame l forearm	palm_l
+bone	b_l_forearm	frame l forearm	b_l_hand	frame l wriste	palm_l
+bone	b_l_hand	frame l wriste	b_l_middle1	frame l middle low|frame l middlelow	palm_l
+bone	b_l_thumb1	frame l thumb low	b_l_thumb2	frame l thumb mid	palm_l
+bone	b_l_thumb2	frame l thumb mid	b_l_thumb3	frame l thumb tip	palm_l
+bone	b_l_thumb3	frame l thumb tip	-	-	palm_l
+bone	b_l_index1	frame l index low	b_l_index2	frame l index mid	palm_l
+bone	b_l_index2	frame l index mid	b_l_index3	frame l index tip	palm_l
+bone	b_l_index3	frame l index tip	-	-	palm_l
+bone	b_l_middle1	frame l middle low|frame l middlelow	b_l_middle2	frame l middle mid	palm_l
+bone	b_l_middle2	frame l middle mid	b_l_middle3	frame l middle tip	palm_l
+bone	b_l_middle3	frame l middle tip	-	-	palm_l
+bone	b_l_ring1	frame l ring low	b_l_ring2	frame l ring mid	palm_l
+bone	b_l_ring2	frame l ring mid	b_l_ring3	frame l ring tip	palm_l
+bone	b_l_ring3	frame l ring tip	-	-	palm_l
+bone	b_l_pinky1	frame l pinky low	b_l_pinky2	frame l pinky mid	palm_l
+bone	b_l_pinky2	frame l pinky mid	b_l_pinky3	frame l pinky tip	palm_l
+bone	b_l_pinky3	frame l pinky tip	-	-	palm_l
+
+bone	b_r_upperarm	frame r upperarm	b_r_forearm	frame r forearm	palm_r
+bone	b_r_forearm	frame r forearm	b_r_hand	frame r wriste	palm_r
+bone	b_r_hand	frame r wriste	b_r_middle1	frame r middle low|frame r middlelow	palm_r
+bone	b_r_thumb1	frame r thumb low	b_r_thumb2	frame r thumb mid	palm_r
+bone	b_r_thumb2	frame r thumb mid	b_r_thumb3	frame r thumb tip	palm_r
+bone	b_r_thumb3	frame r thumb tip	-	-	palm_r
+bone	b_r_index1	frame r index low	b_r_index2	frame r index mid	palm_r
+bone	b_r_index2	frame r index mid	b_r_index3	frame r index tip	palm_r
+bone	b_r_index3	frame r index tip	-	-	palm_r
+bone	b_r_middle1	frame r middle low|frame r middlelow	b_r_middle2	frame r middle mid	palm_r
+bone	b_r_middle2	frame r middle mid	b_r_middle3	frame r middle tip	palm_r
+bone	b_r_middle3	frame r middle tip	-	-	palm_r
+bone	b_r_ring1	frame r ring low	b_r_ring2	frame r ring mid	palm_r
+bone	b_r_ring2	frame r ring mid	b_r_ring3	frame r ring tip	palm_r
+bone	b_r_ring3	frame r ring tip	-	-	palm_r
+bone	b_r_pinky1	frame r pinky low	b_r_pinky2	frame r pinky mid	palm_r
+bone	b_r_pinky2	frame r pinky mid	b_r_pinky3	frame r pinky tip	palm_r
+bone	b_r_pinky3	frame r pinky tip	-	-	palm_r
