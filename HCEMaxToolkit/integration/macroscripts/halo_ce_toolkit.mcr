@@ -265,26 +265,26 @@ macroScript ModelAnimationsExtractor
     )
 )
 
---macroScript H5AnimationsImporter
---    category: "Halo CE"
---    toolTip: "H5 Animation Tool"
---(
---    on execute do
---    (
---        local thisScript = getThisScriptFilename()
---        local leafPath = pathConfig.removePathLeaf thisScript
---        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
---        local scriptPath = pluginRoot + "\\engine\\tool_h5_animations.ms"
---        if doesFileExist scriptPath then
---        (
---            fileIn scriptPath
---        )
---        else
---        (
---            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
---        )
---    )
---)
+macroScript H5AnimationsImporter
+    category: "Halo CE"
+    toolTip: "H5 Animation Tool"
+(
+    on execute do
+    (
+        local thisScript = getThisScriptFilename()
+        local leafPath = pathConfig.removePathLeaf thisScript
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+        local scriptPath = pluginRoot + "\\engine\\tool_h5_animations.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
 
 macroScript NodeRenamer
     category: "Halo CE"
@@ -327,6 +327,27 @@ macroScript SkinBoneLimiter
         )
     )
 )
+
+--macroScript QuickSkin
+--    category: "Halo CE"
+--    toolTip: "Quick Skin"
+--(
+--    on execute do
+--    (
+--        local thisScript = getThisScriptFilename()
+--        local leafPath = pathConfig.removePathLeaf thisScript
+--        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+--        local scriptPath = pluginRoot + "\\engine\\tool_quick_skin.ms"
+--        if doesFileExist scriptPath then
+--        (
+--            fileIn scriptPath
+--        )
+--        else
+--        (
+--            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+--        )
+--    )
+--)
 
 macroScript Retargeting
     category: "Halo CE"
