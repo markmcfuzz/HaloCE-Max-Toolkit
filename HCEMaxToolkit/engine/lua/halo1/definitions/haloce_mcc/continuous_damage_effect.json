@@ -1,0 +1,389 @@
+{
+ "name": "continuous_damage_effect",
+ "tag": "cdmg",
+ "version": 1,
+ "flags": 8,
+ "block": "continuous_damage_effect_block",
+ "blocks": {
+  "continuous_damage_effect_block": {
+   "max_count": 1,
+   "struct": "continuous_damage_effect_block_struct",
+   "max_count_string": "1",
+   "display_name": "continuous_damage_effect"
+  }
+ },
+ "structs": {
+  "continuous_damage_effect_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 512,
+   "fields": [
+    {
+     "type": "real_bounds",
+     "name": "radius:world units"
+    },
+    {
+     "type": "real_fraction",
+     "name": "cutoff scale:[0,1]"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "explanation",
+     "name": "vibrate parameters",
+     "definition": ""
+    },
+    {
+     "type": "real_fraction",
+     "name": "low frequency:[0,1]"
+    },
+    {
+     "type": "real_fraction",
+     "name": "high frequency:[0,1]"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "explanation",
+     "name": "camera shaking",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "random translation:world units#random translation in all directions"
+    },
+    {
+     "type": "angle",
+     "name": "random rotation:degrees#random rotation in all directions"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "short_enum",
+     "name": "wobble function#a function to perturb the effect's behavior over time",
+     "definition": "wobble function"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "wobble function period:seconds"
+    },
+    {
+     "type": "real_fraction",
+     "name": "wobble weight#a value of 0.0 signifies that the wobble function has no effect; a value of 1.0 signifies that the effect will not be felt when the wobble function's value is zero."
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(real)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(long)",
+     "definition": 20
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "pad",
+     "name": "40*sizeof(long)",
+     "definition": 160
+    },
+    {
+     "type": "explanation",
+     "name": "damage",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "side effect",
+     "definition": "side effect"
+    },
+    {
+     "type": "short_enum",
+     "name": "category",
+     "definition": "category"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real",
+     "name": "damage lower bound"
+    },
+    {
+     "type": "real_bounds",
+     "name": "damage upper bound"
+    },
+    {
+     "type": "real",
+     "name": "vehicle passthrough penalty:[0,1]#zero damages passengers in vehicles, one does not"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real",
+     "name": "stun:[0,1]#amount of stun added to damaged unit"
+    },
+    {
+     "type": "real",
+     "name": "maximum stun:[0,1]#damaged unit's stun will never exceed this amount"
+    },
+    {
+     "type": "real",
+     "name": "stun time:seconds#duration of stun due to this damage"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "explanation",
+     "name": "scalar vs 3d",
+     "definition": "If you do not enable \"use 3d instantaneous acceleration\", the legacy behavior will be exercised where only the 'i' component is used. However, for determining when to generate involuntary sounds for units, the legacy behavior of only checking 'i' >= 2.0 (UNIT_DAMAGE_FLYING_ACCELERATION) is used for determining if the unit was sent 'flying'. \n\nEnable \"allow any non-zero acceleration value\" to allow negative acceleration values. \n\tNOTE this won't be compatible with 'item' objects and Gearbox networking"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "instantaneous acceleration:[0,+inf]"
+    },
+    {
+     "type": "explanation",
+     "name": "damage modifiers",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "dirt:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "sand:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "stone:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "snow:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "wood:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "metal (hollow):[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "metal (thin):[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "metal (thick):[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "rubber:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "glass:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "force field:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "grunt:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "hunter armor:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "hunter skin:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "elite:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "jackal:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "jackal energy shield:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "engineer:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "engineer force field:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "flood combat form:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "flood carrier form:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "cyborg:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "cyborg energy shield:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "armored human:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "human:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "sentinel:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "monitor:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "plastic:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "water:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "leaves:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "elite energy shield:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "ice:[0,+inf]"
+    },
+    {
+     "type": "real",
+     "name": "hunter shield:[0,+inf]"
+    },
+    {
+     "type": "pad",
+     "name": "(MAXIMUM_NUMBER_OF_MATERIAL_TYPES-NUMBER_OF_MATERIAL_TYPES)*sizeof(real)",
+     "definition": 28
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "wobble function": {
+   "options": [
+    "one",
+    "zero",
+    "cosine",
+    "cosine (variable period)",
+    "diagonal wave",
+    "diagonal wave (variable period)",
+    "slide",
+    "slide (variable period)",
+    "noise",
+    "jitter",
+    "wander",
+    "spark"
+   ]
+  },
+  "side effect": {
+   "options": [
+    "none",
+    "harmless",
+    "lethal to the unsuspecting",
+    "emp"
+   ]
+  },
+  "category": {
+   "options": [
+    "none",
+    "falling",
+    "bullet",
+    "grenade",
+    "high explosive",
+    "sniper",
+    "melee",
+    "flame",
+    "mounted weapon",
+    "vehicle",
+    "plasma",
+    "needle",
+    "shotgun"
+   ]
+  },
+  "flags": {
+   "options": [
+    "does not hurt owner",
+    "can cause headshots",
+    "pings resistant units",
+    "does not hurt friends",
+    "does not ping units",
+    "detonates explosives",
+    "only hurts shields",
+    "causes flaming death",
+    "damage indicators always point down",
+    "skips shields",
+    "only hurts one infection form",
+    "can cause multiplayer headshots",
+    "infection form pop",
+    "ignore seat scale for dir. dmg*#NOT YET BACKPORTED from H2",
+    "forces hard ping",
+    "does not hurt players#campaign only",
+    "use 3d instantaneous acceleration",
+    "allow any non-zero acceleration value#overrides the legacy behavior which only applied accelerations >0.0"
+   ]
+  }
+ }
+}

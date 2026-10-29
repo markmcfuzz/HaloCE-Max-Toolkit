@@ -1,0 +1,398 @@
+{
+ "name": "shader_transparent_chicago_extended",
+ "tag": "scex",
+ "version": 1,
+ "flags": 8,
+ "parent_tag": "shdr",
+ "block": "shader_transparent_chicago_extended_block",
+ "blocks": {
+  "shader_transparent_chicago_extended_block": {
+   "max_count": 1,
+   "struct": "shader_transparent_chicago_extended_block_struct",
+   "max_count_string": "1",
+   "display_name": "shader_transparent_chicago_extended"
+  },
+  "shader_transparent_layer_block": {
+   "max_count": 4,
+   "struct": "shader_transparent_layer_block_struct",
+   "max_count_string": "MAXIMUM_EXTRA_LAYERS_PER_SHADER_TRANSPARENT"
+  },
+  "shader_transparent_chicago_map_block": {
+   "max_count": 4,
+   "struct": "shader_transparent_chicago_map_block_struct",
+   "max_count_string": "MAXIMUM_MAPS_PER_SHADER_TRANSPARENT_CHICAGO"
+  }
+ },
+ "structs": {
+  "shader_transparent_chicago_extended_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 120,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "shader",
+     "definition": "shader_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "chicago shader extended",
+     "definition": ""
+    },
+    {
+     "type": "char_integer",
+     "name": "numeric counter limit:[0,255]"
+    },
+    {
+     "type": "byte_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "short_enum",
+     "name": "first map type",
+     "definition": "first map type"
+    },
+    {
+     "type": "short_enum",
+     "name": "framebuffer blend function",
+     "definition": "framebuffer blend function"
+    },
+    {
+     "type": "short_enum",
+     "name": "framebuffer fade mode",
+     "definition": "framebuffer fade mode"
+    },
+    {
+     "type": "short_enum",
+     "name": "framebuffer fade source#fade is multiplied by this external value",
+     "definition": "framebuffer fade source"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "explanation",
+     "name": "lens flares",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "lens flare spacing:world units#0 places a single lens flare"
+    },
+    {
+     "type": "tag_reference",
+     "name": "lens flare",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "lens"
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "extra layers",
+     "definition": "shader_transparent_layer_block"
+    },
+    {
+     "type": "block",
+     "name": "4 stage maps",
+     "definition": "shader_transparent_chicago_map_block"
+    },
+    {
+     "type": "block",
+     "name": "2 stage maps",
+     "definition": "shader_transparent_chicago_map_block"
+    },
+    {
+     "type": "long_flags",
+     "name": "extra flags",
+     "definition": "extra flags"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "shader_transparent_layer_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "shader",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "shdr"
+      ]
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "shader_transparent_chicago_map_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 220,
+   "fields": [
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_4"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "10*sizeof(long)",
+     "definition": 40
+    },
+    {
+     "type": "short_enum",
+     "name": "color function#ignored for last map",
+     "definition": "color function"
+    },
+    {
+     "type": "short_enum",
+     "name": "alpha function#ignored for last map",
+     "definition": "color function"
+    },
+    {
+     "type": "pad",
+     "name": "9*sizeof(long)",
+     "definition": 36
+    },
+    {
+     "type": "real",
+     "name": "map u-scale#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "map v-scale#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "map u-offset"
+    },
+    {
+     "type": "real",
+     "name": "map v-offset"
+    },
+    {
+     "type": "real",
+     "name": "map rotation:degrees"
+    },
+    {
+     "type": "real_fraction",
+     "name": "mipmap bias:[0,1]"
+    },
+    {
+     "type": "tag_reference",
+     "name": "map^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "10*sizeof(long)",
+     "definition": 40
+    },
+    {
+     "type": "explanation",
+     "name": "2D texture animation",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "u-animation source",
+     "definition": "framebuffer fade source"
+    },
+    {
+     "type": "short_enum",
+     "name": "u-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "real",
+     "name": "u-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "u-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "u-animation scale:repeats#0 defaults to 1"
+    },
+    {
+     "type": "short_enum",
+     "name": "v-animation source",
+     "definition": "framebuffer fade source"
+    },
+    {
+     "type": "short_enum",
+     "name": "v-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "real",
+     "name": "v-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "v-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "v-animation scale:repeats#0 defaults to 1"
+    },
+    {
+     "type": "short_enum",
+     "name": "rotation-animation source",
+     "definition": "framebuffer fade source"
+    },
+    {
+     "type": "short_enum",
+     "name": "rotation-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation scale:degrees#0 defaults to 360"
+    },
+    {
+     "type": "real_point_2d",
+     "name": "rotation-animation center"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags_3": {
+   "options": [
+    "alpha-tested",
+    "decal",
+    "two-sided",
+    "first map is in screenspace",
+    "draw before water",
+    "ignore effect",
+    "scale first map with distance",
+    "numeric"
+   ]
+  },
+  "first map type": {
+   "options": [
+    "2D map",
+    "first map is reflection cube map",
+    "first map is object-centered cube map",
+    "first map is viewer-centered cube map"
+   ]
+  },
+  "framebuffer blend function": {
+   "options": [
+    "alpha blend",
+    "multiply",
+    "double multiply",
+    "add",
+    "subtract",
+    "component min",
+    "component max",
+    "alpha-multiply add"
+   ]
+  },
+  "framebuffer fade mode": {
+   "options": [
+    "none",
+    "fade when perpendicular",
+    "fade when parallel"
+   ]
+  },
+  "framebuffer fade source": {
+   "options": [
+    "none",
+    "A out",
+    "B out",
+    "C out",
+    "D out"
+   ]
+  },
+  "flags_4": {
+   "options": [
+    "unfiltered",
+    "alpha replicate",
+    "u-clamped",
+    "v-clamped"
+   ]
+  },
+  "color function": {
+   "options": [
+    "current",
+    "next map",
+    "multiply",
+    "double-multiply",
+    "add",
+    "add-signed current",
+    "add-signed next map",
+    "subtract current",
+    "subtract next map",
+    "blend current alpha",
+    "blend current alpha-inverse",
+    "blend next map alpha",
+    "blend next map alpha-inverse"
+   ]
+  },
+  "u-animation function": {
+   "options": [
+    "one",
+    "zero",
+    "cosine",
+    "cosine (variable period)",
+    "diagonal wave",
+    "diagonal wave (variable period)",
+    "slide",
+    "slide (variable period)",
+    "noise",
+    "jitter",
+    "wander",
+    "spark"
+   ]
+  },
+  "extra flags": {
+   "options": [
+    "don't fade active-camouflage",
+    "numeric countdown timer",
+    "custom edition blending"
+   ]
+  }
+ }
+}

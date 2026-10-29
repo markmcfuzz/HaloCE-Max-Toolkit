@@ -1,0 +1,421 @@
+{
+ "name": "weather_particle_system",
+ "tag": "rain",
+ "version": 1,
+ "flags": 8,
+ "block": "weather_particle_system_block",
+ "blocks": {
+  "weather_particle_system_block": {
+   "max_count": 1,
+   "struct": "weather_particle_system_block_struct",
+   "max_count_string": "1",
+   "display_name": "weather_particle_system"
+  },
+  "weather_particle_type_block": {
+   "max_count": 8,
+   "struct": "weather_particle_type_block_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_WEATHER_PARTICLE_TYPES"
+  }
+ },
+ "structs": {
+  "weather_particle_system_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "block",
+     "name": "particle types",
+     "definition": "weather_particle_type_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "weather_particle_type_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 604,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_2"
+    },
+    {
+     "type": "real",
+     "name": "fade-in start distance:world units#Particles begin to fade into visibility beyond this distance"
+    },
+    {
+     "type": "real",
+     "name": "fade-in end distance:world units#Particles become fully visible beyond this distance"
+    },
+    {
+     "type": "real",
+     "name": "fade-out start distance:world units#Particles begin to fade out of visibility beyond this distance"
+    },
+    {
+     "type": "real",
+     "name": "fade-out end distance:world units#Particles become fully invisible beyond this distance"
+    },
+    {
+     "type": "real",
+     "name": "fade-in start height:world units#Particles begin to fade into visibility above this height"
+    },
+    {
+     "type": "real",
+     "name": "fade-in end height:world units#Particles become fully visible above this height"
+    },
+    {
+     "type": "real",
+     "name": "fade-out start height:world units#Particles begin to fade out of visibility above this height"
+    },
+    {
+     "type": "real",
+     "name": "fade-out end height:world units#Particles become fully invisible above this height"
+    },
+    {
+     "type": "pad",
+     "name": "24*sizeof(long)",
+     "definition": 96
+    },
+    {
+     "type": "real_bounds",
+     "name": "particle count:particles per cubic world unit"
+    },
+    {
+     "type": "tag_reference",
+     "name": "physics",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "pphy"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "real_bounds",
+     "name": "acceleration magnitude"
+    },
+    {
+     "type": "real_fraction",
+     "name": "acceleration turning rate"
+    },
+    {
+     "type": "real",
+     "name": "acceleration change rate"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "real_bounds",
+     "name": "particle radius:world units"
+    },
+    {
+     "type": "real_bounds",
+     "name": "animation rate:frames per second"
+    },
+    {
+     "type": "angle_bounds",
+     "name": "rotation rate:degrees per second"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "real_argb_color",
+     "name": "color lower bound"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "color upper bound"
+    },
+    {
+     "type": "pad",
+     "name": "16*sizeof(long)",
+     "definition": 64
+    },
+    {
+     "type": "explanation",
+     "name": "SHADER",
+     "definition": ""
+    },
+    {
+     "type": "tag_reference",
+     "name": "sprite bitmap",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "short_enum",
+     "name": "render mode",
+     "definition": "render mode"
+    },
+    {
+     "type": "short_enum",
+     "name": "render direction source#Render modes that depend on an direction will use this vector.",
+     "definition": "render direction source"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(struct _shader)",
+     "definition": 40
+    },
+    {
+     "type": "word_flags",
+     "name": "shader flags",
+     "definition": "shader flags"
+    },
+    {
+     "type": "short_enum",
+     "name": "framebuffer blend function",
+     "definition": "framebuffer blend function"
+    },
+    {
+     "type": "short_enum",
+     "name": "framebuffer fade mode",
+     "definition": "framebuffer fade mode"
+    },
+    {
+     "type": "word_flags",
+     "name": "map flags",
+     "definition": "map flags"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "explanation",
+     "name": "Secondary Map",
+     "definition": "Optional multitextured second map"
+    },
+    {
+     "type": "tag_reference",
+     "name": "bitmap",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "short_enum",
+     "name": "anchor",
+     "definition": "anchor"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "map flags"
+    },
+    {
+     "type": "short_enum",
+     "name": "u-animation source",
+     "definition": "u-animation source"
+    },
+    {
+     "type": "short_enum",
+     "name": "u-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "real",
+     "name": "u-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "u-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "u-animation scale:repeats#0 defaults to 1"
+    },
+    {
+     "type": "short_enum",
+     "name": "v-animation source",
+     "definition": "u-animation source"
+    },
+    {
+     "type": "short_enum",
+     "name": "v-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "real",
+     "name": "v-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "v-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "v-animation scale:repeats#0 defaults to 1"
+    },
+    {
+     "type": "short_enum",
+     "name": "rotation-animation source",
+     "definition": "u-animation source"
+    },
+    {
+     "type": "short_enum",
+     "name": "rotation-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation scale:degrees#0 defaults to 360"
+    },
+    {
+     "type": "real_point_2d",
+     "name": "rotation-animation center"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(real)",
+     "definition": 4
+    },
+    {
+     "type": "real",
+     "name": "zsprite radius scale"
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(long)",
+     "definition": 20
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": []
+  },
+  "flags_2": {
+   "options": [
+    "interpolate colors in hsv",
+    "... along long hue path",
+    "random rotation"
+   ]
+  },
+  "render mode": {
+   "options": [
+    "screen facing",
+    "parallel to direction",
+    "perpendicular to direction"
+   ]
+  },
+  "render direction source": {
+   "options": [
+    "from velocity",
+    "from acceleration"
+   ]
+  },
+  "shader flags": {
+   "options": [
+    "sort bias",
+    "nonlinear tint",
+    "don't overdraw fp weapon"
+   ]
+  },
+  "framebuffer blend function": {
+   "options": [
+    "alpha blend",
+    "multiply",
+    "double multiply",
+    "add",
+    "subtract",
+    "component min",
+    "component max",
+    "alpha-multiply add"
+   ]
+  },
+  "framebuffer fade mode": {
+   "options": [
+    "none",
+    "fade when perpendicular",
+    "fade when parallel"
+   ]
+  },
+  "map flags": {
+   "options": [
+    "unfiltered"
+   ]
+  },
+  "anchor": {
+   "options": [
+    "with primary",
+    "with screen space",
+    "zsprite"
+   ]
+  },
+  "u-animation source": {
+   "options": [
+    "none",
+    "A out",
+    "B out",
+    "C out",
+    "D out"
+   ]
+  },
+  "u-animation function": {
+   "options": [
+    "one",
+    "zero",
+    "cosine",
+    "cosine (variable period)",
+    "diagonal wave",
+    "diagonal wave (variable period)",
+    "slide",
+    "slide (variable period)",
+    "noise",
+    "jitter",
+    "wander",
+    "spark"
+   ]
+  }
+ }
+}

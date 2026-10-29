@@ -1,0 +1,50 @@
+{
+ "name": "scenery",
+ "tag": "scen",
+ "version": 1,
+ "flags": 9,
+ "parent_tag": "obje",
+ "block": "scenery_block",
+ "blocks": {
+  "scenery_block": {
+   "max_count": 1,
+   "struct": "scenery_block_struct",
+   "max_count_string": "1",
+   "display_name": "scenery"
+  }
+ },
+ "structs": {
+  "scenery_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 508,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "object",
+     "definition": "object_block_struct"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags!",
+     "definition": "flags_3"
+    },
+    {
+     "type": "pad",
+     "name": "31*sizeof(long)",
+     "definition": 124
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags_3": {
+   "options": [
+    "unused!"
+   ]
+  }
+ }
+}

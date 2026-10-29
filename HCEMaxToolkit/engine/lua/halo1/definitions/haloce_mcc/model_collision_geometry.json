@@ -1,0 +1,916 @@
+{
+ "name": "model_collision_geometry",
+ "tag": "coll",
+ "version": 10,
+ "flags": 9,
+ "block": "model_collision_geometry_block",
+ "blocks": {
+  "model_collision_geometry_block": {
+   "max_count": 1,
+   "struct": "model_collision_geometry_block_struct",
+   "max_count_string": "1",
+   "display_name": "model_collision_geometry"
+  },
+  "damage_materials_block": {
+   "max_count": 32,
+   "struct": "damage_materials_block_struct",
+   "max_count_string": "MAXIMUM_MATERIALS_PER_DAMAGE_RESISTANCE"
+  },
+  "damage_regions_block": {
+   "max_count": 8,
+   "struct": "damage_regions_block_struct",
+   "max_count_string": "MAXIMUM_REGIONS_PER_OBJECT"
+  },
+  "damage_permutations_block": {
+   "max_count": 32,
+   "struct": "damage_permutations_block_struct",
+   "max_count_string": "MAXIMUM_PERMUTATIONS_PER_MODEL_REGION"
+  },
+  "damage_modifiers_block": {
+   "max_count": 0,
+   "struct": "damage_modifiers_block_struct",
+   "max_count_string": "0"
+  },
+  "pathfinding_spheres_block": {
+   "max_count": 256,
+   "struct": "pathfinding_spheres_block_struct",
+   "max_count_string": "MAXIMUM_PATHFINDING_SPHERES_PER_COLLISION_MODEL",
+   "display_name": "sphere"
+  },
+  "collision_nodes_block": {
+   "max_count": 64,
+   "struct": "collision_nodes_block_struct",
+   "max_count_string": "MAXIMUM_NODES_PER_COLLISION_MODEL",
+   "display_name": "node"
+  },
+  "collision_bsps_block": {
+   "max_count": 32,
+   "struct": "collision_bsps_block_struct",
+   "max_count_string": "MAXIMUM_BSPS_PER_COLLISION_NODE",
+   "display_name": "bsp"
+  },
+  "bsp3d_nodes_block": {
+   "max_count": 131072,
+   "struct": "bsp3d_nodes_block_struct",
+   "max_count_string": "MAXIMUM_NODES_PER_BSP3D",
+   "display_name": "bsp3d node"
+  },
+  "planes_block": {
+   "max_count": 65536,
+   "struct": "planes_block_struct",
+   "max_count_string": "MAXIMUM_PLANES_PER_BSP3D",
+   "display_name": "plane"
+  },
+  "leaves_block": {
+   "max_count": 65536,
+   "struct": "leaves_block_struct",
+   "max_count_string": "MAXIMUM_LEAVES_PER_BSP3D",
+   "display_name": "leaf"
+  },
+  "bsp2d_references_block": {
+   "max_count": 131072,
+   "struct": "bsp2d_references_block_struct",
+   "max_count_string": "MAXIMUM_BSP2D_REFERENCES_PER_COLLISION_BSP",
+   "display_name": "bsp2d reference"
+  },
+  "bsp2d_nodes_block": {
+   "max_count": 65535,
+   "struct": "bsp2d_nodes_block_struct",
+   "max_count_string": "MAXIMUM_NODES_PER_BSP2D",
+   "display_name": "bsp2d node"
+  },
+  "surfaces_block": {
+   "max_count": 131072,
+   "struct": "surfaces_block_struct",
+   "max_count_string": "MAXIMUM_SURFACES_PER_COLLISION_BSP",
+   "display_name": "surface"
+  },
+  "edges_block": {
+   "max_count": 262144,
+   "struct": "edges_block_struct",
+   "max_count_string": "MAXIMUM_EDGES_PER_COLLISION_BSP",
+   "display_name": "edge"
+  },
+  "vertices_block": {
+   "max_count": 131072,
+   "struct": "vertices_block_struct",
+   "max_count_string": "MAXIMUM_VERTICES_PER_COLLISION_BSP",
+   "display_name": "vertex"
+  }
+ },
+ "structs": {
+  "model_collision_geometry_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 664,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "short_block_index",
+     "name": "indirect damage material#the material we use when shielding child objects or getting hit by area of effect damage",
+     "definition": "damage_materials_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "explanation",
+     "name": "body",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "maximum body vitality#the default initial and maximum body vitality of this object"
+    },
+    {
+     "type": "real",
+     "name": "body system shock#anything that kills us (body depleted) doing more than this amount of damage also destroys us"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "real_fraction",
+     "name": "friendly damage resistance:[0,1]#the fraction of damage caused by friendly units ignored by this object (zero means full damage)"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "tag_reference",
+     "name": "localized damage effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "real",
+     "name": "area damage effect threshold:[0,1]"
+    },
+    {
+     "type": "tag_reference",
+     "name": "area damage effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "real",
+     "name": "body damaged threshold#when passing this vitality the 'body damaged' effect, below, is created"
+    },
+    {
+     "type": "tag_reference",
+     "name": "body damaged effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "body depleted effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "real",
+     "name": "body destroyed threshold#when passing this vitality (usually negative) the object is deleted"
+    },
+    {
+     "type": "tag_reference",
+     "name": "body destroyed effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "explanation",
+     "name": "shield",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "maximum shield vitality#the default initial and maximum shield vitality of this object"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_enum",
+     "name": "shield material type#the material type used when projectiles impact the shield (instead of the body)",
+     "definition": "material type"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "short_enum",
+     "name": "shield failure function#how fast the shield begins to leak",
+     "definition": "shield failure function"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real_fraction",
+     "name": "shield failure threshold#when the shield begins to leak (0.5 would cause the shield to begin to fail after taking half damage)"
+    },
+    {
+     "type": "real_fraction",
+     "name": "failing shield leak fraction#the maximum percent [0,1] damage a failing shield will leak to the body"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "real",
+     "name": "minimum stun damage#the minimum damage required to stun this object's shields"
+    },
+    {
+     "type": "real",
+     "name": "stun time:seconds#the length of time the shields stay stunned (do not recharge) after taking damage"
+    },
+    {
+     "type": "real",
+     "name": "recharge time:seconds#the length of time it would take for the shields to fully recharge after being completely depleted"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "pad",
+     "name": "24*sizeof(long)",
+     "definition": 96
+    },
+    {
+     "type": "real",
+     "name": "shield damaged threshold"
+    },
+    {
+     "type": "tag_reference",
+     "name": "shield damaged effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "shield depleted effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "shield recharging effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "pad",
+     "name": "28*sizeof(long)",
+     "definition": 112
+    },
+    {
+     "type": "block",
+     "name": "materials*",
+     "definition": "damage_materials_block"
+    },
+    {
+     "type": "block",
+     "name": "regions*",
+     "definition": "damage_regions_block"
+    },
+    {
+     "type": "block",
+     "name": "modifiers",
+     "definition": "damage_modifiers_block"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "explanation",
+     "name": "pathfinding box",
+     "definition": ""
+    },
+    {
+     "type": "real_bounds",
+     "name": "x"
+    },
+    {
+     "type": "real_bounds",
+     "name": "y"
+    },
+    {
+     "type": "real_bounds",
+     "name": "z"
+    },
+    {
+     "type": "block",
+     "name": "pathfinding spheres",
+     "definition": "pathfinding_spheres_block"
+    },
+    {
+     "type": "block",
+     "name": "nodes*",
+     "definition": "collision_nodes_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "damage_materials_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 72,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name*^"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "material type",
+     "definition": "material type"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real_fraction",
+     "name": "shield leak percentage#the percent [0,1] damage the shield always leaks through to the body"
+    },
+    {
+     "type": "real",
+     "name": "shield damage multiplier"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(real)",
+     "definition": 12
+    },
+    {
+     "type": "real",
+     "name": "body damage multiplier#multiplier to body damage against this material (1.0 is normal)"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(real)",
+     "definition": 8
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "damage_regions_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 84,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name*^"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real",
+     "name": "damage threshold#if this region takes this amount of damage, it will be destroyed"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "tag_reference",
+     "name": "destroyed effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "permutations",
+     "definition": "damage_permutations_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "damage_permutations_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 32,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name*^"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "damage_modifiers_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 52,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "13*sizeof(long)",
+     "definition": 52
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "pathfinding_spheres_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 32,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "node",
+     "definition": "collision_nodes_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "real_point_3d",
+     "name": "center"
+    },
+    {
+     "type": "real",
+     "name": "radius"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "collision_nodes_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^*"
+    },
+    {
+     "type": "short_block_index",
+     "name": "region*",
+     "definition": "damage_regions_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "parent node*",
+     "definition": "collision_nodes_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "next sibling node*",
+     "definition": "collision_nodes_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "first child node*",
+     "definition": "collision_nodes_block"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "block",
+     "name": "bsps*",
+     "definition": "collision_bsps_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "collision_bsps_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 96,
+   "fields": [
+    {
+     "type": "block",
+     "name": "bsp3d nodes*",
+     "definition": "bsp3d_nodes_block"
+    },
+    {
+     "type": "block",
+     "name": "planes*",
+     "definition": "planes_block"
+    },
+    {
+     "type": "block",
+     "name": "leaves*",
+     "definition": "leaves_block"
+    },
+    {
+     "type": "block",
+     "name": "bsp2d references*",
+     "definition": "bsp2d_references_block"
+    },
+    {
+     "type": "block",
+     "name": "bsp2d nodes*",
+     "definition": "bsp2d_nodes_block"
+    },
+    {
+     "type": "block",
+     "name": "surfaces*",
+     "definition": "surfaces_block"
+    },
+    {
+     "type": "block",
+     "name": "edges*",
+     "definition": "edges_block"
+    },
+    {
+     "type": "block",
+     "name": "vertices*",
+     "definition": "vertices_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "bsp3d_nodes_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 12,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": "plane*"
+    },
+    {
+     "type": "long_integer",
+     "name": "back child*"
+    },
+    {
+     "type": "long_integer",
+     "name": "front child*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "planes_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "real_plane_3d",
+     "name": "plane*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "leaves_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 8,
+   "fields": [
+    {
+     "type": "word_flags",
+     "name": "flags*",
+     "definition": "flags_4"
+    },
+    {
+     "type": "short_integer",
+     "name": "bsp2d reference count*"
+    },
+    {
+     "type": "long_integer",
+     "name": "first bsp2d reference*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "bsp2d_references_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 8,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": "plane*"
+    },
+    {
+     "type": "long_integer",
+     "name": "bsp2d node*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "bsp2d_nodes_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 20,
+   "fields": [
+    {
+     "type": "real_plane_2d",
+     "name": "plane*"
+    },
+    {
+     "type": "long_integer",
+     "name": "left child*"
+    },
+    {
+     "type": "long_integer",
+     "name": "right child*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "surfaces_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 12,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": "plane*"
+    },
+    {
+     "type": "long_integer",
+     "name": "first edge*"
+    },
+    {
+     "type": "byte_flags",
+     "name": "flags*",
+     "definition": "flags_5"
+    },
+    {
+     "type": "char_integer",
+     "name": "breakable surface*"
+    },
+    {
+     "type": "short_integer",
+     "name": "material*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "edges_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 24,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": "start vertex*"
+    },
+    {
+     "type": "long_integer",
+     "name": "end vertex*"
+    },
+    {
+     "type": "long_integer",
+     "name": "forward edge*"
+    },
+    {
+     "type": "long_integer",
+     "name": "reverse edge*"
+    },
+    {
+     "type": "long_integer",
+     "name": "left surface*"
+    },
+    {
+     "type": "long_integer",
+     "name": "right surface*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "vertices_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "point*"
+    },
+    {
+     "type": "long_integer",
+     "name": "first edge*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "takes shield damage for children",
+    "takes body damage for children",
+    "always shields friendly damage",
+    "passes area damage to children",
+    "parent never takes body damage for us",
+    "only damaged by explosives",
+    "only damaged while occupied"
+   ]
+  },
+  "flags_2": {
+   "options": [
+    "head"
+   ]
+  },
+  "material type": {
+   "options": [
+    "dirt",
+    "sand",
+    "stone",
+    "snow",
+    "wood",
+    "metal (hollow)",
+    "metal (thin)",
+    "metal (thick)",
+    "rubber",
+    "glass",
+    "force field",
+    "grunt",
+    "hunter armor",
+    "hunter skin",
+    "elite",
+    "jackal",
+    "jackal energy shield",
+    "engineer skin",
+    "engineer force field",
+    "flood combat form",
+    "flood carrier form",
+    "cyborg armor",
+    "cyborg energy shield",
+    "human armor",
+    "human skin",
+    "sentinel",
+    "monitor",
+    "plastic",
+    "water",
+    "leaves",
+    "elite energy shield",
+    "ice",
+    "hunter shield"
+   ]
+  },
+  "shield failure function": {
+   "options": [
+    "linear",
+    "early",
+    "very early",
+    "late",
+    "very late",
+    "cosine"
+   ]
+  },
+  "flags_3": {
+   "options": [
+    "lives until object dies",
+    "forces object to die",
+    "dies when object dies",
+    "dies when object is damaged",
+    "disappears when shield is off",
+    "inhibits melee attack",
+    "inhibits weapon attack",
+    "inhibits walking",
+    "forces drop weapon",
+    "causes head-maimed scream"
+   ]
+  },
+  "flags_4": {
+   "options": [
+    "contains double-sided surfaces"
+   ]
+  },
+  "flags_5": {
+   "options": [
+    "two sided",
+    "invisible",
+    "climbable",
+    "breakable"
+   ]
+  }
+ }
+}

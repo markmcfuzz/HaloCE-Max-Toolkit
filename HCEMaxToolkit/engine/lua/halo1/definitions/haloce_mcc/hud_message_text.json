@@ -1,0 +1,117 @@
+{
+ "name": "hud_message_text",
+ "tag": "hmt ",
+ "version": 1,
+ "flags": 8,
+ "block": "hud_message_text_block",
+ "blocks": {
+  "hud_message_text_block": {
+   "max_count": 1,
+   "struct": "hud_message_text_block_struct",
+   "max_count_string": "1",
+   "display_name": "hud_message_text"
+  },
+  "hud_message_elements_block": {
+   "max_count": 8192,
+   "struct": "hud_message_elements_block_struct",
+   "max_count_string": "MAX_STATE_MESSAGES*MAX_STATE_TEXT_PANELS"
+  },
+  "hud_messages_block": {
+   "max_count": 1024,
+   "struct": "hud_messages_block_struct",
+   "max_count_string": "MAX_STATE_MESSAGES"
+  }
+ },
+ "structs": {
+  "hud_message_text_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 128,
+   "fields": [
+    {
+     "type": "data",
+     "name": "text data*",
+     "definition": "string data"
+    },
+    {
+     "type": "block",
+     "name": "message elements*",
+     "definition": "hud_message_elements_block"
+    },
+    {
+     "type": "block",
+     "name": "messages*",
+     "definition": "hud_messages_block"
+    },
+    {
+     "type": "pad",
+     "name": "21*sizeof(long)",
+     "definition": 84
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "hud_message_elements_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 2,
+   "fields": [
+    {
+     "type": "char_integer",
+     "name": "type*"
+    },
+    {
+     "type": "char_integer",
+     "name": "data*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "hud_messages_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name*"
+    },
+    {
+     "type": "short_integer",
+     "name": "start index into text blob*"
+    },
+    {
+     "type": "short_integer",
+     "name": "start index of message block*"
+    },
+    {
+     "type": "char_integer",
+     "name": "panel count*"
+    },
+    {
+     "type": "pad",
+     "name": "3",
+     "definition": 3
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*6",
+     "definition": 24
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "datas": {
+  "string data": {
+   "flags": 2,
+   "max_size": 65536
+  }
+ }
+}

@@ -1,0 +1,88 @@
+{
+ "name": "equipment",
+ "tag": "eqip",
+ "version": 2,
+ "flags": 0,
+ "parent_tag": "item",
+ "block": "equipment_block",
+ "blocks": {
+  "equipment_block": {
+   "max_count": 1,
+   "struct": "equipment_block_struct",
+   "max_count_string": "1",
+   "display_name": "equipment"
+  }
+ },
+ "structs": {
+  "equipment_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 944,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "item",
+     "definition": "item_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "$$$ EQUIPMENT $$$",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "powerup type",
+     "definition": "powerup type"
+    },
+    {
+     "type": "short_enum",
+     "name": "grenade type",
+     "definition": "grenade type"
+    },
+    {
+     "type": "real",
+     "name": "powerup time:seconds"
+    },
+    {
+     "type": "tag_reference",
+     "name": "pickup sound",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "36*sizeof(long)",
+     "definition": 144
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "powerup type": {
+   "options": [
+    "none",
+    "double speed",
+    "over shield",
+    "active camouflage",
+    "full-spectrum vision",
+    "health",
+    "grenade"
+   ]
+  },
+  "grenade type": {
+   "options": [
+    "human fragmentation",
+    "covenant plasma",
+    "grenade type 2",
+    "grenade type 3"
+   ]
+  }
+ }
+}

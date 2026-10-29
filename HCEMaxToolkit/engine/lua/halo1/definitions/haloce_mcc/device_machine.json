@@ -1,0 +1,98 @@
+{
+ "name": "device_machine",
+ "tag": "mach",
+ "version": 1,
+ "flags": 9,
+ "parent_tag": "devi",
+ "block": "device_machine_block",
+ "blocks": {
+  "device_machine_block": {
+   "max_count": 1,
+   "struct": "device_machine_block_struct",
+   "max_count_string": "1",
+   "display_name": "device_machine"
+  }
+ },
+ "structs": {
+  "device_machine_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 804,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "device",
+     "definition": "device_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "$$$ MACHINE $$$",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "type",
+     "definition": "type_2"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_4"
+    },
+    {
+     "type": "real",
+     "name": "door open time:seconds"
+    },
+    {
+     "type": "pad",
+     "name": "20*sizeof(long)",
+     "definition": 80
+    },
+    {
+     "type": "short_enum",
+     "name": "collision response",
+     "definition": "collision response"
+    },
+    {
+     "type": "short_integer",
+     "name": "elevator node"
+    },
+    {
+     "type": "pad",
+     "name": "13*sizeof(long)",
+     "definition": 52
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "type_2": {
+   "options": [
+    "door",
+    "platform",
+    "gear"
+   ]
+  },
+  "flags_4": {
+   "options": [
+    "pathfinding obstacle",
+    "...but not when open",
+    "elevator#lighting based on what's around, rather than what's below"
+   ]
+  },
+  "collision response": {
+   "options": [
+    "pause until crushed",
+    "reverse directions"
+   ]
+  }
+ }
+}

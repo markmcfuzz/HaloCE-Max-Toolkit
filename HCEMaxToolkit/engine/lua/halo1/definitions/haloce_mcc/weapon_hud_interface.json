@@ -1,0 +1,1613 @@
+{
+ "name": "weapon_hud_interface",
+ "tag": "wphi",
+ "version": 2,
+ "flags": 8,
+ "block": "weapon_hud_interface_block",
+ "blocks": {
+  "weapon_hud_interface_block": {
+   "max_count": 1,
+   "struct": "weapon_hud_interface_block_struct",
+   "max_count_string": "1",
+   "display_name": "weapon_hud_interface"
+  },
+  "weapon_hud_static_block": {
+   "max_count": 16,
+   "struct": "weapon_hud_static_block_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_WEAPON_HUD_ELEMENTS"
+  },
+  "global_hud_multitexture_overlay_definition": {
+   "max_count": 30,
+   "struct": "global_hud_multitexture_overlay_definition_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_MULTITEXTURE_OVERLAYS"
+  },
+  "global_hud_multitexture_overlay_effector_definition": {
+   "max_count": 30,
+   "struct": "global_hud_multitexture_overlay_effector_definition_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_MULTITEXTURE_OVERLAY_EFFECTORS"
+  },
+  "weapon_hud_meter_block": {
+   "max_count": 16,
+   "struct": "weapon_hud_meter_block_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_WEAPON_HUD_ELEMENTS"
+  },
+  "weapon_hud_number_block": {
+   "max_count": 16,
+   "struct": "weapon_hud_number_block_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_WEAPON_HUD_ELEMENTS"
+  },
+  "weapon_hud_crosshair_block": {
+   "max_count": 19,
+   "struct": "weapon_hud_crosshair_block_struct",
+   "max_count_string": "NUMBER_OF_CROSSHAIR_STATES"
+  },
+  "weapon_hud_crosshair_item_block": {
+   "max_count": 16,
+   "struct": "weapon_hud_crosshair_item_block_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_CROSSHAIR_OVERLAYS"
+  },
+  "weapon_hud_overlays_block": {
+   "max_count": 16,
+   "struct": "weapon_hud_overlays_block_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_WEAPON_HUD_ELEMENTS"
+  },
+  "weapon_hud_overlay_block": {
+   "max_count": 16,
+   "struct": "weapon_hud_overlay_block_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_WEAPON_PANEL_OVERLAYS"
+  },
+  "global_hud_screen_effect_definition": {
+   "max_count": 1,
+   "struct": "global_hud_screen_effect_definition_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_HUD_SCREEN_EFFECTS"
+  }
+ },
+ "structs": {
+  "weapon_hud_interface_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 380,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "child hud",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "wphi"
+      ]
+     }
+    },
+    {
+     "type": "explanation",
+     "name": "Flash cutoffs",
+     "definition": ""
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "short_integer",
+     "name": "total ammo cutoff"
+    },
+    {
+     "type": "short_integer",
+     "name": "loaded ammo cutoff"
+    },
+    {
+     "type": "short_integer",
+     "name": "heat cutoff"
+    },
+    {
+     "type": "short_integer",
+     "name": "age cutoff"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "explanation",
+     "name": "Weapon hud screen alignment",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "anchor",
+     "definition": "anchor"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*8",
+     "definition": 32
+    },
+    {
+     "type": "block",
+     "name": "static elements",
+     "definition": "weapon_hud_static_block"
+    },
+    {
+     "type": "block",
+     "name": "meter elements",
+     "definition": "weapon_hud_meter_block"
+    },
+    {
+     "type": "block",
+     "name": "number elements",
+     "definition": "weapon_hud_number_block"
+    },
+    {
+     "type": "explanation",
+     "name": "Crosshairs",
+     "definition": "Crosshairs always go in the center of the screen.\nCrosshairs can be attached to one of four different states:\n\n* Aim: Default crosshair. Frame 0 is the default state, frame 1 is the auto-aim state (frame rate ignored)\n* Zoom Overlay: Each zoom level has a corresponding frame (frame rate ignored)\n* Charge: Charging overlay. If you wish to display an animation for charging, put it here.\n* Flash: Similar to charging, but for low ammo/batter/heat states\n* Reload/Overheat: Similar to charging, but for reloading/overheating\n"
+    },
+    {
+     "type": "block",
+     "name": "crosshairs",
+     "definition": "weapon_hud_crosshair_block"
+    },
+    {
+     "type": "block",
+     "name": "overlay elements",
+     "definition": "weapon_hud_overlays_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(struct tag_block)",
+     "definition": 12
+    },
+    {
+     "type": "block",
+     "name": "screen effect",
+     "definition": "global_hud_screen_effect_definition"
+    },
+    {
+     "type": "pad",
+     "name": "33*sizeof(long)",
+     "definition": 132
+    },
+    {
+     "type": "explanation",
+     "name": "Messaging information",
+     "definition": ""
+    },
+    {
+     "type": "short_integer",
+     "name": "sequence index#sequence index into the global hud icon bitmap"
+    },
+    {
+     "type": "short_integer",
+     "name": "width offset#extra spacing beyond bitmap width for text alignment"
+    },
+    {
+     "type": "point_2d",
+     "name": "offset from reference corner"
+    },
+    {
+     "type": "argb_color",
+     "name": "override icon color"
+    },
+    {
+     "type": "char_integer",
+     "name": "frame rate [0,30]"
+    },
+    {
+     "type": "byte_flags",
+     "name": "flags",
+     "definition": "flags_10"
+    },
+    {
+     "type": "short_integer",
+     "name": "text index"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*12",
+     "definition": 48
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "weapon_hud_static_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 180,
+   "fields": [
+    {
+     "type": "short_enum",
+     "name": "state attached to",
+     "definition": "state attached to"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "short_enum",
+     "name": "can use on map type",
+     "definition": "can use on map type"
+    },
+    {
+     "type": "short_enum",
+     "name": "anchor",
+     "definition": "anchor_2"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "point_2d",
+     "name": "anchor offset"
+    },
+    {
+     "type": "real",
+     "name": "width scale"
+    },
+    {
+     "type": "real",
+     "name": "height scale"
+    },
+    {
+     "type": "word_flags",
+     "name": "scaling flags",
+     "definition": "scaling flags"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*5",
+     "definition": 20
+    },
+    {
+     "type": "tag_reference",
+     "name": "interface bitmap",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "argb_color",
+     "name": "default color"
+    },
+    {
+     "type": "argb_color",
+     "name": "flashing color"
+    },
+    {
+     "type": "real",
+     "name": "flash period"
+    },
+    {
+     "type": "real",
+     "name": "flash delay#time between flashes"
+    },
+    {
+     "type": "short_integer",
+     "name": "number of flashes"
+    },
+    {
+     "type": "word_flags",
+     "name": "flash flags",
+     "definition": "flash flags"
+    },
+    {
+     "type": "real",
+     "name": "flash length#time of each flash"
+    },
+    {
+     "type": "argb_color",
+     "name": "disabled color"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "short_integer",
+     "name": "sequence index"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "block",
+     "name": "multitex overlay",
+     "definition": "global_hud_multitexture_overlay_definition"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "10*sizeof(long)",
+     "definition": 40
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "global_hud_multitexture_overlay_definition_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 480,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "1*sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_integer",
+     "name": "type!"
+    },
+    {
+     "type": "short_enum",
+     "name": "framebuffer blend func",
+     "definition": "framebuffer blend func"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "explanation",
+     "name": "anchors!",
+     "definition": "where you want the origin of the texture.\n*\"texture\" uses the texture coordinates supplied\n*\"screen\" uses the origin of the screen as the origin of the texture"
+    },
+    {
+     "type": "short_enum",
+     "name": "primary anchor!",
+     "definition": "primary anchor"
+    },
+    {
+     "type": "short_enum",
+     "name": "secondary anchor!",
+     "definition": "primary anchor"
+    },
+    {
+     "type": "short_enum",
+     "name": "tertiary anchor!",
+     "definition": "primary anchor"
+    },
+    {
+     "type": "explanation",
+     "name": "blending function",
+     "definition": "how to blend the textures together"
+    },
+    {
+     "type": "short_enum",
+     "name": "0 to 1 blend func",
+     "definition": "0 to 1 blend func"
+    },
+    {
+     "type": "short_enum",
+     "name": "1 to 2 blend func",
+     "definition": "0 to 1 blend func"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "explanation",
+     "name": "map scales",
+     "definition": "how much to scale the textures"
+    },
+    {
+     "type": "real_point_2d",
+     "name": "primary scale"
+    },
+    {
+     "type": "real_point_2d",
+     "name": "secondary scale"
+    },
+    {
+     "type": "real_point_2d",
+     "name": "tertiary scale"
+    },
+    {
+     "type": "explanation",
+     "name": "map offsets",
+     "definition": "how much to offset the origin of the texture"
+    },
+    {
+     "type": "real_point_2d",
+     "name": "primary offset"
+    },
+    {
+     "type": "real_point_2d",
+     "name": "secondary offset"
+    },
+    {
+     "type": "real_point_2d",
+     "name": "tertiary offset"
+    },
+    {
+     "type": "explanation",
+     "name": "map",
+     "definition": "which maps to use"
+    },
+    {
+     "type": "tag_reference",
+     "name": "primary",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "secondary",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "tertiary",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "short_enum",
+     "name": "primary wrap mode",
+     "definition": "primary wrap mode"
+    },
+    {
+     "type": "short_enum",
+     "name": "secondary wrap mode",
+     "definition": "primary wrap mode"
+    },
+    {
+     "type": "short_enum",
+     "name": "tertiary wrap mode",
+     "definition": "primary wrap mode"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "46*sizeof(long)",
+     "definition": 184
+    },
+    {
+     "type": "block",
+     "name": "effectors",
+     "definition": "global_hud_multitexture_overlay_effector_definition"
+    },
+    {
+     "type": "pad",
+     "name": "32*sizeof(long)",
+     "definition": 128
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "global_hud_multitexture_overlay_effector_definition_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 220,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "16*sizeof(long)",
+     "definition": 64
+    },
+    {
+     "type": "explanation",
+     "name": "source/destination",
+     "definition": "These describe the relationship that causes the effect.\n* destination type is the type of variable you want to be effected\n* destination tells which texture map (or geometry offset) to apply it to\n* source says which value to look at when computing the effect"
+    },
+    {
+     "type": "short_enum",
+     "name": "destination type",
+     "definition": "destination type"
+    },
+    {
+     "type": "short_enum",
+     "name": "destination",
+     "definition": "destination"
+    },
+    {
+     "type": "short_enum",
+     "name": "source",
+     "definition": "source"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "explanation",
+     "name": "in/out bounds",
+     "definition": "When the source is at the lower inbound, the destination ends up the lower outbound and vice-versa applies for the upper values."
+    },
+    {
+     "type": "real_bounds",
+     "name": "in bounds:source units"
+    },
+    {
+     "type": "real_bounds",
+     "name": "out bounds:pixels"
+    },
+    {
+     "type": "pad",
+     "name": "16*sizeof(long)",
+     "definition": 64
+    },
+    {
+     "type": "explanation",
+     "name": "tint color bounds",
+     "definition": "If destination is tint, these values are used instead of the out bounds."
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "tint color lower bound"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "tint color upper bound"
+    },
+    {
+     "type": "explanation",
+     "name": "periodic functions",
+     "definition": "If you use a periodic function as the source, this lets you tweak it."
+    },
+    {
+     "type": "short_enum",
+     "name": "periodic function",
+     "definition": "periodic function"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "function period:seconds"
+    },
+    {
+     "type": "real",
+     "name": "function phase:seconds"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "weapon_hud_meter_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 180,
+   "fields": [
+    {
+     "type": "short_enum",
+     "name": "state attached to",
+     "definition": "state attached to"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "short_enum",
+     "name": "can use on map type",
+     "definition": "can use on map type"
+    },
+    {
+     "type": "short_enum",
+     "name": "anchor",
+     "definition": "anchor_2"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "point_2d",
+     "name": "anchor offset"
+    },
+    {
+     "type": "real",
+     "name": "width scale"
+    },
+    {
+     "type": "real",
+     "name": "height scale"
+    },
+    {
+     "type": "word_flags",
+     "name": "scaling flags",
+     "definition": "scaling flags"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*5",
+     "definition": 20
+    },
+    {
+     "type": "tag_reference",
+     "name": "meter bitmap",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "rgb_color",
+     "name": "color at meter minimum"
+    },
+    {
+     "type": "rgb_color",
+     "name": "color at meter maximum"
+    },
+    {
+     "type": "rgb_color",
+     "name": "flash color"
+    },
+    {
+     "type": "argb_color",
+     "name": "empty color"
+    },
+    {
+     "type": "byte_flags",
+     "name": "flags",
+     "definition": "flags_2"
+    },
+    {
+     "type": "char_integer",
+     "name": "minumum meter value"
+    },
+    {
+     "type": "short_integer",
+     "name": "sequence index"
+    },
+    {
+     "type": "char_integer",
+     "name": "alpha multiplier"
+    },
+    {
+     "type": "char_integer",
+     "name": "alpha bias"
+    },
+    {
+     "type": "short_integer",
+     "name": "value scale#used for non-integral values, i.e. health and shields"
+    },
+    {
+     "type": "real",
+     "name": "opacity"
+    },
+    {
+     "type": "real",
+     "name": "translucency"
+    },
+    {
+     "type": "argb_color",
+     "name": "disabled color"
+    },
+    {
+     "type": "real",
+     "name": "min alpha#make background more visible below this alpha"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "pad",
+     "name": "10*sizeof(long)",
+     "definition": 40
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "weapon_hud_number_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 160,
+   "fields": [
+    {
+     "type": "short_enum",
+     "name": "state attached to",
+     "definition": "state attached to"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "short_enum",
+     "name": "can use on map type",
+     "definition": "can use on map type"
+    },
+    {
+     "type": "short_enum",
+     "name": "anchor",
+     "definition": "anchor_2"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "point_2d",
+     "name": "anchor offset"
+    },
+    {
+     "type": "real",
+     "name": "width scale"
+    },
+    {
+     "type": "real",
+     "name": "height scale"
+    },
+    {
+     "type": "word_flags",
+     "name": "scaling flags",
+     "definition": "scaling flags"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*5",
+     "definition": 20
+    },
+    {
+     "type": "argb_color",
+     "name": "default color"
+    },
+    {
+     "type": "argb_color",
+     "name": "flashing color"
+    },
+    {
+     "type": "real",
+     "name": "flash period"
+    },
+    {
+     "type": "real",
+     "name": "flash delay#time between flashes"
+    },
+    {
+     "type": "short_integer",
+     "name": "number of flashes"
+    },
+    {
+     "type": "word_flags",
+     "name": "flash flags",
+     "definition": "flash flags"
+    },
+    {
+     "type": "real",
+     "name": "flash length#time of each flash"
+    },
+    {
+     "type": "argb_color",
+     "name": "disabled color"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "char_integer",
+     "name": "maximum number of digits"
+    },
+    {
+     "type": "byte_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "char_integer",
+     "name": "number of fractional digits"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(byte)",
+     "definition": 1
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "word_flags",
+     "name": "weapon specific flags",
+     "definition": "weapon specific flags"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "9*sizeof(long)",
+     "definition": 36
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "weapon_hud_crosshair_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 104,
+   "fields": [
+    {
+     "type": "short_enum",
+     "name": "crosshair type",
+     "definition": "crosshair type"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "short_enum",
+     "name": "can use on map type",
+     "definition": "can use on map type"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "tag_reference",
+     "name": "Crosshair bitmap",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "Crosshair overlays",
+     "definition": "weapon_hud_crosshair_item_block"
+    },
+    {
+     "type": "pad",
+     "name": "10*sizeof(long)",
+     "definition": 40
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "weapon_hud_crosshair_item_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 108,
+   "fields": [
+    {
+     "type": "point_2d",
+     "name": "anchor offset"
+    },
+    {
+     "type": "real",
+     "name": "width scale"
+    },
+    {
+     "type": "real",
+     "name": "height scale"
+    },
+    {
+     "type": "word_flags",
+     "name": "scaling flags",
+     "definition": "scaling flags"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*5",
+     "definition": 20
+    },
+    {
+     "type": "argb_color",
+     "name": "default color"
+    },
+    {
+     "type": "argb_color",
+     "name": "flashing color"
+    },
+    {
+     "type": "real",
+     "name": "flash period"
+    },
+    {
+     "type": "real",
+     "name": "flash delay#time between flashes"
+    },
+    {
+     "type": "short_integer",
+     "name": "number of flashes"
+    },
+    {
+     "type": "word_flags",
+     "name": "flash flags",
+     "definition": "flash flags"
+    },
+    {
+     "type": "real",
+     "name": "flash length#time of each flash"
+    },
+    {
+     "type": "argb_color",
+     "name": "disabled color"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "short_integer",
+     "name": "frame rate"
+    },
+    {
+     "type": "short_integer",
+     "name": "sequence index"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_4"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "weapon_hud_overlays_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 104,
+   "fields": [
+    {
+     "type": "short_enum",
+     "name": "state attached to",
+     "definition": "state attached to"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "short_enum",
+     "name": "can use on map type",
+     "definition": "can use on map type"
+    },
+    {
+     "type": "short_enum",
+     "name": "anchor",
+     "definition": "anchor_2"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "tag_reference",
+     "name": "Overlay bitmap",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "Overlays",
+     "definition": "weapon_hud_overlay_block"
+    },
+    {
+     "type": "pad",
+     "name": "10*sizeof(long)",
+     "definition": 40
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "weapon_hud_overlay_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 136,
+   "fields": [
+    {
+     "type": "point_2d",
+     "name": "anchor offset"
+    },
+    {
+     "type": "real",
+     "name": "width scale"
+    },
+    {
+     "type": "real",
+     "name": "height scale"
+    },
+    {
+     "type": "word_flags",
+     "name": "scaling flags",
+     "definition": "scaling flags"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*5",
+     "definition": 20
+    },
+    {
+     "type": "argb_color",
+     "name": "default color"
+    },
+    {
+     "type": "argb_color",
+     "name": "flashing color"
+    },
+    {
+     "type": "real",
+     "name": "flash period"
+    },
+    {
+     "type": "real",
+     "name": "flash delay#time between flashes"
+    },
+    {
+     "type": "short_integer",
+     "name": "number of flashes"
+    },
+    {
+     "type": "word_flags",
+     "name": "flash flags",
+     "definition": "flash flags"
+    },
+    {
+     "type": "real",
+     "name": "flash length#time of each flash"
+    },
+    {
+     "type": "argb_color",
+     "name": "disabled color"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "short_integer",
+     "name": "frame rate"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "short_integer",
+     "name": "sequence index"
+    },
+    {
+     "type": "word_flags",
+     "name": "type",
+     "definition": "type"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_5"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "pad",
+     "name": "10*sizeof(long)",
+     "definition": 40
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "global_hud_screen_effect_definition_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 184,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "explanation",
+     "name": "mask",
+     "definition": "Mask bitmap overlay. Use either a 2D bitmap or an interface bitmap."
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_6"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "tag_reference",
+     "name": "mask (fullscreen)",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "mask (splitscreen)",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "explanation",
+     "name": "convolution",
+     "definition": "Warp effect like in 'Pitch-Black', sort of."
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_7"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "angle_bounds",
+     "name": "FOV in bounds:degrees"
+    },
+    {
+     "type": "real_bounds",
+     "name": "radius out bounds:pixels"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "explanation",
+     "name": "night-vision",
+     "definition": "Real-time gamma correction to make dark objects appear brighter."
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_8"
+    },
+    {
+     "type": "short_integer",
+     "name": "script source:[0,3]"
+    },
+    {
+     "type": "real_fraction",
+     "name": "intensity:[0,1]"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "explanation",
+     "name": "desaturation",
+     "definition": "Real-time monochromatic color filter."
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_9"
+    },
+    {
+     "type": "short_integer",
+     "name": "script source:[0,3]"
+    },
+    {
+     "type": "real_fraction",
+     "name": "intensity:[0,1]"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "tint"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "use parent hud flashing parameters"
+   ]
+  },
+  "anchor": {
+   "options": [
+    "top left",
+    "top right",
+    "bottom left",
+    "bottom right",
+    "center",
+    "top_center",
+    "bottom_center",
+    "left_center",
+    "right_center"
+   ]
+  },
+  "state attached to": {
+   "options": [
+    "total ammo",
+    "loaded ammo",
+    "heat",
+    "age",
+    "secondary weapon total ammo",
+    "secondary weapon loaded ammo",
+    "distance to target",
+    "elevation to target"
+   ]
+  },
+  "can use on map type": {
+   "options": [
+    "any",
+    "fullscreen",
+    "splitscreen"
+   ]
+  },
+  "anchor_2": {
+   "options": [
+    "from parent",
+    "top left",
+    "top right",
+    "bottom left",
+    "bottom right",
+    "center",
+    "top center",
+    "bottom center",
+    "left center",
+    "right center"
+   ]
+  },
+  "scaling flags": {
+   "options": [
+    "don't scale offset",
+    "don't scale size",
+    "use high res scale"
+   ]
+  },
+  "flash flags": {
+   "options": [
+    "reverse default/flashing colors"
+   ]
+  },
+  "framebuffer blend func": {
+   "options": [
+    "alpha blend",
+    "multiply",
+    "double multiply",
+    "add",
+    "subtract",
+    "component min",
+    "component max",
+    "alpha-multiply add"
+   ]
+  },
+  "primary anchor": {
+   "options": [
+    "texture",
+    "screen"
+   ]
+  },
+  "0 to 1 blend func": {
+   "options": [
+    "add",
+    "subtract",
+    "multiply",
+    "multiply2x",
+    "dot"
+   ]
+  },
+  "primary wrap mode": {
+   "options": [
+    "clamp",
+    "wrap"
+   ]
+  },
+  "destination type": {
+   "options": [
+    "tint [0,1]",
+    "horizontal offset",
+    "vertical offset",
+    "fade [0,1]"
+   ]
+  },
+  "destination": {
+   "options": [
+    "geometry offset",
+    "primary map",
+    "secondary map",
+    "tertiary map"
+   ]
+  },
+  "source": {
+   "options": [
+    "player pitch",
+    "player pitch tangent",
+    "player yaw",
+    "weapon ammo (total)",
+    "weapon ammo (loaded)",
+    "weapon heat",
+    "explicit (uses low bound)",
+    "weapon zoom level"
+   ]
+  },
+  "periodic function": {
+   "options": [
+    "one",
+    "zero",
+    "cosine",
+    "cosine (variable period)",
+    "diagonal wave",
+    "diagonal wave (variable period)",
+    "slide",
+    "slide (variable period)",
+    "noise",
+    "jitter",
+    "wander",
+    "spark"
+   ]
+  },
+  "flags_2": {
+   "options": [
+    "use min/max for state changes",
+    "interpolate between min/max flash colors as state changes",
+    "interpolate color along hsv space",
+    "...more colors for hsv interpolation",
+    "invert interpolation",
+    "use xbox shading"
+   ]
+  },
+  "flags_3": {
+   "options": [
+    "show leading zeros",
+    "only show when zoomed",
+    "draw a trailing m"
+   ]
+  },
+  "weapon specific flags": {
+   "options": [
+    "divide number by clip size"
+   ]
+  },
+  "crosshair type": {
+   "options": [
+    "aim",
+    "zoom overlay",
+    "charge",
+    "should reload",
+    "flash heat",
+    "flash total ammo",
+    "flash battery",
+    "reload/overheat",
+    "flash when firing and no ammo",
+    "flash when throwing and no grenade",
+    "low ammo and none left to reload",
+    "should reload secondary trigger",
+    "flash secondary total ammo",
+    "flash secondary reload",
+    "flash when firing secondary trigger with no ammo",
+    "low secondary ammo and none left to reload",
+    "primary trigger ready",
+    "secondary trigger ready",
+    "flash when firing with depleted battery"
+   ]
+  },
+  "flags_4": {
+   "options": [
+    "flashes when active",
+    "not a sprite",
+    "show only when zoomed",
+    "show sniper data",
+    "hide area outside reticle",
+    "one zoom level",
+    "don't show when zoomed"
+   ]
+  },
+  "type": {
+   "options": [
+    "show on flashing",
+    "show on empty",
+    "show on reload/overheating",
+    "show on default",
+    "show always"
+   ]
+  },
+  "flags_5": {
+   "options": [
+    "flashes when active"
+   ]
+  },
+  "flags_6": {
+   "options": [
+    "only when zoomed"
+   ]
+  },
+  "flags_7": {
+   "options": [
+    "only when zoomed"
+   ]
+  },
+  "flags_8": {
+   "options": [
+    "only when zoomed",
+    "connect to flashlight",
+    "masked"
+   ]
+  },
+  "flags_9": {
+   "options": [
+    "only when zoomed",
+    "connect to flashlight",
+    "additive",
+    "masked"
+   ]
+  },
+  "flags_10": {
+   "options": [
+    "use text from string_list instead",
+    "override default color",
+    "width offset is absolute icon width"
+   ]
+  }
+ }
+}

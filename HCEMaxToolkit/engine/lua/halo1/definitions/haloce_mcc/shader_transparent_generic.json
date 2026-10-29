@@ -1,0 +1,672 @@
+{
+ "name": "shader_transparent_generic",
+ "tag": "sotr",
+ "version": 1,
+ "flags": 8,
+ "parent_tag": "shdr",
+ "block": "shader_transparent_generic_block",
+ "blocks": {
+  "shader_transparent_generic_block": {
+   "max_count": 1,
+   "struct": "shader_transparent_generic_block_struct",
+   "max_count_string": "1",
+   "display_name": "shader_transparent_generic"
+  },
+  "shader_transparent_layer_block": {
+   "max_count": 4,
+   "struct": "shader_transparent_layer_block_struct",
+   "max_count_string": "MAXIMUM_EXTRA_LAYERS_PER_SHADER_TRANSPARENT"
+  },
+  "shader_transparent_generic_map_block": {
+   "max_count": 4,
+   "struct": "shader_transparent_generic_map_block_struct",
+   "max_count_string": "MAXIMUM_MAPS_PER_SHADER_TRANSPARENT_GENERIC"
+  },
+  "shader_transparent_generic_stage_block": {
+   "max_count": 7,
+   "struct": "shader_transparent_generic_stage_block_struct",
+   "max_count_string": "MAXIMUM_STAGES_PER_SHADER_TRANSPARENT_GENERIC"
+  }
+ },
+ "structs": {
+  "shader_transparent_generic_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 108,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "shader",
+     "definition": "shader_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "generic transparent shader",
+     "definition": ""
+    },
+    {
+     "type": "char_integer",
+     "name": "numeric counter limit:[0,255]"
+    },
+    {
+     "type": "byte_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "short_enum",
+     "name": "first map type",
+     "definition": "first map type"
+    },
+    {
+     "type": "short_enum",
+     "name": "framebuffer blend function",
+     "definition": "framebuffer blend function"
+    },
+    {
+     "type": "short_enum",
+     "name": "framebuffer fade mode",
+     "definition": "framebuffer fade mode"
+    },
+    {
+     "type": "short_enum",
+     "name": "framebuffer fade source#fade is multiplied by this external value",
+     "definition": "framebuffer fade source"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "explanation",
+     "name": "lens flares",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "lens flare spacing:world units#0 places a single lens flare"
+    },
+    {
+     "type": "tag_reference",
+     "name": "lens flare",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "lens"
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "extra layers",
+     "definition": "shader_transparent_layer_block"
+    },
+    {
+     "type": "block",
+     "name": "maps",
+     "definition": "shader_transparent_generic_map_block"
+    },
+    {
+     "type": "block",
+     "name": "stages",
+     "definition": "shader_transparent_generic_stage_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "shader_transparent_layer_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "shader",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "shdr"
+      ]
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "shader_transparent_generic_map_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 100,
+   "fields": [
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_4"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "map u-scale#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "map v-scale#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "map u-offset"
+    },
+    {
+     "type": "real",
+     "name": "map v-offset"
+    },
+    {
+     "type": "real",
+     "name": "map rotation:degrees"
+    },
+    {
+     "type": "real_fraction",
+     "name": "mipmap bias:[0,1]"
+    },
+    {
+     "type": "tag_reference",
+     "name": "map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "explanation",
+     "name": "2D texture animation",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "u-animation source",
+     "definition": "framebuffer fade source"
+    },
+    {
+     "type": "short_enum",
+     "name": "u-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "real",
+     "name": "u-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "u-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "u-animation scale:repeats#0 defaults to 1"
+    },
+    {
+     "type": "short_enum",
+     "name": "v-animation source",
+     "definition": "framebuffer fade source"
+    },
+    {
+     "type": "short_enum",
+     "name": "v-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "real",
+     "name": "v-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "v-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "v-animation scale:repeats#0 defaults to 1"
+    },
+    {
+     "type": "short_enum",
+     "name": "rotation-animation source",
+     "definition": "framebuffer fade source"
+    },
+    {
+     "type": "short_enum",
+     "name": "rotation-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation scale:degrees#0 defaults to 360"
+    },
+    {
+     "type": "real_point_2d",
+     "name": "rotation-animation center"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "shader_transparent_generic_stage_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 112,
+   "fields": [
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_5"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "explanation",
+     "name": "constants and animation",
+     "definition": "Constant color 0 is animated in exactly the same way as the self-illumination color of the model shader, except that it has an alpha component in addition to the RGB components. Constant color 1 is just a constant."
+    },
+    {
+     "type": "short_enum",
+     "name": "color0 source",
+     "definition": "color0 source"
+    },
+    {
+     "type": "short_enum",
+     "name": "color0 animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "real",
+     "name": "color0 animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "color0 animation lower bound"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "color0 animation upper bound"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "color1"
+    },
+    {
+     "type": "explanation",
+     "name": "color inputs",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "input A",
+     "definition": "input A"
+    },
+    {
+     "type": "short_enum",
+     "name": "input A mapping",
+     "definition": "input A mapping"
+    },
+    {
+     "type": "short_enum",
+     "name": "input B",
+     "definition": "input A"
+    },
+    {
+     "type": "short_enum",
+     "name": "input B mapping",
+     "definition": "input A mapping"
+    },
+    {
+     "type": "short_enum",
+     "name": "input C",
+     "definition": "input A"
+    },
+    {
+     "type": "short_enum",
+     "name": "input C mapping",
+     "definition": "input A mapping"
+    },
+    {
+     "type": "short_enum",
+     "name": "input D",
+     "definition": "input A"
+    },
+    {
+     "type": "short_enum",
+     "name": "input D mapping",
+     "definition": "input A mapping"
+    },
+    {
+     "type": "explanation",
+     "name": "color outputs",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "output AB",
+     "definition": "output AB"
+    },
+    {
+     "type": "short_enum",
+     "name": "output AB function",
+     "definition": "output AB function"
+    },
+    {
+     "type": "short_enum",
+     "name": "output CD",
+     "definition": "output AB"
+    },
+    {
+     "type": "short_enum",
+     "name": "output CD function",
+     "definition": "output AB function"
+    },
+    {
+     "type": "short_enum",
+     "name": "output AB CD mux/sum",
+     "definition": "output AB"
+    },
+    {
+     "type": "short_enum",
+     "name": "output mapping",
+     "definition": "output mapping"
+    },
+    {
+     "type": "explanation",
+     "name": "alpha inputs",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "input A",
+     "definition": "input A_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "input A mapping",
+     "definition": "input A mapping"
+    },
+    {
+     "type": "short_enum",
+     "name": "input B",
+     "definition": "input A_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "input B mapping",
+     "definition": "input A mapping"
+    },
+    {
+     "type": "short_enum",
+     "name": "input C",
+     "definition": "input A_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "input C mapping",
+     "definition": "input A mapping"
+    },
+    {
+     "type": "short_enum",
+     "name": "input D",
+     "definition": "input A_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "input D mapping",
+     "definition": "input A mapping"
+    },
+    {
+     "type": "explanation",
+     "name": "alpha outputs",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "output AB",
+     "definition": "output AB_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "output CD",
+     "definition": "output AB_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "output AB CD mux/sum",
+     "definition": "output AB_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "output mapping",
+     "definition": "output mapping"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags_3": {
+   "options": [
+    "alpha-tested",
+    "decal",
+    "two-sided",
+    "first map is in screenspace",
+    "draw before water",
+    "ignore effect",
+    "scale first map with distance",
+    "numeric"
+   ]
+  },
+  "first map type": {
+   "options": [
+    "2D map",
+    "reflection cube map",
+    "object-centered cube map",
+    "viewer-centered cube map"
+   ]
+  },
+  "framebuffer blend function": {
+   "options": [
+    "alpha blend",
+    "multiply",
+    "double multiply",
+    "add",
+    "subtract",
+    "component min",
+    "component max",
+    "alpha-multiply add"
+   ]
+  },
+  "framebuffer fade mode": {
+   "options": [
+    "none",
+    "fade when perpendicular",
+    "fade when parallel"
+   ]
+  },
+  "framebuffer fade source": {
+   "options": [
+    "none",
+    "A out",
+    "B out",
+    "C out",
+    "D out"
+   ]
+  },
+  "flags_4": {
+   "options": [
+    "unfiltered",
+    "u-clamped",
+    "v-clamped"
+   ]
+  },
+  "u-animation function": {
+   "options": [
+    "one",
+    "zero",
+    "cosine",
+    "cosine (variable period)",
+    "diagonal wave",
+    "diagonal wave (variable period)",
+    "slide",
+    "slide (variable period)",
+    "noise",
+    "jitter",
+    "wander",
+    "spark"
+   ]
+  },
+  "flags_5": {
+   "options": [
+    "color mux",
+    "alpha mux",
+    "A-out controls color0 animation"
+   ]
+  },
+  "color0 source": {
+   "options": [
+    "none",
+    "A",
+    "B",
+    "C",
+    "D"
+   ]
+  },
+  "input A": {
+   "options": [
+    "zero",
+    "one",
+    "one half",
+    "negative one",
+    "negative one half",
+    "map color 0",
+    "map color 1",
+    "map color 2",
+    "map color 3",
+    "vertex color 0 / diffuse light",
+    "vertex color 1 / fade(perpendicular)",
+    "scratch color 0",
+    "scratch color 1",
+    "constant color 0",
+    "constant color 1",
+    "map alpha 0",
+    "map alpha 1",
+    "map alpha 2",
+    "map alpha 3",
+    "vertex alpha 0 / fade(none)",
+    "vertex alpha 1 / fade(perpendicular)",
+    "scratch alpha 0",
+    "scratch alpha 1",
+    "constant alpha 0",
+    "constant alpha 1"
+   ]
+  },
+  "input A mapping": {
+   "options": [
+    "clamp(x)",
+    "1 - clamp(x)",
+    "2*clamp(x) - 1",
+    "1 - 2*clamp(x)",
+    "clamp(x) - 1/2",
+    "1/2 - clamp(x)",
+    "x",
+    "-x"
+   ]
+  },
+  "output AB": {
+   "options": [
+    "discard",
+    "scratch color 0 / final color",
+    "scratch color 1",
+    "vertex color 0",
+    "vertex color 1",
+    "map color 0",
+    "map color 1",
+    "map color 2",
+    "map color 3"
+   ]
+  },
+  "output AB function": {
+   "options": [
+    "multiply",
+    "dot product"
+   ]
+  },
+  "output mapping": {
+   "options": [
+    "identity",
+    "scale by 1/2",
+    "scale by 2",
+    "scale by 4",
+    "bias by -1/2",
+    "expand normal"
+   ]
+  },
+  "input A_2": {
+   "options": [
+    "zero",
+    "one",
+    "one half",
+    "negative one",
+    "negative one half",
+    "map alpha 0",
+    "map alpha 1",
+    "map alpha 2",
+    "map alpha 3",
+    "vertex alpha 0 / fade(none)",
+    "vertex alpha 1 / fade(perpendicular)",
+    "scratch alpha 0",
+    "scratch alpha 1",
+    "constant alpha 0",
+    "constant alpha 1",
+    "map blue 0",
+    "map blue 1",
+    "map blue 2",
+    "map blue 3",
+    "vertex blue 0 / blue light",
+    "vertex blue 1 / fade(parallel)",
+    "scratch blue 0",
+    "scratch blue 1",
+    "constant blue 0",
+    "constant blue 1"
+   ]
+  },
+  "output AB_2": {
+   "options": [
+    "discard",
+    "scratch alpha 0 / final alpha",
+    "scratch alpha 1",
+    "vertex alpha 0 / fog",
+    "vertex alpha 1",
+    "map alpha 0",
+    "map alpha 1",
+    "map alpha 2",
+    "map alpha 3"
+   ]
+  }
+ }
+}

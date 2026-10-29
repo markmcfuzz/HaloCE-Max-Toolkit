@@ -1,0 +1,130 @@
+{
+ "name": "material_effects",
+ "tag": "foot",
+ "version": 1,
+ "flags": 8,
+ "block": "material_effects_block",
+ "blocks": {
+  "material_effects_block": {
+   "max_count": 1,
+   "struct": "material_effects_block_struct",
+   "max_count_string": "1",
+   "display_name": "material_effects"
+  },
+  "material_effect_block": {
+   "max_count": 13,
+   "struct": "material_effect_block_struct",
+   "max_count_string": "NUMBER_OF_MATERIAL_EFFECT_TYPES",
+   "element_label": {
+    "source": "tool.exe 0x527710",
+    "label": [
+     "{#|map:names}"
+    ],
+    "maps": {
+     "names": {
+      "names": [
+       "walk",
+       "run",
+       "sliding",
+       "shuffle",
+       "jump",
+       "jump land",
+       "biped unused1",
+       "biped unused2",
+       "impact",
+       "vehicle tire slip",
+       "vehicle chassis slip",
+       "vehicle unused 1",
+       "vehicle unused 2"
+      ]
+     }
+    }
+   },
+   "element_label_callback": "tool.exe 0x527710"
+  },
+  "material_effect_material_block": {
+   "max_count": 33,
+   "struct": "material_effect_material_block_struct",
+   "max_count_string": "NUMBER_OF_MATERIAL_TYPES",
+   "element_label": "material_effect_material",
+   "element_label_callback": "tool.exe 0x5276C0"
+  }
+ },
+ "structs": {
+  "material_effects_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 140,
+   "fields": [
+    {
+     "type": "block",
+     "name": "effects",
+     "definition": "material_effect_block"
+    },
+    {
+     "type": "pad",
+     "name": "32*sizeof(long)",
+     "definition": 128
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "material_effect_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 28,
+   "fields": [
+    {
+     "type": "block",
+     "name": "materials",
+     "definition": "material_effect_material_block"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "material_effect_material_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "sound",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,57 @@
+{
+ "name": "ui_widget_collection",
+ "tag": "Soul",
+ "version": 1,
+ "flags": 0,
+ "block": "ui_widget_collection_block",
+ "blocks": {
+  "ui_widget_collection_block": {
+   "max_count": 1,
+   "struct": "ui_widget_collection_block_struct",
+   "max_count_string": "1",
+   "display_name": "ui_widget_collection"
+  },
+  "ui_widget_references_block": {
+   "max_count": 32,
+   "struct": "ui_widget_references_block_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_UI_WIDGETS_PER_COLLECTION"
+  }
+ },
+ "structs": {
+  "ui_widget_collection_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 12,
+   "fields": [
+    {
+     "type": "block",
+     "name": "ui widget definitions",
+     "definition": "ui_widget_references_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "ui_widget_references_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "ui_widget_definition",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "DeLa"
+      ]
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ }
+}

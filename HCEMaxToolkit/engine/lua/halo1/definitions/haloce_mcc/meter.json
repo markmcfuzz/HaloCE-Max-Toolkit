@@ -1,0 +1,142 @@
+{
+ "name": "meter",
+ "tag": "metr",
+ "version": 1,
+ "flags": 8,
+ "block": "meter_block",
+ "blocks": {
+  "meter_block": {
+   "max_count": 1,
+   "struct": "meter_block_struct",
+   "max_count_string": "1",
+   "display_name": "meter"
+  }
+ },
+ "structs": {
+  "meter_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 172,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "tag_reference",
+     "name": "stencil bitmaps#two bitmaps specifying the mask and the meter levels",
+     "definition": {
+      "flags": 2,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "source bitmap#optional bitmap to draw into the unmasked regions of the meter (modulated by the colors below)",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "short_integer",
+     "name": "stencil sequence index"
+    },
+    {
+     "type": "short_integer",
+     "name": "source sequence index"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "short_enum",
+     "name": "interpolate colors...",
+     "definition": "interpolate colors..."
+    },
+    {
+     "type": "short_enum",
+     "name": "anchor colors...",
+     "definition": "anchor colors..."
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "real_argb_color",
+     "name": "empty color"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "full color"
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(long)",
+     "definition": 20
+    },
+    {
+     "type": "real",
+     "name": "unmask distance:meter units#fade from fully masked to fully unmasked this distance beyond full (and below empty)"
+    },
+    {
+     "type": "real",
+     "name": "mask distance:meter units#fade from fully unmasked to fully masked this distance below full (and beyond empty)"
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(long)",
+     "definition": 20
+    },
+    {
+     "type": "data",
+     "name": "encoded stencil",
+     "definition": "meter_stencil_data_definition"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": []
+  },
+  "interpolate colors...": {
+   "options": [
+    "linearly",
+    "faster near empty",
+    "faster near full",
+    "through random noise"
+   ]
+  },
+  "anchor colors...": {
+   "options": [
+    "at both ends",
+    "at empty",
+    "at full"
+   ]
+  }
+ },
+ "datas": {
+  "meter_stencil_data_definition": {
+   "flags": 0,
+   "max_size": 65536
+  }
+ }
+}

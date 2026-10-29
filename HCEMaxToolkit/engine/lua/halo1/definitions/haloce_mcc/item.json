@@ -1,0 +1,162 @@
+{
+ "name": "item",
+ "tag": "item",
+ "version": 2,
+ "flags": 9,
+ "parent_tag": "obje",
+ "block": "item_block",
+ "blocks": {
+  "item_block": {
+   "max_count": 1,
+   "struct": "item_block_struct",
+   "max_count_string": "1",
+   "display_name": "item"
+  }
+ },
+ "structs": {
+  "item_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 776,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "object",
+     "definition": "object_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "$$$ ITEM $$$",
+     "definition": ""
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "explanation",
+     "name": "message-index",
+     "definition": "This sets which string from tags\\ui\\hud\\hud_item_messages.unicode_string_list to display."
+    },
+    {
+     "type": "short_integer",
+     "name": "message index"
+    },
+    {
+     "type": "short_integer",
+     "name": "sort order"
+    },
+    {
+     "type": "real",
+     "name": "scale"
+    },
+    {
+     "type": "short_integer",
+     "name": "hud message value scale"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "short_enum",
+     "name": "A in",
+     "definition": "A in_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "B in",
+     "definition": "A in_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "C in",
+     "definition": "A in_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "D in",
+     "definition": "A in_2"
+    },
+    {
+     "type": "pad",
+     "name": "41*sizeof(long)",
+     "definition": 164
+    },
+    {
+     "type": "tag_reference",
+     "name": "material effects",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "foot"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "collision sound",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "30*sizeof(long)",
+     "definition": 120
+    },
+    {
+     "type": "real_bounds",
+     "name": "detonation delay:seconds"
+    },
+    {
+     "type": "tag_reference",
+     "name": "detonating effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "detonation effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags_3": {
+   "options": [
+    "always maintains z up",
+    "destroyed by explosions",
+    "unaffected by gravity"
+   ]
+  },
+  "A in_2": {
+   "options": [
+    "none"
+   ]
+  }
+ }
+}

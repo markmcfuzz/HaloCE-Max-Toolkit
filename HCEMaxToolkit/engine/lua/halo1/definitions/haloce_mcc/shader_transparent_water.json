@@ -1,0 +1,227 @@
+{
+ "name": "shader_transparent_water",
+ "tag": "swat",
+ "version": 2,
+ "flags": 8,
+ "parent_tag": "shdr",
+ "block": "shader_transparent_water_block",
+ "blocks": {
+  "shader_transparent_water_block": {
+   "max_count": 1,
+   "struct": "shader_transparent_water_block_struct",
+   "max_count_string": "1",
+   "display_name": "shader_transparent_water"
+  },
+  "shader_transparent_water_ripple_block": {
+   "max_count": 4,
+   "struct": "shader_transparent_water_ripple_block_struct",
+   "max_count_string": "MAXIMUM_RIPPLES_PER_SHADER_TRANSPARENT_WATER"
+  }
+ },
+ "structs": {
+  "shader_transparent_water_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 320,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "shader",
+     "definition": "shader_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "water shader",
+     "definition": "Base map color modulates the background, while base map alpha modulates reflection brightness. Both of these effects can be independently enables and disabled. Note that if the <base map alpha modulates reflection> flag is not set, then the perpendicular/parallel brightness has no effect (but the perpendicular/parallel tint color DOES has an effect)."
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "tag_reference",
+     "name": "base map#controls reflection brightness and background tint",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "real_fraction",
+     "name": "view perpendicular brightness:[0,1]"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "view perpendicular tint color"
+    },
+    {
+     "type": "real_fraction",
+     "name": "view parallel brightness:[0,1]#0 defaults to 1"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "view parallel tint color"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "tag_reference",
+     "name": "reflection map:[0,1]",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "angle",
+     "name": "ripple animation angle:[0,360]"
+    },
+    {
+     "type": "real",
+     "name": "ripple animation velocity"
+    },
+    {
+     "type": "real",
+     "name": "ripple scale#0 defaults to 1"
+    },
+    {
+     "type": "tag_reference",
+     "name": "ripple maps",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "short_integer",
+     "name": "ripple mipmap levels#0 defaults to 1"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "real_fraction",
+     "name": "ripple mipmap fade factor:[0,1]#flatness of last mipmap"
+    },
+    {
+     "type": "real",
+     "name": "ripple mipmap detail bias"
+    },
+    {
+     "type": "pad",
+     "name": "16*sizeof(long)",
+     "definition": 64
+    },
+    {
+     "type": "block",
+     "name": "ripples",
+     "definition": "shader_transparent_water_ripple_block"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "shader_transparent_water_ripple_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 76,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "real_fraction",
+     "name": "contribution factor:[0,1]#0 defaults to 1"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "angle",
+     "name": "animation angle:[0,360]"
+    },
+    {
+     "type": "real",
+     "name": "animation velocity"
+    },
+    {
+     "type": "real_vector_2d",
+     "name": "map offset"
+    },
+    {
+     "type": "short_integer",
+     "name": "map repeats#0 defaults to 1"
+    },
+    {
+     "type": "short_integer",
+     "name": "map index#index into ripple maps"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags_3": {
+   "options": [
+    "base map alpha modulates reflection",
+    "base map color modulates background",
+    "atmospheric fog",
+    "draw before fog"
+   ]
+  }
+ }
+}

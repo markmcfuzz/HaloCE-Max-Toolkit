@@ -1,0 +1,38 @@
+{
+ "name": "placeholder",
+ "tag": "plac",
+ "version": 2,
+ "flags": 0,
+ "parent_tag": "obje",
+ "block": "placeholder_block",
+ "blocks": {
+  "placeholder_block": {
+   "max_count": 1,
+   "struct": "placeholder_block_struct",
+   "max_count_string": "1",
+   "display_name": "placeholder"
+  }
+ },
+ "structs": {
+  "placeholder_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 508,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "object",
+     "definition": "object_block_struct"
+    },
+    {
+     "type": "pad",
+     "name": "32*sizeof(long)",
+     "definition": 128
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ }
+}

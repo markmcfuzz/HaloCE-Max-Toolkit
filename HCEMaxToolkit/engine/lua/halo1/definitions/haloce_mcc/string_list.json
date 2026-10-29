@@ -1,0 +1,73 @@
+{
+ "name": "string_list",
+ "tag": "str#",
+ "version": 1,
+ "flags": 0,
+ "block": "string_list_block",
+ "blocks": {
+  "string_list_block": {
+   "max_count": 1,
+   "struct": "string_list_block_struct",
+   "max_count_string": "1",
+   "display_name": "string_list"
+  },
+  "string_list_string_reference_block": {
+   "max_count": 800,
+   "struct": "string_list_string_reference_block_struct",
+   "max_count_string": "MAXIMUM_STRINGS_PER_STRING_LIST",
+   "display_name": "string reference",
+   "element_label": {
+    "source": "tool.exe 0x4A5AD0",
+    "label": [
+     {
+      "when": "{string|text} != \"\"",
+      "format": "{string|text}"
+     },
+     {
+      "when": "1",
+      "format": "<empty string>"
+     }
+    ]
+   },
+   "element_label_callback": "tool.exe 0x4A5AD0"
+  }
+ },
+ "structs": {
+  "string_list_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 12,
+   "fields": [
+    {
+     "type": "block",
+     "name": "string references",
+     "definition": "string_list_string_reference_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "string_list_string_reference_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 20,
+   "fields": [
+    {
+     "type": "data",
+     "name": "string",
+     "definition": "string data"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "datas": {
+  "string data": {
+   "flags": 2,
+   "max_size": 4096
+  }
+ }
+}

@@ -1,0 +1,823 @@
+{
+ "name": "hud_globals",
+ "tag": "hudg",
+ "version": 1,
+ "flags": 8,
+ "block": "hud_globals_block",
+ "blocks": {
+  "hud_globals_block": {
+   "max_count": 1,
+   "struct": "hud_globals_block_struct",
+   "max_count_string": "1",
+   "display_name": "hud_globals"
+  },
+  "hud_button_icon_block": {
+   "max_count": 18,
+   "struct": "hud_button_icon_block_struct",
+   "max_count_string": "NUMBER_OF_GAMEPAD_BUTTONS+NUMBER_OF_GAMEPAD_STICKS",
+   "element_label": {
+    "source": "tool.exe 0x527130",
+    "label": [
+     "{#|map:names}"
+    ],
+    "maps": {
+     "names": {
+      "names": [
+       "a button",
+       "b button",
+       "x button",
+       "y button",
+       "black button",
+       "white button",
+       "left trigger",
+       "right trigger",
+       "dpad up",
+       "dpad down",
+       "dpad left",
+       "dpad right",
+       "start button",
+       "back button",
+       "left thumb button",
+       "right thumb button",
+       "left stick (not a button)",
+       "right stick (not a button)"
+      ]
+     }
+    }
+   },
+   "element_label_callback": "tool.exe 0x527130"
+  },
+  "hud_waypoint_arrow_block": {
+   "max_count": 16,
+   "struct": "hud_waypoint_arrow_block_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_WAYPOINTS"
+  },
+  "hud_bitmap_remaps_block_definition": {
+   "max_count": 32,
+   "struct": "hud_bitmap_remaps_block_definition_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_BITMAP_REMAPS"
+  },
+  "hud_bitmap_remap_element_block_definition": {
+   "max_count": 26,
+   "struct": "hud_bitmap_remap_element_block_definition_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_BITMAPS_REMAP_ELEMENTS"
+  }
+ },
+ "structs": {
+  "hud_globals_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 1104,
+   "fields": [
+    {
+     "type": "explanation",
+     "name": "Messaging parameters",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "anchor",
+     "definition": "anchor"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*8",
+     "definition": 32
+    },
+    {
+     "type": "point_2d",
+     "name": "anchor offset"
+    },
+    {
+     "type": "real",
+     "name": "width scale"
+    },
+    {
+     "type": "real",
+     "name": "height scale"
+    },
+    {
+     "type": "word_flags",
+     "name": "scaling flags",
+     "definition": "scaling flags"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*5",
+     "definition": 20
+    },
+    {
+     "type": "tag_reference",
+     "name": "fullscreen font",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "font"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "splitscreen font",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "font"
+      ]
+     }
+    },
+    {
+     "type": "real",
+     "name": "up time"
+    },
+    {
+     "type": "real",
+     "name": "fade time"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "icon color"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "text color"
+    },
+    {
+     "type": "real",
+     "name": "text spacing"
+    },
+    {
+     "type": "tag_reference",
+     "name": "item message text",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "ustr"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "icon bitmap",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "alternate icon text",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "ustr"
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "button icons",
+     "definition": "hud_button_icon_block"
+    },
+    {
+     "type": "explanation",
+     "name": "HUD HELP TEXT COLOR",
+     "definition": ""
+    },
+    {
+     "type": "argb_color",
+     "name": "default color"
+    },
+    {
+     "type": "argb_color",
+     "name": "flashing color"
+    },
+    {
+     "type": "real",
+     "name": "flash period"
+    },
+    {
+     "type": "real",
+     "name": "flash delay#time between flashes"
+    },
+    {
+     "type": "short_integer",
+     "name": "number of flashes"
+    },
+    {
+     "type": "word_flags",
+     "name": "flash flags",
+     "definition": "flash flags"
+    },
+    {
+     "type": "real",
+     "name": "flash length#time of each flash"
+    },
+    {
+     "type": "argb_color",
+     "name": "disabled color"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "explanation",
+     "name": "Other hud messaging data",
+     "definition": ""
+    },
+    {
+     "type": "tag_reference",
+     "name": "hud messages",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "hmt "
+      ]
+     }
+    },
+    {
+     "type": "explanation",
+     "name": "Objective colors",
+     "definition": ""
+    },
+    {
+     "type": "argb_color",
+     "name": "default color"
+    },
+    {
+     "type": "argb_color",
+     "name": "flashing color"
+    },
+    {
+     "type": "real",
+     "name": "flash period"
+    },
+    {
+     "type": "real",
+     "name": "flash delay#time between flashes"
+    },
+    {
+     "type": "short_integer",
+     "name": "number of flashes"
+    },
+    {
+     "type": "word_flags",
+     "name": "flash flags",
+     "definition": "flash flags"
+    },
+    {
+     "type": "real",
+     "name": "flash length#time of each flash"
+    },
+    {
+     "type": "argb_color",
+     "name": "disabled color"
+    },
+    {
+     "type": "short_integer",
+     "name": "uptime ticks"
+    },
+    {
+     "type": "short_integer",
+     "name": "fade ticks"
+    },
+    {
+     "type": "explanation",
+     "name": "Waypoint parameters",
+     "definition": "The offset values are how much the waypoint rectangle border is offset from the safe camera bounds"
+    },
+    {
+     "type": "real",
+     "name": "top offset"
+    },
+    {
+     "type": "real",
+     "name": "bottom offset"
+    },
+    {
+     "type": "real",
+     "name": "left offset"
+    },
+    {
+     "type": "real",
+     "name": "right offset"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "tag_reference",
+     "name": "arrow bitmap",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "waypoint arrows",
+     "definition": "hud_waypoint_arrow_block"
+    },
+    {
+     "type": "pad",
+     "name": "20*sizeof(long)",
+     "definition": 80
+    },
+    {
+     "type": "explanation",
+     "name": "Multiplayer parameters!",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "hud scale in multiplayer!"
+    },
+    {
+     "type": "pad",
+     "name": "64*sizeof(long)",
+     "definition": 256
+    },
+    {
+     "type": "explanation",
+     "name": "Hud globals",
+     "definition": ""
+    },
+    {
+     "type": "tag_reference",
+     "name": "default weapon hud",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "wphi"
+      ]
+     }
+    },
+    {
+     "type": "real",
+     "name": "motion sensor range"
+    },
+    {
+     "type": "real",
+     "name": "motion sensor velocity sensitivity#how fast something moves to show up on the motion sensor"
+    },
+    {
+     "type": "real",
+     "name": "motion sensor scale [DON'T TOUCH EVER]*"
+    },
+    {
+     "type": "rectangle_2d",
+     "name": "default chapter title bounds"
+    },
+    {
+     "type": "pad",
+     "name": "11*sizeof(long)",
+     "definition": 44
+    },
+    {
+     "type": "explanation",
+     "name": "Hud damage indicators",
+     "definition": ""
+    },
+    {
+     "type": "short_integer",
+     "name": "top offset"
+    },
+    {
+     "type": "short_integer",
+     "name": "bottom offset"
+    },
+    {
+     "type": "short_integer",
+     "name": "left offset"
+    },
+    {
+     "type": "short_integer",
+     "name": "right offset"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "tag_reference",
+     "name": "indicator bitmap",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "short_integer",
+     "name": "fullscreen sequence index"
+    },
+    {
+     "type": "short_integer",
+     "name": "splitscreen sequence index"
+    },
+    {
+     "type": "argb_color",
+     "name": "color"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "explanation",
+     "name": "Hud timer definitions",
+     "definition": ""
+    },
+    {
+     "type": "explanation",
+     "name": "Not much time left flash color",
+     "definition": ""
+    },
+    {
+     "type": "argb_color",
+     "name": "default color"
+    },
+    {
+     "type": "argb_color",
+     "name": "flashing color"
+    },
+    {
+     "type": "real",
+     "name": "flash period"
+    },
+    {
+     "type": "real",
+     "name": "flash delay#time between flashes"
+    },
+    {
+     "type": "short_integer",
+     "name": "number of flashes"
+    },
+    {
+     "type": "word_flags",
+     "name": "flash flags",
+     "definition": "flash flags"
+    },
+    {
+     "type": "real",
+     "name": "flash length#time of each flash"
+    },
+    {
+     "type": "argb_color",
+     "name": "disabled color"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "explanation",
+     "name": "Time out flash color",
+     "definition": ""
+    },
+    {
+     "type": "argb_color",
+     "name": "default color"
+    },
+    {
+     "type": "argb_color",
+     "name": "flashing color"
+    },
+    {
+     "type": "real",
+     "name": "flash period"
+    },
+    {
+     "type": "real",
+     "name": "flash delay#time between flashes"
+    },
+    {
+     "type": "short_integer",
+     "name": "number of flashes"
+    },
+    {
+     "type": "word_flags",
+     "name": "flash flags",
+     "definition": "flash flags"
+    },
+    {
+     "type": "real",
+     "name": "flash length#time of each flash"
+    },
+    {
+     "type": "argb_color",
+     "name": "disabled color"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "10*sizeof(long)",
+     "definition": 40
+    },
+    {
+     "type": "tag_reference",
+     "name": "carnage report bitmap",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "explanation",
+     "name": "Hud stuff that wouldn't fit anywhere else",
+     "definition": ""
+    },
+    {
+     "type": "short_integer",
+     "name": "loading begin text:item message text index"
+    },
+    {
+     "type": "short_integer",
+     "name": "loading end text:item message text index"
+    },
+    {
+     "type": "short_integer",
+     "name": "checkpoint begin text:item message text index"
+    },
+    {
+     "type": "short_integer",
+     "name": "checkpoint end text:item message text index"
+    },
+    {
+     "type": "tag_reference",
+     "name": "checkpoint sound",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "explanation",
+     "name": "Remap bitmaps for remastered hud",
+     "definition": ""
+    },
+    {
+     "type": "block",
+     "name": "remaps",
+     "definition": "hud_bitmap_remaps_block_definition"
+    },
+    {
+     "type": "pad",
+     "name": "21*sizeof(long)",
+     "definition": 84
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "hud_button_icon_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "short_integer",
+     "name": "sequence index#sequence index into the global hud icon bitmap"
+    },
+    {
+     "type": "short_integer",
+     "name": "width offset#extra spacing beyond bitmap width for text alignment"
+    },
+    {
+     "type": "point_2d",
+     "name": "offset from reference corner"
+    },
+    {
+     "type": "argb_color",
+     "name": "override icon color"
+    },
+    {
+     "type": "char_integer",
+     "name": "frame rate [0,30]"
+    },
+    {
+     "type": "byte_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "short_integer",
+     "name": "text index"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "hud_waypoint_arrow_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 104,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "rgb_color",
+     "name": "color"
+    },
+    {
+     "type": "real",
+     "name": "opacity"
+    },
+    {
+     "type": "real",
+     "name": "translucency"
+    },
+    {
+     "type": "short_integer",
+     "name": "on screen sequence index"
+    },
+    {
+     "type": "short_integer",
+     "name": "off screen sequence index"
+    },
+    {
+     "type": "short_integer",
+     "name": "occluded sequence index"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_2"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "hud_bitmap_remaps_block_definition_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 28,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "original bitmap^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "targets",
+     "definition": "hud_bitmap_remap_element_block_definition"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "hud_bitmap_remap_element_block_definition_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 20,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "target bitmap^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "short_enum",
+     "name": "language",
+     "definition": "language"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "anchor": {
+   "options": [
+    "top left",
+    "top right",
+    "bottom left",
+    "bottom right",
+    "center",
+    "top_center",
+    "bottom_center",
+    "left_center",
+    "right_center"
+   ]
+  },
+  "scaling flags": {
+   "options": [
+    "don't scale offset",
+    "don't scale size",
+    "use high res scale"
+   ]
+  },
+  "flags": {
+   "options": [
+    "use text from string_list instead",
+    "override default color",
+    "width offset is absolute icon width"
+   ]
+  },
+  "flash flags": {
+   "options": [
+    "reverse default/flashing colors"
+   ]
+  },
+  "flags_2": {
+   "options": [
+    "don't rotate when pointing offscreen"
+   ]
+  },
+  "language": {
+   "options": [
+    "english",
+    "french",
+    "spanish",
+    "italian",
+    "german",
+    "tchinese",
+    "japanese",
+    "korean",
+    "portuguese",
+    "latam_spanish",
+    "polish",
+    "russian",
+    "schinese"
+   ]
+  },
+  "flags_3": {
+   "options": [
+    "legacy mode"
+   ]
+  }
+ }
+}

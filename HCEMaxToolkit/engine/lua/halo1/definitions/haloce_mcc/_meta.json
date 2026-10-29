@@ -1,0 +1,135 @@
+{
+ "game": "haloce_mcc",
+ "dumped_from": "haloce_mcc tool.exe",
+ "dumped_at": "2026-10-06",
+ "tag_index": {
+  "mode": "model",
+  "mod2": "gbxmodel",
+  "antr": "model_animations",
+  "bitm": "bitmap",
+  "colo": "color_table",
+  "str#": "string_list",
+  "ustr": "unicode_string_list",
+  "font": "font",
+  "unit": "unit",
+  "bipd": "biped",
+  "vehi": "vehicle",
+  "scen": "scenery",
+  "phys": "physics",
+  "obje": "object",
+  "cont": "contrail",
+  "weap": "weapon",
+  "ligh": "light",
+  "effe": "effect",
+  "part": "particle",
+  "matg": "globals",
+  "snd!": "sound",
+  "lsnd": "sound_looping",
+  "item": "item",
+  "eqip": "equipment",
+  "flag": "flag",
+  "ant!": "antenna",
+  "rain": "weather_particle_system",
+  "glw!": "glow",
+  "mgs2": "light_volume",
+  "elec": "lightning",
+  "trak": "camera_track",
+  "pctl": "particle_system",
+  "ngpr": "preferences_network_game",
+  "proj": "projectile",
+  "coll": "model_collision_geometry",
+  "devi": "device",
+  "mach": "device_machine",
+  "ctrl": "device_control",
+  "lifi": "device_light_fixture",
+  "pphy": "point_physics",
+  "sbsp": "scenario_structure_bsp",
+  "scnr": "scenario",
+  "shdr": "shader",
+  "senv": "shader_environment",
+  "soso": "shader_model",
+  "sotr": "shader_transparent_generic",
+  "schi": "shader_transparent_chicago",
+  "scex": "shader_transparent_chicago_extended",
+  "swat": "shader_transparent_water",
+  "sgla": "shader_transparent_glass",
+  "smet": "shader_transparent_meter",
+  "spla": "shader_transparent_plasma",
+  "actr": "actor",
+  "actv": "actor_variant",
+  "sky ": "sky",
+  "wind": "wind",
+  "snde": "sound_environment",
+  "lens": "lens_flare",
+  "fog ": "fog",
+  "plac": "placeholder",
+  "metr": "meter",
+  "deca": "decal",
+  "jpt!": "damage_effect",
+  "udlg": "dialogue",
+  "itmc": "item_collection",
+  "wphi": "weapon_hud_interface",
+  "grhi": "grenade_hud_interface",
+  "unhi": "unit_hud_interface",
+  "hud#": "hud_number",
+  "hudg": "hud_globals",
+  "vcky": "virtual_keyboard",
+  "mply": "multiplayer_scenario_description",
+  "dobc": "detail_object_collection",
+  "ssce": "sound_scenery",
+  "hmt ": "hud_message_text",
+  "DeLa": "ui_widget_definition",
+  "Soul": "ui_widget_collection",
+  "cdmg": "continuous_damage_effect",
+  "foot": "material_effects",
+  "garb": "garbage",
+  "tagc": "tag_collection",
+  "devc": "input_device_defaults"
+ },
+ "element_labels": {
+  "callback": "block",
+  "fallback_name": "block",
+  "bad_index": "BAD",
+  "flags": "number",
+  "source": "Guerilla sub_4038D0 / sub_403980 / sub_403C30 (haloce_mcc_guerilla.exe)",
+  "maps": {
+   "magazines": {
+    "names": [
+     "primary",
+     "secondary"
+    ]
+   }
+  },
+  "entries": {
+   "scenario_object": {
+    "label": [
+     "{name|none:|bad:<invalid name>} {type|none:NONE|bad:BAD}"
+    ],
+    "source": "tool.exe 0x49FD50"
+   },
+   "magazine": {
+    "label": [
+     "{#|map:magazines}"
+    ],
+    "source": "tool.exe 0x4A58D0"
+   },
+   "material_effect_material": {
+    "source": "tool.exe 0x495360, 0x525390, 0x5276C0",
+    "label": [
+     "{#|enum:material type}"
+    ]
+   }
+  }
+ },
+ "string_text": {
+  "source": "tool.exe unicode-strings does no text processing; the unicode string drawer reads |n only",
+  "glyphs": false,
+  "glyph_match": "longest",
+  "glyph_names": {},
+  "keywords": [],
+  "keyword_match": "exact",
+  "escapes": "line_break",
+  "tags": null,
+  "cui": null
+ }
+}

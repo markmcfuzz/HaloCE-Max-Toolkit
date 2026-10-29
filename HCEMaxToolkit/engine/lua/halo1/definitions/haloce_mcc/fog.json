@@ -1,0 +1,244 @@
+{
+ "name": "fog",
+ "tag": "fog ",
+ "version": 1,
+ "flags": 8,
+ "block": "fog_block",
+ "blocks": {
+  "fog_block": {
+   "max_count": 1,
+   "struct": "fog_block_struct",
+   "max_count_string": "1",
+   "display_name": "fog"
+  }
+ },
+ "structs": {
+  "fog_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 396,
+   "fields": [
+    {
+     "type": "explanation",
+     "name": "FLAGS",
+     "definition": "Setting <atmosphere dominant> prevents polygon popping when the atmospheric fog maximum density (in the sky tag) is 1 and the atmospheric fog opaque distance is less than the diameter of the map. However, this flag will cause artifacts when the camera goes below the fog plane - so it should only be used when the fog plane is close to the ground."
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(real)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "19*sizeof(long)",
+     "definition": 76
+    },
+    {
+     "type": "explanation",
+     "name": "DENSITY",
+     "definition": ""
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real_fraction",
+     "name": "maximum density:[0,1]#planar fog density is clamped to this value"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real",
+     "name": "opaque distance:world units#the fog becomes opaque at this distance from the viewer"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real",
+     "name": "opaque depth:world units#the fog becomes opaque at this distance from its surface"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "real",
+     "name": "distance to water plane:world units#the fog becomes water at this distance from its surface"
+    },
+    {
+     "type": "explanation",
+     "name": "COLOR",
+     "definition": ""
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "color"
+    },
+    {
+     "type": "explanation",
+     "name": "SCREEN LAYERS",
+     "definition": ""
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_2"
+    },
+    {
+     "type": "short_integer",
+     "name": "layer count:[0,4]#0 layers disables the effect"
+    },
+    {
+     "type": "real_bounds",
+     "name": "distance gradient:world units"
+    },
+    {
+     "type": "fraction_bounds",
+     "name": "density gradient:[0,1]"
+    },
+    {
+     "type": "real",
+     "name": "start distance from fog plane:world units#do NOT set this to the same value as maximum_depth"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "rgb_color",
+     "name": "color#0 defaults to planar fog color"
+    },
+    {
+     "type": "real_fraction",
+     "name": "rotation multiplier:[0,1]"
+    },
+    {
+     "type": "real_fraction",
+     "name": "strafing multiplier:[0,1]"
+    },
+    {
+     "type": "real_fraction",
+     "name": "zoom multiplier:[0,1]"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "real",
+     "name": "map scale#0 defaults to 1"
+    },
+    {
+     "type": "tag_reference",
+     "name": "map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "explanation",
+     "name": "SCREEN LAYER ANIMATION",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "animation period:seconds"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real_bounds",
+     "name": "wind velocity:world units per second"
+    },
+    {
+     "type": "real_bounds",
+     "name": "wind period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real_fraction",
+     "name": "wind acceleration weight:[0,1]"
+    },
+    {
+     "type": "real_fraction",
+     "name": "wind perpendicular weight:[0,1]"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "explanation",
+     "name": "SOUND",
+     "definition": ""
+    },
+    {
+     "type": "tag_reference",
+     "name": "background sound",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "lsnd"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "sound environment",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snde"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "30*sizeof(long)",
+     "definition": 120
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "is water",
+    "atmosphere dominant",
+    "fog screen only"
+   ]
+  },
+  "flags_2": {
+   "options": [
+    "no environment multipass",
+    "no model multipass",
+    "no texture-based falloff"
+   ]
+  }
+ }
+}

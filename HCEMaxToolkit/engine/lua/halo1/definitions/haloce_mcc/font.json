@@ -1,0 +1,214 @@
+{
+ "name": "font",
+ "tag": "font",
+ "version": 1,
+ "flags": 0,
+ "block": "font_block",
+ "blocks": {
+  "font_block": {
+   "max_count": 1,
+   "struct": "font_block_struct",
+   "max_count_string": "1",
+   "display_name": "font"
+  },
+  "font_character_tables": {
+   "max_count": 256,
+   "struct": "font_character_tables_struct",
+   "max_count_string": "UNSIGNED_CHAR_MAX+1"
+  },
+  "font_character_table": {
+   "max_count": 256,
+   "struct": "font_character_table_struct",
+   "max_count_string": "UNSIGNED_CHAR_MAX+1"
+  },
+  "font_character_block": {
+   "max_count": 32000,
+   "struct": "font_character_block_struct",
+   "max_count_string": "MAXIMUM_CHARACTERS_PER_FONT",
+   "display_name": "character"
+  }
+ },
+ "structs": {
+  "font_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 156,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "short_integer",
+     "name": "ascending height"
+    },
+    {
+     "type": "short_integer",
+     "name": "descending height"
+    },
+    {
+     "type": "short_integer",
+     "name": "leading height"
+    },
+    {
+     "type": "short_integer",
+     "name": "leading width"
+    },
+    {
+     "type": "pad",
+     "name": "9*sizeof(long)",
+     "definition": 36
+    },
+    {
+     "type": "block",
+     "name": "character tables",
+     "definition": "font_character_tables"
+    },
+    {
+     "type": "tag_reference",
+     "name": "bold",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "font"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "italic",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "font"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "condense",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "font"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "underline",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "font"
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "characters",
+     "definition": "font_character_block"
+    },
+    {
+     "type": "data",
+     "name": "pixels",
+     "definition": "font_pixels_definition"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "font_character_tables_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 12,
+   "fields": [
+    {
+     "type": "block",
+     "name": "character table",
+     "definition": "font_character_table"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "font_character_table_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 2,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "character index",
+     "definition": "font_character_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "font_character_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 20,
+   "fields": [
+    {
+     "type": "short_integer",
+     "name": "character*"
+    },
+    {
+     "type": "short_integer",
+     "name": "character width"
+    },
+    {
+     "type": "short_integer",
+     "name": "bitmap width*"
+    },
+    {
+     "type": "short_integer",
+     "name": "bitmap height*"
+    },
+    {
+     "type": "short_integer",
+     "name": "bitmap origin x"
+    },
+    {
+     "type": "short_integer",
+     "name": "bitmap origin y"
+    },
+    {
+     "type": "short_integer",
+     "name": "hardware character index*"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "long_integer",
+     "name": "pixels offset*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "never override with remastered font under MCC#If the engine considers this a 'default' font then, when rendered in MCC, never attempt to override character rendering via the new remastered font"
+   ]
+  }
+ },
+ "datas": {
+  "font_pixels_definition": {
+   "flags": 0,
+   "max_size": 8388608
+  }
+ }
+}

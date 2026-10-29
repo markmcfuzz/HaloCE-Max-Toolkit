@@ -1,0 +1,338 @@
+{
+ "name": "biped",
+ "tag": "bipd",
+ "version": 3,
+ "flags": 9,
+ "parent_tag": "unit",
+ "block": "biped_block",
+ "blocks": {
+  "biped_block": {
+   "max_count": 1,
+   "struct": "biped_block_struct",
+   "max_count_string": "1",
+   "display_name": "biped"
+  },
+  "contact_point_block": {
+   "max_count": 2,
+   "struct": "contact_point_block_struct",
+   "max_count_string": "NUMBER_OF_CONTACT_POINTS"
+  }
+ },
+ "structs": {
+  "biped_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 1268,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "unit",
+     "definition": "unit_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "$$$ BIPED $$$",
+     "definition": ""
+    },
+    {
+     "type": "angle",
+     "name": "moving turning speed:degrees per second"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_5"
+    },
+    {
+     "type": "angle",
+     "name": "stationary turning threshold"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(real)",
+     "definition": 16
+    },
+    {
+     "type": "short_enum",
+     "name": "A in",
+     "definition": "A in_3"
+    },
+    {
+     "type": "short_enum",
+     "name": "B in",
+     "definition": "A in_3"
+    },
+    {
+     "type": "short_enum",
+     "name": "C in",
+     "definition": "A in_3"
+    },
+    {
+     "type": "short_enum",
+     "name": "D in",
+     "definition": "A in_3"
+    },
+    {
+     "type": "tag_reference",
+     "name": "DON'T USE",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "jpt!"
+      ]
+     }
+    },
+    {
+     "type": "explanation",
+     "name": "flying",
+     "definition": ""
+    },
+    {
+     "type": "angle",
+     "name": "bank angle:degrees#angle at which we bank left/right when sidestepping or turning while moving forwards"
+    },
+    {
+     "type": "real",
+     "name": "bank apply time:seconds#time it takes us to apply a bank"
+    },
+    {
+     "type": "real",
+     "name": "bank decay time:seconds#time it takes us to recover from a bank"
+    },
+    {
+     "type": "real",
+     "name": "pitch ratio#amount that we pitch up/down when moving up or down"
+    },
+    {
+     "type": "real",
+     "name": "max velocity:world units per second#max velocity when not crouching"
+    },
+    {
+     "type": "real",
+     "name": "max sidestep velocity:world units per second#max sideways or up/down velocity when not crouching"
+    },
+    {
+     "type": "real",
+     "name": "acceleration:world units per second squared"
+    },
+    {
+     "type": "real",
+     "name": "deceleration:world units per second squared"
+    },
+    {
+     "type": "angle",
+     "name": "angular velocity maximum:degrees per second#turn rate"
+    },
+    {
+     "type": "angle",
+     "name": "angular acceleration maximum:degrees per second squared#turn acceleration rate"
+    },
+    {
+     "type": "real",
+     "name": "crouch velocity modifier:[0,1]#how much slower we fly if crouching (zero = same speed)"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "explanation",
+     "name": "movement",
+     "definition": ""
+    },
+    {
+     "type": "angle",
+     "name": "maximum slope angle:degrees"
+    },
+    {
+     "type": "angle",
+     "name": "downhill falloff angle:degrees"
+    },
+    {
+     "type": "angle",
+     "name": "downhill cutoff angle:degrees"
+    },
+    {
+     "type": "real",
+     "name": "downhill velocity scale"
+    },
+    {
+     "type": "angle",
+     "name": "uphill falloff angle:degrees"
+    },
+    {
+     "type": "angle",
+     "name": "uphill cutoff angle:degrees"
+    },
+    {
+     "type": "real",
+     "name": "uphill velocity scale"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(real)",
+     "definition": 24
+    },
+    {
+     "type": "tag_reference",
+     "name": "footsteps",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "foot"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(real)",
+     "definition": 24
+    },
+    {
+     "type": "explanation",
+     "name": "jumping and landing",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "jump velocity:world units per second"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(real)",
+     "definition": 28
+    },
+    {
+     "type": "real",
+     "name": "maximum soft landing time:seconds#the longest amount of time the biped can take to recover from a soft landing"
+    },
+    {
+     "type": "real",
+     "name": "maximum hard landing time:seconds#the longest amount of time the biped can take to recover from a hard landing"
+    },
+    {
+     "type": "real",
+     "name": "minimum soft landing velocity:world units per second#below this velocity the biped does not react when landing"
+    },
+    {
+     "type": "real",
+     "name": "minimum hard landing velocity:world units per second#below this velocity the biped will not do a soft landing when returning to the ground"
+    },
+    {
+     "type": "real",
+     "name": "maximum hard landing velocity:world units per second#the velocity corresponding to the maximum landing time"
+    },
+    {
+     "type": "real",
+     "name": "death hard landing velocity:world units per second#the maximum velocity with which a character can strike the ground and live"
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(real)",
+     "definition": 20
+    },
+    {
+     "type": "explanation",
+     "name": "camera, collision, and autoaim",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "standing camera height:world units"
+    },
+    {
+     "type": "real",
+     "name": "crouching camera height:world units"
+    },
+    {
+     "type": "real",
+     "name": "crouch transition time:seconds"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(real)",
+     "definition": 24
+    },
+    {
+     "type": "real",
+     "name": "standing collision height:world units"
+    },
+    {
+     "type": "real",
+     "name": "crouching collision height:world units"
+    },
+    {
+     "type": "real",
+     "name": "collision radius:world units"
+    },
+    {
+     "type": "pad",
+     "name": "10*sizeof(real)",
+     "definition": 40
+    },
+    {
+     "type": "real",
+     "name": "autoaim width:world units"
+    },
+    {
+     "type": "pad",
+     "name": "35*sizeof(real)",
+     "definition": 140
+    },
+    {
+     "type": "block",
+     "name": "contact points#these are the points where the biped touches the ground",
+     "definition": "contact_point_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "contact_point_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "string",
+     "name": "marker name^"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags_5": {
+   "options": [
+    "turns without animating",
+    "uses player physics",
+    "flying",
+    "physics pill centered at origin",
+    "spherical",
+    "passes through other bipeds",
+    "can climb any surface",
+    "immune to falling damage",
+    "rotate while airborne",
+    "uses limp body physics",
+    "has no dying airborne",
+    "random speed increase",
+    "unit uses old (NTSC) player physics"
+   ]
+  },
+  "A in_3": {
+   "options": [
+    "none",
+    "flying velocity"
+   ]
+  }
+ }
+}

@@ -1,0 +1,729 @@
+{
+ "name": "actor",
+ "tag": "actr",
+ "version": 2,
+ "flags": 9,
+ "block": "actor_block",
+ "blocks": {
+  "actor_block": {
+   "max_count": 1,
+   "struct": "actor_block_struct",
+   "max_count_string": "1",
+   "display_name": "actor"
+  }
+ },
+ "structs": {
+  "actor_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 1272,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "long_flags",
+     "name": "more flags",
+     "definition": "more flags"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(unsigned long)",
+     "definition": 12
+    },
+    {
+     "type": "short_enum",
+     "name": "type",
+     "definition": "type"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "explanation",
+     "name": "perception",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "max vision distance:world units#maximum range of sight"
+    },
+    {
+     "type": "angle",
+     "name": "central vision angle:degrees#horizontal angle within which we see targets out to our maximum range"
+    },
+    {
+     "type": "angle",
+     "name": "max vision angle:degrees#maximum horizontal angle within which we see targets at range"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(unsigned long)",
+     "definition": 4
+    },
+    {
+     "type": "angle",
+     "name": "peripheral vision angle:degrees#maximum horizontal angle within which we can see targets out of the corner of our eye"
+    },
+    {
+     "type": "real",
+     "name": "peripheral distance:world units#maximum range at which we can see targets our of the corner of our eye"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(unsigned long)",
+     "definition": 4
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "standing gun offset#offset of gun from feet when standing (x=forward, y=left, z=up)"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "crouching gun offset#offset of gun from feet when crouch (x=forward, y=left, z=up)"
+    },
+    {
+     "type": "real",
+     "name": "hearing distance:world units#maximum range at which sounds can be heard"
+    },
+    {
+     "type": "real",
+     "name": "notice projectile chance:[0,1]#random chance of noticing a dangerous enemy projectile (e.g. grenade)"
+    },
+    {
+     "type": "real",
+     "name": "notice vehicle chance:[0,1]#random chance of noticing a dangerous vehicle"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(unsigned long)",
+     "definition": 8
+    },
+    {
+     "type": "real",
+     "name": "combat perception time:seconds#time required to acknowledge a visible enemy when we are already in combat or searching for them"
+    },
+    {
+     "type": "real",
+     "name": "guard perception time:seconds#time required to acknowledge a visible enemy when we have been alerted"
+    },
+    {
+     "type": "real",
+     "name": "non-combat perception time:seconds#time required to acknowledge a visible enemy when we are not alerted"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(real)",
+     "definition": 12
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(unsigned long)",
+     "definition": 8
+    },
+    {
+     "type": "explanation",
+     "name": "movement",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "dive into cover chance:[0,1]#chance of running a dive animation when moving into cover"
+    },
+    {
+     "type": "real",
+     "name": "emerge from cover chance:[0,1]#chance of running an emerge animation when uncovering a target"
+    },
+    {
+     "type": "real",
+     "name": "dive from grenade chance:[0,1]#chance of running a dive animation when moving away from a grenade"
+    },
+    {
+     "type": "real",
+     "name": "pathfinding radius:world units"
+    },
+    {
+     "type": "real",
+     "name": "glass ignorance chance:[0,1]#chance of not noticing that breakable surfaces have been destroyed"
+    },
+    {
+     "type": "real",
+     "name": "stationary movement dist:world units#movement distance which is considered 'stationary' for considering whether we crouch"
+    },
+    {
+     "type": "real",
+     "name": "free-flying sidestep:world units#distance which we allow sidestepping for flying units"
+    },
+    {
+     "type": "angle",
+     "name": "begin moving angle:degrees#we must be facing this close to our target before we start applying the throttle (default: 180 degrees)"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(real)",
+     "definition": 4
+    },
+    {
+     "type": "explanation",
+     "name": "looking",
+     "definition": ""
+    },
+    {
+     "type": "real_euler_angles_2d",
+     "name": "maximum aiming deviation:degrees#how far we can turn our weapon"
+    },
+    {
+     "type": "real_euler_angles_2d",
+     "name": "maximum looking deviation:degrees#how far we can turn our head"
+    },
+    {
+     "type": "angle",
+     "name": "noncombat look delta L:degrees#how far we can turn our head left away from our aiming vector when not in combat"
+    },
+    {
+     "type": "angle",
+     "name": "noncombat look delta R:degrees#how far we can turn our head right away from our aiming vector when not in combat"
+    },
+    {
+     "type": "angle",
+     "name": "combat look delta L:degrees#how far we can turn our head left away from our aiming vector when in combat"
+    },
+    {
+     "type": "angle",
+     "name": "combat look delta R:degrees#how far we can turn our head right away from our aiming vector when in combat"
+    },
+    {
+     "type": "real_euler_angles_2d",
+     "name": "idle aiming range:degrees#range in which we select random directions to aim in"
+    },
+    {
+     "type": "real_euler_angles_2d",
+     "name": "idle looking range:degrees#range in which we select random directions to look at"
+    },
+    {
+     "type": "real_bounds",
+     "name": "event look time modifier#multiplier for how long we look at interesting events (zero = unchanged)"
+    },
+    {
+     "type": "real_bounds",
+     "name": "noncombat idle facing:seconds#rate at which we change facing when looking around randomly when not in combat"
+    },
+    {
+     "type": "real_bounds",
+     "name": "noncombat idle aiming:seconds#rate at which we change aiming directions when looking around randomly when not in combat"
+    },
+    {
+     "type": "real_bounds",
+     "name": "noncombat idle looking:seconds#rate at which we change look around randomly when not in combat"
+    },
+    {
+     "type": "real_bounds",
+     "name": "guard idle facing:seconds#rate at which we change facing when looking around randomly when guarding"
+    },
+    {
+     "type": "real_bounds",
+     "name": "guard idle aiming:seconds#rate at which we change aiming directions when looking around randomly when guarding"
+    },
+    {
+     "type": "real_bounds",
+     "name": "guard idle looking:seconds#rate at which we change look around randomly when guarding"
+    },
+    {
+     "type": "real_bounds",
+     "name": "combat idle facing:seconds#rate at which we change facing when looking around randomly when searching or in combat"
+    },
+    {
+     "type": "real_bounds",
+     "name": "combat idle aiming:seconds#rate at which we change aiming directions when looking around randomly when searching or in combat"
+    },
+    {
+     "type": "real_bounds",
+     "name": "combat idle looking:seconds#rate at which we change look around randomly when searching or in combat"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(unsigned long)",
+     "definition": 8
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(real_euler_angles2d)",
+     "definition": 16
+    },
+    {
+     "type": "tag_reference",
+     "name": "DO NOT USE weapon#unused ranged!",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "weap"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "67*sizeof(unsigned long)",
+     "definition": 268
+    },
+    {
+     "type": "tag_reference",
+     "name": "DO NOT USE projectile#unused grenade!",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "proj"
+      ]
+     }
+    },
+    {
+     "type": "explanation",
+     "name": "unopposable",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "unreachable danger trigger#danger level of an unreachable enemy which will trigger a retreat if it continues over time",
+     "definition": "unreachable danger trigger"
+    },
+    {
+     "type": "short_enum",
+     "name": "vehicle danger trigger#danger level of a vehicle-based enemy which will trigger a retreat if it continues over time",
+     "definition": "unreachable danger trigger"
+    },
+    {
+     "type": "short_enum",
+     "name": "player danger trigger#danger level of an enemy player which will trigger a retreat if it continues over time",
+     "definition": "unreachable danger trigger"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real_bounds",
+     "name": "danger trigger time:seconds#how long it takes for an unopposable enemy that has the above danger level to trigger a retreat"
+    },
+    {
+     "type": "short_integer",
+     "name": "friends killed trigger#if this many of our friends are killed by an unopposable enemy, we trigger a retreat (zero = never use this as a retreat condition)"
+    },
+    {
+     "type": "short_integer",
+     "name": "friends retreating trigger#if this many of our friends are retreating from an unopposable enemy, we retreat as well (zero = never use this as a retreat condition)"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(unsigned long)",
+     "definition": 12
+    },
+    {
+     "type": "real_bounds",
+     "name": "retreat time:seconds#how long we retreat from an unopposable enemy for"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(unsigned long)",
+     "definition": 8
+    },
+    {
+     "type": "explanation",
+     "name": "panic",
+     "definition": ""
+    },
+    {
+     "type": "real_bounds",
+     "name": "cowering time:seconds#how long we hide in cover after being panicked"
+    },
+    {
+     "type": "real",
+     "name": "friend killed panic chance:[0,1]#chance of panicking when we see a friend killed near us and the enemy is looking at us too"
+    },
+    {
+     "type": "short_enum",
+     "name": "leader type#if we see a friend of this type killed we have a chance of panicking",
+     "definition": "type"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "leader killed panic chance:[0,1]#chance of panicking when we see a leader killed"
+    },
+    {
+     "type": "real",
+     "name": "panic damage threshold:[0,1]#panic if we take this much body damage in a short period of time"
+    },
+    {
+     "type": "real",
+     "name": "surprise distance:world units#the distance at which newly acknowledged props or weapon impacts are considered 'close' for surprise purposes"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(unsigned long)",
+     "definition": 28
+    },
+    {
+     "type": "explanation",
+     "name": "defensive",
+     "definition": "danger values: being aimed at: 0.7\nan enemy shooting in our general direction: 1.2\nan enemy shooting directly at us: 1.6\nan enemy damaging us: 2.0"
+    },
+    {
+     "type": "real_bounds",
+     "name": "hide behind cover time:seconds#how long we stay behind cover after seeking cover"
+    },
+    {
+     "type": "real",
+     "name": "hide target-not-visible time:seconds#if this is non-zero then we will only seek cover if our target has not been visible recently"
+    },
+    {
+     "type": "real",
+     "name": "hide shield fraction:[0,1]#elites and jackals only seek cover if their shield falls below this value"
+    },
+    {
+     "type": "real",
+     "name": "attack shield fraction:[0,1]#elites and jackals only come out from cover to attack if they have this much shields"
+    },
+    {
+     "type": "real",
+     "name": "pursue shield fraction:[0,1]#elites and jackals only come out from cover to pursue if they have this much shields"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(unsigned long)",
+     "definition": 16
+    },
+    {
+     "type": "short_enum",
+     "name": "defensive crouch type",
+     "definition": "defensive crouch type"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "attacking crouch threshold#when in attacking mode, if our crouch type is based on shields, we crouch when our shields are below this number; if our crouch type is based on danger, we crouch when our danger is above this number"
+    },
+    {
+     "type": "real",
+     "name": "defending crouch threshold#when in defending mode, if our crouch type is based on shields, we crouch when our shields are below this number; if our crouch type is based on danger, we crouch when our danger is above this number"
+    },
+    {
+     "type": "real",
+     "name": "min stand time:seconds#minimum time to remain standing (zero = default)"
+    },
+    {
+     "type": "real",
+     "name": "min crouch time:seconds#minimum time to remain crouching (zero = default)"
+    },
+    {
+     "type": "real",
+     "name": "defending hide time modifier#how much longer we hide behind cover for when in the defending state (zero = unchanged)"
+    },
+    {
+     "type": "real",
+     "name": "attacking evasion threshold#when in attacking mode, we consider seeking cover or evading when our danger gets this high"
+    },
+    {
+     "type": "real",
+     "name": "defending evasion threshold#when in defending mode, we consider seeking cover or evading when our danger gets this high"
+    },
+    {
+     "type": "real",
+     "name": "evasion seek-cover chance:[0,1]#chance of seeking cover (otherwise we just evade)"
+    },
+    {
+     "type": "real",
+     "name": "evasion delay time:seconds#minimum time period between evasion moves"
+    },
+    {
+     "type": "real",
+     "name": "max seek-cover distance:world units#maximum distance we will consider going to find cover (zero = default)"
+    },
+    {
+     "type": "real",
+     "name": "cover damage threshold:[0,1]#how much damage we must take before we are allowed to seek cover (zero = always allowed to)"
+    },
+    {
+     "type": "real",
+     "name": "stalking discovery time:seconds#if our target sees us for this long while we are stalking them, our cover is blown and we do something else (zero = never stop stalking)"
+    },
+    {
+     "type": "real",
+     "name": "stalking max distance:world units#distance outside of which we don't bother stalking"
+    },
+    {
+     "type": "angle",
+     "name": "stationary facing angle:angle#angle outside of which we must abandon a stationary facing direction and suffer any penalties"
+    },
+    {
+     "type": "real",
+     "name": "change-facing stand time:seconds#how long we must stand up for after changing our fixed stationary facing"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(unsigned long)",
+     "definition": 4
+    },
+    {
+     "type": "explanation",
+     "name": "pursuit",
+     "definition": ""
+    },
+    {
+     "type": "real_bounds",
+     "name": "uncover delay time:seconds#time to look at target's position after it becomes visible"
+    },
+    {
+     "type": "real_bounds",
+     "name": "target search time:seconds#time we search at target's position"
+    },
+    {
+     "type": "real_bounds",
+     "name": "pursuit-position time:seconds#time we search at a pursuit position"
+    },
+    {
+     "type": "short_integer",
+     "name": "num positions (coord):[0,n]#number of pursuit positions to check when in coordinated group search mode"
+    },
+    {
+     "type": "short_integer",
+     "name": "num positions (normal):[0,n]#number of pursuit positions to check when in normal search mode"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(unsigned long)",
+     "definition": 32
+    },
+    {
+     "type": "explanation",
+     "name": "berserk",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "melee attack delay:seconds#how long we must wait between attempting melee attacks"
+    },
+    {
+     "type": "real",
+     "name": "melee fudge factor:world units#fudge factor that offsets how far in front of the target we start our attack (negative = we try to time our attack so that we go _through_ the target). this should be close to zero, but might be bigger for suiciding units"
+    },
+    {
+     "type": "real",
+     "name": "melee charge time:seconds#how long we can stay in the charging state trying to reach our target before we give up"
+    },
+    {
+     "type": "real_bounds",
+     "name": "melee leap range:world units#we can launch leaping melee attacks at targets within these ranges (zero = can't leap)"
+    },
+    {
+     "type": "real",
+     "name": "melee leap velocity:world units per tick#how fast we spring at targets when launching a leaping melee attack"
+    },
+    {
+     "type": "real",
+     "name": "melee leap chance:[0,1]#chance of launching a leaping melee attack at a ground-based target (we always leap at flying targets)"
+    },
+    {
+     "type": "real",
+     "name": "melee leap ballistic:[0,1]#fraction that controls how ballistic our leaping melee trajectory is"
+    },
+    {
+     "type": "real",
+     "name": "berserk damage amount:[0,1]#amount of body damage in a short time that makes us berserk"
+    },
+    {
+     "type": "real",
+     "name": "berserk damage threshold:[0,1]#how low our body health must get before we will consider berserking"
+    },
+    {
+     "type": "real",
+     "name": "berserk proximity:world units#if we ever get this close to a target, we berserk"
+    },
+    {
+     "type": "real",
+     "name": "suicide sensing dist:world units#when we are this close to a target, we check to see if they're getting away and if so blow up"
+    },
+    {
+     "type": "real",
+     "name": "berserk grenade chance:[0,1]#chance of berserking when we have a dangerous projectile stuck to us"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(unsigned long)",
+     "definition": 12
+    },
+    {
+     "type": "explanation",
+     "name": "firing positions",
+     "definition": ""
+    },
+    {
+     "type": "real_bounds",
+     "name": "guard position time:seconds#time after which we decide to change guard positions (zero = never)"
+    },
+    {
+     "type": "real_bounds",
+     "name": "combat position time:seconds#time after which we change combat firing positions"
+    },
+    {
+     "type": "real",
+     "name": "old position avoid dist:world units#distance we try and stay from our last discarded firing position"
+    },
+    {
+     "type": "real",
+     "name": "friend avoid dist:world units#distance we try and stay from any friends"
+    },
+    {
+     "type": "pad",
+     "name": "10*sizeof(unsigned long)",
+     "definition": 40
+    },
+    {
+     "type": "explanation",
+     "name": "communication",
+     "definition": ""
+    },
+    {
+     "type": "real_bounds",
+     "name": "noncombat idle speech time:seconds#time between idle vocalizations when we are not in combat"
+    },
+    {
+     "type": "real_bounds",
+     "name": "combat idle speech time:seconds#time between idle vocalizations when we are in combat or searching"
+    },
+    {
+     "type": "pad",
+     "name": "12*sizeof(unsigned long)",
+     "definition": 48
+    },
+    {
+     "type": "pad",
+     "name": "32*sizeof(unsigned long)",
+     "definition": 128
+    },
+    {
+     "type": "tag_reference",
+     "name": "DO NOT USE major upgrade#unused!",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "actr"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "12*sizeof(unsigned long)",
+     "definition": 48
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "can see in darkness",
+    "sneak uncovering target",
+    "sneak uncovering pursuit position",
+    "unused",
+    "shoot at target's last location",
+    "try to stay still when crouched",
+    "crouch when not in combat",
+    "crouch when guarding",
+    "unused",
+    "must crouch to shoot",
+    "panic when surprised",
+    "always charge at enemies",
+    "gets in vehicles with player",
+    "start firing before aligned",
+    "standing must move forward",
+    "crouching must move forward",
+    "defensive crouch while charging",
+    "use stalking behavior",
+    "stalking freeze if exposed",
+    "always berserk in attacking mode",
+    "berserking uses panicked movement",
+    "flying",
+    "panicked by unopposable enemy",
+    "crouch when hiding from unopposable",
+    "always charge in 'attacking' mode",
+    "dive off ledges",
+    "swarm",
+    "suicidal melee attack",
+    "cannot move while crouching",
+    "fixed crouch facing",
+    "crouch when in line of fire",
+    "avoid friends' line of fire"
+   ]
+  },
+  "more flags": {
+   "options": [
+    "avoid all enemy attack vectors",
+    "must stand to fire",
+    "must stop to fire",
+    "disallow vehicle combat",
+    "pathfinding ignores danger",
+    "panic in groups",
+    "no corpse shooting"
+   ]
+  },
+  "type": {
+   "options": [
+    "elite",
+    "jackal",
+    "grunt",
+    "hunter",
+    "engineer",
+    "assassin",
+    "player",
+    "marine",
+    "crew",
+    "combat form",
+    "infection form",
+    "carrier form",
+    "monitor",
+    "sentinel",
+    "none",
+    "mounted weapon"
+   ]
+  },
+  "unreachable danger trigger": {
+   "options": [
+    "never",
+    "visible",
+    "shooting",
+    "shooting near us",
+    "damaging us",
+    "unused",
+    "unused",
+    "unused",
+    "unused",
+    "unused"
+   ]
+  },
+  "defensive crouch type": {
+   "options": [
+    "never",
+    "danger",
+    "low shields",
+    "hide behind shield",
+    "any target",
+    "flood shamble"
+   ]
+  }
+ }
+}

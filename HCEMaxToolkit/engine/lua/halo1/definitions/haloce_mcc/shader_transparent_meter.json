@@ -1,0 +1,166 @@
+{
+ "name": "shader_transparent_meter",
+ "tag": "smet",
+ "version": 1,
+ "flags": 8,
+ "parent_tag": "shdr",
+ "block": "shader_transparent_meter_block",
+ "blocks": {
+  "shader_transparent_meter_block": {
+   "max_count": 1,
+   "struct": "shader_transparent_meter_block_struct",
+   "max_count_string": "1",
+   "display_name": "shader_transparent_meter"
+  }
+ },
+ "structs": {
+  "shader_transparent_meter_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 260,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "shader",
+     "definition": "shader_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "meter shader",
+     "definition": ""
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "tag_reference",
+     "name": "map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "explanation",
+     "name": "colors",
+     "definition": ""
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "gradient min color"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "gradient max color"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "background color"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "flash color"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "tint color#modulates framebuffer color unless map alpha is zero"
+    },
+    {
+     "type": "real_fraction",
+     "name": "meter transparency:[0,1]#used only when 'tint mode-2' is set"
+    },
+    {
+     "type": "real_fraction",
+     "name": "background transparency:[0,1]#used only when 'tint mode-2' is set"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "explanation",
+     "name": "external function sources",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "meter brightness source#overall meter brightness (default is 1)",
+     "definition": "meter brightness source"
+    },
+    {
+     "type": "short_enum",
+     "name": "flash brightness source#brightness of flash (default is 1)",
+     "definition": "meter brightness source"
+    },
+    {
+     "type": "short_enum",
+     "name": "value source#position of flash leading edge (default is 1)",
+     "definition": "meter brightness source"
+    },
+    {
+     "type": "short_enum",
+     "name": "gradient source#high color leading edge (default is 1)",
+     "definition": "meter brightness source"
+    },
+    {
+     "type": "short_enum",
+     "name": "flash-extension source#position of flash extension leading edge (default is 1)",
+     "definition": "meter brightness source"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags_3": {
+   "options": [
+    "decal",
+    "two-sided",
+    "flash color is negative",
+    "tint mode-2",
+    "unfiltered"
+   ]
+  },
+  "meter brightness source": {
+   "options": [
+    "none",
+    "A out",
+    "B out",
+    "C out",
+    "D out"
+   ]
+  }
+ }
+}

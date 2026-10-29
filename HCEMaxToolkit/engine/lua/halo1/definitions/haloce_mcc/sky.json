@@ -1,0 +1,279 @@
+{
+ "name": "sky",
+ "tag": "sky ",
+ "version": 1,
+ "flags": 8,
+ "block": "sky_block",
+ "blocks": {
+  "sky_block": {
+   "max_count": 1,
+   "struct": "sky_block_struct",
+   "max_count_string": "1",
+   "display_name": "sky"
+  },
+  "sky_shader_function_block": {
+   "max_count": 8,
+   "struct": "sky_shader_function_block_struct",
+   "max_count_string": "MAXIMUM_SHADER_FUNCTIONS_PER_SKY"
+  },
+  "sky_animation_block": {
+   "max_count": 8,
+   "struct": "sky_animation_block_struct",
+   "max_count_string": "MAXIMUM_ANIMATIONS_PER_SKY"
+  },
+  "sky_light_block": {
+   "max_count": 8,
+   "struct": "sky_light_block_struct",
+   "max_count_string": "MAXIMUM_LIGHTS_PER_SKY"
+  }
+ },
+ "structs": {
+  "sky_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 208,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "model",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "mod2"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "animation_graph",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "antr"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "indoor ambient radiosity color#the indoor ambient light color"
+    },
+    {
+     "type": "real",
+     "name": "indoor ambient radiosity power#the indoor ambient light power from 0 to infinity"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "outdoor ambient radiosity color#the outdoor ambient light color"
+    },
+    {
+     "type": "real",
+     "name": "outdoor ambient radiosity power#the outdoor ambient light power from 0 to infinity"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "outdoor fog color"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "real_fraction",
+     "name": "outdoor fog maximum density:[0,1]#density at opaque distance - 0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "outdoor fog start distance:world units#below this distance there is no fog"
+    },
+    {
+     "type": "real",
+     "name": "outdoor fog opaque distance:world units#beyond this distance surfaces are completely fogged"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "indoor fog color"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "real_fraction",
+     "name": "indoor fog maximum density:[0,1]#density at opaque distance - 0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "indoor fog start distance:world units#below this distance there is no fog"
+    },
+    {
+     "type": "real",
+     "name": "indoor fog opaque distance:world units#beyond this distance surfaces are completely fogged"
+    },
+    {
+     "type": "tag_reference",
+     "name": "indoor fog screen#used for FOG SCREEN only; not used for planar fog",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "fog "
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "block",
+     "name": "shader functions",
+     "definition": "sky_shader_function_block"
+    },
+    {
+     "type": "block",
+     "name": "animations",
+     "definition": "sky_animation_block"
+    },
+    {
+     "type": "block",
+     "name": "lights",
+     "definition": "sky_light_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "sky_shader_function_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 36,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "string",
+     "name": "global function name^#the global function that controls this shader value"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "sky_animation_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 36,
+   "fields": [
+    {
+     "type": "short_integer",
+     "name": "animation index#the index of the animation in the animation graph"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "period:seconds"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "sky_light_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 116,
+   "fields": [
+    {
+     "type": "explanation",
+     "name": "LENS FLARE",
+     "definition": ""
+    },
+    {
+     "type": "tag_reference",
+     "name": "lens flare",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "lens"
+      ]
+     }
+    },
+    {
+     "type": "string",
+     "name": "lens flare marker name#the lens flare for this light will be attached to the specified marker in the model"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "explanation",
+     "name": "RADIOSITY",
+     "definition": "these parameters control how the light illuminates the world."
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "color#light color"
+    },
+    {
+     "type": "real",
+     "name": "power#light power from 0 to infinity"
+    },
+    {
+     "type": "real",
+     "name": "test distance#the length of the ray for shadow testing."
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real_euler_angles_2d",
+     "name": "direction#direction toward the light source in the sky."
+    },
+    {
+     "type": "angle",
+     "name": "diameter#angular diameter of the light source in the sky."
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "affects exteriors",
+    "affects interiors"
+   ]
+  }
+ }
+}

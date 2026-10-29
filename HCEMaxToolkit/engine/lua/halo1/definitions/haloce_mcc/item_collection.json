@@ -1,0 +1,85 @@
+{
+ "name": "item_collection",
+ "tag": "itmc",
+ "version": 0,
+ "flags": 9,
+ "block": "item_collection_block",
+ "blocks": {
+  "item_collection_block": {
+   "max_count": 1,
+   "struct": "item_collection_block_struct",
+   "max_count_string": "1",
+   "display_name": "item_collection"
+  },
+  "item_permutation": {
+   "max_count": 32,
+   "struct": "item_permutation_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_PERMUTATIONS_PER_ITEM_GROUP"
+  }
+ },
+ "structs": {
+  "item_collection_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 92,
+   "fields": [
+    {
+     "type": "block",
+     "name": "item permutations",
+     "definition": "item_permutation"
+    },
+    {
+     "type": "short_integer",
+     "name": "spawn time (in seconds, 0 = default)"
+    },
+    {
+     "type": "pad",
+     "name": "1 * sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "19 * sizeof(long)",
+     "definition": 76
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "item_permutation_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 84,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "8 * sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "real",
+     "name": "weight#relatively how likely this item will be chosen"
+    },
+    {
+     "type": "tag_reference",
+     "name": "item^#which item to ",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "item"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8 * sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ }
+}

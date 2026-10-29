@@ -1,0 +1,411 @@
+{
+ "name": "shader_model",
+ "tag": "soso",
+ "version": 2,
+ "flags": 8,
+ "parent_tag": "shdr",
+ "block": "shader_model_block",
+ "blocks": {
+  "shader_model_block": {
+   "max_count": 1,
+   "struct": "shader_model_block_struct",
+   "max_count_string": "1",
+   "display_name": "shader_model"
+  }
+ },
+ "structs": {
+  "shader_model_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 440,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "shader",
+     "definition": "shader_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "model shader",
+     "definition": "Setting <true atmospheric fog> enables per-pixel atmospheric fog but disables point/spot lights, planar fog, and the ability to control the atmospheric fog density for this shader."
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "real_fraction",
+     "name": "translucency#amount of light that can illuminate the shader from behind"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "explanation",
+     "name": "change color",
+     "definition": "Change color is used to recolor the diffuse map, it affects pixels based on the BLUE channel of the multipurpose map."
+    },
+    {
+     "type": "short_enum",
+     "name": "change color source",
+     "definition": "change color source"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "explanation",
+     "name": "self-illumination",
+     "definition": "Self-illumination adds diffuse light to pixels based on the GREEN channel of the multipurpose map. The external self-illumination color referenced by <color source> is modulated by the self-illumination animation."
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_4"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_enum",
+     "name": "color source",
+     "definition": "change color source"
+    },
+    {
+     "type": "short_enum",
+     "name": "animation function",
+     "definition": "animation function"
+    },
+    {
+     "type": "real",
+     "name": "animation period:seconds"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "animation color lower bound"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "animation color upper bound"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "explanation",
+     "name": "maps|AABBCC",
+     "definition": "Base map alpha is used for alpha-testing.\n\nMultipurpose map is used for the following:\n* BLUE: specular reflection mask (modulates reflections)\n* GREEN: self-illumination mask (adds to diffuse light)\n* ALPHA: primary change color mask (recolors diffuse map)\n* RED: auxiliary mask\n\nMultipurpose map is used for the following (if <OG Xbox channel order> flag is set):\n* RED: specular reflection mask (modulates reflections)\n* GREEN: self-illumination mask (adds to diffuse light)\n* BLUE: primary change color mask (recolors diffuse map)\n* ALPHA: auxiliary mask\n\nNote that when DXT1 compressed color-key textures are used for the multipurpose map (as they should be normally), the alpha channel is 1-bit and any non-zero alpha pixels must have zero-color, therefore the secondary change color mask cannot affect pixels already affected by any of the other channels.\n\nDetail map affects diffuse map, and optionally affects reflection if <detail after reflection> flag is set."
+    },
+    {
+     "type": "real",
+     "name": "map u-scale#0 defaults to 1; scales all 2D maps simultaneously"
+    },
+    {
+     "type": "real",
+     "name": "map v-scale#0 defaults to 1; scales all 2D maps simultaneously"
+    },
+    {
+     "type": "tag_reference",
+     "name": "base map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "tag_reference",
+     "name": "multipurpose map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "short_enum",
+     "name": "detail function#controls how detail map is applied to diffuse map",
+     "definition": "detail function"
+    },
+    {
+     "type": "short_enum",
+     "name": "detail mask#controls how detail map is masked",
+     "definition": "detail mask"
+    },
+    {
+     "type": "real",
+     "name": "detail map scale#0 defaults to 1"
+    },
+    {
+     "type": "tag_reference",
+     "name": "detail map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "real",
+     "name": "detail map v-scale#0 defaults to 1 (applied on top of detail map scale above)"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "explanation",
+     "name": "texture scrolling animation",
+     "definition": "Scrolls all 2D maps simultaneously."
+    },
+    {
+     "type": "short_enum",
+     "name": "u-animation source",
+     "definition": "u-animation source"
+    },
+    {
+     "type": "short_enum",
+     "name": "u-animation function",
+     "definition": "animation function"
+    },
+    {
+     "type": "real",
+     "name": "u-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "u-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "u-animation scale:repeats#0 defaults to 1"
+    },
+    {
+     "type": "short_enum",
+     "name": "v-animation source",
+     "definition": "u-animation source"
+    },
+    {
+     "type": "short_enum",
+     "name": "v-animation function",
+     "definition": "animation function"
+    },
+    {
+     "type": "real",
+     "name": "v-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "v-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "v-animation scale:repeats#0 defaults to 1"
+    },
+    {
+     "type": "short_enum",
+     "name": "rotation-animation source",
+     "definition": "u-animation source"
+    },
+    {
+     "type": "short_enum",
+     "name": "rotation-animation function",
+     "definition": "animation function"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation scale:degrees#0 defaults to 360"
+    },
+    {
+     "type": "real_point_2d",
+     "name": "rotation-animation center"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "explanation",
+     "name": "reflection properties",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "reflection falloff distance:world units#distance at which the reflection begins to fade out"
+    },
+    {
+     "type": "real",
+     "name": "reflection cutoff distance:world units#distance at which the reflection fades out entirely (0 means no cutoff)"
+    },
+    {
+     "type": "real_fraction",
+     "name": "perpendicular brightness:[0,1]#reflection brightness when viewed perpendicularly"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "perpendicular tint color#reflection tint color when viewed perpendicularly"
+    },
+    {
+     "type": "real_fraction",
+     "name": "parallel brightness:[0,1]#reflection brightness when viewed at a glancing angle"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "parallel tint color#reflection tint color when viewed at a glancing angle"
+    },
+    {
+     "type": "tag_reference",
+     "name": "reflection cube map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(real)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(struct tag_reference)",
+     "definition": 16
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags_3": {
+   "options": [
+    "detail after reflection",
+    "two-sided",
+    "not alpha-tested",
+    "alpha-blended decal",
+    "true atmospheric fog",
+    "disable two-sided culling",
+    "multipurpose map uses OG Xbox channel order"
+   ]
+  },
+  "change color source": {
+   "options": [
+    "none",
+    "A",
+    "B",
+    "C",
+    "D"
+   ]
+  },
+  "flags_4": {
+   "options": [
+    "no random phase"
+   ]
+  },
+  "animation function": {
+   "options": [
+    "one",
+    "zero",
+    "cosine",
+    "cosine (variable period)",
+    "diagonal wave",
+    "diagonal wave (variable period)",
+    "slide",
+    "slide (variable period)",
+    "noise",
+    "jitter",
+    "wander",
+    "spark"
+   ]
+  },
+  "detail function": {
+   "options": [
+    "double/biased multiply",
+    "multiply",
+    "double/biased add"
+   ]
+  },
+  "detail mask": {
+   "options": [
+    "none",
+    "reflection mask inverse",
+    "reflection mask",
+    "self-illumination mask inverse",
+    "self-illumination mask",
+    "change-color mask inverse",
+    "change-color mask",
+    "multipurpose map alpha inverse",
+    "multipurpose map alpha"
+   ]
+  },
+  "u-animation source": {
+   "options": [
+    "none",
+    "A out",
+    "B out",
+    "C out",
+    "D out"
+   ]
+  }
+ }
+}

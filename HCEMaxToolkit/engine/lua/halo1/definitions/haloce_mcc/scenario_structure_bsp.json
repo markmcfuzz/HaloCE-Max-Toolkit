@@ -1,0 +1,2107 @@
+{
+ "name": "scenario_structure_bsp",
+ "tag": "sbsp",
+ "version": 5,
+ "flags": 0,
+ "block": "scenario_structure_bsp_block",
+ "blocks": {
+  "scenario_structure_bsp_block": {
+   "max_count": 1,
+   "struct": "scenario_structure_bsp_block_struct",
+   "max_count_string": "1",
+   "display_name": "scenario_structure_bsp"
+  },
+  "structure_collision_materials_block": {
+   "max_count": 512,
+   "struct": "structure_collision_materials_block_struct",
+   "max_count_string": "MAXIMUM_COLLISION_MATERIALS_PER_STRUCTURE"
+  },
+  "collision_bsp_block": {
+   "max_count": 1,
+   "struct": "collision_bsp_block_struct",
+   "max_count_string": "1",
+   "display_name": "bsp"
+  },
+  "bsp3d_nodes_block": {
+   "max_count": 131072,
+   "struct": "bsp3d_nodes_block_struct",
+   "max_count_string": "MAXIMUM_NODES_PER_BSP3D",
+   "display_name": "bsp3d node"
+  },
+  "planes_block": {
+   "max_count": 65536,
+   "struct": "planes_block_struct",
+   "max_count_string": "MAXIMUM_PLANES_PER_BSP3D",
+   "display_name": "plane"
+  },
+  "leaves_block": {
+   "max_count": 65536,
+   "struct": "leaves_block_struct",
+   "max_count_string": "MAXIMUM_LEAVES_PER_BSP3D",
+   "display_name": "leaf"
+  },
+  "bsp2d_references_block": {
+   "max_count": 131072,
+   "struct": "bsp2d_references_block_struct",
+   "max_count_string": "MAXIMUM_BSP2D_REFERENCES_PER_COLLISION_BSP",
+   "display_name": "bsp2d reference"
+  },
+  "bsp2d_nodes_block": {
+   "max_count": 65535,
+   "struct": "bsp2d_nodes_block_struct",
+   "max_count_string": "MAXIMUM_NODES_PER_BSP2D",
+   "display_name": "bsp2d node"
+  },
+  "surfaces_block": {
+   "max_count": 131072,
+   "struct": "surfaces_block_struct",
+   "max_count_string": "MAXIMUM_SURFACES_PER_COLLISION_BSP",
+   "display_name": "surface"
+  },
+  "edges_block": {
+   "max_count": 262144,
+   "struct": "edges_block_struct",
+   "max_count_string": "MAXIMUM_EDGES_PER_COLLISION_BSP",
+   "display_name": "edge"
+  },
+  "vertices_block": {
+   "max_count": 131072,
+   "struct": "vertices_block_struct",
+   "max_count_string": "MAXIMUM_VERTICES_PER_COLLISION_BSP",
+   "display_name": "vertex"
+  },
+  "structure_bsp_node_block": {
+   "max_count": 131072,
+   "struct": "structure_bsp_node_block_struct",
+   "max_count_string": "MAXIMUM_NODES_PER_BSP3D"
+  },
+  "structure_bsp_leaf_block": {
+   "max_count": 65536,
+   "struct": "structure_bsp_leaf_block_struct",
+   "max_count_string": "MAXIMUM_LEAVES_PER_BSP3D"
+  },
+  "structure_bsp_surface_reference_block": {
+   "max_count": 262144,
+   "struct": "structure_bsp_surface_reference_block_struct",
+   "max_count_string": "MAXIMUM_SURFACE_REFERENCES_PER_STRUCTURE"
+  },
+  "structure_bsp_surface_block": {
+   "max_count": 131072,
+   "struct": "structure_bsp_surface_block_struct",
+   "max_count_string": "MAXIMUM_SURFACES_PER_STRUCTURE"
+  },
+  "structure_bsp_lightmap_block": {
+   "max_count": 128,
+   "struct": "structure_bsp_lightmap_block_struct",
+   "max_count_string": "MAXIMUM_LIGHTMAPS_PER_STRUCTURE"
+  },
+  "structure_bsp_material_block": {
+   "max_count": 2048,
+   "struct": "structure_bsp_material_block_struct",
+   "max_count_string": "MAXIMUM_MATERIALS_PER_STRUCTURE_LIGHTMAP"
+  },
+  "structure_bsp_lens_flare_block": {
+   "max_count": 256,
+   "struct": "structure_bsp_lens_flare_block_struct",
+   "max_count_string": "MAXIMUM_LENS_FLARES_PER_STRUCTURE"
+  },
+  "structure_bsp_lens_flare_marker_block": {
+   "max_count": 65536,
+   "struct": "structure_bsp_lens_flare_marker_block_struct",
+   "max_count_string": "MAXIMUM_LENS_FLARE_MARKERS_PER_STRUCTURE"
+  },
+  "structure_bsp_cluster_block": {
+   "max_count": 8192,
+   "struct": "structure_bsp_cluster_block_struct",
+   "max_count_string": "MAXIMUM_TEMPORARY_CLUSTERS_PER_STRUCTURE"
+  },
+  "structure_bsp_background_sound_palette_block": {
+   "max_count": 64,
+   "struct": "structure_bsp_background_sound_palette_block_struct",
+   "max_count_string": "MAXIMUM_BACKGROUND_SOUND_PALETTE_ENTRIES_PER_STRUCTURE"
+  },
+  "structure_bsp_sound_environment_palette_block": {
+   "max_count": 64,
+   "struct": "structure_bsp_sound_environment_palette_block_struct",
+   "max_count_string": "MAXIMUM_SOUND_ENVIRONMENT_PALETTE_ENTRIES_PER_STRUCTURE"
+  },
+  "structure_bsp_weather_palette_block": {
+   "max_count": 32,
+   "struct": "structure_bsp_weather_palette_block_struct",
+   "max_count_string": "MAXIMUM_WEATHER_PALETTE_ENTRIES_PER_STRUCTURE"
+  },
+  "predicted_resource_block": {
+   "max_count": 1024,
+   "struct": "predicted_resource_block_struct",
+   "max_count_string": "MAXIMUM_PREDICTED_RESOURCES_PER_LIST"
+  },
+  "structure_bsp_subcluster_block": {
+   "max_count": 4096,
+   "struct": "structure_bsp_subcluster_block_struct",
+   "max_count_string": "MAXIMUM_SUBCLUSTERS_PER_CLUSTER"
+  },
+  "structure_bsp_subcluster_surface_index_block": {
+   "max_count": 128,
+   "struct": "structure_bsp_subcluster_surface_index_block_struct",
+   "max_count_string": "MAXIMUM_SURFACES_PER_SUBCLUSTER"
+  },
+  "structure_bsp_cluster_surface_index_block": {
+   "max_count": 32768,
+   "struct": "structure_bsp_cluster_surface_index_block_struct",
+   "max_count_string": "MAXIMUM_SURFACES_PER_CLUSTER"
+  },
+  "structure_bsp_mirror_block": {
+   "max_count": 16,
+   "struct": "structure_bsp_mirror_block_struct",
+   "max_count_string": "MAXIMUM_MIRRORS_PER_CLUSTER"
+  },
+  "structure_bsp_mirror_vertex_block": {
+   "max_count": 512,
+   "struct": "structure_bsp_mirror_vertex_block_struct",
+   "max_count_string": "MAXIMUM_VERTICES_PER_MIRROR"
+  },
+  "structure_bsp_cluster_portal_index_block": {
+   "max_count": 128,
+   "struct": "structure_bsp_cluster_portal_index_block_struct",
+   "max_count_string": "MAXIMUM_CLUSTER_PORTALS_PER_CLUSTER"
+  },
+  "structure_bsp_cluster_portal_block": {
+   "max_count": 512,
+   "struct": "structure_bsp_cluster_portal_block_struct",
+   "max_count_string": "MAXIMUM_CLUSTER_PORTALS_PER_STRUCTURE"
+  },
+  "structure_bsp_cluster_portal_vertex_block": {
+   "max_count": 128,
+   "struct": "structure_bsp_cluster_portal_vertex_block_struct",
+   "max_count_string": "MAXIMUM_VERTICES_PER_CLUSTER_PORTAL"
+  },
+  "structure_bsp_breakable_surface_block": {
+   "max_count": 256,
+   "struct": "structure_bsp_breakable_surface_block_struct",
+   "max_count_string": "MAXIMUM_BREAKABLE_SURFACES_PER_MAP"
+  },
+  "structure_bsp_fog_plane_block": {
+   "max_count": 32,
+   "struct": "structure_bsp_fog_plane_block_struct",
+   "max_count_string": "MAXIMUM_FOG_PLANES_PER_STRUCTURE"
+  },
+  "structure_bsp_fog_region_block": {
+   "max_count": 32,
+   "struct": "structure_bsp_fog_region_block_struct",
+   "max_count_string": "MAXIMUM_FOG_REGIONS_PER_STRUCTURE"
+  },
+  "structure_bsp_fog_palette_block": {
+   "max_count": 32,
+   "struct": "structure_bsp_fog_palette_block_struct",
+   "max_count_string": "MAXIMUM_FOG_PALETTE_ENTRIES_PER_STRUCTURE"
+  },
+  "structure_bsp_fog_plane_vertex_block": {
+   "max_count": 4096,
+   "struct": "structure_bsp_fog_plane_vertex_block_struct",
+   "max_count_string": "MAXIMUM_VERTICES_PER_STRUCTURE_FOG_PLANE"
+  },
+  "structure_bsp_weather_polyhedron_block": {
+   "max_count": 32,
+   "struct": "structure_bsp_weather_polyhedron_block_struct",
+   "max_count_string": "MAXIMUM_WEATHER_POLYHEDRA_PER_STRUCTURE"
+  },
+  "structure_bsp_weather_polyhedron_plane_block": {
+   "max_count": 16,
+   "struct": "structure_bsp_weather_polyhedron_plane_block_struct",
+   "max_count_string": "MAXIMUM_PLANES_PER_WEATHER_POLYHEDRON"
+  },
+  "structure_bsp_pathfinding_surfaces_block": {
+   "max_count": 131072,
+   "struct": "structure_bsp_pathfinding_surfaces_block_struct",
+   "max_count_string": "MAXIMUM_SURFACES_PER_STRUCTURE"
+  },
+  "structure_bsp_pathfinding_edges_block": {
+   "max_count": 262144,
+   "struct": "structure_bsp_pathfinding_edges_block_struct",
+   "max_count_string": "MAXIMUM_EDGES_PER_COLLISION_BSP"
+  },
+  "structure_bsp_marker_block": {
+   "max_count": 1024,
+   "struct": "structure_bsp_marker_block_struct",
+   "max_count_string": "MAXIMUM_MARKERS_PER_STRUCTURE"
+  },
+  "structure_bsp_detail_object_data_block": {
+   "max_count": 1,
+   "struct": "structure_bsp_detail_object_data_block_struct",
+   "max_count_string": "1"
+  },
+  "global_detail_object_cells_block": {
+   "max_count": 262144,
+   "struct": "global_detail_object_cells_block_struct",
+   "max_count_string": "MAXIMUM_DETAIL_OBJECT_CELLS_PER_STRUCTURE"
+  },
+  "global_detail_object_block": {
+   "max_count": 2097152,
+   "struct": "global_detail_object_block_struct",
+   "max_count_string": "MAXIMUM_DETAIL_OBJECTS_PER_STRUCTURE"
+  },
+  "global_detail_object_counts_block": {
+   "max_count": 8388608,
+   "struct": "global_detail_object_counts_block_struct",
+   "max_count_string": "MAXIMUM_DETAIL_OBJECT_CELLS_PER_STRUCTURE*MAXIMUM_DETAIL_OBJECT_LAYERS_PER_STRUCTURE"
+  },
+  "global_z_reference_vector_block": {
+   "max_count": 262144,
+   "struct": "global_z_reference_vector_block_struct",
+   "max_count_string": "MAXIMUM_DETAIL_OBJECT_CELLS_PER_STRUCTURE"
+  },
+  "structure_bsp_runtime_decal_block": {
+   "max_count": 6144,
+   "struct": "structure_bsp_runtime_decal_block_struct",
+   "max_count_string": "MAXIMUM_DECALS_PER_STRUCTURE"
+  },
+  "global_map_leaf_block": {
+   "max_count": 65536,
+   "struct": "global_map_leaf_block_struct",
+   "max_count_string": "MAXIMUM_LEAVES_PER_BSP3D"
+  },
+  "map_leaf_face_block": {
+   "max_count": 256,
+   "struct": "map_leaf_face_block_struct",
+   "max_count_string": "MAXIMUM_FACES_PER_MAP_LEAF"
+  },
+  "map_leaf_face_vertex_block": {
+   "max_count": 64,
+   "struct": "map_leaf_face_vertex_block_struct",
+   "max_count_string": "MAXIMUM_VERTICES_PER_LEAF_PORTAL"
+  },
+  "map_leaf_portal_index_block": {
+   "max_count": 256,
+   "struct": "map_leaf_portal_index_block_struct",
+   "max_count_string": "MAXIMUM_PORTALS_PER_MAP_LEAF"
+  },
+  "global_leaf_portal_block": {
+   "max_count": 524288,
+   "struct": "global_leaf_portal_block_struct",
+   "max_count_string": "MAXIMUM_PORTALS_PER_LEAF_MAP"
+  },
+  "leaf_portal_vertex_block": {
+   "max_count": 64,
+   "struct": "leaf_portal_vertex_block_struct",
+   "max_count_string": "MAXIMUM_VERTICES_PER_LEAF_PORTAL"
+  }
+ },
+ "structs": {
+  "scenario_structure_bsp_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 648,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "lightmap bitmaps",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "real",
+     "name": "vehicle floor:world units#height below which vehicles get pushed up by an unstoppable force"
+    },
+    {
+     "type": "real",
+     "name": "vehicle ceiling:world units#height above which vehicles get pushed down by an unstoppable force"
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(long)",
+     "definition": 20
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "default ambient color"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(word)",
+     "definition": 4
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "default distant light 0 color"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "default distant light 0 direction"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "default distant light 1 color"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "default distant light 1 direction"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "real_argb_color",
+     "name": "default reflection tint"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "default shadow vector"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "default shadow color"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "block",
+     "name": "collision materials*",
+     "definition": "structure_collision_materials_block"
+    },
+    {
+     "type": "block",
+     "name": "collision bsp*",
+     "definition": "collision_bsp_block"
+    },
+    {
+     "type": "block",
+     "name": "nodes*!",
+     "definition": "structure_bsp_node_block"
+    },
+    {
+     "type": "real_bounds",
+     "name": "world bounds x*"
+    },
+    {
+     "type": "real_bounds",
+     "name": "world bounds y*"
+    },
+    {
+     "type": "real_bounds",
+     "name": "world bounds z*"
+    },
+    {
+     "type": "block",
+     "name": "leaves*",
+     "definition": "structure_bsp_leaf_block"
+    },
+    {
+     "type": "block",
+     "name": "leaf surfaces*",
+     "definition": "structure_bsp_surface_reference_block"
+    },
+    {
+     "type": "block",
+     "name": "surfaces*",
+     "definition": "structure_bsp_surface_block"
+    },
+    {
+     "type": "block",
+     "name": "lightmaps*",
+     "definition": "structure_bsp_lightmap_block"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "block",
+     "name": "lens flares*",
+     "definition": "structure_bsp_lens_flare_block"
+    },
+    {
+     "type": "block",
+     "name": "lens flare markers*",
+     "definition": "structure_bsp_lens_flare_marker_block"
+    },
+    {
+     "type": "block",
+     "name": "clusters*",
+     "definition": "structure_bsp_cluster_block"
+    },
+    {
+     "type": "data",
+     "name": "cluster data*",
+     "definition": "structure_bsp_cluster_data_definition"
+    },
+    {
+     "type": "block",
+     "name": "cluster portals*",
+     "definition": "structure_bsp_cluster_portal_block"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "block",
+     "name": "breakable surfaces*",
+     "definition": "structure_bsp_breakable_surface_block"
+    },
+    {
+     "type": "block",
+     "name": "fog planes*",
+     "definition": "structure_bsp_fog_plane_block"
+    },
+    {
+     "type": "block",
+     "name": "fog regions*",
+     "definition": "structure_bsp_fog_region_block"
+    },
+    {
+     "type": "block",
+     "name": "fog palette*",
+     "definition": "structure_bsp_fog_palette_block"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "block",
+     "name": "weather palette*",
+     "definition": "structure_bsp_weather_palette_block"
+    },
+    {
+     "type": "block",
+     "name": "weather polyhedra*",
+     "definition": "structure_bsp_weather_polyhedron_block"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "block",
+     "name": "pathfinding surfaces*!",
+     "definition": "structure_bsp_pathfinding_surfaces_block"
+    },
+    {
+     "type": "block",
+     "name": "pathfinding edges*!",
+     "definition": "structure_bsp_pathfinding_edges_block"
+    },
+    {
+     "type": "block",
+     "name": "background sound palette*",
+     "definition": "structure_bsp_background_sound_palette_block"
+    },
+    {
+     "type": "block",
+     "name": "sound environment palette*",
+     "definition": "structure_bsp_sound_environment_palette_block"
+    },
+    {
+     "type": "data",
+     "name": "sound PAS data*",
+     "definition": "structure_bsp_cluster_encoded_sound_data"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "block",
+     "name": "markers*",
+     "definition": "structure_bsp_marker_block"
+    },
+    {
+     "type": "block",
+     "name": "detail objects*!",
+     "definition": "structure_bsp_detail_object_data_block"
+    },
+    {
+     "type": "block",
+     "name": "runtime decals*!",
+     "definition": "structure_bsp_runtime_decal_block"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(struct ptr_holder)",
+     "definition": 4
+    },
+    {
+     "type": "block",
+     "name": "leaf map leaves",
+     "definition": "global_map_leaf_block"
+    },
+    {
+     "type": "block",
+     "name": "leaf map portals",
+     "definition": "global_leaf_portal_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_collision_materials_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 20,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "shader*^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "shdr"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "collision_bsp_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 96,
+   "fields": [
+    {
+     "type": "block",
+     "name": "bsp3d nodes*",
+     "definition": "bsp3d_nodes_block"
+    },
+    {
+     "type": "block",
+     "name": "planes*",
+     "definition": "planes_block"
+    },
+    {
+     "type": "block",
+     "name": "leaves*",
+     "definition": "leaves_block"
+    },
+    {
+     "type": "block",
+     "name": "bsp2d references*",
+     "definition": "bsp2d_references_block"
+    },
+    {
+     "type": "block",
+     "name": "bsp2d nodes*",
+     "definition": "bsp2d_nodes_block"
+    },
+    {
+     "type": "block",
+     "name": "surfaces*",
+     "definition": "surfaces_block"
+    },
+    {
+     "type": "block",
+     "name": "edges*",
+     "definition": "edges_block"
+    },
+    {
+     "type": "block",
+     "name": "vertices*",
+     "definition": "vertices_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "bsp3d_nodes_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 12,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": "plane*"
+    },
+    {
+     "type": "long_integer",
+     "name": "back child*"
+    },
+    {
+     "type": "long_integer",
+     "name": "front child*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "planes_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "real_plane_3d",
+     "name": "plane*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "leaves_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 8,
+   "fields": [
+    {
+     "type": "word_flags",
+     "name": "flags*",
+     "definition": "flags"
+    },
+    {
+     "type": "short_integer",
+     "name": "bsp2d reference count*"
+    },
+    {
+     "type": "long_integer",
+     "name": "first bsp2d reference*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "bsp2d_references_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 8,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": "plane*"
+    },
+    {
+     "type": "long_integer",
+     "name": "bsp2d node*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "bsp2d_nodes_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 20,
+   "fields": [
+    {
+     "type": "real_plane_2d",
+     "name": "plane*"
+    },
+    {
+     "type": "long_integer",
+     "name": "left child*"
+    },
+    {
+     "type": "long_integer",
+     "name": "right child*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "surfaces_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 12,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": "plane*"
+    },
+    {
+     "type": "long_integer",
+     "name": "first edge*"
+    },
+    {
+     "type": "byte_flags",
+     "name": "flags*",
+     "definition": "flags_2"
+    },
+    {
+     "type": "char_integer",
+     "name": "breakable surface*"
+    },
+    {
+     "type": "short_integer",
+     "name": "material*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "edges_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 24,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": "start vertex*"
+    },
+    {
+     "type": "long_integer",
+     "name": "end vertex*"
+    },
+    {
+     "type": "long_integer",
+     "name": "forward edge*"
+    },
+    {
+     "type": "long_integer",
+     "name": "reverse edge*"
+    },
+    {
+     "type": "long_integer",
+     "name": "left surface*"
+    },
+    {
+     "type": "long_integer",
+     "name": "right surface*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "vertices_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "point*"
+    },
+    {
+     "type": "long_integer",
+     "name": "first edge*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_node_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 6,
+   "fields": [
+    {
+     "type": "skip",
+     "name": "sizeof(byte_rectangle3d)",
+     "definition": 6
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_leaf_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "skip",
+     "name": "sizeof(byte_rectangle3d)",
+     "definition": 6
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_integer",
+     "name": "cluster*"
+    },
+    {
+     "type": "short_integer",
+     "name": "surface reference count*"
+    },
+    {
+     "type": "long_block_index",
+     "name": "surface references*",
+     "definition": "structure_bsp_surface_reference_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_surface_reference_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 8,
+   "fields": [
+    {
+     "type": "long_block_index",
+     "name": "surface*",
+     "definition": "structure_bsp_surface_block"
+    },
+    {
+     "type": "long_block_index",
+     "name": "node*",
+     "definition": "structure_bsp_node_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_surface_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 6,
+   "fields": [
+    {
+     "type": "array",
+     "name": "vertices*",
+     "definition": "vertices_array"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "vertices_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 2,
+   "fields": [
+    {
+     "type": "short_integer",
+     "name": "a"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_lightmap_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 32,
+   "fields": [
+    {
+     "type": "short_integer",
+     "name": "bitmap*"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "block",
+     "name": "materials*",
+     "definition": "structure_bsp_material_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_material_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 256,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "shader*^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "shdr"
+      ]
+     }
+    },
+    {
+     "type": "short_integer",
+     "name": "shader permutation*"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "long_block_index",
+     "name": "surfaces*",
+     "definition": "structure_bsp_surface_block"
+    },
+    {
+     "type": "long_integer",
+     "name": "surface count*"
+    },
+    {
+     "type": "real_point_3d",
+     "name": "centroid*"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "ambient color*"
+    },
+    {
+     "type": "short_integer",
+     "name": "distant light count*"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "distant light 0 color*"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "distant light 0 direction*"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "distant light 1 color*"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "distant light 1 direction*"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "real_argb_color",
+     "name": "reflection tint*"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "shadow vector*"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "shadow color*"
+    },
+    {
+     "type": "real_plane_3d",
+     "name": "plane*"
+    },
+    {
+     "type": "short_integer",
+     "name": "breakable surface*"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "array",
+     "name": "vertex buffers*",
+     "definition": "vertex buffers_array"
+    },
+    {
+     "type": "data",
+     "name": "uncompressed vertices",
+     "definition": "structure_bsp_uncompressed_vertex_data_definition"
+    },
+    {
+     "type": "data",
+     "name": "compressed vertices",
+     "definition": "structure_bsp_compressed_vertex_data_definition"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "vertex buffers_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 20,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "2*sizeof(word)",
+     "definition": 4
+    },
+    {
+     "type": "long_integer",
+     "name": "count*"
+    },
+    {
+     "type": "long_integer",
+     "name": "offset*"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(struct ptr_holder)",
+     "definition": 8
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_lens_flare_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "lens flare^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "lens"
+      ]
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_lens_flare_marker_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "position*"
+    },
+    {
+     "type": "char_integer",
+     "name": "direction i-component*"
+    },
+    {
+     "type": "char_integer",
+     "name": "direction j-component*"
+    },
+    {
+     "type": "char_integer",
+     "name": "direction k-component*"
+    },
+    {
+     "type": "char_integer",
+     "name": "lens flare index*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_cluster_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 104,
+   "fields": [
+    {
+     "type": "short_integer",
+     "name": "sky*"
+    },
+    {
+     "type": "short_integer",
+     "name": "fog*"
+    },
+    {
+     "type": "short_block_index",
+     "name": "background sound*",
+     "definition": "structure_bsp_background_sound_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "sound environment*",
+     "definition": "structure_bsp_sound_environment_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "weather*",
+     "definition": "structure_bsp_weather_palette_block"
+    },
+    {
+     "type": "short_integer",
+     "name": "transition structure bsp!"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(word)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "block",
+     "name": "predicted resources*!",
+     "definition": "predicted_resource_block"
+    },
+    {
+     "type": "block",
+     "name": "subclusters*",
+     "definition": "structure_bsp_subcluster_block"
+    },
+    {
+     "type": "short_integer",
+     "name": "first lens flare marker index*"
+    },
+    {
+     "type": "short_integer",
+     "name": "lens flare marker count*"
+    },
+    {
+     "type": "block",
+     "name": "surface indices*",
+     "definition": "structure_bsp_cluster_surface_index_block"
+    },
+    {
+     "type": "block",
+     "name": "mirrors*",
+     "definition": "structure_bsp_mirror_block"
+    },
+    {
+     "type": "block",
+     "name": "portals*",
+     "definition": "structure_bsp_cluster_portal_index_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_background_sound_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 116,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "tag_reference",
+     "name": "background sound",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "lsnd"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(word)",
+     "definition": 4
+    },
+    {
+     "type": "string",
+     "name": "scale function"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_sound_environment_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 80,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "tag_reference",
+     "name": "sound environment",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snde"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_weather_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 240,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "tag_reference",
+     "name": "particle system",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "rain"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(word)",
+     "definition": 4
+    },
+    {
+     "type": "string",
+     "name": "particle system scale function"
+    },
+    {
+     "type": "pad",
+     "name": "11*sizeof(long)",
+     "definition": 44
+    },
+    {
+     "type": "tag_reference",
+     "name": "wind",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "wind"
+      ]
+     }
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "wind direction"
+    },
+    {
+     "type": "real",
+     "name": "wind magnitude"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(word)",
+     "definition": 4
+    },
+    {
+     "type": "string",
+     "name": "wind scale function"
+    },
+    {
+     "type": "pad",
+     "name": "11*sizeof(long)",
+     "definition": 44
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "predicted_resource_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 8,
+   "fields": [
+    {
+     "type": "short_enum",
+     "name": "type",
+     "definition": "type"
+    },
+    {
+     "type": "short_integer",
+     "name": "resource index"
+    },
+    {
+     "type": "long_integer",
+     "name": "tag index"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_subcluster_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 36,
+   "fields": [
+    {
+     "type": "real_bounds",
+     "name": "world bounds x*"
+    },
+    {
+     "type": "real_bounds",
+     "name": "world bounds y*"
+    },
+    {
+     "type": "real_bounds",
+     "name": "world bounds z*"
+    },
+    {
+     "type": "block",
+     "name": "surface indices*",
+     "definition": "structure_bsp_subcluster_surface_index_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_subcluster_surface_index_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 4,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": "index*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_cluster_surface_index_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 4,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": "index*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_mirror_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "real_plane_3d",
+     "name": "plane*"
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(long)",
+     "definition": 20
+    },
+    {
+     "type": "tag_reference",
+     "name": "shader*",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "shdr"
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "vertices*",
+     "definition": "structure_bsp_mirror_vertex_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_mirror_vertex_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 12,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "point*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_cluster_portal_index_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 2,
+   "fields": [
+    {
+     "type": "short_integer",
+     "name": "portal*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_cluster_portal_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "short_integer",
+     "name": "front cluster*"
+    },
+    {
+     "type": "short_integer",
+     "name": "back cluster*"
+    },
+    {
+     "type": "long_integer",
+     "name": "plane index*"
+    },
+    {
+     "type": "real_point_3d",
+     "name": "centroid*"
+    },
+    {
+     "type": "real",
+     "name": "bounding radius*"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags*",
+     "definition": "flags_4"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "block",
+     "name": "vertices*",
+     "definition": "structure_bsp_cluster_portal_vertex_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_cluster_portal_vertex_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 12,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "point*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_breakable_surface_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "centroid*"
+    },
+    {
+     "type": "real",
+     "name": "radius*"
+    },
+    {
+     "type": "long_integer",
+     "name": "collision surface index*"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_fog_plane_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 32,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "front region*",
+     "definition": "structure_bsp_fog_region_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real_plane_3d",
+     "name": "plane*"
+    },
+    {
+     "type": "block",
+     "name": "vertices*",
+     "definition": "structure_bsp_fog_plane_vertex_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_fog_region_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 40,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "9*sizeof(long)",
+     "definition": 36
+    },
+    {
+     "type": "short_block_index",
+     "name": "fog palette*",
+     "definition": "structure_bsp_fog_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "weather palette*",
+     "definition": "structure_bsp_weather_palette_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_fog_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 136,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "tag_reference",
+     "name": "fog",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "fog "
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(word)",
+     "definition": 4
+    },
+    {
+     "type": "string",
+     "name": "fog scale function"
+    },
+    {
+     "type": "pad",
+     "name": "13*sizeof(long)",
+     "definition": 52
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_fog_plane_vertex_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 12,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "point*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_weather_polyhedron_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 32,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "bounding sphere center*"
+    },
+    {
+     "type": "real",
+     "name": "bounding sphere radius*"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "block",
+     "name": "planes*",
+     "definition": "structure_bsp_weather_polyhedron_plane_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_weather_polyhedron_plane_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "real_plane_3d",
+     "name": "plane*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_pathfinding_surfaces_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 1,
+   "fields": [
+    {
+     "type": "char_integer",
+     "name": "data*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_pathfinding_edges_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 1,
+   "fields": [
+    {
+     "type": "char_integer",
+     "name": "midpoint*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_marker_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 60,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name*^"
+    },
+    {
+     "type": "real_quaternion",
+     "name": "rotation"
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_detail_object_data_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "block",
+     "name": "cells",
+     "definition": "global_detail_object_cells_block"
+    },
+    {
+     "type": "block",
+     "name": "instances",
+     "definition": "global_detail_object_block"
+    },
+    {
+     "type": "block",
+     "name": "counts",
+     "definition": "global_detail_object_counts_block"
+    },
+    {
+     "type": "block",
+     "name": "z reference vectors",
+     "definition": "global_z_reference_vector_block"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "global_detail_object_cells_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 32,
+   "fields": [
+    {
+     "type": "short_integer",
+     "name": "cell x!*"
+    },
+    {
+     "type": "short_integer",
+     "name": "cell y!*"
+    },
+    {
+     "type": "short_integer",
+     "name": "cell z!*"
+    },
+    {
+     "type": "short_integer",
+     "name": "offset z!*"
+    },
+    {
+     "type": "long_integer",
+     "name": "valid layers flags!*"
+    },
+    {
+     "type": "long_integer",
+     "name": "start index!*"
+    },
+    {
+     "type": "long_integer",
+     "name": "count index!*"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "global_detail_object_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 6,
+   "fields": [
+    {
+     "type": "char_integer",
+     "name": "position x!*"
+    },
+    {
+     "type": "char_integer",
+     "name": "position y!*"
+    },
+    {
+     "type": "char_integer",
+     "name": "position z!*"
+    },
+    {
+     "type": "char_integer",
+     "name": "data!*"
+    },
+    {
+     "type": "short_integer",
+     "name": "color!*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "global_detail_object_counts_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 2,
+   "fields": [
+    {
+     "type": "short_integer",
+     "name": "count!*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "global_z_reference_vector_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "real",
+     "name": "z reference i!*"
+    },
+    {
+     "type": "real",
+     "name": "z reference j!*"
+    },
+    {
+     "type": "real",
+     "name": "z reference k!*"
+    },
+    {
+     "type": "real",
+     "name": "z reference l!*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "structure_bsp_runtime_decal_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "skip",
+     "name": "sizeof(struct structure_runtime_decal)",
+     "definition": 16
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "global_map_leaf_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 24,
+   "fields": [
+    {
+     "type": "block",
+     "name": "faces*",
+     "definition": "map_leaf_face_block"
+    },
+    {
+     "type": "block",
+     "name": "portal indices*",
+     "definition": "map_leaf_portal_index_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "map_leaf_face_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": "node index*"
+    },
+    {
+     "type": "block",
+     "name": "vertices*",
+     "definition": "map_leaf_face_vertex_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "map_leaf_face_vertex_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 8,
+   "fields": [
+    {
+     "type": "real_point_2d",
+     "name": "vertex*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "map_leaf_portal_index_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 4,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": "portal index*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "global_leaf_portal_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 24,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": "plane index*"
+    },
+    {
+     "type": "long_integer",
+     "name": "back leaf index*"
+    },
+    {
+     "type": "long_integer",
+     "name": "front leaf index*"
+    },
+    {
+     "type": "block",
+     "name": "vertices*",
+     "definition": "leaf_portal_vertex_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "leaf_portal_vertex_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 12,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "point*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "arrays": {
+  "vertices_array": {
+   "count": 3,
+   "struct": "vertices_struct"
+  },
+  "vertex buffers_array": {
+   "count": 2,
+   "struct": "vertex buffers_struct"
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "contains double-sided surfaces"
+   ]
+  },
+  "flags_2": {
+   "options": [
+    "two sided",
+    "invisible",
+    "climbable",
+    "breakable"
+   ]
+  },
+  "flags_3": {
+   "options": [
+    "coplanar*",
+    "fog plane*"
+   ]
+  },
+  "type": {
+   "options": [
+    "bitmap",
+    "sound"
+   ]
+  },
+  "flags_4": {
+   "options": [
+    "ai can't hear through this"
+   ]
+  }
+ },
+ "datas": {
+  "structure_bsp_uncompressed_vertex_data_definition": {
+   "flags": 0,
+   "max_size": 4864000
+  },
+  "structure_bsp_compressed_vertex_data_definition": {
+   "flags": 4,
+   "max_size": 2560000
+  },
+  "structure_bsp_cluster_data_definition": {
+   "flags": 0,
+   "max_size": 65536
+  },
+  "structure_bsp_cluster_encoded_sound_data": {
+   "flags": 0,
+   "max_size": 131072
+  }
+ }
+}

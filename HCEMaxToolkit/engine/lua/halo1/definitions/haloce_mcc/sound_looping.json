@@ -1,0 +1,270 @@
+{
+ "name": "sound_looping",
+ "tag": "lsnd",
+ "version": 3,
+ "flags": 8,
+ "block": "sound_looping_block",
+ "blocks": {
+  "sound_looping_block": {
+   "max_count": 1,
+   "struct": "sound_looping_block_struct",
+   "max_count_string": "1",
+   "display_name": "sound_looping"
+  },
+  "looping_sound_track_block": {
+   "max_count": 4,
+   "struct": "looping_sound_track_block_struct",
+   "max_count_string": "MAXIMUM_TRACKS_PER_LOOPING_SOUND"
+  },
+  "looping_sound_detail_block": {
+   "max_count": 32,
+   "struct": "looping_sound_detail_block_struct",
+   "max_count_string": "MAXIMUM_DETAIL_SOUNDS_PER_LOOPING_SOUND"
+  }
+ },
+ "structs": {
+  "sound_looping_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 84,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "explanation",
+     "name": "when scale is ZERO",
+     "definition": "as the sound's input scale changes from zero to one, these modifiers move between the two values specified here. the sound will play using the current scale modifier multiplied by the value specified below. (0 values are ignored.)"
+    },
+    {
+     "type": "real",
+     "name": "detail sound period"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "explanation",
+     "name": "when scale is ONE",
+     "definition": "as the sound's input scale changes from zero to one, these modifiers move between the two values specified here. the sound will play using the current scale modifier multiplied by the value specified below. (0 values are ignored.)"
+    },
+    {
+     "type": "real",
+     "name": "detail sound period"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "tag_reference",
+     "name": "continuous damage effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "cdmg"
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "tracks#tracks play in parallel and loop continuously for the duration of the looping sound.",
+     "definition": "looping_sound_track_block"
+    },
+    {
+     "type": "block",
+     "name": "detail sounds#detail sounds play at random throughout the duration of the looping sound.",
+     "definition": "looping_sound_detail_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "looping_sound_track_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 160,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_2"
+    },
+    {
+     "type": "real_fraction",
+     "name": "gain"
+    },
+    {
+     "type": "real",
+     "name": "fade in duration:seconds"
+    },
+    {
+     "type": "real",
+     "name": "fade out duration:seconds"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "tag_reference",
+     "name": "start",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "loop^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "end",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "tag_reference",
+     "name": "alternate loop",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "alternate end",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "custom",
+     "name": "CUSTOM_MUSIC_PLAY_ID",
+     "group_tag": "mply"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "looping_sound_detail_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 104,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "sound^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "explanation",
+     "name": "frequency of play",
+     "definition": ""
+    },
+    {
+     "type": "real_bounds",
+     "name": "random period bounds:seconds#the time between successive playings of this sound will be randomly selected from this range."
+    },
+    {
+     "type": "real_fraction",
+     "name": "gain"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "pad",
+     "name": "12*sizeof(long)",
+     "definition": 48
+    },
+    {
+     "type": "explanation",
+     "name": "random spatialization",
+     "definition": "if the sound specified above is not stereo it will be randomly spatialized according to the following constraints. if both lower and upper bounds are zero for any of the following fields, the sound's position will be randomly selected from all possible directions or distances."
+    },
+    {
+     "type": "angle_bounds",
+     "name": "yaw bounds:degrees#the sound's position along the horizon will be randomly selected from this range."
+    },
+    {
+     "type": "angle_bounds",
+     "name": "pitch bounds:degrees#the sound's position above (positive values) or below (negative values) the horizon will be randomly selected from this range."
+    },
+    {
+     "type": "real_bounds",
+     "name": "distance bounds:world units#the sound's distance (from its spatialized looping sound or from the listener if the looping sound is stereo) will be randomly selected from this range."
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "deafening to AIs#when used as a background stereo track, causes nearby AIs to be unable to hear",
+    "not a loop#this is a collection of permutations strung together that should play once then stop.",
+    "stops music#all other music loops will stop when this one starts.",
+    "siege_of_the_madrigal#this is the SOM music*"
+   ]
+  },
+  "flags_2": {
+   "options": [
+    "fade in at start#the loop sound should fade in while the start sound is playing.",
+    "fade out at stop#the loop sound should fade out while the stop sound is playing.",
+    "fade in alternate#when the sound changes to the alternate version, cross fade between the main and alternate loop."
+   ]
+  },
+  "flags_3": {
+   "options": [
+    "don't play with alternate",
+    "don't play without alternate"
+   ]
+  }
+ }
+}

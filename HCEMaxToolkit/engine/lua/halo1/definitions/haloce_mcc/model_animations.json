@@ -1,0 +1,1274 @@
+{
+ "name": "model_animations",
+ "tag": "antr",
+ "version": 4,
+ "flags": 9,
+ "block": "model_animations_block",
+ "blocks": {
+  "model_animations_block": {
+   "max_count": 1,
+   "struct": "model_animations_block_struct",
+   "max_count_string": "1",
+   "display_name": "model_animations"
+  },
+  "animation_graph_object_overlay": {
+   "max_count": 4,
+   "struct": "animation_graph_object_overlay_struct",
+   "max_count_string": "MAXIMUM_OBJECT_OVERLAYS_PER_ANIMATION_GRAPH"
+  },
+  "animation_block": {
+   "max_count": 2048,
+   "struct": "animation_block_struct",
+   "max_count_string": "k_max_animations_per_graph"
+  },
+  "animation_graph_sound_reference_block": {
+   "max_count": 512,
+   "struct": "animation_graph_sound_reference_block_struct",
+   "max_count_string": "k_max_sound_references_per_graph"
+  },
+  "animation_graph_unit_seat_block": {
+   "max_count": 2048,
+   "struct": "animation_graph_unit_seat_block_struct",
+   "max_count_string": "MAXIMUM_UNIT_SEATS_PER_GRAPH"
+  },
+  "unit_seat_animation_block": {
+   "max_count": 30,
+   "struct": "unit_seat_animation_block_struct",
+   "max_count_string": "NUMBER_OF_UNIT_SEAT_ANIMATIONS",
+   "element_label": {
+    "source": "tool.exe 0x4A34D0",
+    "label": [
+     "{#|map:names}"
+    ],
+    "maps": {
+     "names": {
+      "names": [
+       "airborne-dead",
+       "landing-dead",
+       "acc-front-back",
+       "acc-left-right",
+       "acc-up-down",
+       "push",
+       "twist",
+       "enter",
+       "exit",
+       "look",
+       "talk",
+       "emotions",
+       "unused",
+       "user0",
+       "user1",
+       "user2",
+       "user3",
+       "user4",
+       "user5",
+       "user6",
+       "user7",
+       "user8",
+       "user9",
+       "flying-front",
+       "flying-back",
+       "flying-left",
+       "flying-right",
+       "opening",
+       "closing",
+       "hovering"
+      ]
+     }
+    }
+   },
+   "element_label_callback": "tool.exe 0x4A34D0"
+  },
+  "animation_graph_unit_seat_ik_point": {
+   "max_count": 8,
+   "struct": "animation_graph_unit_seat_ik_point_struct",
+   "max_count_string": "k_max_ik_points"
+  },
+  "animation_graph_weapon_block": {
+   "max_count": 64,
+   "struct": "animation_graph_weapon_block_struct",
+   "max_count_string": "k_max_weapon_classes"
+  },
+  "weapon_class_animation_block": {
+   "max_count": 55,
+   "struct": "weapon_class_animation_block_struct",
+   "max_count_string": "NUMBER_OF_UNIT_WEAPON_CLASS_ANIMATIONS",
+   "element_label": {
+    "source": "tool.exe 0x4A3510",
+    "label": [
+     "{#|map:names}"
+    ],
+    "maps": {
+     "names": {
+      "names": [
+       "idle",
+       "gesture",
+       "turn-left",
+       "turn-right",
+       "dive-front",
+       "dive-back",
+       "dive-left",
+       "dive-right",
+       "move-front",
+       "move-back",
+       "move-left",
+       "move-right",
+       "slide-front",
+       "slide-back",
+       "slide-left",
+       "slide-right",
+       "airborne",
+       "land-soft",
+       "land-hard",
+       "unused",
+       "throw-grenade",
+       "disarm",
+       "drop",
+       "ready",
+       "put-away",
+       "aim-still",
+       "aim-move",
+       "surprise-front",
+       "surprise-back",
+       "berserk",
+       "evade-left",
+       "evade-right",
+       "signal-move",
+       "signal-attack",
+       "warn",
+       "stunned-front",
+       "stunned-back",
+       "stunned-left",
+       "stunned-right",
+       "melee",
+       "celebrate",
+       "panic",
+       "melee-airborne",
+       "flaming",
+       "resurrect-front",
+       "resurrect-back",
+       "melee-continuous",
+       "feeding",
+       "leap-start",
+       "leap-airborne",
+       "leap-melee",
+       "zapping",
+       "unused",
+       "unused",
+       "unused"
+      ]
+     }
+    }
+   },
+   "element_label_callback": "tool.exe 0x4A3510"
+  },
+  "animation_graph_weapon_type_block": {
+   "max_count": 64,
+   "struct": "animation_graph_weapon_type_block_struct",
+   "max_count_string": "k_max_weapon_types"
+  },
+  "weapon_type_animation_block": {
+   "max_count": 10,
+   "struct": "weapon_type_animation_block_struct",
+   "max_count_string": "NUMBER_OF_UNIT_WEAPON_TYPE_ANIMATIONS",
+   "element_label": {
+    "source": "tool.exe 0x4A3550",
+    "label": [
+     "{#|map:names}"
+    ],
+    "maps": {
+     "names": {
+      "names": [
+       "reload-1",
+       "reload-2",
+       "chamber-1",
+       "chamber-2",
+       "fire-1",
+       "fire-2",
+       "charged-1",
+       "charged-2",
+       "melee",
+       "overheat"
+      ]
+     }
+    }
+   },
+   "element_label_callback": "tool.exe 0x4A3550"
+  },
+  "animation_graph_weapon_animations_block": {
+   "max_count": 1,
+   "struct": "animation_graph_weapon_animations_block_struct",
+   "max_count_string": "1"
+  },
+  "weapon_animation_block": {
+   "max_count": 11,
+   "struct": "weapon_animation_block_struct",
+   "max_count_string": "NUMBER_OF_WEAPON_ANIMATIONS",
+   "element_label": {
+    "source": "tool.exe 0x4A3410",
+    "label": [
+     "{#|map:names}"
+    ],
+    "maps": {
+     "names": {
+      "names": [
+       "idle",
+       "ready",
+       "put-away",
+       "reload-1",
+       "reload-2",
+       "chamber-1",
+       "chamber-2",
+       "charged-1",
+       "charged-2",
+       "fire-1",
+       "fire-2"
+      ]
+     }
+    }
+   },
+   "element_label_callback": "tool.exe 0x4A3410"
+  },
+  "animation_graph_vehicle_animations_block": {
+   "max_count": 1,
+   "struct": "animation_graph_vehicle_animations_block_struct",
+   "max_count_string": "1"
+  },
+  "vehicle_animation_block": {
+   "max_count": 8,
+   "struct": "vehicle_animation_block_struct",
+   "max_count_string": "NUMBER_OF_VEHICLE_ANIMATIONS",
+   "element_label": {
+    "source": "tool.exe 0x4A3490",
+    "label": [
+     "{#|map:names}"
+    ],
+    "maps": {
+     "names": {
+      "names": [
+       "steering",
+       "roll",
+       "throttle",
+       "velocity",
+       "braking",
+       "ground-speed",
+       "occupied",
+       "unoccupied"
+      ]
+     }
+    }
+   },
+   "element_label_callback": "tool.exe 0x4A3490"
+  },
+  "suspension_animation_block": {
+   "max_count": 32,
+   "struct": "suspension_animation_block_struct",
+   "max_count_string": "k_max_vehicle_suspensions"
+  },
+  "device_animations": {
+   "max_count": 1,
+   "struct": "device_animations_struct",
+   "max_count_string": "1"
+  },
+  "device_animation_block": {
+   "max_count": 2,
+   "struct": "device_animation_block_struct",
+   "max_count_string": "NUMBER_OF_DEVICE_ANIMATIONS",
+   "element_label": {
+    "source": "tool.exe 0x4A3450",
+    "label": [
+     "{#|map:names}"
+    ],
+    "maps": {
+     "names": {
+      "names": [
+       "position",
+       "power"
+      ]
+     }
+    }
+   },
+   "element_label_callback": "tool.exe 0x4A3450"
+  },
+  "unit_damage_animations": {
+   "max_count": 176,
+   "struct": "unit_damage_animations_struct",
+   "max_count_string": "NUMBER_OF_DAMAGE_ANIMATIONS"
+  },
+  "animation_graph_first_person_weapon_animations_block": {
+   "max_count": 1,
+   "struct": "animation_graph_first_person_weapon_animations_block_struct",
+   "max_count_string": "1"
+  },
+  "first_person_weapon_block": {
+   "max_count": 30,
+   "struct": "first_person_weapon_block_struct",
+   "max_count_string": "NUMBER_OF_FIRST_PERSON_WEAPON_ANIMATIONS",
+   "element_label": {
+    "source": "tool.exe 0x4A3590",
+    "label": [
+     "{#|map:names}"
+    ],
+    "maps": {
+     "names": {
+      "names": [
+       "idle",
+       "posing",
+       "fire-1",
+       "moving",
+       "overlays",
+       "light-off",
+       "light-on",
+       "reload-empty",
+       "reload-full",
+       "overheated",
+       "ready",
+       "put-away",
+       "overcharged",
+       "melee",
+       "fire-2",
+       "overcharged-jitter",
+       "throw-grenade",
+       "ammunition",
+       "misfire-1",
+       "misfire-2",
+       "throw-overheated",
+       "overheating",
+       "overheating-again",
+       "enter",
+       "exit-empty",
+       "exit-full",
+       "o-h-exit",
+       "o-h-s-enter",
+       "reload-empty-2",
+       "reload-full-2"
+      ]
+     }
+    }
+   },
+   "element_label_callback": "tool.exe 0x4A3590"
+  },
+  "animation_graph_node_block": {
+   "max_count": 64,
+   "struct": "animation_graph_node_block_struct",
+   "max_count_string": "MAXIMUM_NODES_PER_MODEL"
+  }
+ },
+ "structs": {
+  "model_animations_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 128,
+   "fields": [
+    {
+     "type": "block",
+     "name": "OBJECTS",
+     "definition": "animation_graph_object_overlay"
+    },
+    {
+     "type": "block",
+     "name": "UNITS",
+     "definition": "animation_graph_unit_seat_block"
+    },
+    {
+     "type": "block",
+     "name": "WEAPONS",
+     "definition": "animation_graph_weapon_animations_block"
+    },
+    {
+     "type": "block",
+     "name": "VEHICLES",
+     "definition": "animation_graph_vehicle_animations_block"
+    },
+    {
+     "type": "block",
+     "name": "DEVICES",
+     "definition": "device_animations"
+    },
+    {
+     "type": "block",
+     "name": "UNIT DAMAGE",
+     "definition": "unit_damage_animations"
+    },
+    {
+     "type": "block",
+     "name": "FIRST PERSON WEAPONS",
+     "definition": "animation_graph_first_person_weapon_animations_block"
+    },
+    {
+     "type": "block",
+     "name": "sound references",
+     "definition": "animation_graph_sound_reference_block"
+    },
+    {
+     "type": "real",
+     "name": "limp body node radius#0 uses 0.04 default"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_2"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "block",
+     "name": "nodes*",
+     "definition": "animation_graph_node_block"
+    },
+    {
+     "type": "block",
+     "name": "animations*",
+     "definition": "animation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "animation_graph_object_overlay_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 20,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "animation",
+     "definition": "animation_block"
+    },
+    {
+     "type": "short_enum",
+     "name": "function",
+     "definition": "function"
+    },
+    {
+     "type": "short_enum",
+     "name": "function controls",
+     "definition": "function controls"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "animation_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 180,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name*^"
+    },
+    {
+     "type": "short_enum",
+     "name": "type*",
+     "definition": "type"
+    },
+    {
+     "type": "short_integer",
+     "name": "frame count*"
+    },
+    {
+     "type": "short_integer",
+     "name": "frame size*"
+    },
+    {
+     "type": "short_enum",
+     "name": "frame info type*",
+     "definition": "frame info type"
+    },
+    {
+     "type": "long_integer",
+     "name": "node list checksum*"
+    },
+    {
+     "type": "short_integer",
+     "name": "node count*"
+    },
+    {
+     "type": "short_integer",
+     "name": "loop frame index"
+    },
+    {
+     "type": "real_fraction",
+     "name": "weight"
+    },
+    {
+     "type": "short_integer",
+     "name": "key frame index"
+    },
+    {
+     "type": "short_integer",
+     "name": "second key frame index"
+    },
+    {
+     "type": "short_block_index",
+     "name": "next animation*",
+     "definition": "animation_block"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags*",
+     "definition": "flags"
+    },
+    {
+     "type": "short_block_index",
+     "name": "sound",
+     "definition": "animation_graph_sound_reference_block"
+    },
+    {
+     "type": "short_integer",
+     "name": "sound frame index"
+    },
+    {
+     "type": "char_integer",
+     "name": "left foot frame index"
+    },
+    {
+     "type": "char_integer",
+     "name": "right foot frame index"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "data",
+     "name": "frame info*",
+     "definition": "frame_info_data_definition"
+    },
+    {
+     "type": "array",
+     "name": "node trans. flag data*",
+     "definition": "node trans. flag data_array"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "array",
+     "name": "node rotation flag data*",
+     "definition": "node rotation flag data_array"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "array",
+     "name": "node scale flag data*",
+     "definition": "node scale flag data_array"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "long_integer",
+     "name": "offset to compressed data:bytes*"
+    },
+    {
+     "type": "data",
+     "name": "default data*",
+     "definition": "animation_default_data_definition"
+    },
+    {
+     "type": "data",
+     "name": "frame data*",
+     "definition": "animation_frame_data_definition"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "animation_graph_sound_reference_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 20,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "sound^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "node trans. flag data_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 4,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": ""
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "node rotation flag data_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 4,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": ""
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "node scale flag data_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 4,
+   "fields": [
+    {
+     "type": "long_integer",
+     "name": ""
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "animation_graph_unit_seat_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 100,
+   "fields": [
+    {
+     "type": "string",
+     "name": "label^"
+    },
+    {
+     "type": "explanation",
+     "name": "looking screen bounds",
+     "definition": ""
+    },
+    {
+     "type": "angle",
+     "name": "right yaw per frame"
+    },
+    {
+     "type": "angle",
+     "name": "left yaw per frame"
+    },
+    {
+     "type": "short_integer",
+     "name": "right frame count"
+    },
+    {
+     "type": "short_integer",
+     "name": "left frame count"
+    },
+    {
+     "type": "angle",
+     "name": "down pitch per frame"
+    },
+    {
+     "type": "angle",
+     "name": "up pitch per frame"
+    },
+    {
+     "type": "short_integer",
+     "name": "down pitch frame count"
+    },
+    {
+     "type": "short_integer",
+     "name": "up pitch frame count"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "block",
+     "name": "animations",
+     "definition": "unit_seat_animation_block"
+    },
+    {
+     "type": "block",
+     "name": "ik points",
+     "definition": "animation_graph_unit_seat_ik_point"
+    },
+    {
+     "type": "block",
+     "name": "weapons",
+     "definition": "animation_graph_weapon_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "unit_seat_animation_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 2,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "animation",
+     "definition": "animation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "animation_graph_unit_seat_ik_point_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "string",
+     "name": "marker#the marker name on the object being attached"
+    },
+    {
+     "type": "string",
+     "name": "attach to marker#the marker name object (weapon, vehicle, etc.) the above marker is being attached to"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "animation_graph_weapon_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 188,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "string",
+     "name": "grip marker#the marker name on the weapon to which the hand is attached (leave blank to use origin)"
+    },
+    {
+     "type": "string",
+     "name": "hand marker#the marker name on the unit to which the weapon is attached"
+    },
+    {
+     "type": "explanation",
+     "name": "aiming screen bounds",
+     "definition": ""
+    },
+    {
+     "type": "angle",
+     "name": "right yaw per frame"
+    },
+    {
+     "type": "angle",
+     "name": "left yaw per frame"
+    },
+    {
+     "type": "short_integer",
+     "name": "right frame count"
+    },
+    {
+     "type": "short_integer",
+     "name": "left frame count"
+    },
+    {
+     "type": "angle",
+     "name": "down pitch per frame"
+    },
+    {
+     "type": "angle",
+     "name": "up pitch per frame"
+    },
+    {
+     "type": "short_integer",
+     "name": "down pitch frame count"
+    },
+    {
+     "type": "short_integer",
+     "name": "up pitch frame count"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "block",
+     "name": "animations",
+     "definition": "weapon_class_animation_block"
+    },
+    {
+     "type": "block",
+     "name": "ik points",
+     "definition": "animation_graph_unit_seat_ik_point"
+    },
+    {
+     "type": "block",
+     "name": "weapon types",
+     "definition": "animation_graph_weapon_type_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "weapon_class_animation_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 2,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "animation",
+     "definition": "animation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "animation_graph_weapon_type_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 60,
+   "fields": [
+    {
+     "type": "string",
+     "name": "label^"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "block",
+     "name": "animations",
+     "definition": "weapon_type_animation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "weapon_type_animation_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 2,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "animation",
+     "definition": "animation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "animation_graph_weapon_animations_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 28,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "block",
+     "name": "animations",
+     "definition": "weapon_animation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "weapon_animation_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 2,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "animation",
+     "definition": "animation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "animation_graph_vehicle_animations_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 116,
+   "fields": [
+    {
+     "type": "explanation",
+     "name": "steering screen",
+     "definition": ""
+    },
+    {
+     "type": "angle",
+     "name": "right yaw per frame"
+    },
+    {
+     "type": "angle",
+     "name": "left yaw per frame"
+    },
+    {
+     "type": "short_integer",
+     "name": "right frame count"
+    },
+    {
+     "type": "short_integer",
+     "name": "left frame count"
+    },
+    {
+     "type": "angle",
+     "name": "down pitch per frame"
+    },
+    {
+     "type": "angle",
+     "name": "up pitch per frame"
+    },
+    {
+     "type": "short_integer",
+     "name": "down pitch frame count"
+    },
+    {
+     "type": "short_integer",
+     "name": "up pitch frame count"
+    },
+    {
+     "type": "pad",
+     "name": "17*sizeof(long)",
+     "definition": 68
+    },
+    {
+     "type": "block",
+     "name": "animations",
+     "definition": "vehicle_animation_block"
+    },
+    {
+     "type": "block",
+     "name": "suspension animations",
+     "definition": "suspension_animation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "vehicle_animation_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 2,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "animation",
+     "definition": "animation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "suspension_animation_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 20,
+   "fields": [
+    {
+     "type": "short_integer",
+     "name": "mass point index"
+    },
+    {
+     "type": "short_block_index",
+     "name": "animation^",
+     "definition": "animation_block"
+    },
+    {
+     "type": "real",
+     "name": "full extension ground_depth"
+    },
+    {
+     "type": "real",
+     "name": "full compression ground_depth"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "device_animations_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 96,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "21*sizeof(long)",
+     "definition": 84
+    },
+    {
+     "type": "block",
+     "name": "animations",
+     "definition": "device_animation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "device_animation_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 2,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "animation",
+     "definition": "animation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "unit_damage_animations_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 2,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "animation^",
+     "definition": "animation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "animation_graph_first_person_weapon_animations_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 28,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "block",
+     "name": "animations",
+     "definition": "first_person_weapon_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "first_person_weapon_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 2,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "animation",
+     "definition": "animation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "animation_graph_node_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "short_block_index",
+     "name": "next sibling node index*",
+     "definition": "animation_graph_node_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "first child node index*",
+     "definition": "animation_graph_node_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "parent node index*",
+     "definition": "animation_graph_node_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "long_flags",
+     "name": "Node joint flags",
+     "definition": "Node joint flags"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "base vector*"
+    },
+    {
+     "type": "real",
+     "name": "vector range*"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "arrays": {
+  "node trans. flag data_array": {
+   "count": 2,
+   "struct": "node trans. flag data_struct"
+  },
+  "node rotation flag data_array": {
+   "count": 2,
+   "struct": "node rotation flag data_struct"
+  },
+  "node scale flag data_array": {
+   "count": 2,
+   "struct": "node scale flag data_struct"
+  }
+ },
+ "enums_flags": {
+  "type": {
+   "options": [
+    "base",
+    "overlay",
+    "replacement"
+   ]
+  },
+  "frame info type": {
+   "options": [
+    "none",
+    "dx,dy",
+    "dx,dy,dyaw",
+    "dx,dy,dz,dyaw"
+   ]
+  },
+  "flags": {
+   "options": [
+    "compressed data",
+    "world relative",
+    "25Hz (PAL)"
+   ]
+  },
+  "function": {
+   "options": [
+    "A out",
+    "B out",
+    "C out",
+    "D out"
+   ]
+  },
+  "function controls": {
+   "options": [
+    "frame",
+    "scale"
+   ]
+  },
+  "flags_2": {
+   "options": [
+    "compress all animations",
+    "force idle compression"
+   ]
+  },
+  "Node joint flags": {
+   "options": [
+    "ball-socket",
+    "hinge",
+    "no movement"
+   ]
+  }
+ },
+ "datas": {
+  "frame_info_data_definition": {
+   "flags": 0,
+   "max_size": 32768
+  },
+  "animation_default_data_definition": {
+   "flags": 0,
+   "max_size": 16384
+  },
+  "animation_frame_data_definition": {
+   "flags": 0,
+   "max_size": 4194304
+  }
+ }
+}

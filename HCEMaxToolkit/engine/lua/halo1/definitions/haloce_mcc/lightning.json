@@ -1,0 +1,299 @@
+{
+ "name": "lightning",
+ "tag": "elec",
+ "version": 1,
+ "flags": 8,
+ "block": "lightning_block",
+ "blocks": {
+  "lightning_block": {
+   "max_count": 1,
+   "struct": "lightning_block_struct",
+   "max_count_string": "1",
+   "display_name": "lightning"
+  },
+  "lightning_marker_block": {
+   "max_count": 16,
+   "struct": "lightning_marker_block_struct",
+   "max_count_string": "MAXIMUM_MARKERS_PER_LIGHTNING"
+  },
+  "lightning_shader_block": {
+   "max_count": 1,
+   "struct": "lightning_shader_block_struct",
+   "max_count_string": "1"
+  }
+ },
+ "structs": {
+  "lightning_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 264,
+   "fields": [
+    {
+     "type": "explanation",
+     "name": "lightning",
+     "definition": ""
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_integer",
+     "name": "count#number of overlapping lightning effects to render; 0 defaults to 1"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "real",
+     "name": "near fade distance:world units#distance at which lightning is at full brightness"
+    },
+    {
+     "type": "real",
+     "name": "far fade distance:world units#distance at which lightning is at zero brightness"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "short_enum",
+     "name": "jitter scale source",
+     "definition": "jitter scale source"
+    },
+    {
+     "type": "short_enum",
+     "name": "thickness scale source",
+     "definition": "jitter scale source"
+    },
+    {
+     "type": "short_enum",
+     "name": "tint modulation source",
+     "definition": "tint modulation source"
+    },
+    {
+     "type": "short_enum",
+     "name": "brightness scale source",
+     "definition": "jitter scale source"
+    },
+    {
+     "type": "tag_reference",
+     "name": "bitmap",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "21*sizeof(long)",
+     "definition": 84
+    },
+    {
+     "type": "block",
+     "name": "markers",
+     "definition": "lightning_marker_block"
+    },
+    {
+     "type": "block",
+     "name": "shader",
+     "definition": "lightning_shader_block"
+    },
+    {
+     "type": "pad",
+     "name": "22*sizeof(long)",
+     "definition": 88
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "lightning_marker_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 228,
+   "fields": [
+    {
+     "type": "string",
+     "name": "attachment marker"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "short_integer",
+     "name": "octaves to next marker"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "19*sizeof(long)",
+     "definition": 76
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "random position bounds:world units"
+    },
+    {
+     "type": "real",
+     "name": "random jitter:world units"
+    },
+    {
+     "type": "real",
+     "name": "thickness:world units"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "tint#alpha is brightness"
+    },
+    {
+     "type": "pad",
+     "name": "19*sizeof(long)",
+     "definition": 76
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "lightning_shader_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 180,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "sizeof(struct _shader)",
+     "definition": 40
+    },
+    {
+     "type": "word_flags",
+     "name": "shader flags",
+     "definition": "shader flags"
+    },
+    {
+     "type": "short_enum",
+     "name": "framebuffer blend function",
+     "definition": "framebuffer blend function"
+    },
+    {
+     "type": "short_enum",
+     "name": "framebuffer fade mode",
+     "definition": "framebuffer fade mode"
+    },
+    {
+     "type": "word_flags",
+     "name": "map flags",
+     "definition": "map flags"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(struct tag_reference)",
+     "definition": 16
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(struct shader_texture_animation)",
+     "definition": 56
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(real)",
+     "definition": 28
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "jitter scale source": {
+   "options": [
+    "none",
+    "A out",
+    "B out",
+    "C out",
+    "D out"
+   ]
+  },
+  "tint modulation source": {
+   "options": [
+    "none",
+    "A",
+    "B",
+    "C",
+    "D"
+   ]
+  },
+  "flags": {
+   "options": [
+    "not connected to next marker"
+   ]
+  },
+  "shader flags": {
+   "options": [
+    "sort bias",
+    "nonlinear tint",
+    "don't overdraw fp weapon"
+   ]
+  },
+  "framebuffer blend function": {
+   "options": [
+    "alpha blend",
+    "multiply",
+    "double multiply",
+    "add",
+    "subtract",
+    "component min",
+    "component max",
+    "alpha-multiply add"
+   ]
+  },
+  "framebuffer fade mode": {
+   "options": [
+    "none",
+    "fade when perpendicular",
+    "fade when parallel"
+   ]
+  },
+  "map flags": {
+   "options": [
+    "unfiltered"
+   ]
+  }
+ }
+}

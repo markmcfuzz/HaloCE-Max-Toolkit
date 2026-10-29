@@ -1,0 +1,395 @@
+{
+ "name": "sound",
+ "tag": "snd!",
+ "version": 4,
+ "flags": 8,
+ "block": "sound_block",
+ "blocks": {
+  "sound_block": {
+   "max_count": 1,
+   "struct": "sound_block_struct",
+   "max_count_string": "1",
+   "display_name": "sound"
+  },
+  "sound_pitch_range_block": {
+   "max_count": 8,
+   "struct": "sound_pitch_range_block_struct",
+   "max_count_string": "MAXIMUM_PITCH_RANGES_PER_SOUND",
+   "element_label": {
+    "source": "tool.exe 0x49E680",
+    "label": [
+     {
+      "when": "{#count} == 1",
+      "format": "always played"
+     },
+     {
+      "when": "1",
+      "format": "{name}:{bend bounds[0]:.2f} to {bend bounds[1]:.2f}"
+     }
+    ]
+   },
+   "element_label_callback": "tool.exe 0x49E680"
+  },
+  "sound_permutations_block": {
+   "max_count": 256,
+   "struct": "sound_permutations_block_struct",
+   "max_count_string": "MAXIMUM_PERMUTATIONS_PER_PITCH_RANGE"
+  }
+ },
+ "structs": {
+  "sound_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 164,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "short_enum",
+     "name": "class",
+     "definition": "class"
+    },
+    {
+     "type": "short_enum",
+     "name": "sample rate*",
+     "definition": "sample rate"
+    },
+    {
+     "type": "real",
+     "name": "minimum distance:world units#the distance below which this sound no longer gets louder"
+    },
+    {
+     "type": "real",
+     "name": "maximum distance:world units#the distance beyond which this sound is no longer audible"
+    },
+    {
+     "type": "real_fraction",
+     "name": "skip fraction#fraction of requests to play this sound that will be ignored (0 means always play.)"
+    },
+    {
+     "type": "explanation",
+     "name": "randomization",
+     "definition": "these settings control random variation of volume and pitch."
+    },
+    {
+     "type": "real_bounds",
+     "name": "random pitch bounds#the sound's pitch will be randomly selected and will be in this range. (1.0 is the recorded pitch.)"
+    },
+    {
+     "type": "angle",
+     "name": "inner cone angle:degrees#within the cone defined by this angle and the sound's direction, the sound plays with a gain of 1.0."
+    },
+    {
+     "type": "angle",
+     "name": "outer cone angle:degrees#outside the cone defined by this angle and the sound's direction, the sound plays with a gain of OUTER CONE GAIN. (0 means the sound does not attenuate with direction.)"
+    },
+    {
+     "type": "real_fraction",
+     "name": "outer cone gain#the gain to use when the sound is directed away from the listener"
+    },
+    {
+     "type": "real_fraction",
+     "name": "gain modifier"
+    },
+    {
+     "type": "real",
+     "name": "maximum bend per second"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "explanation",
+     "name": "when scale is ZERO",
+     "definition": "as the sound's input scale changes from zero to one, these modifiers move between the two values specified here. the sound will play using the current scale modifier multiplied by the value specified above. (0 values are ignored.)"
+    },
+    {
+     "type": "real",
+     "name": "skip fraction modifier"
+    },
+    {
+     "type": "real_fraction",
+     "name": "gain modifier"
+    },
+    {
+     "type": "real",
+     "name": "pitch modifier"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "explanation",
+     "name": "when scale is ONE",
+     "definition": "as the sound's input scale changes from zero to one, these modifiers move between the two values specified here. the sound will play using the current scale modifier multiplied by the value specified above. (0 values are ignored.)"
+    },
+    {
+     "type": "real",
+     "name": "skip fraction modifier"
+    },
+    {
+     "type": "real_fraction",
+     "name": "gain modifier"
+    },
+    {
+     "type": "real",
+     "name": "pitch modifier"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "explanation",
+     "name": "import properties",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "encoding*",
+     "definition": "encoding"
+    },
+    {
+     "type": "short_enum",
+     "name": "compression*",
+     "definition": "compression"
+    },
+    {
+     "type": "tag_reference",
+     "name": "promotion sound",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "short_integer",
+     "name": "promotion count#when there are this many instances of the sound, promote to the new sound."
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(long)",
+     "definition": 20
+    },
+    {
+     "type": "block",
+     "name": "pitch ranges#pitch ranges allow multiple samples to represent the same sound at different pitches",
+     "definition": "sound_pitch_range_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "sound_pitch_range_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 72,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name*#the name of the imported pitch range directory"
+    },
+    {
+     "type": "explanation",
+     "name": "pitch control",
+     "definition": "these settings control what pitches this set of samples represents. if there is only one pitch range, all three values are ignored."
+    },
+    {
+     "type": "real",
+     "name": "natural pitch#the apparent pitch when these samples are played at their recorded pitch."
+    },
+    {
+     "type": "real_bounds",
+     "name": "bend bounds#the range of pitches that will be represented using this sample. this should always contain the natural pitch."
+    },
+    {
+     "type": "short_integer",
+     "name": "actual permutation count*"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "block",
+     "name": "permutations#permutations represent equivalent variations of this sound.",
+     "definition": "sound_permutations_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "sound_permutations_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 124,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name*^#name of the file from which this sample was imported"
+    },
+    {
+     "type": "real_fraction",
+     "name": "skip fraction#fraction of requests to play this permutation that are ignored (a different permutation is selected.)"
+    },
+    {
+     "type": "real_fraction",
+     "name": "gain#fraction of recorded volume to play at."
+    },
+    {
+     "type": "short_enum",
+     "name": "compression*",
+     "definition": "compression"
+    },
+    {
+     "type": "short_integer",
+     "name": "next permutation index*"
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(long)",
+     "definition": 20
+    },
+    {
+     "type": "data",
+     "name": "samples#sampled sound data",
+     "definition": "sound_samples"
+    },
+    {
+     "type": "data",
+     "name": "mouth data",
+     "definition": "sound_mouth_data"
+    },
+    {
+     "type": "data",
+     "name": "subtitle data",
+     "definition": "sound_subtitle_data"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "fit to adpcm blocksize",
+    "split long sound into permutations",
+    "thirsty_grunt*"
+   ]
+  },
+  "class": {
+   "options": [
+    "projectile_impact",
+    "projectile_detonation",
+    "",
+    "",
+    "weapon_fire",
+    "weapon_ready",
+    "weapon_reload",
+    "weapon_empty",
+    "weapon_charge",
+    "weapon_overheat",
+    "weapon_idle",
+    "",
+    "",
+    "object_impacts",
+    "particle_impacts",
+    "slow_particle_impacts",
+    "",
+    "",
+    "unit_footsteps",
+    "unit_dialog",
+    "",
+    "",
+    "vehicle_collision",
+    "vehicle_engine",
+    "",
+    "",
+    "device_door",
+    "device_force_field",
+    "device_machinery",
+    "device_nature",
+    "device_computers",
+    "",
+    "music",
+    "ambient_nature",
+    "ambient_machinery",
+    "ambient_computers",
+    "",
+    "",
+    "",
+    "first_person_damage",
+    "",
+    "",
+    "",
+    "",
+    "scripted_dialog_player",
+    "scripted_effect",
+    "scripted_dialog_other",
+    "scripted_dialog_force_unspatialized",
+    "",
+    "",
+    "game_event"
+   ]
+  },
+  "sample rate": {
+   "options": [
+    "22kHz",
+    "44kHz"
+   ]
+  },
+  "encoding": {
+   "options": [
+    "mono",
+    "stereo"
+   ]
+  },
+  "compression": {
+   "options": [
+    "none",
+    "xbox adpcm",
+    "ima adpcm",
+    "ogg"
+   ]
+  }
+ },
+ "datas": {
+  "sound_samples": {
+   "flags": 1,
+   "max_size": 4194304
+  },
+  "sound_mouth_data": {
+   "flags": 0,
+   "max_size": 8192
+  },
+  "sound_subtitle_data": {
+   "flags": 0,
+   "max_size": 512
+  }
+ }
+}

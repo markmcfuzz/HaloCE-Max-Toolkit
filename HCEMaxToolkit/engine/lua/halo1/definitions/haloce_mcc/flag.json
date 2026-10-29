@@ -1,0 +1,164 @@
+{
+ "name": "flag",
+ "tag": "flag",
+ "version": 1,
+ "flags": 0,
+ "block": "flag_block",
+ "blocks": {
+  "flag_block": {
+   "max_count": 1,
+   "struct": "flag_block_struct",
+   "max_count_string": "1",
+   "display_name": "flag"
+  },
+  "flag_attachment_point_block": {
+   "max_count": 5,
+   "struct": "flag_attachment_point_block_struct",
+   "max_count_string": "MAXIMUM_NUMBER_OF_ATTACHMENT_POINTS"
+  }
+ },
+ "structs": {
+  "flag_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 96,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "short_enum",
+     "name": "trailing edge shape",
+     "definition": "trailing edge shape"
+    },
+    {
+     "type": "short_integer",
+     "name": "trailing edge shape offset:vertices#zero places the shape exactly on the trailing edge, positive numbers push it off the edge"
+    },
+    {
+     "type": "short_enum",
+     "name": "attached edge shape",
+     "definition": "attached edge shape"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_integer",
+     "name": "width:vertices#flag size from attached to trailing edge"
+    },
+    {
+     "type": "short_integer",
+     "name": "height:vertices#flag size along the direction of attachment (should be odd)"
+    },
+    {
+     "type": "real",
+     "name": "cell width:world units#width of the cell between each pair of vertices"
+    },
+    {
+     "type": "real",
+     "name": "cell height:world units#height of the cell between each pair of vertices"
+    },
+    {
+     "type": "tag_reference",
+     "name": "red flag shader^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "shdr"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "physics",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "pphy"
+      ]
+     }
+    },
+    {
+     "type": "real",
+     "name": "wind noise:world units per second^2"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "tag_reference",
+     "name": "blue flag shader^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "shdr"
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "attachment points#attachment points determine where the flag is attached",
+     "definition": "flag_attachment_point_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "flag_attachment_point_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 52,
+   "fields": [
+    {
+     "type": "short_integer",
+     "name": "height_to_next_attachment:vertices#flag vertices between this attachment point and the next"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "string",
+     "name": "marker name^"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": []
+  },
+  "trailing edge shape": {
+   "options": [
+    "flat",
+    "concave triangular",
+    "convex triangular",
+    "trapezoid, short top",
+    "trapezoid, short bottom"
+   ]
+  },
+  "attached edge shape": {
+   "options": [
+    "flat",
+    "concave triangular"
+   ]
+  }
+ }
+}

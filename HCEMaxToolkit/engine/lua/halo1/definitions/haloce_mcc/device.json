@@ -1,0 +1,206 @@
+{
+ "name": "device",
+ "tag": "devi",
+ "version": 1,
+ "flags": 9,
+ "parent_tag": "obje",
+ "block": "device_block",
+ "blocks": {
+  "device_block": {
+   "max_count": 1,
+   "struct": "device_block_struct",
+   "max_count_string": "1",
+   "display_name": "device"
+  }
+ },
+ "structs": {
+  "device_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 656,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "object",
+     "definition": "object_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "$$$ DEVICE $$$",
+     "definition": ""
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "real",
+     "name": "power transition time:seconds"
+    },
+    {
+     "type": "real",
+     "name": "power acceleration time:seconds"
+    },
+    {
+     "type": "real",
+     "name": "position transition time:seconds"
+    },
+    {
+     "type": "real",
+     "name": "position acceleration time:seconds"
+    },
+    {
+     "type": "real",
+     "name": "depowered position transition time:seconds"
+    },
+    {
+     "type": "real",
+     "name": "depowered position acceleration time:seconds"
+    },
+    {
+     "type": "short_enum",
+     "name": "A in",
+     "definition": "A in_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "B in",
+     "definition": "A in_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "C in",
+     "definition": "A in_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "D in",
+     "definition": "A in_2"
+    },
+    {
+     "type": "tag_reference",
+     "name": "open (up)",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!",
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "close (down)",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!",
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "opened",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!",
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "closed",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!",
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "depowered",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!",
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "repowered",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!",
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "real",
+     "name": "delay time:seconds"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "tag_reference",
+     "name": "delay effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!",
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "real",
+     "name": "automatic activation radius:world units"
+    },
+    {
+     "type": "pad",
+     "name": "21*sizeof(long)",
+     "definition": 84
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(real)",
+     "definition": 28
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags_3": {
+   "options": [
+    "position loops",
+    "position not interpolated"
+   ]
+  },
+  "A in_2": {
+   "options": [
+    "none",
+    "power",
+    "change in power",
+    "position",
+    "change in position",
+    "locked",
+    "delay"
+   ]
+  }
+ }
+}

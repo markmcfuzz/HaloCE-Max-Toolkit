@@ -1,0 +1,697 @@
+{
+ "name": "model",
+ "tag": "mode",
+ "version": 4,
+ "flags": 9,
+ "block": "model_block",
+ "blocks": {
+  "model_block": {
+   "max_count": 1,
+   "struct": "model_block_struct",
+   "max_count_string": "1",
+   "display_name": "model"
+  },
+  "model_markers_block": {
+   "max_count": 256,
+   "struct": "model_markers_block_struct",
+   "max_count_string": "MAXIMUM_MARKERS_PER_MODEL"
+  },
+  "model_marker_instance_block": {
+   "max_count": 32,
+   "struct": "model_marker_instance_block_struct",
+   "max_count_string": "MAXIMUM_INSTANCES_PER_MODEL_MARKER"
+  },
+  "model_node_block": {
+   "max_count": 64,
+   "struct": "model_node_block_struct",
+   "max_count_string": "MAXIMUM_NODES_PER_MODEL"
+  },
+  "model_region_block": {
+   "max_count": 32,
+   "struct": "model_region_block_struct",
+   "max_count_string": "MAXIMUM_REGIONS_PER_MODEL"
+  },
+  "model_region_permutation_block": {
+   "max_count": 32,
+   "struct": "model_region_permutation_block_struct",
+   "max_count_string": "MAXIMUM_PERMUTATIONS_PER_MODEL_REGION"
+  },
+  "model_geometry_block": {
+   "max_count": 256,
+   "struct": "model_geometry_block_struct",
+   "max_count_string": "MAXIMUM_GEOMETRIES_PER_MODEL"
+  },
+  "model_geometry_part_block": {
+   "max_count": 32,
+   "struct": "model_geometry_part_block_struct",
+   "max_count_string": "MAXIMUM_PARTS_PER_MODEL_GEOMETRY"
+  },
+  "model_shader_reference_block": {
+   "max_count": 32,
+   "struct": "model_shader_reference_block_struct",
+   "max_count_string": "MAXIMUM_SHADERS_PER_MODEL"
+  },
+  "model_vertex_uncompressed_block": {
+   "max_count": 65535,
+   "struct": "model_vertex_uncompressed_block_struct",
+   "max_count_string": "MAXIMUM_VERTICES_PER_MODEL_GEOMETRY_PART"
+  },
+  "model_vertex_compressed_block": {
+   "max_count": 65535,
+   "struct": "model_vertex_compressed_block_struct",
+   "max_count_string": "MAXIMUM_VERTICES_PER_MODEL_GEOMETRY_PART"
+  },
+  "model_triangle_block": {
+   "max_count": 65535,
+   "struct": "model_triangle_block_struct",
+   "max_count_string": "MAXIMUM_TRIANGLES_PER_MODEL_GEOMETRY_PART"
+  },
+  "model_region_permutation_marker_block": {
+   "max_count": 64,
+   "struct": "model_region_permutation_marker_block_struct",
+   "max_count_string": "MAXIMUM_MARKERS_PER_MODEL_REGION_PERMUTATION"
+  }
+ },
+ "structs": {
+  "model_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 232,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags*",
+     "definition": "flags"
+    },
+    {
+     "type": "long_integer",
+     "name": "node list checksum*"
+    },
+    {
+     "type": "real",
+     "name": "super-high detail cutoff:pixels"
+    },
+    {
+     "type": "real",
+     "name": "high detail cutoff:pixels"
+    },
+    {
+     "type": "real",
+     "name": "medium detail cutoff:pixels"
+    },
+    {
+     "type": "real",
+     "name": "low detail cutoff:pixels"
+    },
+    {
+     "type": "real",
+     "name": "super-low cutoff:pixels"
+    },
+    {
+     "type": "short_integer",
+     "name": "super-high detail node count*:nodes!"
+    },
+    {
+     "type": "short_integer",
+     "name": "high detail node count*:nodes!"
+    },
+    {
+     "type": "short_integer",
+     "name": "medium detail node count*:nodes!"
+    },
+    {
+     "type": "short_integer",
+     "name": "low detail node count*:nodes!"
+    },
+    {
+     "type": "short_integer",
+     "name": "super-low detail node count*:nodes!"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "real",
+     "name": "base map u-scale*#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "base map v-scale*#0 defaults to 1"
+    },
+    {
+     "type": "pad",
+     "name": "29*sizeof(long)",
+     "definition": 116
+    },
+    {
+     "type": "block",
+     "name": "markers*!",
+     "definition": "model_markers_block"
+    },
+    {
+     "type": "block",
+     "name": "nodes*",
+     "definition": "model_node_block"
+    },
+    {
+     "type": "block",
+     "name": "regions*",
+     "definition": "model_region_block"
+    },
+    {
+     "type": "block",
+     "name": "geometries*",
+     "definition": "model_geometry_block"
+    },
+    {
+     "type": "block",
+     "name": "shaders*",
+     "definition": "model_shader_reference_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "model_markers_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^*"
+    },
+    {
+     "type": "short_integer",
+     "name": "magic identifier*#lies, this is unused padding"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "block",
+     "name": "instances*",
+     "definition": "model_marker_instance_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "model_marker_instance_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 32,
+   "fields": [
+    {
+     "type": "char_integer",
+     "name": "region index*"
+    },
+    {
+     "type": "char_integer",
+     "name": "permutation index*"
+    },
+    {
+     "type": "char_integer",
+     "name": "node index*"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(byte)",
+     "definition": 1
+    },
+    {
+     "type": "real_point_3d",
+     "name": "translation*"
+    },
+    {
+     "type": "real_quaternion",
+     "name": "rotation*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "model_node_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 156,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^*"
+    },
+    {
+     "type": "short_block_index",
+     "name": "next sibling node index*",
+     "definition": "model_node_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "first child node index*",
+     "definition": "model_node_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "parent node index*",
+     "definition": "model_node_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real_point_3d",
+     "name": "default translation*"
+    },
+    {
+     "type": "real_quaternion",
+     "name": "default rotation*"
+    },
+    {
+     "type": "real",
+     "name": "node distance from parent*"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(real_matrix4x3)",
+     "definition": 52
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "model_region_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 76,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^*"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "block",
+     "name": "permutations*",
+     "definition": "model_region_permutation_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "model_region_permutation_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 88,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^*"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags*",
+     "definition": "flags_2"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "short_block_index",
+     "name": "super low*",
+     "definition": "model_geometry_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "low*",
+     "definition": "model_geometry_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "medium*",
+     "definition": "model_geometry_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "high*",
+     "definition": "model_geometry_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "super high*",
+     "definition": "model_geometry_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "block",
+     "name": "markers*#import markers, will automagically be postprocessed to model_marker_instance_block",
+     "definition": "model_region_permutation_marker_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "model_geometry_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags*",
+     "definition": "flags_3"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "block",
+     "name": "parts*",
+     "definition": "model_geometry_part_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "model_geometry_part_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 104,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags*",
+     "definition": "flags_4"
+    },
+    {
+     "type": "short_block_index",
+     "name": "shader index*",
+     "definition": "model_shader_reference_block"
+    },
+    {
+     "type": "char_integer",
+     "name": "prev filthy part index"
+    },
+    {
+     "type": "char_integer",
+     "name": "next filthy part index"
+    },
+    {
+     "type": "short_integer",
+     "name": "centroid primary node*"
+    },
+    {
+     "type": "short_integer",
+     "name": "centroid secondary node*"
+    },
+    {
+     "type": "real_fraction",
+     "name": "centroid primary weight*"
+    },
+    {
+     "type": "real_fraction",
+     "name": "centroid secondary weight*"
+    },
+    {
+     "type": "real_point_3d",
+     "name": "centroid*"
+    },
+    {
+     "type": "block",
+     "name": "uncompressed vertices*",
+     "definition": "model_vertex_uncompressed_block"
+    },
+    {
+     "type": "block",
+     "name": "compressed vertices*",
+     "definition": "model_vertex_compressed_block"
+    },
+    {
+     "type": "block",
+     "name": "triangles*",
+     "definition": "model_triangle_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(struct vertex_buffer)",
+     "definition": 20
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(struct triangle_buffer)",
+     "definition": 16
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "model_shader_reference_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 32,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "shader^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "shdr"
+      ]
+     }
+    },
+    {
+     "type": "short_integer",
+     "name": "permutation"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "model_vertex_uncompressed_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 68,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "position*"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "normal*"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "binormal*"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "tangent*"
+    },
+    {
+     "type": "real_point_2d",
+     "name": "texture coords*"
+    },
+    {
+     "type": "short_integer",
+     "name": "node0 index*"
+    },
+    {
+     "type": "short_integer",
+     "name": "node1 index*"
+    },
+    {
+     "type": "real",
+     "name": "node0 weight*"
+    },
+    {
+     "type": "real",
+     "name": "node1 weight*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "model_vertex_compressed_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 32,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "position*"
+    },
+    {
+     "type": "long_integer",
+     "name": "normal[11.11.10-bit]*"
+    },
+    {
+     "type": "long_integer",
+     "name": "binormal[11.11.10-bit]*"
+    },
+    {
+     "type": "long_integer",
+     "name": "tangent[11.11.10-bit]*"
+    },
+    {
+     "type": "short_integer",
+     "name": "texture coordinate u[16-bit]*"
+    },
+    {
+     "type": "short_integer",
+     "name": "texture coordinate v[16-bit]*"
+    },
+    {
+     "type": "char_integer",
+     "name": "node0 index(x3)*"
+    },
+    {
+     "type": "char_integer",
+     "name": "node1 index(x3)*"
+    },
+    {
+     "type": "short_integer",
+     "name": "node0 weight[16-bit]*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "model_triangle_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 6,
+   "fields": [
+    {
+     "type": "short_integer",
+     "name": "vertex0 index*"
+    },
+    {
+     "type": "short_integer",
+     "name": "vertex1 index*"
+    },
+    {
+     "type": "short_integer",
+     "name": "vertex2 index*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "model_region_permutation_marker_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 80,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^*"
+    },
+    {
+     "type": "short_block_index",
+     "name": "node index*",
+     "definition": "model_node_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real_quaternion",
+     "name": "rotation*"
+    },
+    {
+     "type": "real_point_3d",
+     "name": "translation*"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "blend shared normals",
+    "parts have local nodes",
+    "ignore skinning"
+   ]
+  },
+  "flags_2": {
+   "options": [
+    "cannot be chosen randomly"
+   ]
+  },
+  "flags_3": {
+   "options": []
+  },
+  "flags_4": {
+   "options": [
+    "stripped (INTERNAL)",
+    "ZONER: _model_part_local_nodes"
+   ]
+  }
+ }
+}

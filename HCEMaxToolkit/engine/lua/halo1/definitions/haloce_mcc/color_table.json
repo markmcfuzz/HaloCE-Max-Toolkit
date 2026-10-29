@@ -1,0 +1,55 @@
+{
+ "name": "color_table",
+ "tag": "colo",
+ "version": 1,
+ "flags": 0,
+ "block": "color_table_block",
+ "blocks": {
+  "color_table_block": {
+   "max_count": 1,
+   "struct": "color_table_block_struct",
+   "max_count_string": "1",
+   "display_name": "color_table"
+  },
+  "color_block": {
+   "max_count": 512,
+   "struct": "color_block_struct",
+   "max_count_string": "MAXIMUM_COLORS_PER_COLOR_TABLE_GROUP"
+  }
+ },
+ "structs": {
+  "color_table_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 12,
+   "fields": [
+    {
+     "type": "block",
+     "name": "colors",
+     "definition": "color_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "color_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "color"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ }
+}

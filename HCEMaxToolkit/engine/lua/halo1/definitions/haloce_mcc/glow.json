@@ -1,0 +1,299 @@
+{
+ "name": "glow",
+ "tag": "glw!",
+ "version": 1,
+ "flags": 8,
+ "block": "glow_block",
+ "blocks": {
+  "glow_block": {
+   "max_count": 1,
+   "struct": "glow_block_struct",
+   "max_count_string": "1",
+   "display_name": "glow"
+  }
+ },
+ "structs": {
+  "glow_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 340,
+   "fields": [
+    {
+     "type": "string",
+     "name": "attachment marker#the marker name that the glow should be attached to"
+    },
+    {
+     "type": "short_integer",
+     "name": "number of particles#the number of particles that comprise the glow system"
+    },
+    {
+     "type": "short_enum",
+     "name": "boundary effect#particles behavior on reaching the end of an object",
+     "definition": "boundary effect"
+    },
+    {
+     "type": "short_enum",
+     "name": "normal particle distribution#distribution of the normal particles about the object",
+     "definition": "normal particle distribution"
+    },
+    {
+     "type": "short_enum",
+     "name": "trailing particle distribution#distribution of the trailing particles about the object",
+     "definition": "trailing particle distribution"
+    },
+    {
+     "type": "long_flags",
+     "name": "glow flags",
+     "definition": "glow flags"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "short_enum",
+     "name": "attachment",
+     "definition": "attachment"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "particle rotational velocity#radians per second"
+    },
+    {
+     "type": "real",
+     "name": "particle rot vel mul low#multiplied by overall velocity; only used if controlled by attachment"
+    },
+    {
+     "type": "real",
+     "name": "particle rot vel mul high#multiplied by overall velocity; only used if controlled by attachment"
+    },
+    {
+     "type": "short_enum",
+     "name": "attachment",
+     "definition": "attachment"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "effect rotational velocity#in radians per second"
+    },
+    {
+     "type": "real",
+     "name": "effect rot vel mul low#multiplied by overall velocity; only used if controlled by attachment"
+    },
+    {
+     "type": "real",
+     "name": "effect rot vel mul high#multiplied by overall velocity; only used if controlled by attachment"
+    },
+    {
+     "type": "short_enum",
+     "name": "attachment",
+     "definition": "attachment"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "effect translational velocity#in world units per second"
+    },
+    {
+     "type": "real",
+     "name": "effect trans vel mul low#multiplied by overall velocity; only used if controlled by attachment"
+    },
+    {
+     "type": "real",
+     "name": "effect trans vel mul high#multiplied by overall velocity; only used if controlled by attachment"
+    },
+    {
+     "type": "short_enum",
+     "name": "attachment",
+     "definition": "attachment"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "min distance particle to object#in world units"
+    },
+    {
+     "type": "real",
+     "name": "max distance particle to object#in world units"
+    },
+    {
+     "type": "real",
+     "name": "distance to object mul low#multiplied by particle distance; only used if controlled by attachment"
+    },
+    {
+     "type": "real",
+     "name": "distance to object mul high#multiplied by particle distance; only used if controlled by attachment"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "short_enum",
+     "name": "attachment",
+     "definition": "attachment"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real_bounds",
+     "name": "particle size bounds:world units#size of particles"
+    },
+    {
+     "type": "real_bounds",
+     "name": "size attachment multiplier#multiplied by particle size; only used if controlled by attachment"
+    },
+    {
+     "type": "short_enum",
+     "name": "attachment",
+     "definition": "attachment"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real_argb_color",
+     "name": "color_bound_0#the color of all particles will vary between color bound 0 and color bound 1"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "color_bound_1#the color of all particles will vary between color bound 0 and color bound 1"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "scale color 0#used to scale the particle color; only used if controlled by attachment"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "scale color 1#used to scale the particle color; only used if controlled by attachment"
+    },
+    {
+     "type": "real",
+     "name": "color rate of change#for glow effects that dynamically control particle color; sets rate of change"
+    },
+    {
+     "type": "real",
+     "name": "fading percentage of glow#percentage of the glow that is fading at any given time"
+    },
+    {
+     "type": "real",
+     "name": "particle generation freq#frequency in Hz that trailing particles are generated:Hz"
+    },
+    {
+     "type": "real",
+     "name": "lifetime of trailing particles#seconds that a trailing particle remains in existence:s"
+    },
+    {
+     "type": "real",
+     "name": "velocity of trailing particles:wu/s"
+    },
+    {
+     "type": "real",
+     "name": "trailing particle minimum t"
+    },
+    {
+     "type": "real",
+     "name": "trailing particle maximum t"
+    },
+    {
+     "type": "pad",
+     "name": "13*sizeof(long)",
+     "definition": 52
+    },
+    {
+     "type": "tag_reference",
+     "name": "texture",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "boundary effect": {
+   "options": [
+    "bounce",
+    "wrap"
+   ]
+  },
+  "normal particle distribution": {
+   "options": [
+    "distributed randomly",
+    "distributed uniformly"
+   ]
+  },
+  "trailing particle distribution": {
+   "options": [
+    "emit vertically",
+    "emit normal (up)",
+    "emit randomly"
+   ]
+  },
+  "glow flags": {
+   "options": [
+    "modify particle color in range",
+    "particles move backwards",
+    "particles move in both directions",
+    "trailing particles fade over time",
+    "trailing particles shrink over time",
+    "trailing particles slow over time"
+   ]
+  },
+  "attachment": {
+   "options": [
+    "NONE",
+    "A out",
+    "B out",
+    "C out",
+    "D out"
+   ]
+  }
+ }
+}

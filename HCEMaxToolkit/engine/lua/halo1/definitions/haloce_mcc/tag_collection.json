@@ -1,0 +1,67 @@
+{
+ "name": "tag_collection",
+ "tag": "tagc",
+ "version": 1,
+ "flags": 0,
+ "block": "tag_collection_block",
+ "blocks": {
+  "tag_collection_block": {
+   "max_count": 1,
+   "struct": "tag_collection_block_struct",
+   "max_count_string": "1",
+   "display_name": "tag_collection"
+  },
+  "tag_collection_tag_reference_block": {
+   "max_count": 200,
+   "struct": "tag_collection_tag_reference_block_struct",
+   "max_count_string": "MAXIMUM_TAGS_PER_TAG_COLLECTION",
+   "display_name": "tag reference",
+   "element_label": {
+    "source": "tool.exe 0x527760",
+    "label": [
+     "{tag|file.ext}",
+     {
+      "when": "1",
+      "format": "<no tag chosen>"
+     }
+    ]
+   },
+   "element_label_callback": "tool.exe 0x527760"
+  }
+ },
+ "structs": {
+  "tag_collection_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 12,
+   "fields": [
+    {
+     "type": "block",
+     "name": "tag references",
+     "definition": "tag_collection_tag_reference_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "tag_collection_tag_reference_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "tag",
+     "definition": {
+      "flags": 0,
+      "allowed": []
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ }
+}

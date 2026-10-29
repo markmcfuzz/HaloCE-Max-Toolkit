@@ -1,0 +1,76 @@
+{
+ "name": "input_device_defaults",
+ "tag": "devc",
+ "version": 1,
+ "flags": 1,
+ "block": "input_device_defaults_block",
+ "blocks": {
+  "input_device_defaults_block": {
+   "max_count": 1,
+   "struct": "input_device_defaults_block_struct",
+   "max_count_string": "1",
+   "display_name": "input_device_defaults"
+  }
+ },
+ "structs": {
+  "input_device_defaults_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 44,
+   "fields": [
+    {
+     "type": "short_enum",
+     "name": "device type*",
+     "definition": "device type"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags*",
+     "definition": "flags"
+    },
+    {
+     "type": "data",
+     "name": "device id*",
+     "definition": "deviceid_data"
+    },
+    {
+     "type": "data",
+     "name": "profile*",
+     "definition": "player_profile_data"
+    },
+    {
+     "type": "custom",
+     "name": "INPUT_DEVICE_DEFAULTS_LOAD_PROFILE_CUSTOM_ID",
+     "group_tag": "prof"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "device type": {
+   "options": [
+    "mouse and keyboard",
+    "joysticks/gamepads/etc...",
+    "full profile definition"
+   ]
+  },
+  "flags": {
+   "options": [
+    "unused"
+   ]
+  }
+ },
+ "datas": {
+  "deviceid_data": {
+   "flags": 0,
+   "max_size": 16
+  },
+  "player_profile_data": {
+   "flags": 0,
+   "max_size": 8200
+  }
+ }
+}

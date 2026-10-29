@@ -1,0 +1,282 @@
+{
+ "name": "light",
+ "tag": "ligh",
+ "version": 3,
+ "flags": 8,
+ "block": "light_block",
+ "blocks": {
+  "light_block": {
+   "max_count": 1,
+   "struct": "light_block_struct",
+   "max_count_string": "1",
+   "display_name": "light"
+  }
+ },
+ "structs": {
+  "light_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 352,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "explanation",
+     "name": "SHAPE",
+     "definition": "the size and shape of the light"
+    },
+    {
+     "type": "real",
+     "name": "radius#the radius where illumination is zero. (lens flare only if this is 0)"
+    },
+    {
+     "type": "real_bounds",
+     "name": "radius modifier#how the radius changes with external scale"
+    },
+    {
+     "type": "angle",
+     "name": "falloff angle#the angle at which the light begins to fade."
+    },
+    {
+     "type": "angle",
+     "name": "cutoff angle#the angle at which the illumination is zero."
+    },
+    {
+     "type": "real",
+     "name": "lens flare only radius"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(real) + 2*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "explanation",
+     "name": "COLOR",
+     "definition": ""
+    },
+    {
+     "type": "long_flags",
+     "name": "interpolation flags",
+     "definition": "interpolation flags"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "color lower bound"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "color upper bound"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "explanation",
+     "name": "GEL",
+     "definition": "the gel map tints the light per-pixel of cube map"
+    },
+    {
+     "type": "tag_reference",
+     "name": "primary cube map#used for diffuse and specular light",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_enum",
+     "name": "texture animation function#a function to control texture animation",
+     "definition": "texture animation function"
+    },
+    {
+     "type": "real",
+     "name": "texture animation period:seconds#time between repeats"
+    },
+    {
+     "type": "tag_reference",
+     "name": "secondary cube map#used for specular light",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_enum",
+     "name": "yaw function#a function to control rotation of the gel in yaw",
+     "definition": "texture animation function"
+    },
+    {
+     "type": "real",
+     "name": "yaw period:seconds#time between repeats"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_enum",
+     "name": "roll function#a function to control rotation of the gel in roll",
+     "definition": "texture animation function"
+    },
+    {
+     "type": "real",
+     "name": "roll period:seconds#time between repeats"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_enum",
+     "name": "pitch function#a function to control rotation of the gel in pitch",
+     "definition": "texture animation function"
+    },
+    {
+     "type": "real",
+     "name": "pitch period:seconds#time between repeats"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "explanation",
+     "name": "LENS FLARE",
+     "definition": "optional lens flare associated with this light"
+    },
+    {
+     "type": "tag_reference",
+     "name": "lens flare",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "lens"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "explanation",
+     "name": "RADIOSITY",
+     "definition": "how the light affects the lightmaps (ignored for dynamic lights)"
+    },
+    {
+     "type": "real",
+     "name": "intensity"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "color"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "explanation",
+     "name": "EFFECT PARAMETERS",
+     "definition": "if the light is created by an effect, it will animate itself as follows"
+    },
+    {
+     "type": "real",
+     "name": "duration:seconds#the light will last this long when created by an effect"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_enum",
+     "name": "falloff function#the scale of the light will diminish over time according to this function",
+     "definition": "falloff function"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "pad",
+     "name": "23*sizeof(long)",
+     "definition": 92
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "dynamic#dynamically illuminate interiors",
+    "no specular#for dynamic lights, cast only diffuse light.",
+    "don't light own object#for dynamic lights, don't light the object that the light is attached to.",
+    "supersize in first person#for dynamic lights, light every environment surface if this light is on the gun of the current window.",
+    "first person flashlight",
+    "don't fade active camouflage"
+   ]
+  },
+  "interpolation flags": {
+   "options": [
+    "blend in hsv#blends colors in hsv rather than rgb space",
+    "...more colors#blends colors through more hues (goes the long way around the color wheel)"
+   ]
+  },
+  "texture animation function": {
+   "options": [
+    "one",
+    "zero",
+    "cosine",
+    "cosine (variable period)",
+    "diagonal wave",
+    "diagonal wave (variable period)",
+    "slide",
+    "slide (variable period)",
+    "noise",
+    "jitter",
+    "wander",
+    "spark"
+   ]
+  },
+  "falloff function": {
+   "options": [
+    "linear",
+    "early",
+    "very early",
+    "late",
+    "very late",
+    "cosine"
+   ]
+  }
+ }
+}

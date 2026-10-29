@@ -1,0 +1,457 @@
+{
+ "name": "effect",
+ "tag": "effe",
+ "version": 4,
+ "flags": 9,
+ "block": "effect_block",
+ "blocks": {
+  "effect_block": {
+   "max_count": 1,
+   "struct": "effect_block_struct",
+   "max_count_string": "1",
+   "display_name": "effect"
+  },
+  "effect_event_block": {
+   "max_count": 32,
+   "struct": "effect_event_block_struct",
+   "max_count_string": "MAXIMUM_EFFECT_EVENTS"
+  },
+  "effect_part_block": {
+   "max_count": 32,
+   "struct": "effect_part_block_struct",
+   "max_count_string": "MAXIMUM_EFFECT_PARTS_PER_EVENT"
+  },
+  "effect_locations_block": {
+   "max_count": 32,
+   "struct": "effect_locations_block_struct",
+   "max_count_string": "MAXIMUM_EFFECT_LOCATIONS"
+  },
+  "effect_particles_block": {
+   "max_count": 32,
+   "struct": "effect_particles_block_struct",
+   "max_count_string": "MAXIMUM_EFFECT_PARTICLES_PER_EVENT"
+  }
+ },
+ "structs": {
+  "effect_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "short_block_index",
+     "name": "loop start event",
+     "definition": "effect_event_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "loop stop event",
+     "definition": "effect_event_block"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(real)",
+     "definition": 32
+    },
+    {
+     "type": "block",
+     "name": "locations",
+     "definition": "effect_locations_block"
+    },
+    {
+     "type": "block",
+     "name": "events",
+     "definition": "effect_event_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "effect_event_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 68,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real_fraction",
+     "name": "skip fraction#chance that this event will be skipped entirely"
+    },
+    {
+     "type": "real_bounds",
+     "name": "delay bounds:seconds#delay before this event takes place"
+    },
+    {
+     "type": "real_bounds",
+     "name": "duration bounds:seconds#duration of this event"
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(real)",
+     "definition": 20
+    },
+    {
+     "type": "block",
+     "name": "parts",
+     "definition": "effect_part_block"
+    },
+    {
+     "type": "block",
+     "name": "particles",
+     "definition": "effect_particles_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "effect_part_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 104,
+   "fields": [
+    {
+     "type": "short_enum",
+     "name": "create in",
+     "definition": "create in"
+    },
+    {
+     "type": "short_enum",
+     "name": "violence mode",
+     "definition": "violence mode"
+    },
+    {
+     "type": "short_block_index",
+     "name": "location",
+     "definition": "effect_locations_block"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_2"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "tag_reference",
+     "name": "type^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "jpt!",
+       "obje",
+       "pctl",
+       "snd!",
+       "deca",
+       "ligh"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "real_bounds",
+     "name": "velocity bounds:world units per second#initial velocity along the location's forward"
+    },
+    {
+     "type": "angle",
+     "name": "velocity cone angle:degrees#initial velocity will be inside the cone defined by this angle."
+    },
+    {
+     "type": "angle_bounds",
+     "name": "angular velocity bounds:degrees per second"
+    },
+    {
+     "type": "real_bounds",
+     "name": "radius modifier bounds"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "explanation",
+     "name": "SCALE MODIFIERS",
+     "definition": ""
+    },
+    {
+     "type": "long_flags",
+     "name": "A scales values:",
+     "definition": "A scales values"
+    },
+    {
+     "type": "long_flags",
+     "name": "B scales values:",
+     "definition": "A scales values"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "effect_locations_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 32,
+   "fields": [
+    {
+     "type": "string",
+     "name": "marker name^"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "effect_particles_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 232,
+   "fields": [
+    {
+     "type": "short_enum",
+     "name": "create in",
+     "definition": "create in"
+    },
+    {
+     "type": "short_enum",
+     "name": "violence mode",
+     "definition": "violence mode"
+    },
+    {
+     "type": "short_enum",
+     "name": "create",
+     "definition": "create"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_block_index",
+     "name": "location",
+     "definition": "effect_locations_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real_euler_angles_2d",
+     "name": "relative direction#particle initial velocity direction relative to the location's forward"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "relative offset#particle initial position offset relative to the locatin's forward"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(real_vector3d)",
+     "definition": 12
+    },
+    {
+     "type": "pad",
+     "name": "10*sizeof(long)",
+     "definition": 40
+    },
+    {
+     "type": "tag_reference",
+     "name": "particle type^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "part"
+      ]
+     }
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "short_enum",
+     "name": "distribution function#describes how the part creations are distributed over the event duration",
+     "definition": "distribution function"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_bounds",
+     "name": "count#number of particles created"
+    },
+    {
+     "type": "real_bounds",
+     "name": "distribution radius:world units#initial distance from the location's origin"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "real_bounds",
+     "name": "velocity:world units per second#initial velocity along the specified direction"
+    },
+    {
+     "type": "angle",
+     "name": "velocity cone angle:degrees#particle initial velocities will be inside the cone defined by this angle and the specified direction"
+    },
+    {
+     "type": "angle_bounds",
+     "name": "angular velocity:degrees per second"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "real_bounds",
+     "name": "radius:world units#particle radius"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "real_argb_color",
+     "name": "tint lower bound"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "tint upper bound"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "explanation",
+     "name": "SCALE MODIFIERS",
+     "definition": ""
+    },
+    {
+     "type": "long_flags",
+     "name": "A scales values:",
+     "definition": "A scales values_2"
+    },
+    {
+     "type": "long_flags",
+     "name": "B scales values:",
+     "definition": "A scales values_2"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "deleted when attachment deactivates",
+    "required for gameplay (cannot optimize out)!",
+    "must_be_deterministic#set automagically by postprocessing*",
+    "disabled in remastered by blood setting#In MCC, when the 'blood' setting is switched to off, this will not render in remastered mode"
+   ]
+  },
+  "create in": {
+   "options": [
+    "any environment",
+    "air only",
+    "water only",
+    "space only"
+   ]
+  },
+  "violence mode": {
+   "options": [
+    "either mode",
+    "violent mode only",
+    "nonviolent mode only"
+   ]
+  },
+  "flags_2": {
+   "options": [
+    "face down regardless of location (decals)"
+   ]
+  },
+  "A scales values": {
+   "options": [
+    "velocity",
+    "velocity delta",
+    "velocity cone angle",
+    "angular velocity",
+    "angular velocity delta",
+    "type-specific scale"
+   ]
+  },
+  "create": {
+   "options": [
+    "independent of camera mode",
+    "only in first person",
+    "only in third person",
+    "in first person if possible"
+   ]
+  },
+  "flags_3": {
+   "options": [
+    "stay attached to marker",
+    "random initial angle",
+    "tint from object color",
+    "interpolate tint as HSV",
+    "... across the long hue path"
+   ]
+  },
+  "distribution function": {
+   "options": [
+    "start",
+    "end",
+    "constant",
+    "buildup",
+    "falloff",
+    "buildup and falloff"
+   ]
+  },
+  "A scales values_2": {
+   "options": [
+    "velocity",
+    "velocity delta",
+    "velocity cone angle",
+    "angular velocity",
+    "angular velocity delta",
+    "count",
+    "count delta",
+    "distribution radius",
+    "distribution radius delta",
+    "particle radius",
+    "particle radius delta",
+    "tint"
+   ]
+  }
+ }
+}

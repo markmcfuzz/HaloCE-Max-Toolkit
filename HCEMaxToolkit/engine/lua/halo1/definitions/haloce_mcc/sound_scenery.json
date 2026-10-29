@@ -1,0 +1,38 @@
+{
+ "name": "sound_scenery",
+ "tag": "ssce",
+ "version": 1,
+ "flags": 9,
+ "parent_tag": "obje",
+ "block": "sound_scenery_block",
+ "blocks": {
+  "sound_scenery_block": {
+   "max_count": 1,
+   "struct": "sound_scenery_block_struct",
+   "max_count_string": "1",
+   "display_name": "sound_scenery"
+  }
+ },
+ "structs": {
+  "sound_scenery_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 508,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "object",
+     "definition": "object_block_struct"
+    },
+    {
+     "type": "pad",
+     "name": "32*sizeof(long)",
+     "definition": 128
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ }
+}

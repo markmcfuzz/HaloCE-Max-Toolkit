@@ -1,0 +1,52 @@
+{
+ "name": "wind",
+ "tag": "wind",
+ "version": 1,
+ "flags": 9,
+ "block": "wind_block",
+ "blocks": {
+  "wind_block": {
+   "max_count": 1,
+   "struct": "wind_block_struct",
+   "max_count_string": "1",
+   "display_name": "wind"
+  }
+ },
+ "structs": {
+  "wind_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "real_bounds",
+     "name": "velocity:world units#the wind magnitude in the weather region scales the wind between these bounds"
+    },
+    {
+     "type": "real_euler_angles_2d",
+     "name": "variation area#the wind direction varies inside a box defined by these angles on either side of the direction from the weather region."
+    },
+    {
+     "type": "real",
+     "name": "local variation weight"
+    },
+    {
+     "type": "real",
+     "name": "local variation rate"
+    },
+    {
+     "type": "real",
+     "name": "damping"
+    },
+    {
+     "type": "pad",
+     "name": "9*sizeof(long)",
+     "definition": 36
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ }
+}

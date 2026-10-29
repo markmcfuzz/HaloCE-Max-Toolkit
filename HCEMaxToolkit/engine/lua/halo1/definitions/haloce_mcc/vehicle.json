@@ -1,0 +1,321 @@
+{
+ "name": "vehicle",
+ "tag": "vehi",
+ "version": 1,
+ "flags": 9,
+ "parent_tag": "unit",
+ "block": "vehicle_block",
+ "blocks": {
+  "vehicle_block": {
+   "max_count": 1,
+   "struct": "vehicle_block_struct",
+   "max_count_string": "1",
+   "display_name": "vehicle"
+  }
+ },
+ "structs": {
+  "vehicle_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 1008,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "unit",
+     "definition": "unit_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "$$$ VEHICLE $$$",
+     "definition": ""
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_5"
+    },
+    {
+     "type": "short_enum",
+     "name": "type",
+     "definition": "type_2"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "maximum forward speed"
+    },
+    {
+     "type": "real",
+     "name": "maximum reverse speed"
+    },
+    {
+     "type": "real",
+     "name": "speed acceleration"
+    },
+    {
+     "type": "real",
+     "name": "speed deceleration"
+    },
+    {
+     "type": "real",
+     "name": "maximum left turn"
+    },
+    {
+     "type": "real",
+     "name": "maximum right turn (negative)"
+    },
+    {
+     "type": "real",
+     "name": "wheel circumference"
+    },
+    {
+     "type": "real",
+     "name": "turn rate"
+    },
+    {
+     "type": "real",
+     "name": "blur speed"
+    },
+    {
+     "type": "short_enum",
+     "name": "A in",
+     "definition": "A in_3"
+    },
+    {
+     "type": "short_enum",
+     "name": "B in",
+     "definition": "A in_3"
+    },
+    {
+     "type": "short_enum",
+     "name": "C in",
+     "definition": "A in_3"
+    },
+    {
+     "type": "short_enum",
+     "name": "D in",
+     "definition": "A in_3"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(real)",
+     "definition": 12
+    },
+    {
+     "type": "real",
+     "name": "maximum left slide"
+    },
+    {
+     "type": "real",
+     "name": "maximum right slide"
+    },
+    {
+     "type": "real",
+     "name": "slide acceleration"
+    },
+    {
+     "type": "real",
+     "name": "slide deceleration"
+    },
+    {
+     "type": "real",
+     "name": "minimum flipping angular velocity"
+    },
+    {
+     "type": "real",
+     "name": "maximum flipping angular velocity"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(real)",
+     "definition": 24
+    },
+    {
+     "type": "real",
+     "name": "fixed gun yaw"
+    },
+    {
+     "type": "real",
+     "name": "fixed gun pitch"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(real)",
+     "definition": 24
+    },
+    {
+     "type": "real",
+     "name": "ai sideslip distance"
+    },
+    {
+     "type": "real",
+     "name": "ai destination radius"
+    },
+    {
+     "type": "real",
+     "name": "ai avoidance distance"
+    },
+    {
+     "type": "real",
+     "name": "ai pathfinding radius"
+    },
+    {
+     "type": "real",
+     "name": "ai charge repeat timeout"
+    },
+    {
+     "type": "real",
+     "name": "ai strafing abort range"
+    },
+    {
+     "type": "angle_bounds",
+     "name": "ai oversteering bounds"
+    },
+    {
+     "type": "angle",
+     "name": "ai steering maximum"
+    },
+    {
+     "type": "real",
+     "name": "ai throttle maximum"
+    },
+    {
+     "type": "real",
+     "name": "ai move-position time"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(real)",
+     "definition": 4
+    },
+    {
+     "type": "tag_reference",
+     "name": "suspension sound",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "crash sound",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "material effects",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "foot"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags_5": {
+   "options": [
+    "speed wakes physics",
+    "turn wakes physics",
+    "driver power wakes physics",
+    "gunner power wakes physics",
+    "control opposite speed sets brake",
+    "slide wakes physics",
+    "kills riders at terminal velocity",
+    "causes collision damage",
+    "ai weapon cannot rotate",
+    "ai does not require driver",
+    "ai unused",
+    "ai driver enable",
+    "ai driver flying",
+    "ai driver can-sidestep",
+    "ai driver hovering",
+    "vehicle steers directly*#NOT YET BACKPORTED from H2",
+    "unused*#NOT YET BACKPORTED from H2",
+    "has e-brake*#NOT YET BACKPORTED from H2",
+    "noncombat vehicle*#NOT YET BACKPORTED from H2",
+    "no friction w/driver*#NOT YET BACKPORTED from H2",
+    "can trigger automatic opening doors*#NOT YET BACKPORTED from H2",
+    "autoaim when teamless"
+   ]
+  },
+  "type_2": {
+   "options": [
+    "human tank",
+    "human jeep",
+    "human boat",
+    "human plane",
+    "alien scout",
+    "alien fighter",
+    "turret"
+   ]
+  },
+  "A in_3": {
+   "options": [
+    "none",
+    "speed absolute",
+    "speed forward",
+    "speed backward",
+    "slide absolute",
+    "slide left",
+    "slide right",
+    "speed slide maximum",
+    "turn absolute",
+    "turn left",
+    "turn right",
+    "crouch",
+    "jump",
+    "walk",
+    "velocity air",
+    "velocity water",
+    "velocity ground",
+    "velocity forward",
+    "velocity left",
+    "velocity up",
+    "left tread position",
+    "right tread position",
+    "left tread velocity",
+    "right tread velocity",
+    "front left tire position",
+    "front right tire position",
+    "back left tire position",
+    "back right tire position",
+    "front left tire velocity",
+    "front right tire velocity",
+    "back left tire velocity",
+    "back right tire velocity",
+    "wingtip contrail",
+    "hover",
+    "thrust",
+    "engine hack",
+    "wingtip contrail new"
+   ]
+  }
+ }
+}

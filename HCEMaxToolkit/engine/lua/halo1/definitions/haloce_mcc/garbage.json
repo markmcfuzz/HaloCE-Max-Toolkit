@@ -1,0 +1,38 @@
+{
+ "name": "garbage",
+ "tag": "garb",
+ "version": 1,
+ "flags": 0,
+ "parent_tag": "item",
+ "block": "garbage_block",
+ "blocks": {
+  "garbage_block": {
+   "max_count": 1,
+   "struct": "garbage_block_struct",
+   "max_count_string": "1",
+   "display_name": "garbage"
+  }
+ },
+ "structs": {
+  "garbage_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 944,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "item",
+     "definition": "item_block_struct"
+    },
+    {
+     "type": "pad",
+     "name": "42*sizeof(long)",
+     "definition": 168
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,136 @@
+{
+ "name": "shader",
+ "tag": "shdr",
+ "version": 1,
+ "flags": 8,
+ "block": "shader_block",
+ "blocks": {
+  "shader_block": {
+   "max_count": 1,
+   "struct": "shader_block_struct",
+   "max_count_string": "1",
+   "display_name": "shader"
+  }
+ },
+ "structs": {
+  "shader_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 40,
+   "fields": [
+    {
+     "type": "explanation",
+     "name": "radiosity properties",
+     "definition": ""
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "short_enum",
+     "name": "detail level#affects the density of tesselation (high means slow).",
+     "definition": "detail level"
+    },
+    {
+     "type": "real",
+     "name": "power#power of emitted light from 0 to infinity"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "color of emitted light"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "tint color#light passing through this surface (if it's transparent) will be tinted this color."
+    },
+    {
+     "type": "explanation",
+     "name": "physics properties",
+     "definition": "only relevant in structure bsp uses"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "material type",
+     "definition": "material type"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "simple parameterization#lightmap texture parametrization should correspond to diffuse texture parametrization",
+    "ignore normals#light independent of normals (trees)",
+    "transparent lit#use lit vertex shader permutation. Only for transparent chicago (extended) and generic"
+   ]
+  },
+  "detail level": {
+   "options": [
+    "high",
+    "medium",
+    "low",
+    "turd"
+   ]
+  },
+  "flags_2": {
+   "options": []
+  },
+  "material type": {
+   "options": [
+    "dirt",
+    "sand",
+    "stone",
+    "snow",
+    "wood",
+    "metal (hollow)",
+    "metal (thin)",
+    "metal (thick)",
+    "rubber",
+    "glass",
+    "force field",
+    "grunt",
+    "hunter armor",
+    "hunter skin",
+    "elite",
+    "jackal",
+    "jackal energy shield",
+    "engineer skin",
+    "engineer force field",
+    "flood combat form",
+    "flood carrier form",
+    "cyborg armor",
+    "cyborg energy shield",
+    "human armor",
+    "human skin",
+    "sentinel",
+    "monitor",
+    "plastic",
+    "water",
+    "leaves",
+    "elite energy shield",
+    "ice",
+    "hunter shield"
+   ]
+  }
+ }
+}

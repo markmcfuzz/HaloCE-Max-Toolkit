@@ -1,0 +1,4844 @@
+{
+ "name": "scenario",
+ "tag": "scnr",
+ "version": 2,
+ "flags": 1,
+ "block": "scenario_block",
+ "blocks": {
+  "scenario_block": {
+   "max_count": 1,
+   "struct": "scenario_block_struct",
+   "max_count_string": "1",
+   "display_name": "scenario"
+  },
+  "scenario_sky_reference_block": {
+   "max_count": 8,
+   "struct": "scenario_sky_reference_block_struct",
+   "max_count_string": "MAXIMUM_SKIES_PER_SCENARIO"
+  },
+  "scenario_child_scenario_block": {
+   "max_count": 16,
+   "struct": "scenario_child_scenario_block_struct",
+   "max_count_string": "MAXIMUM_CHILD_SCENARIOS_PER_SCENARIO"
+  },
+  "predicted_resource_block": {
+   "max_count": 1024,
+   "struct": "predicted_resource_block_struct",
+   "max_count_string": "MAXIMUM_PREDICTED_RESOURCES_PER_LIST"
+  },
+  "scenario_function_block": {
+   "max_count": 32,
+   "struct": "scenario_function_block_struct",
+   "max_count_string": "MAXIMUM_FUNCTIONS_PER_SCENARIO"
+  },
+  "editor_comment_block": {
+   "max_count": 1024,
+   "struct": "editor_comment_block_struct",
+   "max_count_string": "MAXIMUM_EDITOR_COMMENTS",
+   "element_label": {
+    "source": "tool.exe 0x4A0120; an empty comment falls back to \"%d. editor_comment_block\" (decision 3) rather than the editor's four video ids",
+    "label": [
+     {
+      "when": "{comment|text} != \"\"",
+      "format": "{comment|text}"
+     }
+    ]
+   },
+   "element_label_callback": "tool.exe 0x4A0120"
+  },
+  "scenario_scavenger_hunt_object_block": {
+   "max_count": 16,
+   "struct": "scenario_scavenger_hunt_object_block_struct",
+   "max_count_string": "k_maximum_scavenger_hunt_objects_per_scenario",
+   "display_name": "scavenger hunt object"
+  },
+  "scenario_object_names_block": {
+   "max_count": 640,
+   "struct": "scenario_object_names_block_struct",
+   "max_count_string": "MAXIMUM_OBJECT_NAMES_PER_SCENARIO"
+  },
+  "scenario_scenery_block": {
+   "max_count": 2000,
+   "struct": "scenario_scenery_block_struct",
+   "max_count_string": "MAXIMUM_SCENERY_DATUMS_PER_SCENARIO",
+   "element_label": "scenario_object",
+   "element_label_callback": "tool.exe 0x49FD50"
+  },
+  "scenario_scenery_palette_block": {
+   "max_count": 256,
+   "struct": "scenario_scenery_palette_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_OBJECT_PALETTE_ENTRIES_PER_BLOCK"
+  },
+  "scenario_biped_block": {
+   "max_count": 128,
+   "struct": "scenario_biped_block_struct",
+   "max_count_string": "MAXIMUM_BIPED_DATUMS_PER_SCENARIO",
+   "element_label": "scenario_object",
+   "element_label_callback": "tool.exe 0x49FD50"
+  },
+  "scenario_biped_palette_block": {
+   "max_count": 256,
+   "struct": "scenario_biped_palette_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_OBJECT_PALETTE_ENTRIES_PER_BLOCK"
+  },
+  "scenario_vehicle_block": {
+   "max_count": 256,
+   "struct": "scenario_vehicle_block_struct",
+   "max_count_string": "MAXIMUM_VEHICLE_DATUMS_PER_SCENARIO",
+   "element_label": "scenario_object",
+   "element_label_callback": "tool.exe 0x49FD50"
+  },
+  "scenario_vehicle_palette_block": {
+   "max_count": 256,
+   "struct": "scenario_vehicle_palette_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_OBJECT_PALETTE_ENTRIES_PER_BLOCK"
+  },
+  "scenario_equipment_block": {
+   "max_count": 256,
+   "struct": "scenario_equipment_block_struct",
+   "max_count_string": "MAXIMUM_EQUIPMENT_DATUMS_PER_SCENARIO",
+   "element_label": "scenario_object",
+   "element_label_callback": "tool.exe 0x49FD50"
+  },
+  "scenario_equipment_palette_block": {
+   "max_count": 256,
+   "struct": "scenario_equipment_palette_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_OBJECT_PALETTE_ENTRIES_PER_BLOCK"
+  },
+  "scenario_weapon_block": {
+   "max_count": 128,
+   "struct": "scenario_weapon_block_struct",
+   "max_count_string": "MAXIMUM_WEAPON_DATUMS_PER_SCENARIO",
+   "element_label": "scenario_object",
+   "element_label_callback": "tool.exe 0x49FD50"
+  },
+  "scenario_weapon_palette_block": {
+   "max_count": 256,
+   "struct": "scenario_weapon_palette_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_OBJECT_PALETTE_ENTRIES_PER_BLOCK"
+  },
+  "device_group_block": {
+   "max_count": 128,
+   "struct": "device_group_block_struct",
+   "max_count_string": "MAXIMUM_DEVICE_GROUPS_PER_SCENARIO"
+  },
+  "scenario_machine_block": {
+   "max_count": 400,
+   "struct": "scenario_machine_block_struct",
+   "max_count_string": "MAXIMUM_MACHINE_DATUMS_PER_SCENARIO",
+   "element_label": "scenario_object",
+   "element_label_callback": "tool.exe 0x49FD50"
+  },
+  "scenario_machine_palette_block": {
+   "max_count": 256,
+   "struct": "scenario_machine_palette_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_OBJECT_PALETTE_ENTRIES_PER_BLOCK"
+  },
+  "scenario_control_block": {
+   "max_count": 100,
+   "struct": "scenario_control_block_struct",
+   "max_count_string": "MAXIMUM_CONTROL_DATUMS_PER_SCENARIO",
+   "element_label": "scenario_object",
+   "element_label_callback": "tool.exe 0x49FD50"
+  },
+  "scenario_control_palette_block": {
+   "max_count": 256,
+   "struct": "scenario_control_palette_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_OBJECT_PALETTE_ENTRIES_PER_BLOCK"
+  },
+  "scenario_light_fixture_block": {
+   "max_count": 500,
+   "struct": "scenario_light_fixture_block_struct",
+   "max_count_string": "MAXIMUM_LIGHT_FIXTURE_DATUMS_PER_SCENARIO",
+   "element_label": "scenario_object",
+   "element_label_callback": "tool.exe 0x49FD50"
+  },
+  "scenario_light_fixture_palette_block": {
+   "max_count": 256,
+   "struct": "scenario_light_fixture_palette_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_OBJECT_PALETTE_ENTRIES_PER_BLOCK"
+  },
+  "scenario_sound_scenery_block": {
+   "max_count": 256,
+   "struct": "scenario_sound_scenery_block_struct",
+   "max_count_string": "MAXIMUM_SOUND_SCENERY_DATUMS_PER_SCENARIO",
+   "element_label": "scenario_object",
+   "element_label_callback": "tool.exe 0x49FD50"
+  },
+  "scenario_sound_scenery_palette_block": {
+   "max_count": 256,
+   "struct": "scenario_sound_scenery_palette_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_OBJECT_PALETTE_ENTRIES_PER_BLOCK"
+  },
+  "scenario_profiles_block": {
+   "max_count": 256,
+   "struct": "scenario_profiles_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_PLAYERS_PER_BLOCK"
+  },
+  "scenario_players_block": {
+   "max_count": 256,
+   "struct": "scenario_players_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_PLAYERS_PER_BLOCK"
+  },
+  "scenario_structure_bsps_block": {
+   "max_count": 16,
+   "struct": "scenario_structure_bsps_block_struct",
+   "max_count_string": "MAXIMUM_STRUCTURE_BSPS_PER_SCENARIO"
+  },
+  "scenario_trigger_volume_block": {
+   "max_count": 256,
+   "struct": "scenario_trigger_volume_block_struct",
+   "max_count_string": "MAXIMUM_TRIGGER_VOLUMES_PER_SCENARIO"
+  },
+  "recorded_animation_block": {
+   "max_count": 1024,
+   "struct": "recorded_animation_block_struct",
+   "max_count_string": "MAXIMUM_RECORDED_ANIMATIONS_PER_MAP"
+  },
+  "scenario_netgame_flags_block": {
+   "max_count": 200,
+   "struct": "scenario_netgame_flags_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_NETGAME_FLAGS_PER_SCENARIO",
+   "element_label": {
+    "source": "tool.exe 0x49FF00",
+    "label": [
+     "{type|map:flags} #{usage id}"
+    ],
+    "maps": {
+     "flags": {
+      "names": [
+       "netgame_flag_ctf_flag",
+       "netgame_flag_ctf_vehicle",
+       "netgame_flag_oddball_ball_spawn",
+       "netgame_flag_race_track",
+       "netgame_flag_race_vehicle",
+       "netgame_flag_vegas_bank",
+       "netgame_flag_teleporter_source",
+       "netgame_flag_teleporter_target",
+       "netgame_flag_hill"
+      ],
+      "else": "unknown"
+     }
+    }
+   },
+   "element_label_callback": "tool.exe 0x49FF00"
+  },
+  "scenario_netgame_equipment_block": {
+   "max_count": 200,
+   "struct": "scenario_netgame_equipment_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_NETGAME_EQUIPMENT_PER_SCENARIO",
+   "element_label": {
+    "source": "tool.exe 0x49FFB0; the editor also cuts the file name at `/`",
+    "label": [
+     {
+      "when": "{type 1} != 0 || {type 2} != 0 || {type 3} != 0",
+      "format": "{type 0|map:games} * {item collection}"
+     },
+     {
+      "when": "1",
+      "format": "{type 0|map:games}  {item collection}"
+     }
+    ],
+    "maps": {
+     "games": {
+      "names": [
+       "none",
+       "ctf",
+       "slayer",
+       "oddball",
+       "king of the hill",
+       "race",
+       "terminator",
+       "stub",
+       "ignored1",
+       "ignored2",
+       "ignored3",
+       "ignored4",
+       "all games",
+       "all except ctf",
+       "all except race & ctf"
+      ],
+      "else": "unknown"
+     }
+    }
+   },
+   "element_label_callback": "tool.exe 0x49FFB0"
+  },
+  "scenario_starting_equipment_block": {
+   "max_count": 200,
+   "struct": "scenario_starting_equipment_block_struct",
+   "max_count_string": "MAXIMUM_SCENARIO_STARTING_EQUIPMDNG_PER_SCENARIO"
+  },
+  "scenario_bsp_switch_trigger_volume_block": {
+   "max_count": 256,
+   "struct": "scenario_bsp_switch_trigger_volume_block_struct",
+   "max_count_string": "MAXIMUM_TRIGGER_VOLUMES_PER_SCENARIO"
+  },
+  "scenario_decals_block": {
+   "max_count": 65536,
+   "struct": "scenario_decals_block_struct",
+   "max_count_string": "MAXIMUM_DECALS_PER_SCENARIO"
+  },
+  "scenario_decal_palette_block": {
+   "max_count": 128,
+   "struct": "scenario_decal_palette_block_struct",
+   "max_count_string": "MAXIMUM_DECAL_PALETTES_PER_SCENARIO"
+  },
+  "scenario_detail_object_collection_palette_block": {
+   "max_count": 32,
+   "struct": "scenario_detail_object_collection_palette_block_struct",
+   "max_count_string": "MAXIMUM_DETAIL_OBJECT_LAYERS_PER_STRUCTURE"
+  },
+  "actor_palette_block": {
+   "max_count": 64,
+   "struct": "actor_palette_block_struct",
+   "max_count_string": "MAXIMUM_ACTOR_TYPES_PER_MAP"
+  },
+  "encounter_block": {
+   "max_count": 128,
+   "struct": "encounter_block_struct",
+   "max_count_string": "MAXIMUM_ENCOUNTERS_PER_MAP"
+  },
+  "squads_block": {
+   "max_count": 64,
+   "struct": "squads_block_struct",
+   "max_count_string": "MAXIMUM_SQUADS_PER_ENCOUNTER",
+   "element_label": {
+    "source": "tool.exe 0x4A5330",
+    "label": [
+     {
+      "when": "{platoon|index} >= 0 && {platoon|index} < {../platoons|count}",
+      "format": "({../platoons[{platoon|index}]/name}){name}"
+     },
+     {
+      "when": "1",
+      "format": "{name}"
+     }
+    ]
+   },
+   "element_label_callback": "tool.exe 0x4A5330"
+  },
+  "platoons_block": {
+   "max_count": 32,
+   "struct": "platoons_block_struct",
+   "max_count_string": "MAXIMUM_PLATOONS_PER_ENCOUNTER"
+  },
+  "move_positions_block": {
+   "max_count": 32,
+   "struct": "move_positions_block_struct",
+   "max_count_string": "MAXIMUM_MOVE_POSITIONS_PER_SQUAD"
+  },
+  "ai_animation_reference_block": {
+   "max_count": 128,
+   "struct": "ai_animation_reference_block_struct",
+   "max_count_string": "MAXIMUM_ANIMATION_REFERENCES_PER_MAP"
+  },
+  "actor_starting_locations_block": {
+   "max_count": 32,
+   "struct": "actor_starting_locations_block_struct",
+   "max_count_string": "MAXIMUM_STARTING_LOCATIONS_PER_SQUAD"
+  },
+  "ai_command_list_block": {
+   "max_count": 256,
+   "struct": "ai_command_list_block_struct",
+   "max_count_string": "MAXIMUM_COMMAND_LISTS_PER_MAP"
+  },
+  "ai_command_block": {
+   "max_count": 64,
+   "struct": "ai_command_block_struct",
+   "max_count_string": "MAXIMUM_COMMANDS_PER_COMMAND_LIST",
+   "element_label": {
+    "source": "tool.exe 0x4A5470, describing the atom with sub_5AAAF0 (vocalizations: sub_4EF090)",
+    "label": [
+     {
+      "when": "{atom type} == 0",
+      "format": "{#:2}: pause {parameter1:.1f}"
+     },
+     {
+      "when": "{atom type} == 1",
+      "format": "{#:2}: go to (p{point 1|index}) {atom modifier|map:go_to}"
+     },
+     {
+      "when": "{atom type} == 2",
+      "format": "{#:2}: go to (p{point 1|index}) and face (p{point 2|index})"
+     },
+     {
+      "when": "{atom type} == 3 && {point 1|index} == -1",
+      "format": "{#:2}: move {atom modifier|map:directions} along angle {parameter2:.1f}, dist {parameter1:.2f}"
+     },
+     {
+      "when": "{atom type} == 3",
+      "format": "{#:2}: move {atom modifier|map:directions} towards (p{point 1|index}), dist {parameter1:.2f}"
+     },
+     {
+      "when": "{atom type} == 4",
+      "format": "{#:2}: look {atom modifier|map:look} at (p{point 1|index}) for {parameter1:.1f}"
+     },
+     {
+      "when": "{atom type} == 5",
+      "format": "{#:2}: animation mode {atom modifier|map:animation_modes}"
+     },
+     {
+      "when": "{atom type} == 6",
+      "format": "{#:2}: crouch {atom modifier|map:crouch}"
+     },
+     {
+      "when": "{atom type} == 7",
+      "format": "{#:2}: shoot at (p{point 1|index}) for {parameter1:.1f}"
+     },
+     {
+      "when": "{atom type} == 8",
+      "format": "{#:2}: throw grenade at (p{point 1|index})"
+     },
+     {
+      "when": "{atom type} == 9",
+      "format": "{#:2}: enter vehicle as {atom modifier|map:seats} if within {parameter1:.1f}"
+     },
+     {
+      "when": "{atom type} == 10",
+      "format": "{#:2}: running jump"
+     },
+     {
+      "when": "{atom type} == 11",
+      "format": "{#:2}: targeted jump ({parameter1:.2f}h, {parameter2:.2f}v)"
+     },
+     {
+      "when": "{atom type} == 12",
+      "format": "{#:2}: script {script|bad:<error>} wake-and-continue"
+     },
+     {
+      "when": "{atom type} == 13",
+      "format": "{#:2}: animate {animation|bad:<error>}"
+     },
+     {
+      "when": "{atom type} == 14",
+      "format": "{#:2}: play recording {recording|bad:<error>}"
+     },
+     {
+      "when": "{atom type} == 15",
+      "format": "{#:2}: action {atom modifier|map:actions}"
+     },
+     {
+      "when": "{atom type} == 16",
+      "format": "{#:2}: vocalize {atom modifier|map:vocalizations}"
+     },
+     {
+      "when": "{atom type} == 17",
+      "format": "{#:2}: targeting {atom modifier|map:toggle}"
+     },
+     {
+      "when": "{atom type} == 18",
+      "format": "{#:2}: initiative {atom modifier|map:toggle}"
+     },
+     {
+      "when": "{atom type} == 19",
+      "format": "{#:2}: wait {atom modifier|map:wait}"
+     },
+     {
+      "when": "{atom type} == 20 && {command|index} == -1",
+      "format": "{#:2}: loop to <none> {atom modifier|map:loop}"
+     },
+     {
+      "when": "{atom type} == 20",
+      "format": "{#:2}: loop to #{command|index} {atom modifier|map:loop}"
+     },
+     {
+      "when": "{atom type} == 21",
+      "format": "{#:2}: die"
+     },
+     {
+      "when": "{atom type} == 22",
+      "format": "{#:2}: move {atom modifier|map:move_for} for {parameter1:.1f} sec"
+     },
+     {
+      "when": "{atom type} == 23",
+      "format": "{#:2}: look {atom modifier|map:look} at random one of (p{point 1|index}-p{point 2|index}) for {parameter1:.1f}-{parameter2:.1f}"
+     },
+     {
+      "when": "{atom type} == 24",
+      "format": "{#:2}: look {atom modifier|map:look} at player for {parameter1:.1f}"
+     },
+     {
+      "when": "{atom type} == 25",
+      "format": "{#:2}: look {atom modifier|map:look} at {object name|none:<error>|bad:<error>} for {parameter1:.1f}"
+     },
+     {
+      "when": "{atom type} == 26",
+      "format": "{#:2}: set radius {parameter1:.2f}"
+     },
+     {
+      "when": "{atom type} == 27 && {point 2|index} == -1",
+      "format": "{#:2}: teleport to (p{point 1|index})"
+     },
+     {
+      "when": "{atom type} == 27",
+      "format": "{#:2}: teleport to (p{point 1|index}) and face at (p{point 2|index})"
+     },
+     {
+      "when": "1",
+      "format": "{#:2}: <unknown {atom type|index}>"
+     }
+    ],
+    "maps": {
+     "go_to": {
+      "names": [
+       "stop_at_point",
+       "keep_moving"
+      ],
+      "else": "<INVALID-ATOM-MODIFIER>"
+     },
+     "directions": {
+      "names": [
+       "forwards",
+       "left",
+       "right",
+       "backwards",
+       "any-facing"
+      ],
+      "else": "<INVALID-ATOM-MODIFIER>"
+     },
+     "look": {
+      "names": [
+       "idle aim weapon",
+       "idle turn around",
+       "idle look with head",
+       "forced exact facing",
+       "forced aim weapon"
+      ],
+      "else": "<INVALID-ATOM-MODIFIER>"
+     },
+     "animation_modes": {
+      "names": [
+       "noncombat",
+       "asleep",
+       "combat",
+       "panic"
+      ],
+      "else": "<INVALID-ATOM-MODIFIER>"
+     },
+     "crouch": {
+      "names": [
+       "disable",
+       "enable"
+      ],
+      "else": "<INVALID-ATOM-MODIFIER>"
+     },
+     "seats": {
+      "names": [
+       "any-non-driver",
+       "gunner",
+       "passenger",
+       "driver",
+       "any-seat"
+      ],
+      "else": "<INVALID-ATOM-MODIFIER>"
+     },
+     "actions": {
+      "names": [
+       "berserk",
+       "surprise-front",
+       "surprise-back",
+       "evade-left",
+       "evade-right",
+       "dive-fwd",
+       "dive-back",
+       "dive-left",
+       "dive-right",
+       "vehicle-woohoo",
+       "vehicle-scared"
+      ],
+      "else": "<INVALID-ATOM-MODIFIER>"
+     },
+     "toggle": {
+      "names": [
+       "enable",
+       "disable"
+      ],
+      "else": "<INVALID-ATOM-MODIFIER>"
+     },
+     "wait": {
+      "names": [
+       "until alerted",
+       "until visible enemy",
+       "until told to advance"
+      ],
+      "else": "<INVALID-ATOM-MODIFIER>"
+     },
+     "loop": {
+      "names": [
+       "always",
+       "only until told to advance"
+      ],
+      "else": "<INVALID-ATOM-MODIFIER>"
+     },
+     "move_for": {
+      "names": [
+       "forwards",
+       "left",
+       "right",
+       "backwards"
+      ],
+      "else": "<INVALID-ATOM-MODIFIER>"
+     },
+     "vocalizations": {
+      "names": [
+       "idle noncombat",
+       "idle combat",
+       "idle flee",
+       "unused",
+       "unused",
+       "unused",
+       "pain body minor",
+       "pain body major",
+       "pain shield",
+       "pain falling",
+       "scream fear",
+       "scream pain",
+       "maimed limb",
+       "maimed head",
+       "death quiet",
+       "death violent",
+       "death falling",
+       "death agonizing",
+       "death instant",
+       "death flying",
+       "unused",
+       "damaged friend",
+       "damaged friend player",
+       "damaged enemy",
+       "damaged enemy cm",
+       "unused",
+       "unused",
+       "unused",
+       "unused",
+       "hurt friend",
+       "hurt friend re",
+       "hurt friend player",
+       "hurt enemy",
+       "hurt enemy re",
+       "hurt enemy cm",
+       "hurt enemy bullet",
+       "hurt enemy needler",
+       "hurt enemy plasma",
+       "hurt enemy sniper",
+       "hurt enemy grenade",
+       "hurt enemy explosion",
+       "hurt enemy melee",
+       "hurt enemy flame",
+       "hurt enemy shotgun",
+       "hurt enemy vehicle",
+       "hurt enemy mountedweapon",
+       "unused",
+       "unused",
+       "unused",
+       "killed friend",
+       "killed friend cm",
+       "killed friend player",
+       "killed friend player cm",
+       "killed enemy",
+       "killed enemy cm",
+       "killed enemy player",
+       "killed enemy player cm",
+       "killed enemy covenant",
+       "killed enemy covenant cm",
+       "killed enemy floodcombat",
+       "killed enemy floodcombat cm",
+       "killed enemy floodcarrier",
+       "killed enemy floodcarrier cm",
+       "killed enemy sentinel",
+       "killed enemy sentinel cm",
+       "killed enemy bullet",
+       "killed enemy needler",
+       "killed enemy plasma",
+       "killed enemy sniper",
+       "killed enemy grenade",
+       "killed enemy explosion",
+       "killed enemy melee",
+       "killed enemy flame",
+       "killed enemy shotgun",
+       "killed enemy vehicle",
+       "killed enemy mountedweapon",
+       "killing spree",
+       "unused",
+       "unused",
+       "unused",
+       "player kill cm",
+       "player kill bullet cm",
+       "player kill needler cm",
+       "player kill plasma cm",
+       "player kill sniper cm",
+       "anyone kill grenade cm",
+       "player kill explosion cm",
+       "player kill melee cm",
+       "player kill flame cm",
+       "player kill shotgun cm",
+       "player kill vehicle cm",
+       "player kill mountedweapon cm",
+       "player killing spree cm",
+       "unused",
+       "unused",
+       "unused",
+       "friend died",
+       "friend player died",
+       "friend killed by friend",
+       "friend killed by friendly player",
+       "friend killed by enemy",
+       "friend killed by enemy player",
+       "friend killed by covenant",
+       "friend killed by flood",
+       "friend killed by sentinel",
+       "friend betrayed",
+       "unused",
+       "unused",
+       "new combat alone",
+       "new enemy recent combat",
+       "old enemy sighted",
+       "unexpected enemy",
+       "dead friend found",
+       "alliance broken",
+       "alliance reformed",
+       "grenade throwing",
+       "grenade startle",
+       "grenade sighted",
+       "grenade danger enemy",
+       "grenade danger self",
+       "grenade danger friend",
+       "unused",
+       "unused",
+       "new combat group re",
+       "nea combat nearby re",
+       "alert friend",
+       "alert friend re",
+       "alert lost contact",
+       "alert lost contact re",
+       "blocked",
+       "blocked re",
+       "search start",
+       "search query",
+       "search query re",
+       "search report",
+       "search abandon",
+       "search group abandon",
+       "uncover start",
+       "uncover start re",
+       "advance",
+       "advance re",
+       "retreat",
+       "retreat re",
+       "cover",
+       "unused",
+       "unused",
+       "unused",
+       "unused",
+       "sighted friend player",
+       "shooting",
+       "shooting vehicle",
+       "shooting berserk",
+       "shooting group",
+       "shooting traitor",
+       "taunt",
+       "taunt re",
+       "flee",
+       "flee re",
+       "flee leader died",
+       "attempted flee",
+       "attempted flee re",
+       "lost contact",
+       "hiding finished",
+       "vehicle entry",
+       "vehicle exit",
+       "vehicle woohoo",
+       "vehicle scared",
+       "vehicle collision",
+       "partially sighted",
+       "nothing there",
+       "pleading",
+       "unused",
+       "unused",
+       "unused",
+       "unused",
+       "unused",
+       "unused",
+       "surprise",
+       "berserk",
+       "melee attack",
+       "dive",
+       "uncover leap",
+       "leap attack",
+       "resurrection",
+       "unused",
+       "unused",
+       "unused",
+       "unused",
+       "celebration",
+       "check body enemy",
+       "check body friend",
+       "shooting dead enemy",
+       "shooting dead enemy player",
+       "unused",
+       "unused",
+       "unused",
+       "unused",
+       "alone",
+       "unscathed",
+       "seriously wounded",
+       "seriously wounded re",
+       "massacre",
+       "massacre re",
+       "rout",
+       "rout re",
+       "unused",
+       "unused",
+       "unused",
+       "unused"
+      ],
+      "else": "<error>"
+     }
+    }
+   },
+   "element_label_callback": "tool.exe 0x4A5470"
+  },
+  "ai_command_point_block": {
+   "max_count": 64,
+   "struct": "ai_command_point_block_struct",
+   "max_count_string": "MAXIMUM_POINTS_PER_COMMAND_LIST"
+  },
+  "ai_script_reference_block": {
+   "max_count": 128,
+   "struct": "ai_script_reference_block_struct",
+   "max_count_string": "MAXIMUM_SCRIPT_REFERENCES_PER_MAP"
+  },
+  "ai_recording_reference_block": {
+   "max_count": 128,
+   "struct": "ai_recording_reference_block_struct",
+   "max_count_string": "MAXIMUM_RECORDING_REFERENCES_PER_MAP"
+  },
+  "firing_positions_block": {
+   "max_count": 512,
+   "struct": "firing_positions_block_struct",
+   "max_count_string": "MAXIMUM_FIRING_POSITIONS_PER_ENCOUNTER"
+  },
+  "ai_conversation_block": {
+   "max_count": 128,
+   "struct": "ai_conversation_block_struct",
+   "max_count_string": "MAXIMUM_CONVERSATIONS_PER_MAP"
+  },
+  "ai_conversation_participant_block": {
+   "max_count": 8,
+   "struct": "ai_conversation_participant_block_struct",
+   "max_count_string": "MAXIMUM_PARTICIPANTS_PER_CONVERSATION",
+   "element_label": {
+    "source": "tool.exe 0x4A5550",
+    "label": [
+     "{#}: {use this object} / {set new name}",
+     "{#}: {use this object}",
+     "{#}: {set new name}",
+     {
+      "when": "1",
+      "format": "{#}: unnamed"
+     }
+    ]
+   },
+   "element_label_callback": "tool.exe 0x4A5550"
+  },
+  "ai_conversation_line_block": {
+   "max_count": 32,
+   "struct": "ai_conversation_line_block_struct",
+   "max_count_string": "MAXIMUM_LINES_PER_CONVERSATION"
+  },
+  "hs_scripts_block": {
+   "max_count": 1024,
+   "struct": "hs_scripts_block_struct",
+   "max_count_string": "k_maximum_hs_scripts_per_scenario"
+  },
+  "hs_script_parameters_block": {
+   "max_count": 16,
+   "struct": "hs_script_parameters_block_struct",
+   "max_count_string": "k_maximum_hs_parameters_per_script"
+  },
+  "hs_globals_block": {
+   "max_count": 512,
+   "struct": "hs_globals_block_struct",
+   "max_count_string": "k_maximum_hs_globals_per_scenario"
+  },
+  "hs_references_block": {
+   "max_count": 512,
+   "struct": "hs_references_block_struct",
+   "max_count_string": "k_maximum_hs_references_per_scenario"
+  },
+  "hs_source_files_block": {
+   "max_count": 16,
+   "struct": "hs_source_files_block_struct",
+   "max_count_string": "k_maximum_hs_source_files_per_scenario"
+  },
+  "scenario_cutscene_flag_block": {
+   "max_count": 512,
+   "struct": "scenario_cutscene_flag_block_struct",
+   "max_count_string": "MAXIMUM_CUTSCENE_FLAGS_PER_SCENARIO"
+  },
+  "scenario_cutscene_camera_point_block": {
+   "max_count": 512,
+   "struct": "scenario_cutscene_camera_point_block_struct",
+   "max_count_string": "MAXIMUM_CUTSCENE_CAMERA_POINTS_PER_SCENARIO"
+  },
+  "scenario_cutscene_title_block": {
+   "max_count": 64,
+   "struct": "scenario_cutscene_title_block_struct",
+   "max_count_string": "MAXIMUM_CUTSCENE_TITLES_PER_SCENARIO"
+  }
+ },
+ "structs": {
+  "scenario_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 1456,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "DON'T USE!",
+     "definition": {
+      "flags": 2,
+      "allowed": [
+       "sbsp"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "WON'T USE!",
+     "definition": {
+      "flags": 2,
+      "allowed": [
+       "sbsp"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "CAN'T USE!",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "sky "
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "skies",
+     "definition": "scenario_sky_reference_block"
+    },
+    {
+     "type": "short_enum",
+     "name": "type",
+     "definition": "type"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "block",
+     "name": "child scenarios",
+     "definition": "scenario_child_scenario_block"
+    },
+    {
+     "type": "angle",
+     "name": "local north"
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(long)",
+     "definition": 20
+    },
+    {
+     "type": "pad",
+     "name": "34*sizeof(long)",
+     "definition": 136
+    },
+    {
+     "type": "block",
+     "name": "predicted resources*!",
+     "definition": "predicted_resource_block"
+    },
+    {
+     "type": "block",
+     "name": "functions!",
+     "definition": "scenario_function_block"
+    },
+    {
+     "type": "data",
+     "name": "editor scenario data!",
+     "definition": "editor_scenario_data_definition"
+    },
+    {
+     "type": "block",
+     "name": "comments",
+     "definition": "editor_comment_block"
+    },
+    {
+     "type": "block",
+     "name": "scavenger hunt objects",
+     "definition": "scenario_scavenger_hunt_object_block"
+    },
+    {
+     "type": "pad",
+     "name": "53*sizeof(long)",
+     "definition": 212
+    },
+    {
+     "type": "block",
+     "name": "object names*",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "block",
+     "name": "scenery",
+     "definition": "scenario_scenery_block"
+    },
+    {
+     "type": "block",
+     "name": "scenery palette",
+     "definition": "scenario_scenery_palette_block"
+    },
+    {
+     "type": "block",
+     "name": "bipeds",
+     "definition": "scenario_biped_block"
+    },
+    {
+     "type": "block",
+     "name": "biped palette",
+     "definition": "scenario_biped_palette_block"
+    },
+    {
+     "type": "block",
+     "name": "vehicles",
+     "definition": "scenario_vehicle_block"
+    },
+    {
+     "type": "block",
+     "name": "vehicle palette",
+     "definition": "scenario_vehicle_palette_block"
+    },
+    {
+     "type": "block",
+     "name": "equipment",
+     "definition": "scenario_equipment_block"
+    },
+    {
+     "type": "block",
+     "name": "equipment palette",
+     "definition": "scenario_equipment_palette_block"
+    },
+    {
+     "type": "block",
+     "name": "weapons",
+     "definition": "scenario_weapon_block"
+    },
+    {
+     "type": "block",
+     "name": "weapon palette",
+     "definition": "scenario_weapon_palette_block"
+    },
+    {
+     "type": "block",
+     "name": "device groups",
+     "definition": "device_group_block"
+    },
+    {
+     "type": "block",
+     "name": "machines",
+     "definition": "scenario_machine_block"
+    },
+    {
+     "type": "block",
+     "name": "machine palette",
+     "definition": "scenario_machine_palette_block"
+    },
+    {
+     "type": "block",
+     "name": "controls",
+     "definition": "scenario_control_block"
+    },
+    {
+     "type": "block",
+     "name": "control palette",
+     "definition": "scenario_control_palette_block"
+    },
+    {
+     "type": "block",
+     "name": "light fixtures",
+     "definition": "scenario_light_fixture_block"
+    },
+    {
+     "type": "block",
+     "name": "light fixtures palette",
+     "definition": "scenario_light_fixture_palette_block"
+    },
+    {
+     "type": "block",
+     "name": "sound scenery",
+     "definition": "scenario_sound_scenery_block"
+    },
+    {
+     "type": "block",
+     "name": "sound scenery palette",
+     "definition": "scenario_sound_scenery_palette_block"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(struct tag_block)",
+     "definition": 84
+    },
+    {
+     "type": "block",
+     "name": "player starting profile",
+     "definition": "scenario_profiles_block"
+    },
+    {
+     "type": "block",
+     "name": "player starting locations",
+     "definition": "scenario_players_block"
+    },
+    {
+     "type": "block",
+     "name": "trigger volumes",
+     "definition": "scenario_trigger_volume_block"
+    },
+    {
+     "type": "block",
+     "name": "recorded animations",
+     "definition": "recorded_animation_block"
+    },
+    {
+     "type": "block",
+     "name": "netgame flags",
+     "definition": "scenario_netgame_flags_block"
+    },
+    {
+     "type": "block",
+     "name": "netgame equipment",
+     "definition": "scenario_netgame_equipment_block"
+    },
+    {
+     "type": "block",
+     "name": "starting equipment",
+     "definition": "scenario_starting_equipment_block"
+    },
+    {
+     "type": "block",
+     "name": "bsp switch trigger volumes*!",
+     "definition": "scenario_bsp_switch_trigger_volume_block"
+    },
+    {
+     "type": "block",
+     "name": "decals",
+     "definition": "scenario_decals_block"
+    },
+    {
+     "type": "block",
+     "name": "decal palette",
+     "definition": "scenario_decal_palette_block"
+    },
+    {
+     "type": "block",
+     "name": "detail object collection palette",
+     "definition": "scenario_detail_object_collection_palette_block"
+    },
+    {
+     "type": "pad",
+     "name": "21*sizeof(long)",
+     "definition": 84
+    },
+    {
+     "type": "block",
+     "name": "actor palette",
+     "definition": "actor_palette_block"
+    },
+    {
+     "type": "block",
+     "name": "encounters",
+     "definition": "encounter_block"
+    },
+    {
+     "type": "block",
+     "name": "command lists",
+     "definition": "ai_command_list_block"
+    },
+    {
+     "type": "block",
+     "name": "ai animation references",
+     "definition": "ai_animation_reference_block"
+    },
+    {
+     "type": "block",
+     "name": "ai script references",
+     "definition": "ai_script_reference_block"
+    },
+    {
+     "type": "block",
+     "name": "ai recording references",
+     "definition": "ai_recording_reference_block"
+    },
+    {
+     "type": "block",
+     "name": "ai conversations",
+     "definition": "ai_conversation_block"
+    },
+    {
+     "type": "data",
+     "name": "script syntax data!",
+     "definition": "hs_syntax_data_definition"
+    },
+    {
+     "type": "data",
+     "name": "script string data!",
+     "definition": "hs_string_data_definition"
+    },
+    {
+     "type": "block",
+     "name": "scripts*!",
+     "definition": "hs_scripts_block"
+    },
+    {
+     "type": "block",
+     "name": "globals*!",
+     "definition": "hs_globals_block"
+    },
+    {
+     "type": "block",
+     "name": "references*!",
+     "definition": "hs_references_block"
+    },
+    {
+     "type": "block",
+     "name": "source files*",
+     "definition": "hs_source_files_block"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "block",
+     "name": "cutscene flags",
+     "definition": "scenario_cutscene_flag_block"
+    },
+    {
+     "type": "block",
+     "name": "cutscene camera points",
+     "definition": "scenario_cutscene_camera_point_block"
+    },
+    {
+     "type": "block",
+     "name": "cutscene titles",
+     "definition": "scenario_cutscene_title_block"
+    },
+    {
+     "type": "pad",
+     "name": "27*sizeof(long)",
+     "definition": 108
+    },
+    {
+     "type": "tag_reference",
+     "name": "custom object names",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "ustr"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "ingame help text",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "ustr"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "hud messages",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "hmt "
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "structure bsps",
+     "definition": "scenario_structure_bsps_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_sky_reference_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "sky^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "sky "
+      ]
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_child_scenario_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 32,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "child scenario^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "scnr"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "predicted_resource_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 8,
+   "fields": [
+    {
+     "type": "short_enum",
+     "name": "type",
+     "definition": "type_2"
+    },
+    {
+     "type": "short_integer",
+     "name": "resource index"
+    },
+    {
+     "type": "long_integer",
+     "name": "tag index"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_function_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 120,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_2"
+    },
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "real",
+     "name": "period:seconds#this is the period for the above function (lower values make the function oscillate quickly, higher values make it oscillate slowly)"
+    },
+    {
+     "type": "short_block_index",
+     "name": "scale period by#multiply this function by the above period",
+     "definition": "scenario_function_block"
+    },
+    {
+     "type": "short_enum",
+     "name": "function",
+     "definition": "function"
+    },
+    {
+     "type": "short_block_index",
+     "name": "scale function by#multiply this function by the result of the above function",
+     "definition": "scenario_function_block"
+    },
+    {
+     "type": "short_enum",
+     "name": "wobble function#the curve used for the wobble",
+     "definition": "function"
+    },
+    {
+     "type": "real",
+     "name": "wobble period:seconds#the length of time it takes for the magnitude of this function to complete a wobble"
+    },
+    {
+     "type": "real",
+     "name": "wobble magnitude:percent#the amount of random wobble in the magnitude"
+    },
+    {
+     "type": "real_fraction",
+     "name": "square wave threshold#if non-zero, all values above the square wave threshold are snapped to 1.0, and all values below it are snapped to 0.0 to create a square wave."
+    },
+    {
+     "type": "short_integer",
+     "name": "step count#the number of discrete values to snap to (e.g., a step count of 5 would snap the function to 0.00,0.25,0.50,0.75 or 1.00)"
+    },
+    {
+     "type": "short_enum",
+     "name": "map to",
+     "definition": "map to"
+    },
+    {
+     "type": "short_integer",
+     "name": "sawtooth count#the number of times this function should repeat (e.g., a sawtooth count of 5 would give the function a value of 1.0 at each of 0.25,0.50,0.75 as well as at 1.0"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_block_index",
+     "name": "scale result by#multiply this function (from a weapon, vehicle, etc.) final result of all of the above math",
+     "definition": "scenario_function_block"
+    },
+    {
+     "type": "short_enum",
+     "name": "bounds mode#controls how the bounds, below, are used",
+     "definition": "bounds mode"
+    },
+    {
+     "type": "fraction_bounds",
+     "name": "bounds"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(real)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_block_index",
+     "name": "turn off with#if the specified function is off, so is this function",
+     "definition": "scenario_function_block"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(real)",
+     "definition": 16
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "editor_comment_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "data",
+     "name": "comment",
+     "definition": "editor_comment_data_definition"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_scavenger_hunt_object_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 36,
+   "fields": [
+    {
+     "type": "string",
+     "name": "exported name"
+    },
+    {
+     "type": "short_block_index",
+     "name": "scenario object name index^",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_object_names_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 36,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(short)",
+     "definition": 4
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_scenery_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 72,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "type",
+     "definition": "scenario_scenery_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "name",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "word_flags",
+     "name": "not placed",
+     "definition": "not placed"
+    },
+    {
+     "type": "short_integer",
+     "name": "desired permutation#if non-zero, will try to use model permutations with names that end in that number, e.g. 7 would pick \"body-7\" and \"head-7\""
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "real_euler_angles_3d",
+     "name": "rotation"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "char_integer",
+     "name": "appearance player index"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(char)",
+     "definition": 3
+    },
+    {
+     "type": "pad",
+     "name": "NUMBER_OF_OBJECT_CHANGE_COLORS*sizeof(pixel32)",
+     "definition": 16
+    },
+    {
+     "type": "pad",
+     "name": "MAXIMUM_REGIONS_PER_OBJECT*sizeof(byte)",
+     "definition": 8
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_scenery_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "name^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "scen"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_biped_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 120,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "type",
+     "definition": "scenario_biped_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "name",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "word_flags",
+     "name": "not placed",
+     "definition": "not placed"
+    },
+    {
+     "type": "short_integer",
+     "name": "desired permutation#if non-zero, will try to use model permutations with names that end in that number, e.g. 7 would pick \"body-7\" and \"head-7\""
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "real_euler_angles_3d",
+     "name": "rotation"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "char_integer",
+     "name": "appearance player index"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(char)",
+     "definition": 3
+    },
+    {
+     "type": "pad",
+     "name": "NUMBER_OF_OBJECT_CHANGE_COLORS*sizeof(pixel32)",
+     "definition": 16
+    },
+    {
+     "type": "pad",
+     "name": "MAXIMUM_REGIONS_PER_OBJECT*sizeof(byte)",
+     "definition": 8
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "real",
+     "name": "body vitality:[0,1]"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_biped_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "name^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bipd"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_vehicle_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 120,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "type",
+     "definition": "scenario_vehicle_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "name",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "word_flags",
+     "name": "not placed",
+     "definition": "not placed"
+    },
+    {
+     "type": "short_integer",
+     "name": "desired permutation#if non-zero, will try to use model permutations with names that end in that number, e.g. 7 would pick \"body-7\" and \"head-7\""
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "real_euler_angles_3d",
+     "name": "rotation"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "char_integer",
+     "name": "appearance player index"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(char)",
+     "definition": 3
+    },
+    {
+     "type": "pad",
+     "name": "NUMBER_OF_OBJECT_CHANGE_COLORS*sizeof(pixel32)",
+     "definition": 16
+    },
+    {
+     "type": "pad",
+     "name": "MAXIMUM_REGIONS_PER_OBJECT*sizeof(byte)",
+     "definition": 8
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "real",
+     "name": "body vitality:[0,1]"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "char_integer",
+     "name": "multiplayer team index#on a multiplayer map, this determines which team the vehicle belongs to for custom vehicle sets."
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(byte)",
+     "definition": 1
+    },
+    {
+     "type": "word_flags",
+     "name": "multiplayer spawn flags",
+     "definition": "multiplayer spawn flags"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_vehicle_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "name^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "vehi"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_equipment_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 40,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "type",
+     "definition": "scenario_equipment_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "name",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "word_flags",
+     "name": "not placed",
+     "definition": "not placed"
+    },
+    {
+     "type": "short_integer",
+     "name": "desired permutation#if non-zero, will try to use model permutations with names that end in that number, e.g. 7 would pick \"body-7\" and \"head-7\""
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "real_euler_angles_3d",
+     "name": "rotation"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "word_flags",
+     "name": "misc flags",
+     "definition": "misc flags"
+    },
+    {
+     "type": "char_integer",
+     "name": "appearance player index"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(char)",
+     "definition": 3
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_equipment_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "name^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "eqip"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_weapon_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 92,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "type",
+     "definition": "scenario_weapon_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "name",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "word_flags",
+     "name": "not placed",
+     "definition": "not placed"
+    },
+    {
+     "type": "short_integer",
+     "name": "desired permutation#if non-zero, will try to use model permutations with names that end in that number, e.g. 7 would pick \"body-7\" and \"head-7\""
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "real_euler_angles_3d",
+     "name": "rotation"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "char_integer",
+     "name": "appearance player index"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(char)",
+     "definition": 3
+    },
+    {
+     "type": "pad",
+     "name": "NUMBER_OF_OBJECT_CHANGE_COLORS*sizeof(pixel32)",
+     "definition": 16
+    },
+    {
+     "type": "pad",
+     "name": "MAXIMUM_REGIONS_PER_OBJECT*sizeof(byte)",
+     "definition": 8
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "short_integer",
+     "name": "rounds left"
+    },
+    {
+     "type": "short_integer",
+     "name": "rounds loaded"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_4"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_weapon_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "name^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "weap"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "device_group_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 52,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "real",
+     "name": "initial value:[0,1]"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_5"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_machine_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "type",
+     "definition": "scenario_machine_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "name",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "word_flags",
+     "name": "not placed",
+     "definition": "not placed"
+    },
+    {
+     "type": "short_integer",
+     "name": "desired permutation#if non-zero, will try to use model permutations with names that end in that number, e.g. 7 would pick \"body-7\" and \"head-7\""
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "real_euler_angles_3d",
+     "name": "rotation"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "char_integer",
+     "name": "appearance player index"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(char)",
+     "definition": 3
+    },
+    {
+     "type": "short_block_index",
+     "name": "power group",
+     "definition": "device_group_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "position group",
+     "definition": "device_group_block"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_6"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_7"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_machine_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "name^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "mach"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_control_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "type",
+     "definition": "scenario_control_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "name",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "word_flags",
+     "name": "not placed",
+     "definition": "not placed"
+    },
+    {
+     "type": "short_integer",
+     "name": "desired permutation#if non-zero, will try to use model permutations with names that end in that number, e.g. 7 would pick \"body-7\" and \"head-7\""
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "real_euler_angles_3d",
+     "name": "rotation"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "char_integer",
+     "name": "appearance player index"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(char)",
+     "definition": 3
+    },
+    {
+     "type": "short_block_index",
+     "name": "power group",
+     "definition": "device_group_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "position group",
+     "definition": "device_group_block"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_6"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_8"
+    },
+    {
+     "type": "short_integer",
+     "name": "*DON'T TOUCH THIS"
+    },
+    {
+     "type": "custom",
+     "name": "CUSTOM_CONTROL_NAME_ID",
+     "group_tag": "ugh@"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_control_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "name^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "ctrl"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_light_fixture_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 88,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "type",
+     "definition": "scenario_light_fixture_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "name",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "word_flags",
+     "name": "not placed",
+     "definition": "not placed"
+    },
+    {
+     "type": "short_integer",
+     "name": "desired permutation#if non-zero, will try to use model permutations with names that end in that number, e.g. 7 would pick \"body-7\" and \"head-7\""
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "real_euler_angles_3d",
+     "name": "rotation"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "char_integer",
+     "name": "appearance player index"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(char)",
+     "definition": 3
+    },
+    {
+     "type": "short_block_index",
+     "name": "power group",
+     "definition": "device_group_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "position group",
+     "definition": "device_group_block"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_6"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "color"
+    },
+    {
+     "type": "real",
+     "name": "intensity"
+    },
+    {
+     "type": "angle",
+     "name": "falloff angle:degrees"
+    },
+    {
+     "type": "angle",
+     "name": "cutoff angle:degrees"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_light_fixture_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "name^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "lifi"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_sound_scenery_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 40,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "type",
+     "definition": "scenario_sound_scenery_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "name",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "word_flags",
+     "name": "not placed",
+     "definition": "not placed"
+    },
+    {
+     "type": "short_integer",
+     "name": "desired permutation#if non-zero, will try to use model permutations with names that end in that number, e.g. 7 would pick \"body-7\" and \"head-7\""
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "real_euler_angles_3d",
+     "name": "rotation"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "char_integer",
+     "name": "appearance player index"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(char)",
+     "definition": 3
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_sound_scenery_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "name^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "ssce"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_profiles_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 104,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "real_fraction",
+     "name": "starting health modifier:[0,1]"
+    },
+    {
+     "type": "real_fraction",
+     "name": "starting shield modifier:[0,1]"
+    },
+    {
+     "type": "tag_reference",
+     "name": "primary weapon",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "weap"
+      ]
+     }
+    },
+    {
+     "type": "short_integer",
+     "name": "rounds loaded"
+    },
+    {
+     "type": "short_integer",
+     "name": "rounds total"
+    },
+    {
+     "type": "tag_reference",
+     "name": "secondary weapon",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "weap"
+      ]
+     }
+    },
+    {
+     "type": "short_integer",
+     "name": "rounds loaded"
+    },
+    {
+     "type": "short_integer",
+     "name": "rounds total"
+    },
+    {
+     "type": "char_integer",
+     "name": "starting fragmentation grenade count"
+    },
+    {
+     "type": "char_integer",
+     "name": "starting plasma grenade count"
+    },
+    {
+     "type": "char_integer",
+     "name": "starting grenade type2 count"
+    },
+    {
+     "type": "char_integer",
+     "name": "starting grenade type3 count"
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(long)",
+     "definition": 20
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_players_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 52,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "angle",
+     "name": "facing:degrees"
+    },
+    {
+     "type": "short_integer",
+     "name": "team index"
+    },
+    {
+     "type": "short_block_index",
+     "name": "bsp index!",
+     "definition": "scenario_structure_bsps_block"
+    },
+    {
+     "type": "short_enum",
+     "name": "type 0",
+     "definition": "type 0"
+    },
+    {
+     "type": "short_enum",
+     "name": "type 1",
+     "definition": "type 0"
+    },
+    {
+     "type": "short_enum",
+     "name": "type 2",
+     "definition": "type 0"
+    },
+    {
+     "type": "short_enum",
+     "name": "type 3",
+     "definition": "type 0"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_structure_bsps_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 32,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "tag_reference",
+     "name": "structure bsp^",
+     "definition": {
+      "flags": 2,
+      "allowed": [
+       "sbsp"
+      ]
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_trigger_volume_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 96,
+   "fields": [
+    {
+     "type": "skip",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "array",
+     "name": "",
+     "definition": "array_array"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "array_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 4,
+   "fields": [
+    {
+     "type": "real",
+     "name": "parameters*!"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "recorded_animation_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 64,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "char_integer",
+     "name": "version*"
+    },
+    {
+     "type": "char_integer",
+     "name": "raw animation data*"
+    },
+    {
+     "type": "char_integer",
+     "name": "unit control data version*"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(byte)",
+     "definition": 1
+    },
+    {
+     "type": "short_integer",
+     "name": "length of animation*:ticks"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "data",
+     "name": "recorded animation event stream*",
+     "definition": "recorded_animation_event_stream_data"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_netgame_flags_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 148,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "angle",
+     "name": "facing:degrees"
+    },
+    {
+     "type": "short_enum",
+     "name": "type",
+     "definition": "type_3"
+    },
+    {
+     "type": "explanation",
+     "name": "usages|AABBCC",
+     "definition": "* Team index, 0=red, 1=blue\n* Player index, 0 through 15\n* Race track index, 0 through 31\n* Teleporter channel index\n* Hill index\n"
+    },
+    {
+     "type": "short_integer",
+     "name": "usage id"
+    },
+    {
+     "type": "tag_reference",
+     "name": "weapon group!",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "itmc"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "28*sizeof(long)",
+     "definition": 112
+    },
+    {
+     "type": "explanation",
+     "name": "ctf - flag|AABBCC",
+     "definition": "Place one flag for each team (usage id)"
+    },
+    {
+     "type": "explanation",
+     "name": "oddball - ball spawn|ABCDCC",
+     "definition": "Begin with player index (usage id) set to 0, which will be the first spawn, incrementing up to 15.\nThey will be spawned incrementally as well.\nFor best results, 0 should be in a team-neutral location, with each ball located on the opposite side of the map from the previous ball"
+    },
+    {
+     "type": "explanation",
+     "name": "race - track|AABBCC",
+     "definition": "These represent the rally points for a lap in race\nBegin with track index (usage id) set to 0, incrementing up to 31, leaving no graps in numbers\nIn rally *MODE*, tracks will be selected at random\nFor best results, 0 should be in a team-neutral location"
+    },
+    {
+     "type": "explanation",
+     "name": "race - vehicle|AABBCC",
+     "definition": "Place up to 16 vehicles (usage id is unused)"
+    },
+    {
+     "type": "explanation",
+     "name": "teleport from|ABCDCC",
+     "definition": "Teleporter entry node. Usage id is used to link entry and exit nodes."
+    },
+    {
+     "type": "explanation",
+     "name": "teleport to|ABCDCC",
+     "definition": "Teleporter exit node. Usage id is used to link entry and exit nodes.\nThese *DIFFERENCE* between the <facing> value for the entry and exit nodes is added to the player's yaw for their final facing direction upon exit\nE.g., assume entry's facing is -90, and exit is 0. That's a difference of +90 (exit minus entry)\nThe player entrying the teleporter facing north would exit then facing east"
+    },
+    {
+     "type": "explanation",
+     "name": "hill - flag|AABBCC",
+     "definition": "Set hill index (usage id) to designate this flag as part that hill. There can only be up to 64 total hills for a map\nA hill can consist of up to 12 flags\nIf a hill consists of only 1 point, it will be 1wu wide in each cardinal direction around the position\nThe hill represented by index 0 is the default in non-moving hill mode"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_netgame_equipment_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 144,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_9"
+    },
+    {
+     "type": "short_enum",
+     "name": "type 0",
+     "definition": "type 0"
+    },
+    {
+     "type": "short_enum",
+     "name": "type 1",
+     "definition": "type 0"
+    },
+    {
+     "type": "short_enum",
+     "name": "type 2",
+     "definition": "type 0"
+    },
+    {
+     "type": "short_enum",
+     "name": "type 3",
+     "definition": "type 0"
+    },
+    {
+     "type": "short_integer",
+     "name": "team index:0=red, 1=blue"
+    },
+    {
+     "type": "short_integer",
+     "name": "spawn time:seconds#0 means default to item collection time"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long) * 12",
+     "definition": 48
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "angle",
+     "name": "facing:degrees"
+    },
+    {
+     "type": "tag_reference",
+     "name": "item collection",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "itmc"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long) * 12",
+     "definition": 48
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_starting_equipment_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 204,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_10"
+    },
+    {
+     "type": "short_enum",
+     "name": "type 0",
+     "definition": "type 0"
+    },
+    {
+     "type": "short_enum",
+     "name": "type 1",
+     "definition": "type 0"
+    },
+    {
+     "type": "short_enum",
+     "name": "type 2",
+     "definition": "type 0"
+    },
+    {
+     "type": "short_enum",
+     "name": "type 3",
+     "definition": "type 0"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long) * 12",
+     "definition": 48
+    },
+    {
+     "type": "tag_reference",
+     "name": "item collection 1",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "itmc"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "item collection 2",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "itmc"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "item collection 3",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "itmc"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "item collection 4",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "itmc"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "item collection 5",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "itmc"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "item collection 6",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "itmc"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long) * 12",
+     "definition": 48
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_bsp_switch_trigger_volume_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 8,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "trigger volume",
+     "definition": "scenario_trigger_volume_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "source",
+     "definition": "scenario_structure_bsps_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "destination",
+     "definition": "scenario_structure_bsps_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_decals_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "short_block_index",
+     "name": "decal type^",
+     "definition": "scenario_decal_palette_block"
+    },
+    {
+     "type": "char_integer",
+     "name": "yaw[-127,127]*"
+    },
+    {
+     "type": "char_integer",
+     "name": "pitch[-127,127]*"
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_decal_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "reference^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "deca"
+      ]
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_detail_object_collection_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 48,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "name^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "dobc"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "actor_palette_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 16,
+   "fields": [
+    {
+     "type": "tag_reference",
+     "name": "reference^",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "actv"
+      ]
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "encounter_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 176,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_11"
+    },
+    {
+     "type": "short_enum",
+     "name": "team index",
+     "definition": "team index"
+    },
+    {
+     "type": "skip",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "short_enum",
+     "name": "search behavior",
+     "definition": "search behavior"
+    },
+    {
+     "type": "short_integer",
+     "name": "manual bsp index#structure bsp index that this encounter belongs to... ignored unless 'manual bsp index' flag is checked. if this flag is not checked, the structure bsp is found automatically (may fail in areas of overlapping geometry)"
+    },
+    {
+     "type": "real_bounds",
+     "name": "respawn delay:seconds#delay between respawning actors in this encounter"
+    },
+    {
+     "type": "pad",
+     "name": "19*sizeof(long)",
+     "definition": 76
+    },
+    {
+     "type": "block",
+     "name": "squads",
+     "definition": "squads_block"
+    },
+    {
+     "type": "block",
+     "name": "platoons",
+     "definition": "platoons_block"
+    },
+    {
+     "type": "block",
+     "name": "firing positions",
+     "definition": "firing_positions_block"
+    },
+    {
+     "type": "block",
+     "name": "player starting locations",
+     "definition": "scenario_players_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "squads_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 232,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name"
+    },
+    {
+     "type": "short_block_index",
+     "name": "actor type",
+     "definition": "actor_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "platoon",
+     "definition": "platoons_block"
+    },
+    {
+     "type": "short_enum",
+     "name": "initial state#state that this actor starts in",
+     "definition": "initial state"
+    },
+    {
+     "type": "short_enum",
+     "name": "return state#state that this actor will return to when it has nothing to do",
+     "definition": "initial state"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_13"
+    },
+    {
+     "type": "short_enum",
+     "name": "unique leader type#what kind of leader this squad has (e.g. a sarge for marines) - 'normal' is based on the size of the squad, 'random' always creates a leader, or you can specify an individual type",
+     "definition": "unique leader type"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_block_index",
+     "name": "maneuver to squad",
+     "definition": "squads_block"
+    },
+    {
+     "type": "real",
+     "name": "squad delay time:seconds"
+    },
+    {
+     "type": "long_flags",
+     "name": "attacking",
+     "definition": "attacking"
+    },
+    {
+     "type": "long_flags",
+     "name": "attacking search",
+     "definition": "attacking"
+    },
+    {
+     "type": "long_flags",
+     "name": "attacking guard",
+     "definition": "attacking"
+    },
+    {
+     "type": "long_flags",
+     "name": "defending",
+     "definition": "attacking"
+    },
+    {
+     "type": "long_flags",
+     "name": "defending search",
+     "definition": "attacking"
+    },
+    {
+     "type": "long_flags",
+     "name": "defending guard",
+     "definition": "attacking"
+    },
+    {
+     "type": "long_flags",
+     "name": "pursuing",
+     "definition": "attacking"
+    },
+    {
+     "type": "pad",
+     "name": "(MAXIMUM_NUMBER_OF_FIRING_POSITION_GROUPS-NUMBER_OF_FIRING_POSITION_GROUPS)*sizeof(unsigned long)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(unsigned long)",
+     "definition": 8
+    },
+    {
+     "type": "short_integer",
+     "name": "normal diff count#initial number of actors on normal difficulty"
+    },
+    {
+     "type": "short_integer",
+     "name": "insane diff count#initial number of actors on insane difficulty (hard difficulty is midway between normal and insane)"
+    },
+    {
+     "type": "short_enum",
+     "name": "major upgrade",
+     "definition": "major upgrade"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "short_integer",
+     "name": "respawn min actors#minimum number of actors alive at once (will spawn instantly if less than this number)"
+    },
+    {
+     "type": "short_integer",
+     "name": "respawn max actors#maximum number of actors alive at once (never spawns above this number)"
+    },
+    {
+     "type": "short_integer",
+     "name": "respawn total#total number to respawn (zero = infinite)"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real_bounds",
+     "name": "respawn delay:seconds#delay between respawning actors in this squad"
+    },
+    {
+     "type": "pad",
+     "name": "12*sizeof(long)",
+     "definition": 48
+    },
+    {
+     "type": "block",
+     "name": "move positions",
+     "definition": "move_positions_block"
+    },
+    {
+     "type": "block",
+     "name": "starting locations",
+     "definition": "actor_starting_locations_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(struct tag_block)",
+     "definition": 12
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "platoons_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 172,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_12"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "short_enum",
+     "name": "change attacking/defending state when",
+     "definition": "change attacking/defending state when"
+    },
+    {
+     "type": "short_block_index",
+     "name": "happens to",
+     "definition": "platoons_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "short_enum",
+     "name": "maneuver when",
+     "definition": "change attacking/defending state when"
+    },
+    {
+     "type": "short_block_index",
+     "name": "happens to",
+     "definition": "platoons_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "16*sizeof(long)",
+     "definition": 64
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(struct tag_block)",
+     "definition": 36
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "move_positions_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 80,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "angle",
+     "name": "facing:degrees"
+    },
+    {
+     "type": "real",
+     "name": "weight"
+    },
+    {
+     "type": "real_bounds",
+     "name": "time:seconds"
+    },
+    {
+     "type": "short_block_index",
+     "name": "animation",
+     "definition": "ai_animation_reference_block"
+    },
+    {
+     "type": "char_integer",
+     "name": "sequence ID#identifies this move position as belonging to a sequence, only actors whose starting locations match this sequence ID can use it (zero = no sequence)"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(byte)",
+     "definition": 1
+    },
+    {
+     "type": "pad",
+     "name": "11*sizeof(long)",
+     "definition": 44
+    },
+    {
+     "type": "long_integer",
+     "name": "surface index*"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "ai_animation_reference_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 60,
+   "fields": [
+    {
+     "type": "string",
+     "name": "animation name^"
+    },
+    {
+     "type": "tag_reference",
+     "name": "animation graph#leave this blank to use the unit's normal animation graph",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "antr"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(unsigned long)",
+     "definition": 12
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "actor_starting_locations_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 28,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "angle",
+     "name": "facing:degrees"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "char_integer",
+     "name": "sequence ID#which move position sequence we can use (zero = no specific sequences)"
+    },
+    {
+     "type": "byte_flags",
+     "name": "flags",
+     "definition": "flags_14"
+    },
+    {
+     "type": "short_enum",
+     "name": "return state#state that this actor will return to when it has nothing to do",
+     "definition": "initial state"
+    },
+    {
+     "type": "short_enum",
+     "name": "initial state#state that this actor starts in",
+     "definition": "initial state"
+    },
+    {
+     "type": "short_block_index",
+     "name": "actor type",
+     "definition": "actor_palette_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "command list",
+     "definition": "ai_command_list_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "ai_command_list_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 96,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_15"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(unsigned long)",
+     "definition": 8
+    },
+    {
+     "type": "short_integer",
+     "name": "manual bsp index#structure bsp index that this encounter belongs to... ignored unless 'manual bsp index' flag is checked. if this flag is not checked, the structure bsp is found automatically (may fail in areas of overlapping geometry)"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "block",
+     "name": "commands",
+     "definition": "ai_command_block"
+    },
+    {
+     "type": "block",
+     "name": "points",
+     "definition": "ai_command_point_block"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(struct tag_block)",
+     "definition": 24
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "ai_command_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 32,
+   "fields": [
+    {
+     "type": "explanation",
+     "name": "WARNING",
+     "definition": "These fields are only meant to be changed from within Sapien!\nSome atom types do not use some fields and may actually show garbage data (or BAD INDEX) here"
+    },
+    {
+     "type": "short_enum",
+     "name": "atom type",
+     "definition": "atom type"
+    },
+    {
+     "type": "short_integer",
+     "name": "atom modifier"
+    },
+    {
+     "type": "real",
+     "name": "parameter1"
+    },
+    {
+     "type": "real",
+     "name": "parameter2"
+    },
+    {
+     "type": "short_block_index",
+     "name": "point 1",
+     "definition": "ai_command_point_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "point 2",
+     "definition": "ai_command_point_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "animation",
+     "definition": "ai_animation_reference_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "script",
+     "definition": "ai_script_reference_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "recording",
+     "definition": "ai_recording_reference_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "command",
+     "definition": "ai_command_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "object name",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word) + sizeof(unsigned long)",
+     "definition": 6
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "ai_command_point_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 20,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(unsigned long)",
+     "definition": 8
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "ai_script_reference_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 40,
+   "fields": [
+    {
+     "type": "string",
+     "name": "script name^"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(unsigned long)",
+     "definition": 8
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "ai_recording_reference_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 40,
+   "fields": [
+    {
+     "type": "string",
+     "name": "recording name^"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(unsigned long)",
+     "definition": 8
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "firing_positions_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 24,
+   "fields": [
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "short_enum",
+     "name": "group index",
+     "definition": "group index"
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(word)",
+     "definition": 10
+    },
+    {
+     "type": "custom",
+     "name": "CUSTOM_SAPIEN_FIRING_POINT_FIELD",
+     "group_tag": "cfpf"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "ai_conversation_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 116,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_16"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "trigger distance:world units#distance the player must enter before the conversation can trigger"
+    },
+    {
+     "type": "real",
+     "name": "run-to-player dist:world units#if the 'involves player' flag is set, when triggered the conversation's participant(s) will run to within this distance of the player"
+    },
+    {
+     "type": "pad",
+     "name": "9*sizeof(unsigned long)",
+     "definition": 36
+    },
+    {
+     "type": "block",
+     "name": "participants",
+     "definition": "ai_conversation_participant_block"
+    },
+    {
+     "type": "block",
+     "name": "lines",
+     "definition": "ai_conversation_line_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(struct tag_block)",
+     "definition": 12
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "ai_conversation_participant_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 84,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_17"
+    },
+    {
+     "type": "short_enum",
+     "name": "selection type",
+     "definition": "selection type"
+    },
+    {
+     "type": "short_enum",
+     "name": "actor type",
+     "definition": "actor type"
+    },
+    {
+     "type": "short_block_index",
+     "name": "use this object#if a unit with this name exists, we try to pick them to start the conversation",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "short_block_index",
+     "name": "set new name#once we pick a unit, we name it this",
+     "definition": "scenario_object_names_block"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(unsigned long)",
+     "definition": 12
+    },
+    {
+     "type": "pad",
+     "name": "MAXIMUM_DIALOGUE_VARIANTS_PER_CONVERSATION_PARTICIPANT*sizeof(short)",
+     "definition": 12
+    },
+    {
+     "type": "string",
+     "name": "encounter name"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(unsigned long)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(unsigned long)",
+     "definition": 12
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "ai_conversation_line_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 124,
+   "fields": [
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_18"
+    },
+    {
+     "type": "short_block_index",
+     "name": "participant",
+     "definition": "ai_conversation_participant_block"
+    },
+    {
+     "type": "short_enum",
+     "name": "addressee",
+     "definition": "addressee"
+    },
+    {
+     "type": "short_block_index",
+     "name": "addressee participant#this field is only used if the addressee type is 'participant'",
+     "definition": "ai_conversation_participant_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(unsigned long)",
+     "definition": 4
+    },
+    {
+     "type": "real",
+     "name": "line delay time"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(unsigned long)",
+     "definition": 12
+    },
+    {
+     "type": "tag_reference",
+     "name": "variant 1",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "variant 2",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "variant 3",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "variant 4",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "variant 5",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "variant 6",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "hs_scripts_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 92,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^*"
+    },
+    {
+     "type": "short_enum",
+     "name": "script type*",
+     "definition": "script type"
+    },
+    {
+     "type": "short_enum",
+     "name": "return type*",
+     "definition": "return type"
+    },
+    {
+     "type": "long_integer",
+     "name": "root expression index*"
+    },
+    {
+     "type": "pad",
+     "name": "10*sizeof(long)",
+     "definition": 40
+    },
+    {
+     "type": "block",
+     "name": "parameters",
+     "definition": "hs_script_parameters_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "hs_script_parameters_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 36,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^*"
+    },
+    {
+     "type": "short_enum",
+     "name": "return type*",
+     "definition": "return type"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "hs_globals_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 92,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^*"
+    },
+    {
+     "type": "short_enum",
+     "name": "type*",
+     "definition": "return type"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "long_integer",
+     "name": "initialization expression index*"
+    },
+    {
+     "type": "pad",
+     "name": "12*sizeof(long)",
+     "definition": 48
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "hs_references_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 40,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "tag_reference",
+     "name": "reference*^",
+     "definition": {
+      "flags": 0,
+      "allowed": []
+     }
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "hs_source_files_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 52,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^*"
+    },
+    {
+     "type": "data",
+     "name": "source",
+     "definition": "hs_source_data_definition"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_cutscene_flag_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 92,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "real_euler_angles_2d",
+     "name": "facing"
+    },
+    {
+     "type": "pad",
+     "name": "9*sizeof(long)",
+     "definition": 36
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_cutscene_camera_point_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 104,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real_point_3d",
+     "name": "position"
+    },
+    {
+     "type": "real_euler_angles_3d",
+     "name": "orientation"
+    },
+    {
+     "type": "angle",
+     "name": "field of view"
+    },
+    {
+     "type": "pad",
+     "name": "9*sizeof(long)",
+     "definition": 36
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "scenario_cutscene_title_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 96,
+   "fields": [
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "rectangle_2d",
+     "name": "text bounds (on screen)"
+    },
+    {
+     "type": "short_integer",
+     "name": "string index"
+    },
+    {
+     "type": "short_enum",
+     "name": "style",
+     "definition": "style"
+    },
+    {
+     "type": "short_enum",
+     "name": "justification",
+     "definition": "justification"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "long_flags",
+     "name": "text flags",
+     "definition": "text flags"
+    },
+    {
+     "type": "argb_color",
+     "name": "text color"
+    },
+    {
+     "type": "argb_color",
+     "name": "shadow color"
+    },
+    {
+     "type": "real",
+     "name": "fade in time [seconds]"
+    },
+    {
+     "type": "real",
+     "name": "up time [seconds]"
+    },
+    {
+     "type": "real",
+     "name": "fade out time [seconds]"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "arrays": {
+  "array_array": {
+   "count": 15,
+   "struct": "array_struct"
+  }
+ },
+ "enums_flags": {
+  "type": {
+   "options": [
+    "solo",
+    "multiplayer",
+    "main menu"
+   ]
+  },
+  "flags": {
+   "options": [
+    "cortana hack#sort cortana in front of other transparent geometry",
+    "use demo UI#uses alternate UI collection for demo",
+    "color correction (ntsc->srgb)#enable ntsc to srgb color space conversion",
+    "DO NOT apply bungie campaign tag patches#Inhibit the hard coded balance patch changes made specific for original campaign maps"
+   ]
+  },
+  "type_2": {
+   "options": [
+    "bitmap",
+    "sound"
+   ]
+  },
+  "flags_2": {
+   "options": [
+    "scripted#the level script will set this value; the other settings here will be ignored.",
+    "invert#result of function is one minus actual result",
+    "additive",
+    "always active#function does not deactivate when at or below lower bound"
+   ]
+  },
+  "function": {
+   "options": [
+    "one",
+    "zero",
+    "cosine",
+    "cosine (variable period)",
+    "diagonal wave",
+    "diagonal wave (variable period)",
+    "slide",
+    "slide (variable period)",
+    "noise",
+    "jitter",
+    "wander",
+    "spark"
+   ]
+  },
+  "map to": {
+   "options": [
+    "linear",
+    "early",
+    "very early",
+    "late",
+    "very late",
+    "cosine"
+   ]
+  },
+  "bounds mode": {
+   "options": [
+    "clip",
+    "clip and normalize",
+    "scale to fit"
+   ]
+  },
+  "not placed": {
+   "options": [
+    "automatically",
+    "on easy",
+    "on normal",
+    "on hard",
+    "use player appearance"
+   ]
+  },
+  "flags_3": {
+   "options": [
+    "dead"
+   ]
+  },
+  "multiplayer spawn flags": {
+   "options": [
+    "slayer default#vehicle will spawn when default vehicle set is used in a slayer game",
+    "ctf default#vehicle will spawn when default vehicle set is used in a ctf game",
+    "king default#vehicle will spawn when default vehicle set is used in a king game",
+    "oddball default#vehicle will spawn when default vehicle set is used in a oddball game",
+    "unused#unused",
+    "unused#unused",
+    "unused#unused",
+    "unused#unused",
+    "slayer allowed#vehicle can spawn in a slayer game",
+    "ctf allowed#vehicle can spawn in a ctf game",
+    "king allowed#vehicle can spawn in a king game",
+    "oddball allowed#vehicle can spawn in a oddball game",
+    "unused#unused",
+    "unused#unused",
+    "unused#unused",
+    "unused#unused"
+   ]
+  },
+  "misc flags": {
+   "options": [
+    "initially at rest (doesn't fall)",
+    "obsolete",
+    "does accelerate (moves due to explosions)"
+   ]
+  },
+  "flags_4": {
+   "options": [
+    "initially at rest (doesn't fall)",
+    "obsolete",
+    "does accelerate (moves due to explosions)"
+   ]
+  },
+  "flags_5": {
+   "options": [
+    "can change only once"
+   ]
+  },
+  "flags_6": {
+   "options": [
+    "initially open (1.0)",
+    "initially off (0.0)",
+    "can change only once",
+    "position reversed",
+    "not usable from any side"
+   ]
+  },
+  "flags_7": {
+   "options": [
+    "does not operate automatically",
+    "one-sided",
+    "never appears locked",
+    "opened by melee attack"
+   ]
+  },
+  "flags_8": {
+   "options": [
+    "usable from both sides"
+   ]
+  },
+  "type 0": {
+   "options": [
+    "none",
+    "ctf",
+    "slayer",
+    "oddball",
+    "king of the hill",
+    "race",
+    "terminator",
+    "stub",
+    "ignored1",
+    "ignored2",
+    "ignored3",
+    "ignored4",
+    "all games",
+    "all except ctf",
+    "all except race and ctf"
+   ]
+  },
+  "type_3": {
+   "options": [
+    "ctf - flag",
+    "unused1",
+    "oddball - ball spawn",
+    "race - track",
+    "race - vehicle",
+    "unused5",
+    "teleport from",
+    "teleport to",
+    "hill - flag"
+   ]
+  },
+  "flags_9": {
+   "options": [
+    "levitate"
+   ]
+  },
+  "flags_10": {
+   "options": [
+    "no grenades",
+    "plasma grenades only#transfer all other grenade counts into plasma's",
+    "type2 grenades only#transfer all other grenade counts into type2's",
+    "type3 grenades only#transfer all other grenade counts into type3's"
+   ]
+  },
+  "flags_11": {
+   "options": [
+    "not initially created",
+    "respawn enabled",
+    "initially blind",
+    "initially deaf",
+    "initially braindead",
+    "3d firing positions",
+    "manual bsp index specified"
+   ]
+  },
+  "team index": {
+   "options": [
+    "0 / default by unit",
+    "1 / player",
+    "2 / human",
+    "3 / covenant",
+    "4 / flood",
+    "5 / sentinel",
+    "6 / unused6",
+    "7 / unused7",
+    "8 / unused8",
+    "9 / unused9"
+   ]
+  },
+  "search behavior": {
+   "options": [
+    "normal",
+    "never",
+    "tenacious"
+   ]
+  },
+  "flags_12": {
+   "options": [
+    "flee when maneuvering",
+    "say 'advancing' when maneuver",
+    "start in defending state"
+   ]
+  },
+  "change attacking/defending state when": {
+   "options": [
+    "(never)",
+    "< 75% strength",
+    "< 50% strength",
+    "< 25% strength",
+    "anybody dead",
+    "25% dead",
+    "50% dead",
+    "75% dead",
+    "all but one dead",
+    "all dead"
+   ]
+  },
+  "initial state": {
+   "options": [
+    "none",
+    "sleeping",
+    "alert",
+    "moving - repeat same position",
+    "moving - loop",
+    "moving - loop back and forth",
+    "moving - loop randomly",
+    "moving - randomly",
+    "guarding",
+    "guarding at guard position",
+    "searching",
+    "fleeing"
+   ]
+  },
+  "flags_13": {
+   "options": [
+    "unused",
+    "never search",
+    "start timer immediately",
+    "no timer, delay forever",
+    "magic sight after timer",
+    "automatic migration"
+   ]
+  },
+  "unique leader type": {
+   "options": [
+    "normal",
+    "none",
+    "random",
+    "sgt johnson",
+    "sgt lehto"
+   ]
+  },
+  "attacking": {
+   "options": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "X",
+    "Y",
+    "Z"
+   ]
+  },
+  "major upgrade": {
+   "options": [
+    "normal",
+    "few",
+    "many",
+    "none",
+    "all"
+   ]
+  },
+  "flags_14": {
+   "options": [
+    "required"
+   ]
+  },
+  "flags_15": {
+   "options": [
+    "allow initiative#lets an actor decide to stop following its commands and attack an enemy",
+    "allow targeting#lets an actor shoot at enemies while following its commands",
+    "disable looking#stops an actor from turning, stopping or looking around in response to stimuli received while following its commands",
+    "disable communication#stops an actor from communicating while following its commands",
+    "disable falling damage#makes an actor not take any damage from falling while following its commands",
+    "manual bsp index#set if the command list is manually attached to a specific bsp"
+   ]
+  },
+  "atom type": {
+   "options": [
+    "pause",
+    "go to",
+    "go to and face",
+    "move in direction",
+    "look",
+    "animation mode",
+    "crouch",
+    "shoot",
+    "grenade",
+    "vehicle",
+    "running jump",
+    "targeted jump",
+    "script",
+    "animate",
+    "recording",
+    "action",
+    "vocalize",
+    "targeting",
+    "initiative",
+    "wait",
+    "loop",
+    "die",
+    "move immediate",
+    "look random",
+    "look player",
+    "look object",
+    "set radius",
+    "teleport"
+   ]
+  },
+  "group index": {
+   "options": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "X",
+    "Y",
+    "Z"
+   ]
+  },
+  "flags_16": {
+   "options": [
+    "stop if death#this conversation will be aborted if any participant dies",
+    "stop if damaged#an actor will abort this conversation if they are damaged",
+    "stop if visible enemy#an actor will abort this conversation if they see an enemy",
+    "stop if alerted to enemy#an actor will abort this conversation if they suspect an enemy",
+    "player must be visible#this conversation cannot take place unless the participants can _see_ a nearby player",
+    "stop other actions#participants stop doing whatever they were doing in order to perform this conversation",
+    "keep trying to play#if this conversation fails initially, it will keep testing to see when it can play",
+    "player must be looking#this conversation will not start until the player is looking at one of the participants"
+   ]
+  },
+  "flags_17": {
+   "options": [
+    "optional#the conversation can continue even if nobody for this participant was found",
+    "has alternate#if nobody for this participant can be found, we use a participant marked as 'is alternate' instead, e.g. someone from over the radio",
+    "is alternate#this participant is only used if some participant in this conversation was marked as 'has alternate' could not be found"
+   ]
+  },
+  "selection type": {
+   "options": [
+    "friendly actor",
+    "disembodied",
+    "in player's vehicle",
+    "not in a vehicle",
+    "prefer sergeant",
+    "any actor",
+    "radio unit",
+    "radio sergeant"
+   ]
+  },
+  "actor type": {
+   "options": [
+    "elite",
+    "jackal",
+    "grunt",
+    "hunter",
+    "engineer",
+    "assassin",
+    "player",
+    "marine",
+    "crew",
+    "combat form",
+    "infection form",
+    "carrier form",
+    "monitor",
+    "sentinel",
+    "none",
+    "mounted weapon"
+   ]
+  },
+  "flags_18": {
+   "options": [
+    "addressee look at speaker",
+    "everyone look at speaker",
+    "everyone look at addressee",
+    "wait after until told to advance",
+    "wait until speaker nearby",
+    "wait until everyone nearby"
+   ]
+  },
+  "addressee": {
+   "options": [
+    "none",
+    "player",
+    "participant"
+   ]
+  },
+  "script type": {
+   "options": [
+    "startup",
+    "dormant",
+    "continuous",
+    "static",
+    "stub"
+   ]
+  },
+  "return type": {
+   "options": [
+    "unparsed",
+    "special form",
+    "function name",
+    "passthrough",
+    "void",
+    "boolean",
+    "real",
+    "short",
+    "long",
+    "string",
+    "script",
+    "trigger_volume",
+    "cutscene_flag",
+    "cutscene_camera_point",
+    "cutscene_title",
+    "cutscene_recording",
+    "device_group",
+    "ai",
+    "ai_command_list",
+    "starting_profile",
+    "conversation",
+    "navpoint",
+    "hud_message",
+    "object_list",
+    "sound",
+    "effect",
+    "damage",
+    "looping_sound",
+    "animation_graph",
+    "actor_variant",
+    "damage_effect",
+    "object_definition",
+    "game_difficulty",
+    "team",
+    "ai_default_state",
+    "actor_type",
+    "hud_corner",
+    "object",
+    "unit",
+    "vehicle",
+    "weapon",
+    "device",
+    "scenery",
+    "object_name",
+    "unit_name",
+    "vehicle_name",
+    "weapon_name",
+    "device_name",
+    "scenery_name"
+   ]
+  },
+  "style": {
+   "options": [
+    "plain",
+    "bold",
+    "italics",
+    "condensed",
+    "underlined"
+   ]
+  },
+  "justification": {
+   "options": [
+    "left",
+    "right",
+    "center"
+   ]
+  },
+  "text flags": {
+   "options": [
+    "wrap horizontally",
+    "wrap vertically",
+    "center vertically",
+    "bottom justify"
+   ]
+  }
+ },
+ "datas": {
+  "editor_scenario_data_definition": {
+   "flags": 0,
+   "max_size": 65536
+  },
+  "editor_comment_data_definition": {
+   "flags": 2,
+   "max_size": 16384
+  },
+  "recorded_animation_event_stream_data": {
+   "flags": 0,
+   "max_size": 2097152
+  },
+  "hs_syntax_data_definition": {
+   "flags": 0,
+   "max_size": 655396
+  },
+  "hs_string_data_definition": {
+   "flags": 0,
+   "max_size": 819200
+  },
+  "hs_source_data_definition": {
+   "flags": 2,
+   "max_size": 1048576
+  }
+ }
+}

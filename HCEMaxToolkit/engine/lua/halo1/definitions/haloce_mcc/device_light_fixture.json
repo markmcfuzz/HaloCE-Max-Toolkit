@@ -1,0 +1,43 @@
+{
+ "name": "device_light_fixture",
+ "tag": "lifi",
+ "version": 1,
+ "flags": 9,
+ "parent_tag": "devi",
+ "block": "device_light_fixture_block",
+ "blocks": {
+  "device_light_fixture_block": {
+   "max_count": 1,
+   "struct": "device_light_fixture_block_struct",
+   "max_count_string": "1",
+   "display_name": "device_light_fixture"
+  }
+ },
+ "structs": {
+  "device_light_fixture_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 720,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "device",
+     "definition": "device_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "$$$ LIGHT FIXTURE $$$",
+     "definition": ""
+    },
+    {
+     "type": "pad",
+     "name": "16*sizeof(long)",
+     "definition": 64
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ }
+}

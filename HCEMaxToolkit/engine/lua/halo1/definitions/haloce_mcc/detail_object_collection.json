@@ -1,0 +1,158 @@
+{
+ "name": "detail_object_collection",
+ "tag": "dobc",
+ "version": 1,
+ "flags": 8,
+ "block": "detail_object_collection_block",
+ "blocks": {
+  "detail_object_collection_block": {
+   "max_count": 1,
+   "struct": "detail_object_collection_block_struct",
+   "max_count_string": "1",
+   "display_name": "detail_object_collection"
+  },
+  "detail_object_type_block": {
+   "max_count": 16,
+   "struct": "detail_object_type_block_struct",
+   "max_count_string": "MAXIMUM_DETAIL_OBJECT_TYPES_PER_COLLECTION"
+  }
+ },
+ "structs": {
+  "detail_object_collection_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 128,
+   "fields": [
+    {
+     "type": "short_enum",
+     "name": "collection type",
+     "definition": "collection type"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "global z offset:applied to all detail objects of in this collection so they don't float above the ground"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*11",
+     "definition": 44
+    },
+    {
+     "type": "tag_reference",
+     "name": "sprite plate",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "block",
+     "name": "types",
+     "definition": "detail_object_type_block"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*12",
+     "definition": 48
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "detail_object_type_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 96,
+   "fields": [
+    {
+     "type": "string",
+     "name": "name^"
+    },
+    {
+     "type": "char_integer",
+     "name": "sequence index:[0,15]"
+    },
+    {
+     "type": "byte_flags",
+     "name": "type flags",
+     "definition": "type flags"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(byte)*2",
+     "definition": 2
+    },
+    {
+     "type": "real_fraction",
+     "name": "color override factor#fraction of detail object color to use instead of the base map color in the environment:[0,1]"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*2",
+     "definition": 8
+    },
+    {
+     "type": "real",
+     "name": "near fade distance:world units"
+    },
+    {
+     "type": "real",
+     "name": "far fade distance:world units"
+    },
+    {
+     "type": "real",
+     "name": "size:world units per pixel"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(real)",
+     "definition": 4
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "minimum color:[0,1]"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "maximum color:[0,1]"
+    },
+    {
+     "type": "argb_color",
+     "name": "ambient color:[0,255]"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)*1",
+     "definition": 4
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "collection type": {
+   "options": [
+    "screen-facing",
+    "viewer-facing"
+   ]
+  },
+  "type flags": {
+   "options": [
+    "unused0!",
+    "unused1!",
+    "interpolate color in hsv",
+    "...more colors"
+   ]
+  }
+ }
+}

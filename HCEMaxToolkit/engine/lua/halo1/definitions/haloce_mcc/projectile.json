@@ -1,0 +1,435 @@
+{
+ "name": "projectile",
+ "tag": "proj",
+ "version": 5,
+ "flags": 9,
+ "parent_tag": "obje",
+ "block": "projectile_block",
+ "blocks": {
+  "projectile_block": {
+   "max_count": 1,
+   "struct": "projectile_block_struct",
+   "max_count_string": "1",
+   "display_name": "projectile"
+  },
+  "projectile_material_response_block": {
+   "max_count": 33,
+   "struct": "projectile_material_response_block_struct",
+   "max_count_string": "NUMBER_OF_MATERIAL_TYPES",
+   "element_label": "material_effect_material",
+   "element_label_callback": "tool.exe 0x525390"
+  }
+ },
+ "structs": {
+  "projectile_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 588,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "object",
+     "definition": "object_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "$$$ PROJECTILE $$$",
+     "definition": ""
+    },
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "short_enum",
+     "name": "detonation timer starts",
+     "definition": "detonation timer starts"
+    },
+    {
+     "type": "short_enum",
+     "name": "impact noise",
+     "definition": "impact noise"
+    },
+    {
+     "type": "short_enum",
+     "name": "A in",
+     "definition": "A in_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "B in",
+     "definition": "A in_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "C in",
+     "definition": "A in_2"
+    },
+    {
+     "type": "short_enum",
+     "name": "D in",
+     "definition": "A in_2"
+    },
+    {
+     "type": "tag_reference",
+     "name": "super detonation",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "real",
+     "name": "AI perception radius:world units"
+    },
+    {
+     "type": "real",
+     "name": "collision radius:world units"
+    },
+    {
+     "type": "explanation",
+     "name": "detonation",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "arming time:seconds#won't detonate before this time elapses"
+    },
+    {
+     "type": "real",
+     "name": "danger radius:world units"
+    },
+    {
+     "type": "tag_reference",
+     "name": "effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "real_bounds",
+     "name": "timer:seconds#detonation countdown (zero is untimed)"
+    },
+    {
+     "type": "real",
+     "name": "minimum velocity:world units per second#detonates when slowed below this velocity"
+    },
+    {
+     "type": "real",
+     "name": "maximum range:world units#detonates after travelling this distance"
+    },
+    {
+     "type": "explanation",
+     "name": "physics",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "air gravity scale#the proportion of normal gravity applied to the projectile when in air."
+    },
+    {
+     "type": "real_bounds",
+     "name": "air damage range:world units#the range over which damage is scaled when the projectile is in air."
+    },
+    {
+     "type": "real",
+     "name": "water gravity scale#the proportion of normal gravity applied to the projectile when in water."
+    },
+    {
+     "type": "real_bounds",
+     "name": "water damage range:world units#the range over which damage is scaled when the projectile is in water."
+    },
+    {
+     "type": "real",
+     "name": "initial velocity:world units per second#bullet's velocity when inflicting maximum damage"
+    },
+    {
+     "type": "real",
+     "name": "final velocity:world units per second#bullet's velocity when inflicting minimum damage"
+    },
+    {
+     "type": "angle",
+     "name": "guided angular velocity:degrees per second"
+    },
+    {
+     "type": "short_enum",
+     "name": "detonation noise",
+     "definition": "impact noise"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "tag_reference",
+     "name": "detonation started",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "flyby sound",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "attached detonation damage",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "jpt!"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "impact damage",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "jpt!"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "block",
+     "name": "material responses",
+     "definition": "projectile_material_response_block"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "projectile_material_response_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 160,
+   "fields": [
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_4"
+    },
+    {
+     "type": "explanation",
+     "name": "default result",
+     "definition": "(if the potential result, below, fails to happen)"
+    },
+    {
+     "type": "short_enum",
+     "name": "response",
+     "definition": "response"
+    },
+    {
+     "type": "tag_reference",
+     "name": "effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "explanation",
+     "name": "potential result",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "response",
+     "definition": "response"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_5"
+    },
+    {
+     "type": "real_fraction",
+     "name": "skip fraction:[0,1]"
+    },
+    {
+     "type": "angle_bounds",
+     "name": "between:degrees"
+    },
+    {
+     "type": "real_bounds",
+     "name": "and:world units per second"
+    },
+    {
+     "type": "tag_reference",
+     "name": "effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "explanation",
+     "name": "misc",
+     "definition": ""
+    },
+    {
+     "type": "short_enum",
+     "name": "scale effects by",
+     "definition": "scale effects by"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "angle",
+     "name": "angular noise:degrees#the angle of incidence is randomly perturbed by at most this amount to simulate irregularity."
+    },
+    {
+     "type": "real",
+     "name": "velocity noise:world units per second#the velocity is randomly perturbed by at most this amount to simulate irregularity."
+    },
+    {
+     "type": "tag_reference",
+     "name": "detonation effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "explanation",
+     "name": "penetration",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "initial friction#the fraction of the projectile's velocity lost on penetration"
+    },
+    {
+     "type": "real",
+     "name": "maximum distance#the maximum distance the projectile can travel through on object of this material"
+    },
+    {
+     "type": "explanation",
+     "name": "reflection",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "parallel friction#the fraction of the projectile's velocity parallel to the surface lost on impact"
+    },
+    {
+     "type": "real",
+     "name": "perpendicular friction#the fraction of the projectile's velocity perpendicular to the surface lost on impact"
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags_3": {
+   "options": [
+    "oriented along velocity",
+    "AI must use ballistic aiming",
+    "detonation max time if attached",
+    "has super combining explosion",
+    "combine initial velocity with parent velocity",
+    "random attached detonation time",
+    "minimum unattached detonation time"
+   ]
+  },
+  "detonation timer starts": {
+   "options": [
+    "immediately",
+    "after first bounce",
+    "when at rest"
+   ]
+  },
+  "impact noise": {
+   "options": [
+    "silent",
+    "medium",
+    "loud",
+    "shout",
+    "quiet"
+   ]
+  },
+  "A in_2": {
+   "options": [
+    "none",
+    "range remaining",
+    "time remaining",
+    "tracer"
+   ]
+  },
+  "flags_4": {
+   "options": [
+    "cannot be overpenetrated"
+   ]
+  },
+  "response": {
+   "options": [
+    "disappear",
+    "detonate",
+    "reflect",
+    "overpenetrate",
+    "attach"
+   ]
+  },
+  "flags_5": {
+   "options": [
+    "only against units",
+    "never against units"
+   ]
+  },
+  "scale effects by": {
+   "options": [
+    "damage",
+    "angle"
+   ]
+  }
+ }
+}

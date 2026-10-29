@@ -1,0 +1,346 @@
+{
+ "name": "lens_flare",
+ "tag": "lens",
+ "version": 2,
+ "flags": 8,
+ "block": "lens_flare_block",
+ "blocks": {
+  "lens_flare_block": {
+   "max_count": 1,
+   "struct": "lens_flare_block_struct",
+   "max_count_string": "1",
+   "display_name": "lens_flare"
+  },
+  "lens_flare_reflection_block": {
+   "max_count": 32,
+   "struct": "lens_flare_reflection_block_struct",
+   "max_count_string": "MAXIMUM_REFLECTIONS_PER_LENS_FLARE"
+  }
+ },
+ "structs": {
+  "lens_flare_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 240,
+   "fields": [
+    {
+     "type": "explanation",
+     "name": "lens flare",
+     "definition": ""
+    },
+    {
+     "type": "angle",
+     "name": "falloff angle:degrees"
+    },
+    {
+     "type": "angle",
+     "name": "cutoff angle:degrees"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(real)",
+     "definition": 8
+    },
+    {
+     "type": "explanation",
+     "name": "occlusion",
+     "definition": "Occlusion factor affects overall lens flare brightness and can also affect scale. Occlusion never affects rotation."
+    },
+    {
+     "type": "real",
+     "name": "occlusion radius:world units#radius of the square used to test occlusion"
+    },
+    {
+     "type": "short_enum",
+     "name": "occlusion offset direction",
+     "definition": "occlusion offset direction"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "near fade distance:world units#distance at which the lens flare brightness is maximum"
+    },
+    {
+     "type": "real",
+     "name": "far fade distance:world units#distance at which the lens flare brightness is minimum; set to zero to disable distance fading"
+    },
+    {
+     "type": "explanation",
+     "name": "bitmaps",
+     "definition": ""
+    },
+    {
+     "type": "tag_reference",
+     "name": "bitmap#used by reflections",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "19*sizeof(long)",
+     "definition": 76
+    },
+    {
+     "type": "explanation",
+     "name": "corona rotation",
+     "definition": "Controls how corona rotation is affected by viewer and light angles."
+    },
+    {
+     "type": "short_enum",
+     "name": "rotation function",
+     "definition": "rotation function"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "angle",
+     "name": "rotation function scale:degrees"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "explanation",
+     "name": "corona radius scale",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "horizontal scale#amount to stretch the corona along the horizontal axis; 0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "vertical scale#amount to stretch the corona along the vertical axis; 0 defaults to 1"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "block",
+     "name": "reflections",
+     "definition": "lens_flare_reflection_block"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  },
+  "lens_flare_reflection_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 128,
+   "fields": [
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_2"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "short_integer",
+     "name": "bitmap index"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(long)",
+     "definition": 20
+    },
+    {
+     "type": "real",
+     "name": "position:along flare axis#0 is on top of light, 1 is opposite light, 0.5 is the center of the screen, etc."
+    },
+    {
+     "type": "real",
+     "name": "rotation offset:degrees"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real_bounds",
+     "name": "radius:world units#interpolated by light scale"
+    },
+    {
+     "type": "short_enum",
+     "name": "radius scaled by",
+     "definition": "radius scaled by"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "fraction_bounds",
+     "name": "brightness:[0,1]#interpolated by light scale"
+    },
+    {
+     "type": "short_enum",
+     "name": "brightness scaled by",
+     "definition": "radius scaled by"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "explanation",
+     "name": "tint color",
+     "definition": "Tinting and modulating are not the same; 'tinting' a reflection will color the darker regions but leave the white highlights, while 'modulating' will color everything uniformly (as in most games). The tint alpha controls how much the reflection is tinted as opposed to modulated (0 is modulated, 1 is tinted). If all components are zero, the reflection is fully tinted by the light color."
+    },
+    {
+     "type": "real_argb_color",
+     "name": "tint color#if a=r=g=b=0 use light color instead; alpha blends between modulation and tinting"
+    },
+    {
+     "type": "explanation",
+     "name": "animation",
+     "definition": "Causes lens flare reflection to flicker, pulse, or whatever. Animated color modulates tint color, above, while animated alpha modulates brightness. Animation is ignored if tint color is BLACK or the animation function is ONE or ZERO."
+    },
+    {
+     "type": "real_argb_color",
+     "name": "color lower bound#if a=r=g=b=0, default to a=r=g=b=1"
+    },
+    {
+     "type": "real_argb_color",
+     "name": "color upper bound#if a=r=g=b=0, default to a=r=g=b=1"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "short_enum",
+     "name": "animation function",
+     "definition": "animation function"
+    },
+    {
+     "type": "real",
+     "name": "animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "animation phase:seconds"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "occlusion offset direction": {
+   "options": [
+    "toward viewer",
+    "marker forward",
+    "none"
+   ]
+  },
+  "flags": {
+   "options": [
+    "sun",
+    "no occlusion test",
+    "only render in first person",
+    "only render in third person",
+    "fade in more quickly*#not supported",
+    "fade out more quickly*#not supported",
+    "scale by marker"
+   ]
+  },
+  "rotation function": {
+   "options": [
+    "none",
+    "rotation A",
+    "rotation B",
+    "rotation-translation",
+    "translation"
+   ]
+  },
+  "flags_2": {
+   "options": [
+    "align rotation with screen center",
+    "radius NOT scaled by distance",
+    "radius scaled by occlusion factor#scales radius by 1/2 to 1 as occlusion goes from 0 to 1",
+    "occluded by solid objects#reflection will be drawn with the zbuffer enabled (it will be drawn 'behind' solid geometry)"
+   ]
+  },
+  "radius scaled by": {
+   "options": [
+    "none",
+    "rotation",
+    "rotation and strafing",
+    "distance from center"
+   ]
+  },
+  "flags_3": {
+   "options": [
+    "interpolate color in hsv",
+    "...more colors"
+   ]
+  },
+  "animation function": {
+   "options": [
+    "one",
+    "zero",
+    "cosine",
+    "cosine (variable period)",
+    "diagonal wave",
+    "diagonal wave (variable period)",
+    "slide",
+    "slide (variable period)",
+    "noise",
+    "jitter",
+    "wander",
+    "spark"
+   ]
+  }
+ }
+}

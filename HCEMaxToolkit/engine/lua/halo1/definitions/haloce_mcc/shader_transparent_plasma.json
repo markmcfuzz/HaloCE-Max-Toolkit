@@ -1,0 +1,245 @@
+{
+ "name": "shader_transparent_plasma",
+ "tag": "spla",
+ "version": 1,
+ "flags": 8,
+ "parent_tag": "shdr",
+ "block": "shader_transparent_plasma_block",
+ "blocks": {
+  "shader_transparent_plasma_block": {
+   "max_count": 1,
+   "struct": "shader_transparent_plasma_block_struct",
+   "max_count_string": "1",
+   "display_name": "shader_transparent_plasma"
+  }
+ },
+ "structs": {
+  "shader_transparent_plasma_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 332,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "shader",
+     "definition": "shader_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "plasma shader",
+     "definition": ""
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "explanation",
+     "name": "intensity",
+     "definition": "Controls how bright the plasma is."
+    },
+    {
+     "type": "short_enum",
+     "name": "intensity source",
+     "definition": "intensity source"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "intensity exponent#0 defaults to 1"
+    },
+    {
+     "type": "explanation",
+     "name": "offset",
+     "definition": "Controls how far the plasma energy extends from the model geometry."
+    },
+    {
+     "type": "short_enum",
+     "name": "offset source",
+     "definition": "intensity source"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "offset amount:world units"
+    },
+    {
+     "type": "real",
+     "name": "offset exponent#0 defaults to 1"
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "explanation",
+     "name": "color",
+     "definition": "Controls the tint color and Fresnel brightness effects."
+    },
+    {
+     "type": "real_fraction",
+     "name": "perpendicular brightness:[0,1]"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "perpendicular tint color"
+    },
+    {
+     "type": "real_fraction",
+     "name": "parallel brightness:[0,1]"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "parallel tint color"
+    },
+    {
+     "type": "short_enum",
+     "name": "tint color source#modulates perpendicular and parallel colors above",
+     "definition": "tint color source"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "explanation",
+     "name": "primary noise map",
+     "definition": ""
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(real)",
+     "definition": 4
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real",
+     "name": "primary animation period:seconds"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "primary animation direction"
+    },
+    {
+     "type": "real",
+     "name": "primary noise map scale"
+    },
+    {
+     "type": "tag_reference",
+     "name": "primary noise map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "explanation",
+     "name": "secondary noise map",
+     "definition": ""
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real",
+     "name": "secondary animation period:seconds"
+    },
+    {
+     "type": "real_vector_3d",
+     "name": "secondary animation direction"
+    },
+    {
+     "type": "real",
+     "name": "secondary noise map scale"
+    },
+    {
+     "type": "tag_reference",
+     "name": "secondary noise map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "8*sizeof(long)",
+     "definition": 32
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "intensity source": {
+   "options": [
+    "none",
+    "A out",
+    "B out",
+    "C out",
+    "D out"
+   ]
+  },
+  "tint color source": {
+   "options": [
+    "none",
+    "A",
+    "B",
+    "C",
+    "D"
+   ]
+  }
+ }
+}

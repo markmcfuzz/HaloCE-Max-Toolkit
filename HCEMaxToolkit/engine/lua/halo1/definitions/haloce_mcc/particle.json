@@ -1,0 +1,398 @@
+{
+ "name": "particle",
+ "tag": "part",
+ "version": 2,
+ "flags": 8,
+ "block": "particle_block",
+ "blocks": {
+  "particle_block": {
+   "max_count": 1,
+   "struct": "particle_block_struct",
+   "max_count_string": "1",
+   "display_name": "particle"
+  }
+ },
+ "structs": {
+  "particle_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 356,
+   "fields": [
+    {
+     "type": "long_flags",
+     "name": "flags",
+     "definition": "flags"
+    },
+    {
+     "type": "tag_reference",
+     "name": "bitmap",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "physics",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "pphy"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "collision material effects#no one traded their kids for this",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "foot"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real_bounds",
+     "name": "lifespan:seconds"
+    },
+    {
+     "type": "real",
+     "name": "fade in time"
+    },
+    {
+     "type": "real",
+     "name": "fade out time"
+    },
+    {
+     "type": "tag_reference",
+     "name": "collision effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!",
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "tag_reference",
+     "name": "death effect",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "snd!",
+       "effe"
+      ]
+     }
+    },
+    {
+     "type": "real",
+     "name": "minimum size:pixels#in the distance, don't get any smaller than this size on the screen"
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(long)",
+     "definition": 8
+    },
+    {
+     "type": "real_bounds",
+     "name": "radius animation#when created, the radius is multiplied by the first number. at the end of the lifetime, the radius is multiplied by the second number."
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "real_bounds",
+     "name": "animation rate:frames per second#rate at which the particle animates"
+    },
+    {
+     "type": "real",
+     "name": "contact deterioration#the decrease in the frame rate caused by a collision"
+    },
+    {
+     "type": "real",
+     "name": "fade start size:pixels#begin fading the particle out when it's smaller than this size on the screen"
+    },
+    {
+     "type": "real",
+     "name": "fade end size:pixels#kill the particle when it's smaller than this size on the screen"
+    },
+    {
+     "type": "pad",
+     "name": "1*sizeof(long)",
+     "definition": 4
+    },
+    {
+     "type": "short_integer",
+     "name": "first sequence index#the index of the first sequence in the bitmap group used by this particle"
+    },
+    {
+     "type": "short_integer",
+     "name": "initial sequence count"
+    },
+    {
+     "type": "short_integer",
+     "name": "looping sequence count"
+    },
+    {
+     "type": "short_integer",
+     "name": "final sequence count"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "short_enum",
+     "name": "orientation",
+     "definition": "orientation"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(word)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(struct _shader)",
+     "definition": 40
+    },
+    {
+     "type": "word_flags",
+     "name": "shader flags",
+     "definition": "shader flags"
+    },
+    {
+     "type": "short_enum",
+     "name": "framebuffer blend function",
+     "definition": "framebuffer blend function"
+    },
+    {
+     "type": "short_enum",
+     "name": "framebuffer fade mode",
+     "definition": "framebuffer fade mode"
+    },
+    {
+     "type": "word_flags",
+     "name": "map flags",
+     "definition": "map flags"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "explanation",
+     "name": "Secondary Map",
+     "definition": "Optional multitextured second map"
+    },
+    {
+     "type": "tag_reference",
+     "name": "bitmap",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "short_enum",
+     "name": "anchor",
+     "definition": "anchor"
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "map flags"
+    },
+    {
+     "type": "short_enum",
+     "name": "u-animation source",
+     "definition": "u-animation source"
+    },
+    {
+     "type": "short_enum",
+     "name": "u-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "real",
+     "name": "u-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "u-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "u-animation scale:repeats#0 defaults to 1"
+    },
+    {
+     "type": "short_enum",
+     "name": "v-animation source",
+     "definition": "u-animation source"
+    },
+    {
+     "type": "short_enum",
+     "name": "v-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "real",
+     "name": "v-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "v-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "v-animation scale:repeats#0 defaults to 1"
+    },
+    {
+     "type": "short_enum",
+     "name": "rotation-animation source",
+     "definition": "u-animation source"
+    },
+    {
+     "type": "short_enum",
+     "name": "rotation-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation phase"
+    },
+    {
+     "type": "real",
+     "name": "rotation-animation scale:degrees#0 defaults to 360"
+    },
+    {
+     "type": "real_point_2d",
+     "name": "rotation-animation center"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(real)",
+     "definition": 4
+    },
+    {
+     "type": "real",
+     "name": "zsprite radius scale"
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(long)",
+     "definition": 20
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags": {
+   "options": [
+    "can animate backwards",
+    "animation stops at rest",
+    "animation starts on random frame",
+    "animate once per frame",
+    "dies at rest",
+    "dies on contact with structure",
+    "tint from diffuse texture",
+    "dies on contact with water",
+    "dies on contact with air",
+    "self-illuminated#don't cast world-lights onto this particle",
+    "random horizontal mirroring",
+    "random vertical mirroring"
+   ]
+  },
+  "orientation": {
+   "options": [
+    "screen facing",
+    "parallel to direction",
+    "perpendicular to direction"
+   ]
+  },
+  "shader flags": {
+   "options": [
+    "sort bias",
+    "nonlinear tint",
+    "don't overdraw fp weapon"
+   ]
+  },
+  "framebuffer blend function": {
+   "options": [
+    "alpha blend",
+    "multiply",
+    "double multiply",
+    "add",
+    "subtract",
+    "component min",
+    "component max",
+    "alpha-multiply add"
+   ]
+  },
+  "framebuffer fade mode": {
+   "options": [
+    "none",
+    "fade when perpendicular",
+    "fade when parallel"
+   ]
+  },
+  "map flags": {
+   "options": [
+    "unfiltered"
+   ]
+  },
+  "anchor": {
+   "options": [
+    "with primary",
+    "with screen space",
+    "zsprite"
+   ]
+  },
+  "u-animation source": {
+   "options": [
+    "none",
+    "A out",
+    "B out",
+    "C out",
+    "D out"
+   ]
+  },
+  "u-animation function": {
+   "options": [
+    "one",
+    "zero",
+    "cosine",
+    "cosine (variable period)",
+    "diagonal wave",
+    "diagonal wave (variable period)",
+    "slide",
+    "slide (variable period)",
+    "noise",
+    "jitter",
+    "wander",
+    "spark"
+   ]
+  }
+ }
+}

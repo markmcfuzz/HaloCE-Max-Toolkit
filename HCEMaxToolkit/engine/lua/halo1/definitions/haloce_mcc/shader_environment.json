@@ -1,0 +1,569 @@
+{
+ "name": "shader_environment",
+ "tag": "senv",
+ "version": 2,
+ "flags": 8,
+ "parent_tag": "shdr",
+ "block": "shader_environment_block",
+ "blocks": {
+  "shader_environment_block": {
+   "max_count": 1,
+   "struct": "shader_environment_block_struct",
+   "max_count_string": "1",
+   "display_name": "shader_environment"
+  }
+ },
+ "structs": {
+  "shader_environment_block_struct": {
+   "guid": "00000000000000000000000000000000",
+   "size": 836,
+   "fields": [
+    {
+     "type": "struct",
+     "name": "shader",
+     "definition": "shader_block_struct"
+    },
+    {
+     "type": "explanation",
+     "name": "environment shader",
+     "definition": "Setting <true atmospheric fog> enables per-pixel atmospheric fog (for models) but disables point/spot lights, planar fog, and the ability to control the atmospheric fog density for this shader."
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_3"
+    },
+    {
+     "type": "explanation",
+     "name": "environment shader type",
+     "definition": "Controls how diffuse maps are combined:\n\nNORMAL:\nSecondary detail map alpha controls blend between primary and secondary detail map. Specular mask is alpha of blended primary and secondary detail map alpha multiplied by alpha of micro detail map.\n\nBLENDED:\nBase map alpha controls blend between primary and secondary detail map. Specular mask is alpha of blended primary and secondary detail map alpha multiplied by alpha of micro detail map.\n\nBLENDED BASE SPECULAR:\nSame as BLENDED, except specular mask is alpha is base map times alpha of micro detail map."
+    },
+    {
+     "type": "short_enum",
+     "name": "type",
+     "definition": "type"
+    },
+    {
+     "type": "explanation",
+     "name": "lens flares",
+     "definition": ""
+    },
+    {
+     "type": "real",
+     "name": "lens flare spacing:world units#0 places a single lens flare"
+    },
+    {
+     "type": "tag_reference",
+     "name": "lens flare",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "lens"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "11*sizeof(long)",
+     "definition": 44
+    },
+    {
+     "type": "explanation",
+     "name": "diffuse properties",
+     "definition": ""
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_4"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "tag_reference",
+     "name": "base map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "short_enum",
+     "name": "detail map function#affects primary and secondary detail maps",
+     "definition": "detail map function"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "primary detail map scale#0 defaults to 1"
+    },
+    {
+     "type": "tag_reference",
+     "name": "primary detail map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "real",
+     "name": "secondary detail map scale#0 defaults to 1"
+    },
+    {
+     "type": "tag_reference",
+     "name": "secondary detail map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "short_enum",
+     "name": "micro detail map function",
+     "definition": "detail map function"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "micro detail map scale#0 defaults to 1"
+    },
+    {
+     "type": "tag_reference",
+     "name": "micro detail map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "material color#modulates incoming diffuse light, including lightmaps, but excluding self-illumination and specular effects"
+    },
+    {
+     "type": "pad",
+     "name": "3*sizeof(long)",
+     "definition": 12
+    },
+    {
+     "type": "explanation",
+     "name": "bump properties",
+     "definition": "Perforated (alpha-tested) shaders use alpha in bump map."
+    },
+    {
+     "type": "real",
+     "name": "bump map scale"
+    },
+    {
+     "type": "tag_reference",
+     "name": "bump map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(real_vector2d)",
+     "definition": 8
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "explanation",
+     "name": "texture scrolling animation",
+     "definition": "Scrolls all 2D maps simultaneously."
+    },
+    {
+     "type": "short_enum",
+     "name": "u-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "u-animation period:seconds"
+    },
+    {
+     "type": "real",
+     "name": "u-animation scale:base map repeats"
+    },
+    {
+     "type": "short_enum",
+     "name": "v-animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "v-animation period:seconds"
+    },
+    {
+     "type": "real",
+     "name": "v-animation scale:base map repeats"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "explanation",
+     "name": "self-illumination properties",
+     "definition": "There are three self-illumination effects which are added together. Each effect has an <on color>, used when the shader is active, and an <off color>, used when the shader is not active. The self-illumination map is used as follows:\n* RED: primary mask\n* GREEN: secondary mask\n* BLUE: plasma mask\n* ALPHA: plasma animation reference\n\nEach effect also has an animation <function>, <period> and <phase>, used when the shader is active. The primary and secondary effects simply modulate the <on color> by the animation value to produce an animation color, and then blend between the animation color and the <off color> based on the shader's activation level, and finally modulate by the mask.\n\nThe plasma shader compares the animation value with the alpha channel of the map (the plasma animation reference) and produces a high value when they are similar and a dark value when they are different. This value modulates the <plasma on color> to produce a plasma animation color, and the rest proceeds just like the primary and secondary effects."
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_5"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "primary on color"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "primary off color"
+    },
+    {
+     "type": "short_enum",
+     "name": "primary animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "primary animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "primary animation phase:seconds"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "secondary on color"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "secondary off color"
+    },
+    {
+     "type": "short_enum",
+     "name": "secondary animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "secondary animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "secondary animation phase:seconds"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "plasma on color"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "plasma off color"
+    },
+    {
+     "type": "short_enum",
+     "name": "plasma animation function",
+     "definition": "u-animation function"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "real",
+     "name": "plasma animation period:seconds#0 defaults to 1"
+    },
+    {
+     "type": "real",
+     "name": "plasma animation phase:seconds"
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "real",
+     "name": "map scale#0 defaults to 1"
+    },
+    {
+     "type": "tag_reference",
+     "name": "map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "6*sizeof(long)",
+     "definition": 24
+    },
+    {
+     "type": "explanation",
+     "name": "specular properties",
+     "definition": "Controls dynamic specular highlights. The highlight is modulated by <brightness> as well as a blend between <perpendicular color> and <parallel color>.\n\nSet <brightness> to zero to disable."
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_6"
+    },
+    {
+     "type": "pad",
+     "name": "sizeof(short)",
+     "definition": 2
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "real_fraction",
+     "name": "brightness:[0,1]#0 is no specular hilights"
+    },
+    {
+     "type": "pad",
+     "name": "5*sizeof(long)",
+     "definition": 20
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "perpendicular color#hilight color when viewed perpendicularly"
+    },
+    {
+     "type": "real_rgb_color",
+     "name": "parallel color#hilight color when viewed at a glancing angle"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "explanation",
+     "name": "reflection properties",
+     "definition": "Controls environment cube map reflections. The color of the cube map is \"tinted\" by a blend between <perpendicular color> and <parallel color> from the SPECULAR PROPERTIES above, and then modulated by a blend between <perpendicular brightness> and <parallel brightness>.\n\nBUMPED CUBE MAP:\nThis type of reflection uses the shader's bump map (if it exists) to affect the reflection, as well as the perpendicular and parallel brightness (i.e. the \"fresnel\" effect).\n\nFLAT CUBE MAP:\nThis is the fastest type of reflection. The bump map is used to attenuate the fresnel effect, but the reflection image itself is not bumped.\n\nClear <reflection cube map> or set both <perpendicular brightness> and <parallel brightness> to zero to disable."
+    },
+    {
+     "type": "word_flags",
+     "name": "flags",
+     "definition": "flags_7"
+    },
+    {
+     "type": "short_enum",
+     "name": "type",
+     "definition": "type_2"
+    },
+    {
+     "type": "real_fraction",
+     "name": "lightmap brightness scale:[0,1]#reflection brightness when lightmap brightness is 1"
+    },
+    {
+     "type": "pad",
+     "name": "7*sizeof(long)",
+     "definition": 28
+    },
+    {
+     "type": "real_fraction",
+     "name": "perpendicular brightness:[0,1]#brightness when viewed perpendicularly"
+    },
+    {
+     "type": "real_fraction",
+     "name": "parallel brightness:[0,1]#brightness when viewed at a glancing angle"
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "pad",
+     "name": "2*sizeof(real)",
+     "definition": 8
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "tag_reference",
+     "name": "reflection cube map",
+     "definition": {
+      "flags": 0,
+      "allowed": [
+       "bitm"
+      ]
+     }
+    },
+    {
+     "type": "pad",
+     "name": "4*sizeof(long)",
+     "definition": 16
+    },
+    {
+     "type": "terminator",
+     "name": null
+    }
+   ]
+  }
+ },
+ "enums_flags": {
+  "flags_3": {
+   "options": [
+    "alpha-tested",
+    "bump map is specular mask",
+    "true atmospheric fog",
+    "use variant 2 for calculation bump attention"
+   ]
+  },
+  "type": {
+   "options": [
+    "normal",
+    "blended",
+    "blended base specular"
+   ]
+  },
+  "flags_4": {
+   "options": [
+    "rescale detail maps",
+    "rescale bump map"
+   ]
+  },
+  "detail map function": {
+   "options": [
+    "double/biased multiply",
+    "multiply",
+    "double/biased add"
+   ]
+  },
+  "u-animation function": {
+   "options": [
+    "one",
+    "zero",
+    "cosine",
+    "cosine (variable period)",
+    "diagonal wave",
+    "diagonal wave (variable period)",
+    "slide",
+    "slide (variable period)",
+    "noise",
+    "jitter",
+    "wander",
+    "spark"
+   ]
+  },
+  "flags_5": {
+   "options": [
+    "unfiltered"
+   ]
+  },
+  "flags_6": {
+   "options": [
+    "overbright",
+    "extra-shiny",
+    "lightmap is specular"
+   ]
+  },
+  "flags_7": {
+   "options": [
+    "dynamic mirror"
+   ]
+  },
+  "type_2": {
+   "options": [
+    "bumped cube-map",
+    "flat cube-map",
+    "bumped radiosity"
+   ]
+  }
+ }
+}
