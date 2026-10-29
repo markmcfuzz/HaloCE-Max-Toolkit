@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.7.1] - 2026-10-28
+
+### Added
+
+- **Retargeting Tool:**
+  - `Live preview` re-runs the scene retarget while per-bone `Adjust` angles change, to tune thumbs by eye.
+
+### Fixed
+
+- **JMA Importer:** importing an animation over a scene that already had one no longer leaves old keys behind, which caused bones to glitch on some frames during playback. The time slider now moves to frame 0 after importing.
+
 ## [5.7.0] - 2026-10-22
 
 ### Added
