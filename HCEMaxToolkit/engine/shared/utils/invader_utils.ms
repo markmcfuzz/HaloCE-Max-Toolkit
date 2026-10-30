@@ -38,7 +38,8 @@ fn getInvaderEditPath =
 -- Value formatting
 -------------------------------------------------------
 
-fn invaderFloat v = formattedPrint (v as float) format:".6f"
+-- decimals:9 keeps 32-bit floats exact for positions and quaternions
+fn invaderFloat v decimals:6 = formattedPrint (v as float) format:("." + decimals as string + "f")
 
 -------------------------------------------------------
 -- Process execution
