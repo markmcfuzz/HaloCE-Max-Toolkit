@@ -16,6 +16,7 @@
 
 global haloScale = 100
 
+-- controlPointsArray: CameraControlPoint array from readCameraTrackWithLua (lua_reader.ms)
 fn buildControlPoints controlPointsArray =
 (
     if controlPointsArray == undefined or controlPointsArray.count == 0 then
@@ -37,12 +38,11 @@ fn buildControlPoints controlPointsArray =
     (
         local cp = controlPointsArray[i]
 
-        -- position is a Point3 from the parser; scale to Max units
-        local rawPos = getFieldValue cp "position"
+        -- Scale position to Max units
+        local rawPos = cp.position
         local pos    = rawPos * haloScale
 
-        -- orientation is a native quat from the parser
-        local rot = inverse (getFieldValue cp "orientation")
+        local rot = inverse cp.orientation
 
         if i == 1 then
         (

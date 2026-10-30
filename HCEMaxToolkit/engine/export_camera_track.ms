@@ -23,9 +23,7 @@ logger.loadConfig callerScriptName:scriptName
 logger.log "=== EXPORTING CAMERA TRACK ==="
 
 -- Load required modules
-include "core\\halo1\\core_defs.ms"
-include "core\\halo1\\groups\\camera_track.ms"
-include "core\\halo1\\writer.ms"
+include "shared\\utils\\invader_utils.ms"
 include "pipeline\\create_tag\\create_camera_track.ms"
 
 -------------------------------------------------------
@@ -46,7 +44,7 @@ fn exportCameraTrack =
 	)
 	
 	-- Validate data
-	if not (validateCameraTrackData cameraTrackData cameraTrackDef) then
+	if not (validateCameraTrackData cameraTrackData) then
 	(
 		logger.error "Camera track data validation failed"
 		messageBox "Camera track data is invalid!" title:"Export Failed"
@@ -70,30 +68,32 @@ fn exportCameraTrack =
 	
 	logger.info "Export path: '{}'" args:#(savePath)
 	
-	-- Write tag file
-	local success = writeTag savePath cameraTrackDef cameraTrackData
-	
+	-- Write tag file (invader-edit)
+	local writeResult = writeCameraTrackTag savePath cameraTrackData
+	local success = writeResult[1]
+
 	local showDialogs = configManager.getBool "feedback" "show_completion_dialogs" true
 
-	if showDialogs and success then
+	if success then
 	(
 		local elapsedTime = (timestamp() - startTime) / 1000.0
 		local cpCount = cameraTrackData[#controlPoints].count
 		
 		logger.info "Export completed in {} seconds" args:#(elapsedTime)
 		logger.info "Exported {} control points" args:#(cpCount)
-		
-		messageBox ("Successfully exported camera track!\n\n" + \
+
+		if showDialogs do
+			messageBox ("Successfully exported camera track!\n\n" + \
                     (cpCount as string) + " control points\n" + \
                     "File: " + (filenameFromPath savePath)) \
-			title:"Export Complete"
-		
+				title:"Export Complete"
+
 		return savePath
 	)
 	else
 	(
-		logger.error "Failed to write camera track file"
-		messageBox "Failed to export camera track!" title:"Export Failed"
+		logger.error "Failed to write camera track file: {}" args:#(writeResult[2])
+		messageBox ("Failed to export camera track!\n\n" + writeResult[2]) title:"Export Failed"
 		return undefined
 	)
 	clearListener()
