@@ -34,8 +34,7 @@ try (destroyDialog settingsImportRollout) catch ()
 -- Import Rollout
 rollout settingsImportRollout "Import Settings" width:225 (
 	group "Gbx/Model Importer" (
-		checkbox chk_skipUncompressedVertices "Skip Uncompressed Vertices"
-			tooltip:"Skips importing uncompressed vertex data for models that have both compressed and uncompressed vertices. This can reduce import times and memory usage, but may cause issues with certain models that rely on uncompressed vertex data."
+		label lbl_gbxmodel "No options yet" align:#left
 	)
 
 	group "Collision Importer" (
@@ -80,7 +79,6 @@ rollout settingsImportRollout "Import Settings" width:225 (
 	)
 
 	on settingsImportRollout open do (
-		chk_skipUncompressedVertices.checked  = configManager.getBool "import_gbxmodel"     "skip_uncompressed_vertices"    false
 		--chk_importPathfindingSpheres.checked  = configManager.getBool "import_collision"    "import_pathfinding_spheres"    false
 		chk_reuseNodes.checked			      = configManager.getBool "import_jms"           "reuse_existing_nodes"          true
 		chk_reuseMarkers.checked              = configManager.getBool "import_jms"           "reuse_existing_markers"        true
@@ -95,7 +93,6 @@ rollout settingsImportRollout "Import Settings" width:225 (
 		chk_cameraAnimation.checked           = configManager.getBool "import_camera_track" "import_camera_animation"      true
 	)
 
-	on chk_skipUncompressedVertices  changed val do writeSetting "import_gbxmodel"     "skip_uncompressed_vertices"    val
 	--on chk_importPathfindingSpheres  changed val do writeSetting "import_collision"    "import_pathfinding_spheres"    val
 	on chk_reuseNodes                changed val do writeSetting "import_jms"           "reuse_existing_nodes"          val
 	on chk_reuseMarkers              changed val do writeSetting "import_jms"           "reuse_existing_markers"        val
