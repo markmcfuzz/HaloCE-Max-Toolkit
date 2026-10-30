@@ -19,13 +19,6 @@ fn getDefaultConfigContent =
 (
     local content = ""
     content += "[import_gbxmodel]\n"
-    content += "; Controls whether the \"Uncompressed Vertices\" block\n"
-    content += "; is omitted during parsing (1 = enable, 0 = disable).\n"
-    content += "; The cyborg's fp.gbxmodel from MCC contains model parts\n"
-    content += "; without compressed vertices.\n"
-    content += "; Disable this option to import that gbxmodel correctly,\n"
-    content += "; but note that it will increase import time.\n"
-    content += "skip_uncompressed_vertices=0\n"
     content += "; create_nodes=1\n"
     content += "; create_markers=1\n"
     content += "; create_geometry=1\n"
