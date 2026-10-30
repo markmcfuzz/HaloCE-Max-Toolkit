@@ -10,14 +10,12 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--- Shader Texture Resolver (parser-based)
+-- Shader Texture Resolver
 -- Resolves shader tag references (from any tag block with a "shader" tagReference
 -- field - gbxmodel's shaders, scenario_structure_bsp's materials/collisionMaterials,
--- etc.) to actual texture file paths. Each shader tag is read with the generic tag
--- parser (readTagWithParents), so the FULL tag data is available to callers
+-- etc.) to actual texture file paths. Each shader tag is read with Lua
+-- (shader.lua in this folder), so the FULL tag data is available to callers
 -- (result.shaderEntry / result.mainEntry), not just the primary texture path.
--- Requires the shader group definitions (core\halo1\groups\shader*.ms) to be
--- included by the importer.
 
 -------------------------------------------------------
 -- Shader Type Utilities
@@ -157,12 +155,44 @@ fn shaderTagRefPath tagRefDict =
 	if p == undefined or p == "" or p == "NULL" then undefined else p
 )
 
--- Read a complete shader tag using the generic parser.
+-- Reads the given shader tags with Lua (shader.lua in this folder) in one run and caches them.
+-- Skips paths that are undefined, already cached, missing or not a supported shader class.
+fn prefetchShaderTags shaderFilePaths =
+(
+	local paths = #()
+	for p in shaderFilePaths where p != undefined and _shaderResolverCache[p] == undefined and \
+		(findItem paths p) == 0 and doesFileExist p and (shaderTagClassStrToString (getTagClass p)) != undefined do
+		append paths p
+	if paths.count == 0 then return ok
+
+	local f = luaExportTags "builders\\tag\\shared\\shader.lua" 1 paths
+	if f == undefined then return ok
+	local count = luaReadInt f
+	for i = 1 to count do
+	(
+		if (luaReadInt f) == 1 then
+		(
+			local classStr = getTagClass paths[i]
+			local parseInfo = dictionary #name
+			parseInfo[#classStr]    = classStr
+			parseInfo[#shaderType]  = shaderTagClassStrToString classStr
+			parseInfo[#shaderEntry] = luaReadTuples f
+			parseInfo[#mainEntry]   = luaReadTuples f
+			_shaderResolverCache[paths[i]] = parseInfo
+		)
+		else
+			logger.error "Lua failed on shader '{}': {}\n" args:#(filenameFromPath paths[i], readString f)
+	)
+	luaCloseExport f "shader"
+	ok
+)
+
+-- Read a complete shader tag (cached; see prefetchShaderTags).
 -- Returns a dictionary:
 --   #classStr    tag class from file header (e.g. "soso")
 --   #shaderType  type string (e.g. "shader_model")
---   #shaderEntry parsed parent 'shader' block tuples (radiosity/physics)
---   #mainEntry   parsed shader-type block tuples (full tag data)
+--   #shaderEntry parent 'shader' block tuples (radiosity/physics)
+--   #mainEntry   shader-type block tuples (full tag data)
 fn readShaderTagParsed shaderFilePath =
 (
 	local cached = _shaderResolverCache[shaderFilePath]
@@ -176,52 +206,8 @@ fn readShaderTagParsed shaderFilePath =
 		return undefined
 	)
 
-	local shaderTagDef = getTagDefByClass classStr
-	if shaderTagDef == undefined then
-	(
-		logger.error "Tag definition for '{}' not loaded. Include core\\halo1\\groups\\{}.ms\n" args:#(classStr, shaderType)
-		return undefined
-	)
-
-	local f = fopen shaderFilePath "rb"
-	if f == undefined then
-	(
-		logger.error "Cannot open shader file: {}\n" args:#(shaderFilePath)
-		return undefined
-	)
-
-	-- The parser works on a global file handle; save/restore it around this read
-	local prevHandle = getCurrentFileHandle()
-	setCurrentFileHandle f
-
-	-- Skip 64-byte tag header; readTagWithParents reads shader parent block + main block
-	fseek f 64 #seek_set
-
-	local parsed = undefined
-	try
-	(
-		parsed = readTagWithParents shaderTagDef printParents:false printMain:false
-	)
-	catch
-	(
-		logger.error "Parser failed on shader '{}': {}\n" args:#(filenameFromPath shaderFilePath, getCurrentException())
-		parsed = undefined
-	)
-
-	fclose f
-	setCurrentFileHandle prevHandle
-
-	if parsed == undefined or parsed.count == 0 then return undefined
-
-	-- readTagWithParents returns #(#(parentEntry, parentDef), ..., #(mainEntry, mainDef))
-	local parseInfo = dictionary #name
-	parseInfo[#classStr]    = classStr
-	parseInfo[#shaderType]  = shaderType
-	parseInfo[#mainEntry]   = parsed[parsed.count][1]
-	parseInfo[#shaderEntry] = if parsed.count > 1 then parsed[1][1] else undefined
-
-	_shaderResolverCache[shaderFilePath] = parseInfo
-	return parseInfo
+	prefetchShaderTags #(shaderFilePath)
+	_shaderResolverCache[shaderFilePath]
 )
 
 -------------------------------------------------------
@@ -371,6 +357,14 @@ struct ShaderTextureResult
 	mapFiles           -- Dictionary: map key -> resolved disk texture file (only found ones)
 )
 
+-- Shader tag file that resolveShaderTexture reads for shaderStruct (undefined if none)
+fn shaderFilePathOf tagFilePath shaderStruct =
+(
+	local shaderTagRef = getFieldValue shaderStruct "shader"
+	if shaderTagRef == undefined or shaderTagRef[#path] == undefined then return undefined
+	buildShaderFilePath tagFilePath shaderTagRef[#path] shaderType:(shaderTagClassToString shaderTagRef[#tagClass])
+)
+
 fn resolveShaderTexture tagFilePath shaderStruct =
 (
 	local result = ShaderTextureResult()
@@ -401,7 +395,7 @@ fn resolveShaderTexture tagFilePath shaderStruct =
 	)
 	logger.info "Shader found: '{}'" args:#(shaderLogPath)
 
-	-- Read the FULL shader tag with the generic parser
+	-- Read the FULL shader tag
 	local parseInfo = readShaderTagParsed shaderFilePath
 	if parseInfo == undefined then return result
 
@@ -466,6 +460,10 @@ fn resolveAllShaderTextures tagFilePath shadersArray =
 	)
 	-- Clear parse cache (tags may have changed on disk since the last import)
 	resetShaderResolverCache()
+	-- Plain loop: a for-collect written inside the call failed with "Bad free thunk" on tagFilePath
+	local shaderFiles = #()
+	for s in shadersArray do append shaderFiles (shaderFilePathOf tagFilePath s)
+	prefetchShaderTags shaderFiles
 
 	local results = #()
 	for i = 1 to shadersArray.count do
