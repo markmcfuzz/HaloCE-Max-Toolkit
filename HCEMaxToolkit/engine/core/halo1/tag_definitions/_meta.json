@@ -3,6 +3,7 @@
  "dumped_from": "haloce_mcc tool.exe",
  "dumped_at": "2026-10-06",
  "tag_index": {
+  "sose": "shader_model_extended",
   "mode": "model",
   "mod2": "gbxmodel",
   "antr": "model_animations",

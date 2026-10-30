@@ -1,0 +1,371 @@
+{
+	"name": "shader_model_extended",
+	"tag": "sose",
+	"version": 1,
+	"flags": 0,
+	"parent_tag": "shdr",
+	"note": "Not part of the Baboon dump: converted from the toolkit's previous shader_model_extended.ms (OpenSauce).",
+	"block": "shader_model_extended_block",
+	"blocks": {
+		"shader_model_extended_block": {
+			"max_count": 1,
+			"struct": "shader_model_extended_block_struct",
+			"max_count_string": "1",
+			"display_name": "shader_model_extended"
+		}
+	},
+	"structs": {
+		"shader_model_extended_block_struct": {
+			"guid": "00000000000000000000000000000000",
+			"size": 724,
+			"fields": [
+				{
+					"type": "struct",
+					"name": "shader",
+					"definition": "shader_block_struct"
+				},
+				{
+					"type": "word_flags",
+					"name": "flags"
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 2
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 12
+				},
+				{
+					"type": "real_fraction",
+					"name": "translucency"
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 16
+				},
+				{
+					"type": "short_enum",
+					"name": "change color source"
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 2
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 28
+				},
+				{
+					"type": "word_flags",
+					"name": "flags"
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 2
+				},
+				{
+					"type": "short_enum",
+					"name": "color source"
+				},
+				{
+					"type": "short_enum",
+					"name": "animation function"
+				},
+				{
+					"type": "real",
+					"name": "animation period"
+				},
+				{
+					"type": "real_rgb_color",
+					"name": "animation color lower bound"
+				},
+				{
+					"type": "real_rgb_color",
+					"name": "animation color upper bound"
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 12
+				},
+				{
+					"type": "real",
+					"name": "map uscale"
+				},
+				{
+					"type": "real",
+					"name": "map vscale"
+				},
+				{
+					"type": "tag_reference",
+					"name": "base map"
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 8
+				},
+				{
+					"type": "tag_reference",
+					"name": "multipurpose map"
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 8
+				},
+				{
+					"type": "short_enum",
+					"name": "detail function"
+				},
+				{
+					"type": "short_enum",
+					"name": "detail mask"
+				},
+				{
+					"type": "real",
+					"name": "detail map scale"
+				},
+				{
+					"type": "tag_reference",
+					"name": "detail map"
+				},
+				{
+					"type": "real",
+					"name": "detail map vscale"
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 12
+				},
+				{
+					"type": "short_enum",
+					"name": "u animation source"
+				},
+				{
+					"type": "short_enum",
+					"name": "u animation function"
+				},
+				{
+					"type": "real",
+					"name": "u animation period"
+				},
+				{
+					"type": "real",
+					"name": "u animation phase"
+				},
+				{
+					"type": "real",
+					"name": "u animation scale"
+				},
+				{
+					"type": "short_enum",
+					"name": "v animation source"
+				},
+				{
+					"type": "short_enum",
+					"name": "v animation function"
+				},
+				{
+					"type": "real",
+					"name": "v animation period"
+				},
+				{
+					"type": "real",
+					"name": "v animation phase"
+				},
+				{
+					"type": "real",
+					"name": "v animation scale"
+				},
+				{
+					"type": "short_enum",
+					"name": "rotation animation source"
+				},
+				{
+					"type": "short_enum",
+					"name": "rotation animation function"
+				},
+				{
+					"type": "real",
+					"name": "rotation animation period"
+				},
+				{
+					"type": "real",
+					"name": "rotation animation phase"
+				},
+				{
+					"type": "real",
+					"name": "rotation animation scale"
+				},
+				{
+					"type": "real_point_2d",
+					"name": "rotation animation center"
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 8
+				},
+				{
+					"type": "real",
+					"name": "reflection falloff distance"
+				},
+				{
+					"type": "real",
+					"name": "reflection cutoff distance"
+				},
+				{
+					"type": "real_fraction",
+					"name": "perpendicular brightness"
+				},
+				{
+					"type": "real_rgb_color",
+					"name": "perpendicular tint color"
+				},
+				{
+					"type": "real_fraction",
+					"name": "parallel brightness"
+				},
+				{
+					"type": "real_rgb_color",
+					"name": "parallel tint color"
+				},
+				{
+					"type": "tag_reference",
+					"name": "reflection cube map"
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 16
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 4
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 16
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 32
+				},
+				{
+					"type": "short_enum",
+					"name": "detail2 function"
+				},
+				{
+					"type": "short_enum",
+					"name": "detail2 mask"
+				},
+				{
+					"type": "real",
+					"name": "detail2 map scale"
+				},
+				{
+					"type": "tag_reference",
+					"name": "detail2 map"
+				},
+				{
+					"type": "real",
+					"name": "detail2 map vscale"
+				},
+				{
+					"type": "tag_reference",
+					"name": "base normal map"
+				},
+				{
+					"type": "real",
+					"name": "base normal coefficient"
+				},
+				{
+					"type": "tag_reference",
+					"name": "detail normal1 map"
+				},
+				{
+					"type": "real",
+					"name": "detail normal1 coefficient"
+				},
+				{
+					"type": "real",
+					"name": "detail normal1 scale"
+				},
+				{
+					"type": "real",
+					"name": "detail normal1 vscale"
+				},
+				{
+					"type": "tag_reference",
+					"name": "detail normal2 map"
+				},
+				{
+					"type": "real",
+					"name": "detail normal2 coefficient"
+				},
+				{
+					"type": "real",
+					"name": "detail normal2 scale"
+				},
+				{
+					"type": "real",
+					"name": "detail normal2 vscale"
+				},
+				{
+					"type": "tag_reference",
+					"name": "specular color map"
+				},
+				{
+					"type": "real",
+					"name": "specular color coefficient"
+				},
+				{
+					"type": "real",
+					"name": "specular color exponent"
+				},
+				{
+					"type": "word_flags",
+					"name": "specular color flags"
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 2
+				},
+				{
+					"type": "real",
+					"name": "specular lighting exponent"
+				},
+				{
+					"type": "real",
+					"name": "specular lighting coefficient"
+				},
+				{
+					"type": "word_flags",
+					"name": "diffuse lighting flags"
+				},
+				{
+					"type": "pad",
+					"name": "padding",
+					"definition": 142
+				},
+				{
+					"type": "terminator",
+					"name": null
+				}
+			]
+		}
+	}
+}
