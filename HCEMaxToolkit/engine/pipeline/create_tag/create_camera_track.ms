@@ -81,7 +81,7 @@ fn gatherCameraTrackControlPoints =
 -- VALIDATE CAMERA TRACK DATA
 -------------------------------------------------------
 
-fn validateCameraTrackData cameraTrackData tagDef =
+fn validateCameraTrackData cameraTrackData =
 (
 	if cameraTrackData == undefined then
 		return false
@@ -109,6 +109,39 @@ fn validateCameraTrackData cameraTrackData tagDef =
 	
 	logger.info "Data validation passed: {} control points" args:#(cpCount)
 	return true
+)
+
+-------------------------------------------------------
+-- WRITE TAG (invader-edit)
+-------------------------------------------------------
+
+-- Writes the tag with invader-edit in one call: new tag, control points, values, saved to savePath
+-- (-o writes anywhere; the tags folder is only a temp one). Returns #(ok, errorMessage).
+fn writeCameraTrackTag savePath cameraTrackData =
+(
+	local exePath = getInvaderEditPath()
+	if exePath == undefined then
+		return #(false, "invader-edit.exe is not set. Set its path in Settings -> External Tools.")
+
+	local tagsDir = (getDir #temp) + "\\hce_invader_tags"
+	makeDir tagsDir all:true
+
+	local points = cameraTrackData[#controlPoints]
+	local args = #("-N", "-I", "control_points", points.count as string, "end")
+	for i = 1 to points.count do
+	(
+		local key = "control_points[" + (i - 1) as string + "]."
+		local p = points[i][#position]
+		local q = points[i][#orientation]
+		local positionText = (invaderFloat p.x decimals:9) + "," + (invaderFloat p.y decimals:9) + "," + (invaderFloat p.z decimals:9)
+		local orientationText = (invaderFloat q.x decimals:9) + "," + (invaderFloat q.y decimals:9) + "," + \
+			(invaderFloat q.z decimals:9) + "," + (invaderFloat q.w decimals:9)
+		join args #("-S", key + "position", positionText, "-S", key + "orientation", orientationText)
+	)
+	join args #("-o", savePath)
+
+	local res = runInvaderEdit exePath tagsDir "camera_track_export.camera_track" args
+	if res[1] != 0 then #(false, res[3] + res[2]) else #(true, "")
 )
 
 -- Module loaded
