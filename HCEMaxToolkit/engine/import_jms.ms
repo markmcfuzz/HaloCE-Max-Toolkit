@@ -71,26 +71,31 @@ fn importJmsFile jmsFile:undefined =
 
 	-- Build the scene
 	local sceneStartTime = timestamp()
-	
-	-- Build materials
-	local t1 = timestamp()
-	local materials = buildMaterials jmsData undefined undefined
-	logger.info "Materials created: {} ms" args:#((timestamp() - t1) / 1000.0)
-	
-	-- Build nodes
-	t1 = timestamp()
-	local createdNodes = buildNodes jmsData
-	logger.info "Nodes created: {} ms" args:#((timestamp() - t1) / 1000.0)
-	
-	-- Build markers
-	t1 = timestamp()
-	local createdMarkers = buildMarkers jmsData createdNodes
-	logger.info "Markers created: {} ms" args:#((timestamp() - t1) / 1000.0)
-	
-	-- Build geometry
-	t1 = timestamp()
-	local createdMesh = buildGeometry jmsData createdNodes materials jmsFile
-	logger.info "Geometry created: {} ms" args:#((timestamp() - t1) / 1000.0)
+	local t1, materials, createdNodes, createdMarkers, createdMesh
+
+	-- Undo off: with undo on, every skinOps call got ~15x slower (Ctrl+Z won't remove the import)
+	with undo off
+	(
+		-- Build materials
+		t1 = timestamp()
+		materials = buildMaterials jmsData undefined undefined
+		logger.info "Materials created: {} ms" args:#((timestamp() - t1) / 1000.0)
+
+		-- Build nodes
+		t1 = timestamp()
+		createdNodes = buildNodes jmsData
+		logger.info "Nodes created: {} ms" args:#((timestamp() - t1) / 1000.0)
+
+		-- Build markers
+		t1 = timestamp()
+		createdMarkers = buildMarkers jmsData createdNodes
+		logger.info "Markers created: {} ms" args:#((timestamp() - t1) / 1000.0)
+
+		-- Build geometry
+		t1 = timestamp()
+		createdMesh = buildGeometry jmsData createdNodes materials jmsFile
+		logger.info "Geometry created: {} ms" args:#((timestamp() - t1) / 1000.0)
+	)
 	local sceneTime = (timestamp() - sceneStartTime) / 1000.0
 	logger.info "Total scene build time: {} seconds" args:#(sceneTime)
 	logger.info "JMS built successfully!\n"

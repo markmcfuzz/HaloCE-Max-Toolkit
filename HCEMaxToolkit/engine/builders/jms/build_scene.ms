@@ -962,10 +962,10 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 			addModifier meshObj skinMod
 			skinMod.bone_Limit = 2
 			
-			-- Add all bones
+			-- Add all bones; the skin only updates after the last one
 			for n = 1 to createdNodes.count do
-				skinOps.addBone skinMod createdNodes[n] 1
-			
+				skinOps.addBone skinMod createdNodes[n] (if n == createdNodes.count then 1 else 0)
+
 			-- Apply bone weights to each welded vertex
 			for v = 1 to postWeldVertCount do
 			(

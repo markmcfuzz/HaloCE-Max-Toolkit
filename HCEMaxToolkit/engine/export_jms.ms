@@ -31,7 +31,8 @@ include "formats\\jms\\process_file.ms"
 fn exportJmsFile =
 (
     -- Process scene and extract JMS data
-    local processResult = processSceneForJMS()
+    -- Undo off: export leaves the scene unchanged, and skinOps reads are ~15x faster
+    local processResult = with undo off (processSceneForJMS())
     
     -- Check if validation failed
     if processResult == undefined then
