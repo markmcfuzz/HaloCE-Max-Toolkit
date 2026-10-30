@@ -22,13 +22,6 @@ logger.loadConfig callerScriptName: scriptName
 logger.log "=== EXTRACTING ANIMATIONS ==="
 
 -- Load required modules
-include "core\\halo1\\core_defs.ms"
-include "core\\halo1\\groups\\model_animations.ms"
-include "core\\halo1\\parser.ms"
-include "formats\\jma\\jma_struct.ms"
-include "formats\\jma\\process_file.ms"
-include "pipeline\\extract_model_animations\\constants.ms"
-include "pipeline\\extract_model_animations\\struct_mapper.ms"
 include "pipeline\\extract_model_animations\\animation_extractor.ms"
 
 -------------------------------------------------------
@@ -44,9 +37,8 @@ fn openModelAnimations =  (
 	)
 	local tagClass = getTagClass tagPath
 	logger.info "Detected tagClass: '{}'" args: #( tagClass )
-	local tagDef = getTagDefByClass tagClass
 
-	if tagDef == undefined then (		
+	if tagClass != "antr" then (
 		logger.error "Unknown or unsupported tag class: '{}'" args: #( tagClass )
 		messageBox "Unsupported tag type!" title: "Extraction Failed"
 		return undefined
@@ -54,7 +46,7 @@ fn openModelAnimations =  (
 	local tagsIdx = findString tagPath "tags\\"
 	local displayPath = if tagsIdx != undefined then (substring tagPath tagsIdx -1) else tagPath
 	logger.info "Tag: '{}'" args:#(displayPath)
-	local success = extractModelAnimations tagPath tagDef
+	local success = extractModelAnimations tagPath
 	
 	if success != true then (		
 		logger.warn "Extraction did not complete successfully."
@@ -63,4 +55,6 @@ fn openModelAnimations =  (
 	clearListener()
 )
 
-openModelAnimations()
+-- Tests set importerNoAutoRun = true to load these functions without extracting.
+global importerNoAutoRun
+if importerNoAutoRun != true do openModelAnimations()
