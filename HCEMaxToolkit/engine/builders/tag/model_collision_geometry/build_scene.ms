@@ -33,8 +33,50 @@ fn surfaceFlagsToArray flagValue =
 	if isInvisibleFlag flagValue then append flagArray "invisible"
 	if isClimbableFlag flagValue then append flagArray "climbable"
 	if isBreakableFlag flagValue then append flagArray "breakable"
-	
+
 	return flagArray
+)
+
+-- Collision material type enum -> name (used as the multi-material slot name)
+fn materialTypeToString matType =
+(
+	case matType of
+	(
+		0: "dirt";
+		1: "sand";
+		2: "stone";
+		3: "snow";
+		4: "wood";
+		5: "metal hollow";
+		6: "metal thin";
+		7: "metal thick";
+		8: "rubber";
+		9: "glass";
+		10: "force field";
+		11: "grunt";
+		12: "hunter armor";
+		13: "hunter skin";
+		14: "elite";
+		15: "jackal";
+		16: "jackal energy shield";
+		17: "engineer skin";
+		18: "engineer force field";
+		19: "flood combat form";
+		20: "flood carrier form";
+		21: "cyborg armor";
+		22: "cyborg energy shield";
+		23: "human armor";
+		24: "human skin";
+		25: "sentinel";
+		26: "monitor";
+		27: "plastic";
+		28: "water";
+		29: "leaves";
+		30: "elite energy shield";
+		31: "ice";
+		32: "hunter shield";
+		default: ("unknown_" + (matType as string))
+	)
 )
 
 -------------------------------------------------------
@@ -69,9 +111,7 @@ fn createCollisionMultiMaterial materials collisionName surfaceFlagsArray =
 		local mat = materials[i]
 		local subMat = StandardMaterial()
 		
-		-- Optimized: extract material fields at once
-		local matVals = getFieldValues mat #("name", "materialType")
-		local subMatName = matVals[1]
+		local subMatName = mat.name
 		if surfaceFlagsArray != undefined and i <= surfaceFlagsArray.count then
 		(
 			local flags = surfaceFlagsArray[i]
@@ -100,10 +140,10 @@ fn createCollisionMultiMaterial materials collisionName surfaceFlagsArray =
 		)
 		subMat.name = subMatName
 		
-		subMat.diffuse = stringToColor matVals[1]  -- name
-		
+		subMat.diffuse = stringToColor mat.name
+
 		multiMat[i] = subMat
-		multiMat.names[i] = materialTypeToString matVals[2]  -- materialType
+		multiMat.names[i] = materialTypeToString mat.materialType
 	)
 	
 	return multiMat
@@ -119,7 +159,7 @@ fn validateSceneNodes collisionNodes =
 
 	for collNode in collisionNodes do
 	(
-		local nodeName = getFieldValue collNode "name"
+		local nodeName = collNode.name
 		local sceneNode = getNodeByName nodeName
 		
 		if sceneNode == undefined then
@@ -175,20 +215,17 @@ fn createPathfindingSpheres pathfindingSpheres collisionNodes =
 	(
 		local pfSphere = pathfindingSpheres[i]
 		
-		-- Optimized: extract all pathfinding sphere fields at once
-		local pfVals = getFieldValues pfSphere #("node", "center", "radius")
-		local nodeIndex = pfVals[1] + 1
-		
+		local nodeIndex = pfSphere.node + 1
+
 		if nodeIndex < 1 or nodeIndex > collisionNodes.count then continue
 
-		local nodeName = getFieldValue collisionNodes[nodeIndex] "name"
+		local nodeName = collisionNodes[nodeIndex].name
 		local sceneNode = getNodeByName nodeName
-		
+
 		if sceneNode == undefined then continue
-		
-		-- Parser returns center as Point3, so use it directly
-		local localPos = pfVals[2] * haloScale  -- center
-		local sphereRadius = pfVals[3] * haloScale  -- radius
+
+		local localPos = pfSphere.center * haloScale
+		local sphereRadius = pfSphere.radius * haloScale
 		
 		local nodeTransform = sceneNode.transform
 		local worldPos = localPos * nodeTransform
@@ -316,11 +353,8 @@ fn edgeSetsMatch edgeSet1 edgeSet2 =
 )
 
 --
-fn buildBSPGeometry bspData nodeName regionName permutationName materialOffset fallbackNode:undefined =
+fn buildBSPGeometry bsp nodeName regionName permutationName materialOffset fallbackNode:undefined =
 (
-	-- Convert tuples to structs for O(1) property access
-	local bsp = convertBSPData bspData
-	
 	if bsp.vertices == undefined or bsp.vertices.count == 0 then
 	(
 		return undefined
@@ -344,8 +378,7 @@ fn buildBSPGeometry bspData nodeName regionName permutationName materialOffset f
 	local vertArray = #()
 	for v in bsp.vertices do
 	(
-		-- Direct struct property access - O(1)
-		local localPos = v.point * haloScale
+		local localPos = v * haloScale
 		local worldPos = localPos * nodeTransform
 		append vertArray worldPos
 	)
@@ -477,19 +510,14 @@ fn buildCollisionMesh collisionData collisionFileName =
 (
 	struct regionStruct (regionName, meshes)
 	
-	local collisionNodes = getFieldValue collisionData "nodes"
-	local collisionMaterials = getFieldValue collisionData "materials"
-	local collisionRegions = getFieldValue collisionData "regions"
-	local collisionPathfindingSpheres = getFieldValue collisionData "pathfindingSpheres"
+	local collisionNodes = collisionData.nodes
+	local collisionMaterials = collisionData.materials
+	local collisionRegions = collisionData.regions
+	local collisionPathfindingSpheres = collisionData.pathfindingSpheres
 	
 	local hasSceneNodes = validateSceneNodes collisionNodes
 	local fallbackNode = undefined
 	
-	local t1 = timestamp()
-	local createdHelpers = createPathfindingSpheres collisionPathfindingSpheres collisionNodes
-	
-	logger.info "Pathfinding spheres created: {} in {} ms" args:#(createdHelpers.count, (timestamp() - t1))
-
 	local t2 = timestamp()
 
 	if not hasSceneNodes then
@@ -507,30 +535,17 @@ fn buildCollisionMesh collisionData collisionFileName =
 	
 	for node in collisionNodes do
 	(
-		local nodeBsps = getFieldValue node "bsps"
-		if nodeBsps == undefined then 
-		continue
-		
-		for bsp in nodeBsps do
+		for bsp in node.bsps do
 		(
-			-- Skip BSPs with empty or invalid surfaces data
-			local bspSurfaces = getFieldValue bsp "surfaces"
-			if bspSurfaces == undefined or classOf bspSurfaces != Array then
-			continue
-			
-			for surf in bspSurfaces do
+			for surf in bsp.surfaces do
 			(
-				-- Optimized: extract surface fields at once
-				local surfVals = getFieldValues surf #("material", "flags")
-				local matIndex = surfVals[1] + 1
-				
-				if matIndex <= 0 or matIndex > materialSurfaceFlags.count then 
+				local matIndex = surf.material + 1
+
+				if matIndex <= 0 or matIndex > materialSurfaceFlags.count then
 				continue
-				
-				local surfFlags = surfVals[2]
-				if surfFlags == undefined or classOf surfFlags != Integer then 
-				continue
-				
+
+				local surfFlags = surf.flags
+
 				-- Convert integer bitfield to flag names
 				local flagNames = surfaceFlagsToArray surfFlags
 				for flag in flagNames do
@@ -546,33 +561,31 @@ fn buildCollisionMesh collisionData collisionFileName =
 	(
 		meditMaterials[1] = multiMat
 	)
-	local pathfindingSpheres = createPathfindingSpheres collisionPathfindingSpheres collisionNodes
+	-- After the fallback root exists, so spheres can attach to it
+	local t1 = timestamp()
+	local createdHelpers = createPathfindingSpheres collisionPathfindingSpheres collisionNodes
+	logger.info "Pathfinding spheres created: {} in {} ms" args:#(createdHelpers.count, (timestamp() - t1))
 	local createdMeshes = #()
 	local regionMeshMap = #()
 	for node in collisionNodes do
 	(
-		local nodeBsps = getFieldValue node "bsps"
-		local nodeRegion = getFieldValue node "region"
-		local nodeName = getFieldValue node "name"
-		if nodeBsps != undefined and nodeBsps.count > 0 then
+		local nodeBsps = node.bsps
+		local nodeRegion = node.region
+		local nodeName = node.name
+		if nodeBsps.count > 0 then
 		(
 			local regionName = "__unnamed"
 			if nodeRegion >= 0 and nodeRegion < collisionRegions.count then
-				regionName = getFieldValue collisionRegions[nodeRegion + 1] "name"
+				regionName = collisionRegions[nodeRegion + 1].name
 			for bspIdx = 1 to nodeBsps.count do
 			(
 				local bsp = nodeBsps[bspIdx]
 				local permutationName = undefined
 				if nodeRegion >= 0 and nodeRegion < collisionRegions.count then
 				(
-					local region = collisionRegions[nodeRegion + 1]
-					local regionPermutations = getFieldValue region "permutations"
-					if bspIdx <= regionPermutations.count then
-					(
-						local perm = regionPermutations[bspIdx]
-						if perm != undefined then
-							permutationName = getFieldValue perm "name"
-					)
+					local permutationNames = collisionRegions[nodeRegion + 1].permutationNames
+					if bspIdx <= permutationNames.count then
+						permutationName = permutationNames[bspIdx]
 				)
 				local meshObj = buildBSPGeometry bsp nodeName regionName permutationName 0 fallbackNode:fallbackNode
 				if meshObj != undefined then
