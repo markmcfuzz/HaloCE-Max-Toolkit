@@ -105,7 +105,8 @@ fn importJmsFile jmsFile:undefined =
 	if showDialogs and createdMesh != undefined then
     (
         local fileName = filenameFromPath jmsFile
-        messageBox ("JMS geometry imported successfully!\n\n" + "File: " + (filenameFromPath jmsFile) + "\n") \
+        messageBox ("JMS geometry imported successfully!\n\n" + "File: " + (filenameFromPath jmsFile) + "\n" + \
+                "Time: " + (formattedPrint (readTime + sceneTime) format:".3f") + " seconds") \
                 title:"Import Complete" \
                 beep:false
     )

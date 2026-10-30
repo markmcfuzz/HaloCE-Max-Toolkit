@@ -10,318 +10,180 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--------------------------------------------------------
--- SECTION WRITERS
--------------------------------------------------------
+-- Writes JMS files through formats\jms\jms_cli.lua (formats\jms\jms.lua): the data goes to Lua
+-- as binary and Lua writes the same text the previous MAXScript writer did.
 
--- Write JMS header (version and checksum)
-fn writeHeader fileStream jmsData =
+-- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
+global luaRunScript
+if luaRunScript == undefined and rootEngine != undefined do
+	fileIn (rootEngine + "shared\\utils\\lua_bridge.ms")
+
+-- True when the smoothing groups section is written (setting on and any group non-zero)
+fn jmsWritesSmoothingGroups jmsData =
 (
-	format "%\n" jmsData.jmsVersion to:fileStream
-	format "%\n" jmsData.jmsChecksum to:fileStream
+	if not (configManager.getBool "export_jms_jma" "export_extended_metadata" true) then return false
+	if jmsData.smoothingGroups == undefined then return false
+	local anyGroup = false
+	for sg in jmsData.smoothingGroups while not anyGroup do anyGroup = sg != 0
+	anyGroup
 )
 
--- Write node count and all nodes
-fn writeNodes fileStream jmsData =
+-- Binary for jms_cli.lua "write". Values printed with format "%" go with their type
+-- (luaWriteValue); the others are floats printed with 6 decimals.
+fn writeJmsForLua f jmsData =
 (
-	-- Write node count
-	format "%\n" jmsData.nodeCount to:fileStream
-	
-	-- Write each node
+	luaWriteString f "jms"
+	luaWriteInt f 1
+	luaWriteValue f jmsData.jmsVersion
+	luaWriteValue f jmsData.jmsChecksum
+
+	luaWriteValue f jmsData.nodeCount
+	luaWriteInt f jmsData.nodes.count
 	for node in jmsData.nodes do
 	(
-		format "%\n" node.nodeName to:fileStream
-		format "%\n" node.firstChildNodeIndex to:fileStream
-		format "%\n" node.nextSiblingNodeIndex to:fileStream
-		format "%\n" (formatRotation node.nodeRotation) to:fileStream
-		format "%\n" (formatTranslation node.nodeTranslation) to:fileStream
+		luaWriteValue f node.nodeName
+		luaWriteValue f node.firstChildNodeIndex
+		luaWriteValue f node.nextSiblingNodeIndex
+		for i = 1 to 4 do luaWriteFloat f node.nodeRotation[i]
+		for i = 1 to 3 do luaWriteFloat f node.nodeTranslation[i]
 	)
-)
 
--- Write shader count and all shaders
-fn writeShaders fileStream jmsData =
-(
-	-- Write shader count
-	format "%\n" jmsData.shaderCount to:fileStream
-	
-	-- Write each shader
+	luaWriteValue f jmsData.shaderCount
+	luaWriteInt f jmsData.shaders.count
 	for shader in jmsData.shaders do
 	(
-		format "%\n" shader.shaderName to:fileStream
-		format "%\n" shader.bitmapPath to:fileStream
+		luaWriteValue f shader.shaderName
+		luaWriteValue f shader.bitmapPath
 	)
-)
 
--- Write marker count and all markers
-fn writeMarkers fileStream jmsData =
-(
-	-- Write marker count
-	format "%\n" jmsData.markerCount to:fileStream
-	
-	-- Write each marker
+	luaWriteValue f jmsData.markerCount
+	luaWriteInt f jmsData.markers.count
 	for marker in jmsData.markers do
 	(
-		format "%\n" marker.markerName to:fileStream
-		format "%\n" marker.markerRegion to:fileStream
-		format "%\n" marker.parentNodeIndex to:fileStream
-		format "%\n" (formatRotation marker.markerRotation) to:fileStream
-		format "%\n" (formatTranslation marker.markerTranslation) to:fileStream
-		format "%\n" (formatFloat marker.markerRadius) to:fileStream
+		luaWriteValue f marker.markerName
+		luaWriteValue f marker.markerRegion
+		luaWriteValue f marker.parentNodeIndex
+		for i = 1 to 4 do luaWriteFloat f marker.markerRotation[i]
+		for i = 1 to 3 do luaWriteFloat f marker.markerTranslation[i]
+		luaWriteFloat f marker.markerRadius
 	)
-)
 
--- Write region count and all regions
-fn writeRegions fileStream jmsData =
-(
-	-- Write region count
-	format "%\n" jmsData.regionCount to:fileStream
-	
-	-- Write each region
-	for region in jmsData.regions do
-	(
-		format "%\n" region.regionName to:fileStream
-	)
-)
+	luaWriteValue f jmsData.regionCount
+	luaWriteInt f jmsData.regions.count
+	for reg in jmsData.regions do luaWriteValue f reg.regionName
 
--- Write vertex count and all vertices
-fn writeVertices fileStream jmsData =
-(
-	-- Write vertex count
-	format "%\n" jmsData.vertexCount to:fileStream
-	
-	-- Safety check
+	-- Undefined vertices / triangles were skipped by the previous writer too
+	luaWriteValue f jmsData.vertexCount
 	if jmsData.vertices == undefined then
 	(
 		logger.error "ERROR: jmsData.vertices is undefined!"
-		return false
+		luaWriteInt f 0
 	)
-	
-	-- Build vertices in larger batches (500000 vertices = 4M lines)
-	local batchSize = 500000
-	local ss = StringStream ""
-	local vertexCount = jmsData.vertices.count
-	
-	for i = 1 to vertexCount do
+	else
 	(
-		local vertex = jmsData.vertices[i]
-		
-		-- Safety checks
-		if vertex == undefined then
+		local verts = #()
+		for v in jmsData.vertices do if v != undefined do append verts v
+		luaWriteInt f verts.count
+		for vertex in verts do
 		(
-			logger.error "Vertex {} is undefined!" args:#(i)
-			continue
-		)
-		if vertex.texturePos == undefined then
-		(
-			logger.error "Vertex {} texturePos is undefined!" args:#(i)
-			vertex.texturePos = #(0.0, 0.0, 0)
-		)
-		
-		format "%\n" vertex.node0Index to:ss
-		format "%\n" (formatTranslation vertex.position) to:ss
-		format "%\n" (formatTranslation vertex.normal) to:ss
-		format "%\n" vertex.node1Index to:ss
-		format "%\n" vertex.node1Weight to:ss
-		format "%\n" (formatFloat vertex.texturePos[1]) to:ss
-		format "%\n" (formatFloat vertex.texturePos[2]) to:ss
-		format "%\n" vertex.texturePos[3] to:ss
-		
-		-- Write batch when buffer is full
-		if (mod i batchSize) == 0 or i == vertexCount then
-		(
-			format "%" (ss as string) to:fileStream
-			ss = StringStream ""
+			local tex = if vertex.texturePos == undefined then #(0.0, 0.0, 0) else vertex.texturePos
+			luaWriteValue f vertex.node0Index
+			for i = 1 to 3 do luaWriteFloat f vertex.position[i]
+			for i = 1 to 3 do luaWriteFloat f vertex.normal[i]
+			luaWriteValue f vertex.node1Index
+			luaWriteValue f vertex.node1Weight
+			luaWriteFloat f tex[1]
+			luaWriteFloat f tex[2]
+			luaWriteValue f tex[3]
 		)
 	)
-)
 
--- Write triangle count and all triangles
-fn writeTriangles fileStream jmsData =
-(
-	-- Write triangle count
-	format "%\n" jmsData.triangleCount to:fileStream
-	
-	-- Safety check
+	luaWriteValue f jmsData.triangleCount
 	if jmsData.triangles == undefined then
 	(
 		logger.error "ERROR: jmsData.triangles is undefined!"
-		return false
+		luaWriteInt f 0
 	)
-	
-	-- Build triangles in larger batches (500000 triangles = 1.5M lines)
-	local batchSize = 500000
-	local ss = StringStream ""
-	local triangleCount = jmsData.triangles.count
-	
-	for i = 1 to triangleCount do
+	else
 	(
-		local triangle = jmsData.triangles[i]
-		
-		-- Safety checks
-		if triangle == undefined then
+		local tris = #()
+		for t in jmsData.triangles do if t != undefined and t.vertexIndices != undefined do append tris t
+		luaWriteInt f tris.count
+		for tri in tris do
 		(
-			--logger.error "Triangle {} is undefined!" args:#(i)
-			continue
-		)
-		if triangle.vertexIndices == undefined then
-		(
-			--logger.error "Triangle {} vertexIndices is undefined!" args:#(i)
-			continue
-		)
-		
-		format "%\n" triangle.regionIndex to:ss
-		format "%\n" triangle.shaderIndex to:ss
-		format "%\t%\t%\n" triangle.vertexIndices[1] triangle.vertexIndices[2] triangle.vertexIndices[3] to:ss
-		
-		-- Write batch when buffer is full
-		if (mod i batchSize) == 0 or i == triangleCount then
-		(
-			format "%" (ss as string) to:fileStream
-			ss = StringStream ""
+			luaWriteValue f tri.regionIndex
+			luaWriteValue f tri.shaderIndex
+			for i = 1 to 3 do luaWriteValue f tri.vertexIndices[i]
 		)
 	)
-)
 
-
--- Write extended metadata section (optional, for enhanced workflows)
-fn writeExtendedMetadata fileStream jmsData = (
-	
-	-- Only write if we have smoothing groups
-    local exportExtendedMetadata = configManager.getBool "export_jms_jma" "export_extended_metadata" true
-    if not exportExtendedMetadata then return ok
-	
-	if jmsData.smoothingGroups == undefined or jmsData.smoothingGroups.count == 0 then
-		return ok
-
-	-- Check if ANY smoothing group is non-zero (if all are 0, skip extended metadata entirely)
-	local hasNonZeroSmoothingGroup = false
-
-	for sg in jmsData.smoothingGroups do (
-		if sg != 0 then (
-			hasNonZeroSmoothingGroup = true
-			exit
-		)
+	if jmsWritesSmoothingGroups jmsData then
+	(
+		luaWriteInt f 1
+		luaWriteInt f jmsData.smoothingGroups.count
+		for sg in jmsData.smoothingGroups do luaWriteValue f sg
 	)
-	
-	if not hasNonZeroSmoothingGroup then (
-		--logger.info "No smoothing groups found:"
-		--logger.info "Skipping extended metadata"
-		return ok
-	)
-	-- Blank line separator
-	format "\n" to:fileStream
-
-	-- Write smoothing groups
-	format ";### SMOOTHING GROUPS ###\n" to:fileStream
-	format "%\n" jmsData.smoothingGroups.count to:fileStream
-
-	-- Write in batches for performance
-	local batchSize = 500000
-	local ss = StringStream ""
-	
-	for i = 1 to jmsData.smoothingGroups.count do (
-		format "%\n" jmsData.smoothingGroups[i] to:ss
-		
-		if (mod i batchSize) == 0 or i == jmsData.smoothingGroups.count then (
-			format "%" (ss as string) to:fileStream
-			ss = StringStream ""
-		)
-	)
+	else
+		luaWriteInt f 0
 )
 
 -------------------------------------------------------
 -- MAIN EXPORT FUNCTION
 -------------------------------------------------------
 
--- Write complete JMS file
+-- Write complete JMS file. Returns #(true, writeTimeMs), or false on error.
 fn writeJmsFile filePath jmsData =
 (
 	logger.log "=== WRITING JMS FILE ==="
 	logger.info "Output: '{}'" args:#(filePath)
-	
+
 	local writeStartTime = timestamp()
-	
-	-- Create/open file for writing
-	local fileStream = createFile filePath
-	
-	if fileStream == undefined then
-	(
-		logger.error "Failed to create file: '{}'" args:#(filePath)
-		return false
-	)
-	
+	local inPath = (getDir #temp) + "\\hce_jms_write.bin"
+	local ok = false
+	local f = undefined
 	try
 	(
-		-- Write all sections in order
-		--logger.info "Writing header..."
-		writeHeader fileStream jmsData
-		
-		--logger.info "Writing nodes..."
-		writeNodes fileStream jmsData
-		
-		--logger.info "Writing shaders..."
-		writeShaders fileStream jmsData
-		
-		--logger.info "Writing markers..."
-		writeMarkers fileStream jmsData
-		
-		--logger.info "Writing regions..."
-		writeRegions fileStream jmsData
-		
-		--logger.info "Writing vertices..."
-		writeVertices fileStream jmsData
-		
-		--logger.info "Writing triangles..."
-		writeTriangles fileStream jmsData
-		
-		--logger.info "Writing extended metadata..."
-		-- Write extended metadata (bitmaps, smoothing groups, etc.)
-		writeExtendedMetadata fileStream jmsData
-		
-		-- Close file
-		close fileStream
-		
-		local writeTime = timestamp() - writeStartTime
-		
-		logger.info "Version: {}" args:#(jmsData.jmsVersion)
-		logger.info "Nodes: {}" args:#(jmsData.nodeCount)
-		logger.info "Shaders: {}" args:#(jmsData.shaderCount)
-		logger.info "Markers: {}" args:#(jmsData.markerCount)
-		logger.info "Regions: {}" args:#(jmsData.regionCount)
-		logger.info "Vertices: {}" args:#(jmsData.vertexCount)
-		logger.info "Triangles: {}" args:#(jmsData.triangleCount)
-		
-		-- Check if extended metadata was actually written
-		local extendedMetadataMsg = "None"
-		if jmsData.smoothingGroups != undefined and jmsData.smoothingGroups.count > 0 then
-		(
-			-- Check if any smoothing group is non-zero
-			local hasNonZero = false
-			for sg in jmsData.smoothingGroups do
-			(
-				if sg != 0 then
-				(
-					hasNonZero = true
-					exit
-				)
-			)
-			if hasNonZero then
-				extendedMetadataMsg = "'Written' " + (jmsData.smoothingGroups.count as string) + " smoothing groups"
-			else
-				extendedMetadataMsg = "'Skipped' (no smoothing groups found)"
-		)
-		
-		logger.info "Extended Metadata: {}" args:#(extendedMetadataMsg)
-        logger.info "Total write time: {} ms" args:#(writeTime)
-        logger.log "JMS file written successfully\n"
-		return #(true, writeTime)
+		f = fopen inPath "wb"
+		writeJmsForLua f jmsData
+		fclose f
+		f = undefined
+		ok = luaRunScript "formats\\jms\\jms_cli.lua" #("write", inPath, filePath)
 	)
 	catch
 	(
 		logger.error "Exception while writing file: '{}'" args:#((getCurrentException()))
-		close fileStream
+		if f != undefined do fclose f
+	)
+	deleteFile inPath
+	if not ok then
+	(
+		logger.error "Failed to create file: '{}'" args:#(filePath)
 		return false
 	)
+
+	local writeTime = timestamp() - writeStartTime
+	logger.info "Version: {}" args:#(jmsData.jmsVersion)
+	logger.info "Nodes: {}" args:#(jmsData.nodeCount)
+	logger.info "Shaders: {}" args:#(jmsData.shaderCount)
+	logger.info "Markers: {}" args:#(jmsData.markerCount)
+	logger.info "Regions: {}" args:#(jmsData.regionCount)
+	logger.info "Vertices: {}" args:#(jmsData.vertexCount)
+	logger.info "Triangles: {}" args:#(jmsData.triangleCount)
+
+	local extendedMetadataMsg = "None"
+	if jmsData.smoothingGroups != undefined and jmsData.smoothingGroups.count > 0 then
+	(
+		local anyGroup = false
+		for sg in jmsData.smoothingGroups while not anyGroup do anyGroup = sg != 0
+		if anyGroup then
+			extendedMetadataMsg = "'Written' " + (jmsData.smoothingGroups.count as string) + " smoothing groups"
+		else
+			extendedMetadataMsg = "'Skipped' (no smoothing groups found)"
+	)
+	logger.info "Extended Metadata: {}" args:#(extendedMetadataMsg)
+	logger.info "Total write time: {} ms" args:#(writeTime)
+	logger.log "JMS file written successfully\n"
+	#(true, writeTime)
 )
 
 scriptName = getFilenameFile (getThisScriptFilename()) + getFilenameType (getThisScriptFilename())
