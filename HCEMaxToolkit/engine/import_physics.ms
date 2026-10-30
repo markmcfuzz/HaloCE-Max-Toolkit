@@ -10,6 +10,7 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
+
 -- Clear listener
 clearListener()
 
@@ -23,66 +24,44 @@ logger.loadConfig callerScriptName:scriptName
 logger.log "=== IMPORTING PHYSICS DATA ==="
 
 -- Load required modules
-include "core\\halo1\\core_defs.ms"
-include "core\\halo1\\parser.ms"
-include "core\\halo1\\groups\\physics.ms"
+include "builders\\tag\\physics\\lua_reader.ms"
 include "builders\\tag\\physics\\build_scene.ms"
 
 -------------------------------------------------------
--- READ TAG FUNCTION
+-- MAIN IMPORT FUNCTIONS
 -------------------------------------------------------
 
-fn readPhysicsTag tagPath tagDef =
+fn isPhysicsTag tagPath = (getTagClass tagPath) == "phys"
+
+-- Imports one file without dialogs. Returns the created spheres, or undefined on failure.
+fn importPhysicsFile physicsFile =
 (
-    local filePhysics = fopen tagPath "rb"
-    if filePhysics == undefined then
+    if not (isPhysicsTag physicsFile) then
     (
-        logger.error "Cannot open file: {}" args:#(tagPath)
+        logger.error "Not a physics tag: '{}'" args:#(physicsFile)
         return undefined
     )
-    
-    logger.log "File opened successfully\n"
-    setCurrentFileHandle filePhysics
 
-    if tagDef == undefined then
-    (
-        logger.error "tagDef is undefined"
-        fclose filePhysics
-        return undefined
-    )
-    -- Set default base address for Halo CE
-    setTagMemoryBaseAddress 0x40440000
-    
-    -- Skip to tag data (after 64-byte header)
-    fseek filePhysics 64 #seek_set
-    
-    logger.log "=== READING PHYSICS ==="
-    
-    -- Read main tag data (now returns camelCase property names)
-    local physicsData = readRootTagData tagDef.tagBlock
-    fclose filePhysics
-    
-    local massPointsCount = 0
-    local poweredMassPointsCount = 0
-    
-    -- Get counts from the parsed data
-    local massPointsArray = getFieldValue physicsData "massPoints"
-    local poweredMassPointsArray = getFieldValue physicsData "poweredMassPoints"
-    
-    if massPointsArray != undefined then
-        massPointsCount = massPointsArray.count
-    if poweredMassPointsArray != undefined then
-        poweredMassPointsCount = poweredMassPointsArray.count
-    
-    logger.info "Mass points: {}" args:#(massPointsCount)
-    logger.info "Powered mass points: {}" args:#(poweredMassPointsCount)
+    local readStartTime = timestamp()
+    local physicsData = readPhysicsWithLua physicsFile
+    if physicsData == undefined then return undefined
+    logger.info "Reading: {} seconds" args:#((timestamp() - readStartTime) / 1000.)
+    logger.info "Mass points: {}" args:#(physicsData.massPoints.count)
+    logger.info "Powered mass points: {}" args:#(physicsData.poweredMassPointNames.count)
 
-    return physicsData
+    logger.log "=== BUILDING MASS POINT SPHERES ==="
+    local buildStartTime = timestamp()
+    local createdSpheres = createMassPointSpheres \
+        physicsData.massPoints \
+        physicsData.poweredMassPointNames \
+        physicsData.mass \
+        physicsData.density
+    logger.info "Scene building: {} seconds" args:#((timestamp() - buildStartTime) / 1000.)
+
+    completeRedraw()
+    -- createMassPointSpheres returns undefined when the tag has no mass points
+    if createdSpheres == undefined then #() else createdSpheres
 )
-
--------------------------------------------------------
--- MAIN IMPORT FUNCTION
--------------------------------------------------------
 
 fn ImportPhysics =
 (
@@ -91,92 +70,36 @@ fn ImportPhysics =
         caption:"Select Physics Tag File" \
         types:"Physics Tag (*.physics)|*.physics|All Files (*.*)|*.*" \
         historyCategory:"PhysicsImport"
-    
-    if physicsFile == undefined then 
+
+    if physicsFile == undefined then
     (
         logger.warn "Import cancelled by user.\n"
         return undefined
     )
-    
-    local startTime = timestamp()
-    local setupStartTime = timestamp()
 
-    -- Detect tag class from file
-    local tagClass = getTagClass physicsFile
-
-    logger.info "Detected tagClass: '{}'" args:#(tagClass)
-    
-    -- Get tag definition
-    local tagDef = getTagDefByClass tagClass
-    
-    if tagDef == undefined then
+    if not (isPhysicsTag physicsFile) then
     (
-        --
-        logger.error "Unknown or unsupported tag class: '{}'" args:#(tagClass)
         messageBox "Unsupported tag type!" title:"Import Failed"
         return undefined
     )
-    
-    local tagsPos = findString physicsFile "tags\\"
-    local displayPath = if tagsPos != undefined then (substring physicsFile tagsPos -1) else (filenameFromPath physicsFile)
-    logger.info "Opening tag file: '{}'" args:#(displayPath)
 
-    local setupEndTime = timestamp()
-    local setupTime = (setupEndTime - setupStartTime) / 1000.
+    local startTime = timestamp()
+    local createdSpheres = importPhysicsFile physicsFile
+    local elapsedTime = (timestamp() - startTime) / 1000.
 
-    -- Read and adapt physics data
-    local readStartTime = timestamp()
-    local physicsData = readPhysicsTag physicsFile tagDef
-    local readEndTime = timestamp()
-    local readTime = (readEndTime - readStartTime) / 1000.
-    
-    if physicsData == undefined then
+    if createdSpheres == undefined then
     (
         messageBox "Failed to read physics tag!" title:"Import Failed"
         return undefined
     )
 
-    logger.info "Reading: {} seconds" args:#(readTime)
-    logger.log "Physics read complete\n"
-
-    -- Build spheres using parsed data
-    logger.log "=== BUILDING MASS POINT SPHERES ==="
-
-    local massPoints = getFieldValue physicsData "massPoints"
-    local poweredMassPoints = getFieldValue physicsData "poweredMassPoints"
-    local mass = getFieldValue physicsData "mass"
-    local density = getFieldValue physicsData "density"
-    
-    local buildStartTime = timestamp()
-    -- Function in build_scene.ms that creates spheres based on mass points data
-    local createdSpheres = createMassPointSpheres \
-        massPoints \
-        poweredMassPoints \
-        mass \
-        density
-    local buildEndTime = timestamp()
-    local buildTime = (buildEndTime - buildStartTime) / 1000.
-        
-
-    logger.info "Scene building: {} seconds" args:#(buildTime)
-    logger.log "Physics build complete\n"
-
-    -- Refresh viewport
-    completeRedraw()
-
-    local endTime = timestamp()
-    local elapsedTime = (endTime - startTime) / 1000.
-
     logger.log "=== IMPORT SUMMARY ==="
-    logger.info "Setup/file operations: {} seconds" args:#(setupTime)
-    logger.info "Reading tag data: {} seconds" args:#(readTime)
-    logger.info "Building scene: {} seconds" args:#(buildTime)
     logger.info "Total time: {} seconds" args:#(elapsedTime)
     logger.log "Physics import complete\n\n"
-    
+
     local showDialogs = configManager.getBool "feedback" "show_completion_dialogs" true
 
-    if showDialogs and createdSpheres != undefined and createdSpheres.count > 0 then
+    if showDialogs and createdSpheres.count > 0 then
     (
         local fileName = filenameFromPath physicsFile
         messageBox ("Physics mass points imported successfully!\n\n" + \
@@ -189,5 +112,7 @@ fn ImportPhysics =
     clearListener()
     return createdSpheres
 )
--- === Run - auto-detects tag type from file ===
-ImportPhysics()
+
+-- Tests set importerNoAutoRun = true to load these functions without importing.
+global importerNoAutoRun
+if importerNoAutoRun != true do ImportPhysics()

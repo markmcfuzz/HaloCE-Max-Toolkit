@@ -113,7 +113,8 @@ fn collectSceneNodes =
 -- Creation spheres
 -------------------------------------------------------
 
-fn createMassPointSpheres massPointsArray poweredMassPointsArray baseMass baseDensity =
+-- massPointsArray: PhysicsMassPoint array, poweredMassPointNames: strings (lua_reader.ms)
+fn createMassPointSpheres massPointsArray poweredMassPointNames baseMass baseDensity =
 (
 	if massPointsArray == undefined or massPointsArray.count == 0 then
 	(
@@ -126,8 +127,8 @@ fn createMassPointSpheres massPointsArray poweredMassPointsArray baseMass baseDe
 	
 	for mp in massPointsArray do
 	(
-		totalRelativeMass += (getFieldValue mp "relativeMass")
-		totalRelativeDensity += (getFieldValue mp "relativeDensity")
+		totalRelativeMass += mp.relativeMass
+		totalRelativeDensity += mp.relativeDensity
 	)
 	
 	local baseMassPerUnit = if totalRelativeMass > 0 then baseMass / totalRelativeMass else 0.0
@@ -138,14 +139,13 @@ fn createMassPointSpheres massPointsArray poweredMassPointsArray baseMass baseDe
 	
 	for mp in massPointsArray do
 	(
-		-- Parser returns Point3 objects directly, so use them as-is
-		local spherePos = (getFieldValue mp "position") * 100
-		local sphereRadius = (getFieldValue mp "radius") * 100
+		local spherePos = mp.position * 100
+		local sphereRadius = mp.radius * 100
 
-		local sphereName = "+" + (getFieldValue mp "name")
+		local sphereName = "+" + mp.name
 		
 		local newSphere = sphere radius:sphereRadius pos:spherePos name:sphereName smooth:on
-		local frictionType = getFieldValue mp "frictionType"
+		local frictionType = mp.frictionType
 		local sphereColor = case frictionType of
 		(
 			0: (color 255 36 16)       --#ff2410 | Orange - point friction (most common)
@@ -164,9 +164,9 @@ fn createMassPointSpheres massPointsArray poweredMassPointsArray baseMass baseDe
 		custAttributes.add newSphere massPointAttributes
 		
 		-- Calculate individual mass and density using the old working formula
-		local mpRelativeMass = getFieldValue mp "relativeMass"
-		local mpDensity = getFieldValue mp "density"
-		local mpRelativeDensity = getFieldValue mp "relativeDensity"
+		local mpRelativeMass = mp.relativeMass
+		local mpDensity = mp.density
+		local mpRelativeDensity = mp.relativeDensity
 		local calculatedMass = baseMassPerUnit * mpRelativeMass
 		
 		-- Density calculation with special cases from old code
@@ -190,14 +190,14 @@ fn createMassPointSpheres massPointsArray poweredMassPointsArray baseMass baseDe
 		)
 		
 		-- Set parameter values explicitly after adding custom attributes
-		local mpName = getFieldValue mp "name"
-		local mpModelNode = getFieldValue mp "modelNode"
-		local mpPoweredMassPoint = getFieldValue mp "poweredMassPoint"
-		local mpFlags = getFieldValue mp "flags"
-		local mpFrictionParallelScale = getFieldValue mp "frictionParallelScale"
-		local mpFrictionPerpendicularScale = getFieldValue mp "frictionPerpendicularScale"
-		local mpForward = getFieldValue mp "forward"
-		local mpUp = getFieldValue mp "up"
+		local mpName = mp.name
+		local mpModelNode = mp.modelNode
+		local mpPoweredMassPoint = mp.poweredMassPoint
+		local mpFlags = mp.flags
+		local mpFrictionParallelScale = mp.frictionParallelScale
+		local mpFrictionPerpendicularScale = mp.frictionPerpendicularScale
+		local mpForward = mp.forward
+		local mpUp = mp.up
 		
 		newSphere.mpName = mpName
 		newSphere.modelNodeIndex = mpModelNode
@@ -206,9 +206,9 @@ fn createMassPointSpheres massPointsArray poweredMassPointsArray baseMass baseDe
 		newSphere.relativeDensity = mpRelativeDensity
 		newSphere.densityValue = calculatedDensity
 		
-		if mpPoweredMassPoint >= 0 and mpPoweredMassPoint < poweredMassPointsArray.count then
+		if mpPoweredMassPoint >= 0 and mpPoweredMassPoint < poweredMassPointNames.count then
 		(
-			local pmpName = getFieldValue poweredMassPointsArray[mpPoweredMassPoint + 1] "name"
+			local pmpName = poweredMassPointNames[mpPoweredMassPoint + 1]
 			newSphere.poweredMassPointName = pmpName
 		)
 		else
@@ -229,7 +229,6 @@ fn createMassPointSpheres massPointsArray poweredMassPointsArray baseMass baseDe
 		newSphere.frictionPerpendicular = mpFrictionPerpendicularScale
 		newSphere.isMetallic = (mpFlags == 1)
 
-		-- Parser returns Vector3D objects directly
 		orientMassPointSphere newSphere mpForward mpUp
 		
 		if (mpModelNode >= 0 and mpModelNode < sceneNodes.count) then
