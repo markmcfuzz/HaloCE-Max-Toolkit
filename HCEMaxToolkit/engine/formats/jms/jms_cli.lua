@@ -1,6 +1,7 @@
 -- JMS files for 3ds Max (formats\jms\jms_reader.ms and process_file.ms):
 --   luajit jms_cli.lua read <file.jms> <out.bin>    JMS -> binary for Max
 --   luajit jms_cli.lua write <in.bin> <file.jms>    binary from Max -> JMS
+--   luajit jms_cli.lua mesh <in.bin> <out.bin>      scene meshes -> JMS vertices (process_scene.ms)
 -- Errors go to stderr with exit code 1.
 
 -- Modules are required from the engine folder: require("formats.jms.jms")
@@ -8,6 +9,7 @@ local engine_dir = ((arg[0]:match("^(.*)[/\\]") or ".") .. "/../..")
 package.path = engine_dir .. "/?.lua;" .. package.path
 
 local jms = require("formats.jms.jms")
+local jms_mesh = require("formats.jms.jms_mesh")
 local maxbin = require("core.halo1.maxbin")
 
 -- Format version of the binaries exchanged with Max (checked on both sides)
@@ -144,11 +146,61 @@ local function write(in_path, jms_path)
 	if not jms.write(jms_path, data) then error("cannot write " .. jms_path, 0) end
 end
 
+-- Scene meshes from Max (extractGeometryData) -> JMS vertices + the vertex of every face corner
+local function mesh(in_path, out_path)
+	local r = maxbin.read_file(in_path)
+	if r:string() ~= "jms_mesh" or r:int() ~= 1 then error("unexpected data from Max (expected jms_mesh v1)", 0) end
+	local vertices, corners = {}, {}
+	for _ = 1, r:int() do
+		local obj = { parent = r:int(), positions = {}, uvs = {}, faces = {}, normals = {} }
+		for i = 1, r:int() * 3 do obj.positions[i] = r:float() end
+		if r:int() == 1 then
+			obj.skin = {}
+			for v = 1, #obj.positions / 3 do
+				local bones, weights = {}, {}
+				for i = 1, r:int() do
+					bones[i] = r:int()
+					weights[i] = r:float()
+				end
+				obj.skin[v] = { bones, weights }
+			end
+		end
+		local uv_count = r:int()
+		for i = 1, uv_count * 2 do obj.uvs[i] = r:float() end
+		if uv_count > 0 then obj.tvfaces = {} end
+		local faces, tvfaces, normals = obj.faces, obj.tvfaces, obj.normals
+		for f = 0, r:int() - 1 do
+			for c = 1, 3 do faces[f * 3 + c] = r:int() end
+			if tvfaces then
+				for c = 1, 3 do tvfaces[f * 3 + c] = r:int() end
+			end
+			for i = 1, 9 do normals[f * 9 + i] = r:float() end
+		end
+		jms_mesh.add_object(obj, vertices, corners)
+	end
+
+	local w = maxbin.open(out_path)
+	w:string("jms_mesh")
+	w:int(1)
+	w:int(#vertices)
+	for _, v in ipairs(vertices) do
+		w:int(v.node0)
+		w:floats(v.pos)
+		w:floats(v.normal)
+		w:int(v.node1)
+		w:floats({ v.weight, v.u, v.v })
+	end
+	w:int(#corners)
+	if #corners > 0 then w:ints(corners) end
+	w:close()
+end
+
 local command, a, b = arg[1], arg[2], arg[3]
 local ok, err = pcall(function()
 	if command == "read" and a and b then read(a, b)
 	elseif command == "write" and a and b then write(a, b)
-	else error("usage: luajit jms_cli.lua read <file.jms> <out.bin> | write <in.bin> <file.jms>", 0)
+	elseif command == "mesh" and a and b then mesh(a, b)
+	else error("usage: luajit jms_cli.lua read <file.jms> <out.bin> | write <in.bin> <file.jms> | mesh <in.bin> <out.bin>", 0)
 	end
 end)
 if not ok then
