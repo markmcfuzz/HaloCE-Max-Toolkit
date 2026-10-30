@@ -685,43 +685,6 @@ fn extractRegions nodeObjectArray =
 -- GEOMETRY DATA EXTRACTION
 -------------------------------------------------------
 
--- Helper function to create hash key from vertex attributes
-fn createVertexHash pos norm uv node0 node1 weight1 =
-(
-	-- Round to 4 decimal places to create hash key (avoids floating point precision issues)
-	-- Use StringStream for fast string building (avoids repeated string concatenation overhead)
-	local ss = stringstream ""
-	format "%,%,%,%,%,%,%,%,%,%,%" \
-		((pos[1] * 10000) as integer) \
-		((pos[2] * 10000) as integer) \
-		((pos[3] * 10000) as integer) \
-		((norm[1] * 10000) as integer) \
-		((norm[2] * 10000) as integer) \
-		((norm[3] * 10000) as integer) \
-		((uv[1] * 10000) as integer) \
-		((uv[2] * 10000) as integer) \
-		node0 node1 \
-		((weight1 * 10000) as integer) \
-		to:ss
-	return ss as string
-)
-
--- Helper function to find matching vertex using hash lookup (with proper dictionary)
-fn findMatchingVertexFast vertData hashDict =
-(
-	local hashKey = createVertexHash vertData.position vertData.normal vertData.texturePos vertData.node0Index vertData.node1Index vertData.node1Weight
-	
-	-- Try to get value from dictionary (returns undefined if key doesn't exist)
-	local result = hashDict[hashKey]
-	return result
-)
-
--- Helper function to add vertex to hash dictionary
-fn addVertexToHash hashDict hashKey vertexIdx =
-(
-	hashDict[hashKey] = vertexIdx
-)
-
 -- Extract all geometry data from scene
 fn extractGeometryData nodeObjectArray shaderArray regionArray =
 (
@@ -732,7 +695,6 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	local allVertices = #()
 	local allTriangles = #()
 	local allSmoothingGroups = #()  -- Store smoothing group per triangle
-	local globalVertexOffset = 0
 	
 	-- Timing variables
 	local timeRegionMapping = 0
@@ -853,6 +815,19 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 		append allSkinCache objSkinData
 	)
 	
+	-- Region / shader names in JMS order (index = position - 1)
+	local regionNames = for r in regionArray collect r.regionName
+	local shaderNames = for s in shaderArray collect s.shaderName
+	local faceRegions = #()
+	local faceShaders = #()
+
+	-- The meshes go to formats\jms\jms_cli.lua "mesh", which builds the JMS vertices
+	local meshPath = (getDir #temp) + "\\hce_jms_mesh.bin"
+	local meshFile = fopen meshPath "wb"
+	luaWriteString meshFile "jms_mesh"
+	luaWriteInt meshFile 1
+	luaWriteInt meshFile validObjects.count
+
 	-- ============================================================================
 	-- MAIN PASS: Process geometry using pre-cached skin data
 	-- Now safe to use Edit_Normals since all skin data is already cached
@@ -1102,271 +1077,174 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 		local timeCacheEnd = timestamp() - timeCacheStart
 		logger.info "Pre-calculation cache: '{} ms'" args:#(timeCacheEnd)
 		
-		-- Build region name to index lookup (using struct as dictionary)
-		struct RegionLookup (regionNames = #(), regionIndices = #())
-		local regionLookup = RegionLookup()
-		for i = 1 to regionArray.count do
-		(
-			append regionLookup.regionNames (regionArray[i].regionName)
-			append regionLookup.regionIndices (i - 1)
-		)
-		
-		-- Build shader name to index lookup
-		struct ShaderLookup (shaderNames = #(), shaderIndices = #())
-		local shaderLookup = ShaderLookup()
-		for i = 1 to shaderArray.count do
-		(
-			append shaderLookup.shaderNames (shaderArray[i].shaderName)
-			append shaderLookup.shaderIndices (i - 1)
-		)
-		
-		-- Skin data already pre-cached in allSkinCache before any Edit_Normals was accessed
-		
-		-- Vertex welding: use dictionary-based hash for O(1) lookups
-		-- Create hash key from vertex attributes for efficient duplicate detection
-		local vertexHashDict = dictionary #string  -- Use MAXScript dictionary for true O(1) lookups
-		
-		-- Extract vertices AND triangles together (per-face-corner to match UVs)
-		-- This matches the old exporter behavior
 		local timeTriStart = timestamp()
+
+		-- Region of every face: its selection set, else the "region" property, else "__unnamed"
+		local defaultRegion = if legacyRegionName != undefined then legacyRegionName else "__unnamed"
+		for f = 1 to numFaces do
+		(
+			local regionName = faceRegionMap[f]
+			if regionName == undefined then regionName = defaultRegion
+			local foundIdx = findItem regionNames regionName
+			append faceRegions (if foundIdx > 0 then foundIdx - 1 else 0)
+		)
+
+		-- Shader of every face: looked up once per (sub-)material, then picked by material ID
+		local objMat = obj.material
+		local isMulti = objMat != undefined and classOf objMat == Multimaterial
+		local singleShader = 0
+		local subShaders = #()
+		if isMulti then
+		(
+			for i = 1 to objMat.count do
+			(
+				local subMat = objMat[i]
+				local foundIdx = if subMat != undefined then findItem shaderNames subMat.name else 0
+				subShaders[i] = if foundIdx > 0 then foundIdx - 1 else 0
+			)
+		)
+		else if objMat != undefined then
+		(
+			local foundIdx = findItem shaderNames objMat.name
+			if foundIdx > 0 then singleShader = foundIdx - 1
+		)
+		for f = 1 to numFaces do
+		(
+			local shaderIndex = singleShader
+			if isMulti then
+			(
+				local faceMatID = getFaceMatID meshObj f
+				shaderIndex = if faceMatID > 0 and faceMatID <= subShaders.count then subShaders[faceMatID] else 0
+			)
+			append faceShaders shaderIndex
+			local smoothGroup = faceSmoothGroups[f]
+			append allSmoothingGroups (if smoothGroup == undefined then 0 else smoothGroup)
+		)
+
+		-- Mesh data for Lua: positions, skin weights (cached above), UVs, and per face its
+		-- vertices, UV vertices and the normal of each corner
+		writeLong meshFile parentNodeIndex #signed
+		writeLong meshFile numVerts #signed
+		for v = 1 to numVerts do
+		(
+			local p = getVert meshObj v
+			writeFloat meshFile p.x
+			writeFloat meshFile p.y
+			writeFloat meshFile p.z
+		)
+		writeLong meshFile (if hasSkin then 1 else 0) #signed
+		if hasSkin then
+		(
+			for v = 1 to numVerts do
+			(
+				local boneWeights = if v <= cachedSkinData.count then cachedSkinData[v] else #()
+				writeLong meshFile boneWeights.count #signed
+				for bw in boneWeights do
+				(
+					writeLong meshFile bw[1] #signed
+					writeFloat meshFile bw[2]
+				)
+			)
+		)
+		local numTVerts = meshObj.numtverts
+		writeLong meshFile numTVerts #signed
+		for t = 1 to numTVerts do
+		(
+			local tvert = getTVert meshObj t
+			writeFloat meshFile tvert.x
+			writeFloat meshFile tvert.y
+		)
+		writeLong meshFile numFaces #signed
 		for f = 1 to numFaces do
 		(
 			local face = getFace meshObj f
-			local tvFace = if meshObj.numtverts > 0 then (getTVFace meshObj f) else (point3 0 0 0)
-			
-			-- Create triangle
-			local triData = triangles()
-			
-			-- Determine region for this face (using cached lookup)
-			local regionIndex = 0
-			local faceRegionName = faceRegionMap[f]
-			
-			if faceRegionName != undefined then
+			writeLong meshFile (face.x as integer) #signed
+			writeLong meshFile (face.y as integer) #signed
+			writeLong meshFile (face.z as integer) #signed
+			if numTVerts > 0 then
 			(
-				local foundIdx = findItem regionLookup.regionNames faceRegionName
-				if foundIdx > 0 then
-					regionIndex = regionLookup.regionIndices[foundIdx]
+				local tvFace = getTVFace meshObj f
+				writeLong meshFile (tvFace.x as integer) #signed
+				writeLong meshFile (tvFace.y as integer) #signed
+				writeLong meshFile (tvFace.z as integer) #signed
 			)
-			else if legacyRegionName != undefined then
-			(
-				local foundIdx = findItem regionLookup.regionNames legacyRegionName
-				if foundIdx > 0 then
-					regionIndex = regionLookup.regionIndices[foundIdx]
-			)
-			else
-			(
-				-- No region assigned, use "__unnamed" region
-				local foundIdx = findItem regionLookup.regionNames "__unnamed"
-				if foundIdx > 0 then
-					regionIndex = regionLookup.regionIndices[foundIdx]
-			)
-			
-			triData.regionIndex = regionIndex
-			
-			-- Get shader index (using cached lookup)
-			local shaderIndex = 0
-			if obj.material != undefined then
-			(
-				if classOf obj.material == Multimaterial then
-				(
-					local faceMatID = getFaceMatID meshObj f
-					if faceMatID > 0 and faceMatID <= obj.material.count then
-					(
-						local subMat = obj.material[faceMatID]
-						if subMat != undefined then
-						(
-							local foundIdx = findItem shaderLookup.shaderNames subMat.name
-							if foundIdx > 0 then
-								shaderIndex = shaderLookup.shaderIndices[foundIdx]
-						)
-					)
-				)
-				else
-				(
-					local foundIdx = findItem shaderLookup.shaderNames obj.material.name
-					if foundIdx > 0 then
-						shaderIndex = shaderLookup.shaderIndices[foundIdx]
-				)
-			)
-			
-			triData.shaderIndex = shaderIndex
-			
-			-- Create 3 vertices for this face (one per corner)
-			local vertIndices = #()
-			
 			for corner = 1 to 3 do
 			(
-			local vertIdx = face[corner]
-			local vertData = vertices()
-			
-			-- Get vertex position from snapshot mesh (already in world space)
-			local vertPos = getVert meshObj vertIdx
-			
-			-- snapshotAsMesh returns world-space geometry, no additional transform needed
-			vertData.position = #(vertPos.x, vertPos.y, vertPos.z)
-			
-			-- Calculate vertex normal
-			local vNormal = [0, 0, 0]
-			
-			-- If no smoothing groups, use explicit normals if available, otherwise face normals
-			if not hasSmoothingGroups then
-			(
-				if hasExplicitNormals then
+				-- Explicit normal, smoothing-group normal, or the face normal
+				local vNormal = faceNormals[f]
+				if not hasSmoothingGroups then
 				(
-					-- Use pre-cached explicit normal for this face corner
-					vNormal = explicitNormalsCache[f][corner]
+					if hasExplicitNormals then vNormal = explicitNormalsCache[f][corner]
 				)
 				else
 				(
-					-- Fallback to face normal
-					vNormal = faceNormals[f]
+					local faceNormalMap = vertexFaceClusterNormal[face[corner] as integer]
+					if faceNormalMap != undefined and faceNormalMap[f] != undefined then
+						vNormal = faceNormalMap[f]
 				)
+				writeFloat meshFile vNormal.x
+				writeFloat meshFile vNormal.y
+				writeFloat meshFile vNormal.z
 			)
-			else
-            (
-                local vIdx = vertIdx as integer
-                local faceNormalMap = vertexFaceClusterNormal[vIdx]
-                if faceNormalMap != undefined then
-                (
-                    local cachedNormal = faceNormalMap[f]
-                    if cachedNormal != undefined then
-                        vNormal = cachedNormal
-                    else
-                        vNormal = faceNormals[f]
-                )
-                else
-                (
-                    vNormal = faceNormals[f]
-                )
-            )
-			vertData.normal = #(vNormal.x, vNormal.y, vNormal.z)
-			
-			-- Handle skinning
-			if hasSkin then
-				(
-					-- Use pre-cached skin data instead of repeated skinOps calls
-					local boneWeights = cachedSkinData[vertIdx]
-					
-					-- Find top 2 weights (we only export 2 bone influences)
-					if boneWeights.count > 0 then
-					(
-						local maxWeight1 = boneWeights[1]
-						local maxWeight2 = undefined
-						
-						-- Find highest weight
-						for i = 2 to boneWeights.count do
-						(
-							if boneWeights[i][2] > maxWeight1[2] then
-								maxWeight1 = boneWeights[i]
-						)
-						
-						-- Find second highest weight
-						if boneWeights.count > 1 then
-						(
-							for i = 1 to boneWeights.count do
-							(
-								if boneWeights[i] != maxWeight1 then
-								(
-									if maxWeight2 == undefined or boneWeights[i][2] > maxWeight2[2] then
-										maxWeight2 = boneWeights[i]
-								)
-							)
-						)
-						
-						vertData.node0Index = maxWeight1[1]
-						
-						if maxWeight2 != undefined then
-						(
-							vertData.node1Index = maxWeight2[1]
-							vertData.node1Weight = maxWeight2[2]
-						)
-						else
-						(
-							vertData.node1Index = -1
-							vertData.node1Weight = 0.0
-						)
-					)
-					else
-					(
-						-- No valid weights, use parent
-						vertData.node0Index = parentNodeIndex
-						vertData.node1Index = -1
-						vertData.node1Weight = 0.0
-					)
-				)
-				else
-				(
-					vertData.node0Index = parentNodeIndex
-				vertData.node1Index = -1
-				vertData.node1Weight = 0.0
-			)
-			
-			-- Get texture coordinates for THIS FACE CORNER
-				if meshObj.numtverts > 0 then
-				(
-					local tvIdx = tvFace[corner] as integer
-					if tvIdx > 0 and tvIdx <= meshObj.numtverts then
-					(
-						local tvert = getTVert meshObj tvIdx
-						vertData.texturePos = #(tvert.x, tvert.y, 0)
-					)
-					else
-					(
-						vertData.texturePos = #(0.0, 0.0, 0)
-					)
-				)
-				else
-				(
-					vertData.texturePos = #(0.0, 0.0, 0)
-				)
-				
-				-- Vertex welding: check if we already have an identical vertex using hash lookup
-			-- Compute hash once and reuse it for both lookup and insertion
-			local hashKey = createVertexHash vertData.position vertData.normal vertData.texturePos vertData.node0Index vertData.node1Index vertData.node1Weight
-			local existingVertexIdx = vertexHashDict[hashKey]
-			
-			if existingVertexIdx != undefined then
-			(
-				-- Reuse existing vertex (already a global index, no offset needed)
-				append vertIndices existingVertexIdx
-			)
-			else
-			(
-				-- Add new vertex
-				append allVertices vertData
-				local globalIdx = allVertices.count - 1  -- Global index (0-based)
-				append vertIndices globalIdx
-				
-				-- Add to hash dictionary for future lookups (reuse computed hashKey)
-				vertexHashDict[hashKey] = globalIdx
-			)
-		)
-		
-		-- Set triangle vertex indices (vertIndices already contains global indices)
-		triData.vertexIndices = #(vertIndices[1], vertIndices[2], vertIndices[3])
-		
-			local smoothGroup = 0  -- Default to 0 (hard edges/no smoothing)
-			try (smoothGroup = getFaceSmoothGroup meshObj f) catch ()
-			if smoothGroup == undefined then smoothGroup = 0
-			
-			append allTriangles triData
-			append allSmoothingGroups smoothGroup
 		)
 		timeTriangleCreation += timestamp() - timeTriStart
-		
-		-- Update global vertex offset and clear per-object hash dictionary
-		globalVertexOffset = allVertices.count
-		vertexHashDict = dictionary #string  -- Reset dictionary for next object
-		
+
 		-- Clean up snapshot (always created now)
 		delete meshObj
 	)
-	
+	fclose meshFile
+
+	-- Lua merges the face corners into vertices (same rules as the previous MAXScript loop)
+	local timeLuaStart = timestamp()
+	local meshOutPath = (getDir #temp) + "\\hce_jms_mesh_out.bin"
+	deleteFile meshOutPath
+	local luaOk = luaRunScript "formats\\jms\\jms_cli.lua" #("mesh", meshPath, meshOutPath)
+	deleteFile meshPath
+	local outFile = if luaOk then luaOpenOutput meshOutPath "jms_mesh" 1 else undefined
+	if outFile == undefined then throw "Lua could not build the JMS vertices (see the log)"
+
+	allVertices = for i = 1 to (luaReadInt outFile) collect
+	(
+		local vert = vertices()
+		vert.node0Index = readLong outFile #signed
+		local x = readFloat outFile
+		local y = readFloat outFile
+		local z = readFloat outFile
+		vert.position = #(x, y, z)
+		x = readFloat outFile
+		y = readFloat outFile
+		z = readFloat outFile
+		vert.normal = #(x, y, z)
+		vert.node1Index = readLong outFile #signed
+		vert.node1Weight = readFloat outFile
+		local u = readFloat outFile
+		local v = readFloat outFile
+		vert.texturePos = #(u, v, 0)
+		vert
+	)
+	-- One triangle per face; its 3 vertices come from Lua
+	local faceCount = (luaReadInt outFile) / 3
+	allTriangles = for t = 1 to faceCount collect
+	(
+		local tri = triangles()
+		tri.regionIndex = faceRegions[t]
+		tri.shaderIndex = faceShaders[t]
+		local a = readLong outFile #signed
+		local b = readLong outFile #signed
+		local c = readLong outFile #signed
+		tri.vertexIndices = #(a, b, c)
+		tri
+	)
+	fclose outFile
+	deleteFile meshOutPath
+	local timeLua = timestamp() - timeLuaStart
+
 	-- Print detailed geometry timing
 	logger.info "Geometries: {} objects" args:#(objectCount)
 	logger.info "Region mapping: {} ms" args:#(timeRegionMapping)
 	logger.info "Triangle/vertex processing: {} ms" args:#(timeTriangleCreation)
-	
+	logger.info "Vertex building (Lua): {} ms" args:#(timeLua)
+
 	return #(allVertices, allTriangles, allSmoothingGroups)
 )
 
