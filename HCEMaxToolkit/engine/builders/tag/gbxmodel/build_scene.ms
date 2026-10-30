@@ -373,17 +373,14 @@ fn linkNodeHierarchy createdNodes nodeDataArray nodesLayer =
 	)
 )
 
-fn createGBXModelNodes nodes =
+fn createGBXModelNodes gbxNodes =
 (
-	if nodes == undefined or nodes.count == 0 then
+	if gbxNodes == undefined or gbxNodes.count == 0 then
 	(
 		logger.warn "No nodes found in model\n"
 		return #()
 	)
-	
-	-- Convert tuples to structs for fast access
-	local gbxNodes = tuplesToGBXModelStructs nodes #node
-	
+
 	-- Get "Nodes" layer once (avoid repeated lookups)
 	local nodesLayer = LayerManager.getLayerFromName "Nodes"
 	if nodesLayer == undefined then
@@ -440,22 +437,19 @@ fn createGBXModelNodes nodes =
 -- MARKER CREATION
 -------------------------------------------------------
 
-fn createGBXModelMarkers regions gbxNodes createdNodes =
+fn createGBXModelMarkers gbxRegions createdNodes =
 (
-	if regions == undefined or regions.count == 0 then
+	if gbxRegions == undefined or gbxRegions.count == 0 then
 	(
 		logger.debug "No regions found for markers"
 		return #()
 	)
-	
+
 	-- Get "Markers" layer once (avoid repeated lookups)
 	local markersLayer = LayerManager.getLayerFromName "Markers"
 	if markersLayer == undefined then
 		markersLayer = LayerManager.newLayerFromName "Markers"
-	
-	-- Convert tuples to structs
-	local gbxRegions = tuplesToGBXModelStructs regions #region
-	
+
 	local createdMarkers = #()
 	local markerSize = 1.0  -- Default marker radius
 	
@@ -574,257 +568,13 @@ fn createGBXModelMarkers regions gbxNodes createdNodes =
 -- GEOMETRY CREATION
 -------------------------------------------------------
 
--- Build mesh from part data (reads vertices/triangles on-demand from file)
-fn buildPartMesh fileHandle geometryIndex partIndex partStruct materialObj uScale:1.0 vScale:1.0 =
-(
-	-- Access part data directly from struct properties
-	local shaderIndex = partStruct.shaderIndex
-	local uncompVertArray = partStruct.uncompressedVerticesReflexive
-	local compVertArray = partStruct.compressedVerticesReflexive 
-	local trianglesArray = partStruct.trianglesReflexive
-	
-	local uncompVertCount = if uncompVertArray != undefined then uncompVertArray.count else 0
-	local compVertCount = if compVertArray != undefined then compVertArray.count else 0
-	local triangleCount = if trianglesArray != undefined then trianglesArray.count else 0
-	
-	-- Auto-detect best vertex format (validate compressed data if both exist)
-	local useCompressed = false
-	if compVertCount > 0 and uncompVertCount > 0 then
-	(
-		-- Both formats exist - always prefer compressed (faster to read and build)
-		useCompressed = true
-	)
-	else if compVertCount > 0 then
-	(
-		useCompressed = true  -- Only compressed exists
-	)
-	else if uncompVertCount > 0 then
-	(
-		useCompressed = false  -- Only uncompressed exists
-	)
-	
-	local vertexCount = if useCompressed then compVertCount else uncompVertCount
-	
-	if vertexCount == 0 or triangleCount == 0 then
-		return undefined
-	
-	-- Pre-allocate arrays
-	local vertexPositions = #()
-	vertexPositions.count = vertexCount
-	local uvCoords = #()
-	uvCoords.count = vertexCount
-	local normals = #()
-	normals.count = vertexCount
-	local nodeIndices = #()
-	nodeIndices.count = vertexCount
-	local nodeWeights = #()
-	nodeWeights.count = vertexCount
-	
-	-- Log which format is being used
-	local formatName = if useCompressed then "compressed" else "uncompressed"
-	logger.debug "Part {}: using {} vertices ({} comp, {} uncomp)" args:#(partIndex, formatName, compVertCount, uncompVertCount)
-	
-	-- Check for local node remapping (direct struct property access)
-	local localNodes = partStruct.localNodeIndices
-	local hasLocalNodes = (localNodes != undefined and localNodes.count > 0)
-	
-	if hasLocalNodes then
-		logger.debug "Part {}: Has {} local nodes: {}" args:#(partIndex, localNodes.count, (localNodes as string))
-	else
-		logger.debug "Part {}: No local nodes" args:#(partIndex)
-	
-	-- Process vertices (data is already in parsed arrays)
-	if useCompressed then
-	(
-		-- Convert all compressed vertices at once
-		local vertices = tuplesToGBXModelStructs compVertArray #compressedVertex
-		
-		-- NOTE: Compressed vertices DO NOT use local nodes - they use global node indices directly
-		-- Only uncompressed vertices can use local node remapping
-		
-		for v = 1 to vertexCount do
-		(
-			local vert = vertices[v]
-			
-			-- Position (already Point3)
-			vertexPositions[v] = vert.position * haloScale
-			
-			-- Decompress normal from packed uint32
-			normals[v] = decompressNormal vert.normal
-			
-			-- Decompress UV
-			uvCoords[v] = decompressUV vert.textureCoordinateU vert.textureCoordinateV uScale:uScale vScale:vScale
-			
-			-- Decompress node indices (compressed vertices use GLOBAL indices, no remapping)
-			local indices = decompressNodeIndices vert.nodeIndex0 vert.nodeIndex1
-			local idx0 = indices[1]
-			local idx1 = indices[2]
-			
-			-- Validate indices (fallback if invalid)
-			if idx0 < 1 or idx0 > 255 then idx0 = 1
-			if idx1 < 1 or idx1 > 255 then idx1 = idx0
-			
-			nodeIndices[v] = #(idx0, idx1)
-			
-			-- Decompress weight
-			local weight0 = decompressNodeWeight vert.nodeWeight0
-			-- Clamp weight to valid range
-			if weight0 < 0.0 then weight0 = 0.0
-			if weight0 > 1.0 then weight0 = 1.0
-			nodeWeights[v] = #(weight0, 1.0 - weight0)
-		)
-	)
-	else
-	(
-		-- Convert all uncompressed vertices at once
-		local vertices = tuplesToGBXModelStructs uncompVertArray #uncompressedVertex
-		
-		-- Get local nodes from struct property
-		local localNodes = partStruct.localNodeIndices
-		local hasLocalNodes = (localNodes != undefined and localNodes.count > 0)
-		
-		for v = 1 to vertexCount do
-		(
-			local vert = vertices[v]
-			
-			-- Position (already Point3)
-			vertexPositions[v] = vert.position * haloScale
-			
-			-- Normal (already Vector3D)
-			normals[v] = normalize [vert.normal.x, vert.normal.y, vert.normal.z]
-			
-			--UV (apply scale and flip V)
-			uvCoords[v] = [vert.textureCoordinateU * uScale, (1.0 - vert.textureCoordinateV) * vScale, 0]
-			
-			-- Node indices (store 0-based initially)
-			local localIdx0 = vert.nodeIndex0
-			local localIdx1 = vert.nodeIndex1
-			
-			-- Remap from local to global indices if needed
-			local idx0 = localIdx0
-			local idx1 = localIdx1
-			
-			if hasLocalNodes then
-			(
-				-- Remap using local node table
-				if localIdx0 >= 0 and localIdx0 < localNodes.count then
-					idx0 = localNodes[localIdx0 + 1]  -- Get global index from local table
-				else
-					idx0 = 0  -- Default to node 0 if out of range
-					
-				if localIdx1 >= 0 and localIdx1 < localNodes.count then
-					idx1 = localNodes[localIdx1 + 1]  -- Get global index from local table
-				else
-					idx1 = idx0  -- Use same as idx0 if invalid
-					
-				-- Log first vertex remapping
-				if v == 1 then
-					logger.info "Vert 1 remap: Local [{},{}] -> Global [{},{}]" args:#(localIdx0, localIdx1, idx0, idx1)
-			)
-			
-			-- Convert to 1-based for MaxScript
-			idx0 = idx0 + 1
-			idx1 = if idx1 >= 0 then (idx1 + 1) else idx0
-			
-			-- Clamp to valid range (fallback if indices are invalid)
-			if idx0 < 1 or idx0 > 255 then idx0 = 1
-			if idx1 < 1 or idx1 > 255 then idx1 = idx0
-			
-			nodeIndices[v] = #(idx0, idx1)
-			nodeWeights[v] = #(vert.nodeWeight0, vert.nodeWeight1)
-		)
-	)
-	
-	-- Process triangles (convert triangle strip to individual triangles)
-	-- Convert all triangles at once
-	local triangles = tuplesToGBXModelStructs trianglesArray #triangle
-	
-	local vertexOrder = #()
-	for t = 1 to triangleCount do
-	(
-		local tri = triangles[t]
-		
-		append vertexOrder (tri.vertex0 + 1)  -- Convert to 1-based
-		append vertexOrder (tri.vertex1 + 1)
-		append vertexOrder (tri.vertex2 + 1)
-	)
-	
-	-- Convert triangle strip to individual triangles
-	local triangleIndices = #()
-	for w = 1 to (vertexOrder.count - 2) do
-	(
-		append triangleIndices [vertexOrder[w], vertexOrder[w+1], vertexOrder[w+2]]
-	)
-	
-	-- Fix winding order for triangle strip (reverse odd triangles)
-	for r = 1 to triangleIndices.count by 2 do
-	(
-		local temp = triangleIndices[r][1]
-		triangleIndices[r][1] = triangleIndices[r][3]
-		triangleIndices[r][3] = temp
-	)
-	
-	-- Remove degenerate triangles
-	for i = triangleIndices.count to 1 by -1 do
-	(
-		local tri = triangleIndices[i]
-		if tri[1] == tri[2] or tri[2] == tri[3] or tri[1] == tri[3] or \
-			tri[1] > vertexCount or tri[2] > vertexCount or tri[3] > vertexCount or \
-			tri[1] <= 0 or tri[2] <= 0 or tri[3] <= 0 then
-		(
-			deleteItem triangleIndices i
-		)
-	)
-	
-	if triangleIndices.count == 0 then
-		return undefined
-	
-	-- Create mesh
-	local meshName = "geo_" + geometryIndex as string + "_part_" + partIndex as string
-	local meshObj = mesh vertices:vertexPositions faces:triangleIndices
-	meshObj.name = meshName
-	meshObj.wirecolor = color 200 200 200
-	
-	-- Clear smoothing groups (use explicit normals)
-	for i = 1 to meshObj.numfaces do
-		setFaceSmoothGroup meshObj i 0
-	
-	-- Apply UVs
-	if uvCoords.count == vertexPositions.count then
-	(
-		setNumTVerts meshObj uvCoords.count
-		buildTVFaces meshObj
-		
-		for i = 1 to uvCoords.count do
-			setTVert meshObj i uvCoords[i]
-		
-		for i = 1 to triangleIndices.count do
-			setTVFace meshObj i triangleIndices[i]
-		
-		update meshObj
-	)
-	
-	-- Set per-face material ID from shaderIndex unconditionally so the correct
-	-- IDs are preserved even when materialObj is undefined (geometry is built
-	-- before materials are resolved in buildGBXModelMesh)
-	local materialID = shaderIndex + 1
-	for i = 1 to meshObj.numfaces do
-		setFaceMatID meshObj i materialID
-	
-	-- Assign material object if already available
-	if materialObj != undefined then
-		meshObj.material = materialObj
-	
-	return #(meshObj, nodeIndices, nodeWeights, normals)
-)
-
 -- Build all geometry meshes
-fn createGBXModelGeometry regions geometries materialObj createdNodes uScale:1.0 vScale:1.0 =
+fn createGBXModelGeometry gbxRegions geometryMeshes materialObj createdNodes =
 (
-	if regions == undefined or regions.count == 0 then
+	if gbxRegions == undefined or gbxRegions.count == 0 then
 		return #()
 	
-	if geometries == undefined or geometries.count == 0 then
+	if geometryMeshes == undefined or geometryMeshes.count == 0 then
 		return #()
 	
 	local geometryLayer = LayerManager.getLayerFromName "Geometry Model"
@@ -837,10 +587,6 @@ fn createGBXModelGeometry regions geometries materialObj createdNodes uScale:1.0
 	-- Track meshes by region for Named Selection Sets
 	struct RegionMeshEntry (regionName, meshes = #())
 	local regionMeshMap = #()
-	
-	-- Convert to structs
-	local gbxRegions = tuplesToGBXModelStructs regions #region
-	local gbxGeometries = tuplesToGBXModelStructs geometries #geometry
 	
 	for region in gbxRegions do
 	(
@@ -860,70 +606,22 @@ fn createGBXModelGeometry regions geometries materialObj createdNodes uScale:1.0
 				local lodName = lodEntry[1]
 				local geoIndex = lodEntry[2]
 				
-				if geoIndex < 0 or geoIndex >= gbxGeometries.count then continue
+				if geoIndex < 0 or geoIndex >= geometryMeshes.count then continue
 				
 				local geometryIndex = geoIndex + 1
 				
 				if findItem importedGeometryIndices geometryIndex > 0 then continue
 				
-				local geometry = gbxGeometries[geometryIndex]
-				local parts = geometry.parts
-				
-				if parts == undefined or parts.count == 0 then continue
-				
+				local geoMesh = geometryMeshes[geometryIndex]
 				local meshName = region.name + " " + permutation.name + " " + lodName
 				
-				-- Accumulate all part data
-				local allVertices = #()
-				local allUVs = #()
-				local allNormals = #()
-				local allFaces = #()
-				local allMatIDs = #()
-				local allNodeIndices = #()
-				local allNodeWeights = #()
-				local vertexOffset = 0
-				
-				for partIdx = 1 to parts.count do
-				(
-					local partResult = buildPartMesh undefined geometryIndex partIdx parts[partIdx] materialObj uScale:uScale vScale:vScale
-					
-					if partResult == undefined then continue
-					
-					local tempMesh = partResult[1]
-					local partNodeIndices = partResult[2]
-					local partNodeWeights = partResult[3]
-					local partNormals = partResult[4]
-					
-					local numVerts = tempMesh.numVerts
-					local numFaces = tempMesh.numFaces
-					
-					-- Copy vertex data
-					for v = 1 to numVerts do
-						append allVertices (getVert tempMesh v)
-					
-					for v = 1 to numVerts do
-						append allNormals partNormals[v]
-					
-					for v = 1 to numVerts do
-						append allUVs (getTVert tempMesh v)
-					
-					for v = 1 to numVerts do
-					(
-						append allNodeIndices partNodeIndices[v]
-						append allNodeWeights partNodeWeights[v]
-					)
-					
-					-- Copy faces with offset
-					for f = 1 to numFaces do
-					(
-						local face = getFace tempMesh f
-						append allFaces [face[1] + vertexOffset, face[2] + vertexOffset, face[3] + vertexOffset]
-						append allMatIDs (getFaceMatID tempMesh f)
-					)
-					
-					vertexOffset += numVerts
-					delete tempMesh
-				)
+				local allVertices = geoMesh.positions
+				local allUVs = geoMesh.uvs
+				local allNormals = geoMesh.normals
+				local allFaces = geoMesh.faces
+				local allMatIDs = geoMesh.matIDs
+				local allNodeIndices = geoMesh.nodeIndices
+				local allNodeWeights = geoMesh.nodeWeights
 				
 				if allFaces.count == 0 then continue
 				
@@ -1104,66 +802,37 @@ fn createGBXModelMultiMaterial gbxmodelPath shaders gbxModelName =
 -- MAIN BUILD FUNCTION
 -------------------------------------------------------
 
-fn buildGBXModelMesh gbxModelData gbxModelName gbxmodelPath =
+-- model: GBXModel from readGbxModelWithLua (lua_reader.ms)
+fn buildGBXModelMesh model gbxModelName gbxmodelPath =
 (
-	--logger.info "Building GBX Model: {}" args:#(gbxModelName)
-	-- Extract parsed data
-	local nodes = getFieldValue gbxModelData "nodes"
-	local shaders = getFieldValue gbxModelData "shaders"
-	local regions = getFieldValue gbxModelData "regions"
-	local markers = getFieldValue gbxModelData "markers"  -- Root level markers
-	
-	-- Extract UV scales from tag (default to 1.0 if not present or zero)
-	local baseMapUScale = getFieldValue gbxModelData "baseMapUScale"
-	local baseMapVScale = getFieldValue gbxModelData "baseMapVScale"
-	
-	-- Default to 1.0 if undefined or near-zero
-	if baseMapUScale == undefined or (abs baseMapUScale) < 0.0001 then baseMapUScale = 1.0
-	if baseMapVScale == undefined or (abs baseMapVScale) < 0.0001 then baseMapVScale = 1.0
-	
-	logger.info "UV Scales: U: {}, V: {}" args:#(baseMapUScale, baseMapVScale)
+	logger.info "UV Scales: U: {}, V: {}" args:#(model.uScale, model.vScale)
 	
 	-- Create nodes (skeleton) FIRST
 	local t1 = timestamp()
-	local createdNodes = createGBXModelNodes nodes
+	local createdNodes = createGBXModelNodes model.nodes
 	logger.info "Nodes created: {} in {} ms" args:#(createdNodes.count, (timestamp() - t1))
-	
-	-- Convert nodes to structs for marker creation
-	local gbxNodes = tuplesToGBXModelStructs nodes #node
 	
 	-- Create markers from regions/permutations (local markers)
 	local t2 = timestamp()
-	local createdMarkers = createGBXModelMarkers regions gbxNodes createdNodes
+	local createdMarkers = createGBXModelMarkers model.regions createdNodes
 	logger.info "Markers created: {} in {} ms" args:#(createdMarkers.count, (timestamp() - t2))
-	
-	-- Create markers from root level (global marker instances)
-	if markers != undefined and markers.count > 0 then
-	(
-		-- TODO: Implement root level marker instances
-		logger.warn "Root level markers not yet implemented"
-	)
 	
 	-- Create geometry meshes (WITHOUT materials yet)
 	local t3 = timestamp()
-	local geometriesArray = getFieldValue gbxModelData "geometries"
-	local createdMeshes = createGBXModelGeometry regions geometriesArray undefined createdNodes uScale:baseMapUScale vScale:baseMapVScale
+	local createdMeshes = createGBXModelGeometry model.regions model.geometries undefined createdNodes
 	logger.info "Geometry built: {} in {} ms" args:#(createdMeshes.count, (timestamp() - t3))
 	
 	-- Create materials LAST (reads shader tag files separately)
 	local t4 = timestamp()
-	local multiMat = createGBXModelMultiMaterial gbxmodelPath shaders gbxModelName
+	local multiMat = createGBXModelMultiMaterial gbxmodelPath model.shaders gbxModelName
 	if multiMat != undefined then
 	(
 		meditMaterials[1] = multiMat
-		-- Apply material to all created meshes
 		for mesh in createdMeshes where mesh != undefined do
-		(
 			mesh.material = multiMat
-		)
 	)
 	local matCount = if multiMat != undefined then 1 else 0
 	logger.info "Materials created: {} in {} ms" args:#(matCount, (timestamp() - t4))
-	
 	
 	return createdMeshes
 )

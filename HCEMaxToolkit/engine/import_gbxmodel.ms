@@ -23,153 +23,77 @@ logger.loadConfig callerScriptName:scriptName
 logger.log "=== IMPORTING GBX MODEL ==="
 
 -- Load required modules
-include "core\\halo1\\core_defs.ms"
-include "core\\halo1\\parser.ms"
-include "core\\halo1\\groups\\gbxmodel.ms"
-include "core\\halo1\\groups\\shader.ms"
-include "core\\halo1\\groups\\shader_environment.ms"
-include "core\\halo1\\groups\\shader_model.ms"
-include "core\\halo1\\groups\\shader_model_extended.ms"
-include "core\\halo1\\groups\\shader_transparent_chicago.ms"
-include "core\\halo1\\groups\\shader_transparent_chicago_extended.ms"
-include "core\\halo1\\groups\\shader_transparent_generic.ms"
-include "core\\halo1\\groups\\shader_transparent_glass.ms"
-include "core\\halo1\\groups\\shader_transparent_meter.ms"
-include "core\\halo1\\groups\\shader_transparent_plasma.ms"
-include "core\\halo1\\groups\\shader_transparent_water.ms"
-include "builders\\tag\\gbxmodel\\struct_mapper.ms"
+include "builders\\tag\\gbxmodel\\model_data.ms"
+include "builders\\tag\\gbxmodel\\lua_reader.ms"
 include "builders\\tag\\shared\\shader_resolver.ms"
 include "builders\\tag\\shared\\dx_material_builder.ms"
 include "builders\\tag\\shared\\viewport_material.ms"
 include "builders\\tag\\gbxmodel\\build_scene.ms"
 
 -------------------------------------------------------
--- READ TAG FUNCTION
+-- MAIN IMPORT FUNCTIONS
 -------------------------------------------------------
 
-fn readGbxModelTag tagPath tagDef =
+fn isGbxModelTag tagPath = (getTagClass tagPath) == "mod2"
+
+-- Imports one file without dialogs. Returns the created meshes, or undefined on failure.
+fn importGbxModelFile gbxModelFile =
 (
-    local fileGbxModel = fopen tagPath "rb"
-    if fileGbxModel == undefined then
+    if not (isGbxModelTag gbxModelFile) then
     (
-        logger.error "Cannot open file: {}" args:#(tagPath)
-        return undefined
-    )
-    
-    logger.info "File opened successfully\n"
-    setCurrentFileHandle fileGbxModel
-
-    if tagDef == undefined then
-    (
-        logger.error "tagDef is undefined\n"
-        fclose fileGbxModel
+        logger.error "Not a gbxmodel tag: '{}'" args:#(gbxModelFile)
         return undefined
     )
 
-    -- Set default base address for Halo CE
-    setTagMemoryBaseAddress 0x40440000
-    
-    -- Skip to tag data (after 64-byte header)
-    fseek fileGbxModel 64 #seek_set
-    
-    logger.info "=== READING GBX MODEL ==="
+    local readStartTime = timestamp()
+    local model = readGbxModelWithLua gbxModelFile
+    if model == undefined then return undefined
+    logger.info "Reading: {} seconds" args:#((timestamp() - readStartTime) / 1000.0)
 
-    local skipUncompressed = configManager.getBool \
-        "import_gbxmodel" \
-        "skip_uncompressed_vertices" \
-        true
+    logger.log "=== BUILDING GBX MODEL ==="
+    local buildStartTime = timestamp()
+    local createdMeshes = buildGBXModelMesh model (getFilenameFile gbxModelFile) gbxModelFile
+    logger.info "Scene building: {} seconds" args:#((timestamp() - buildStartTime) / 1000.0)
 
-    local skipBlocksArray = if skipUncompressed then #("uncompressedVertices") else #()
-    
-    logger.info "Skip uncompressed vertices: {}" args:#(skipUncompressed)
-    -- Read all tag data
-    local gbxModelData = readRootTagData tagDef.tagBlock skipBlocks:skipBlocksArray
-    fclose fileGbxModel
-    
-    return gbxModelData
+    completeRedraw()
+    createdMeshes
 )
-
--------------------------------------------------------
--- MAIN IMPORT FUNCTION
--------------------------------------------------------
 
 fn ImportGbxModel =
 (
-    -- Open file dialog
     local gbxModelFile = getOpenFileName \
 		caption:"Select Halo CE GBX Model Tag" \
 		types:"GBX Model (*.gbxmodel)|*.gbxmodel|All Files (*.*)|*.*" \
 		historyCategory:"HaloCEGBXModel"
-    
-    if gbxModelFile == undefined then 
+
+    if gbxModelFile == undefined then
     (
         logger.warn "Import cancelled by user.\n"
         return undefined
     )
-    
-    -- Start timing AFTER file selection
-    local startTime = timestamp()
-    
-    -- Detect tag class from file
-    local tagClass = getTagClass gbxModelFile
 
-    logger.info "Detected tagClass: '{}'" args:#(tagClass)
-    
-    -- Get tag definition
-    local tagDef = getTagDefByClass tagClass
-    
-    if tagDef == undefined then
+    if not (isGbxModelTag gbxModelFile) then
     (
-        --
-        logger.error "Unknown or unsupported tag class: '{}'" args:#(tagClass)
         messageBox "Unsupported tag type!" title:"Import Failed"
         return undefined
     )
 
-    local tagsPos = findString gbxModelFile "tags\\"
-    local displayPath = if tagsPos != undefined then (substring gbxModelFile tagsPos -1) else (filenameFromPath gbxModelFile)
-    logger.info "Opening tag file: '{}'" args:#(displayPath)
-    
-    -- Read GBX model data using parser
-    local readStartTime = timestamp()
-    local gbxModelData = readGbxModelTag gbxModelFile tagDef
-    local readEndTime = timestamp()
-    local readTime = (readEndTime - readStartTime) / 1000.0
-    
-    if gbxModelData == undefined then
+    local startTime = timestamp()
+    local createdMeshes = importGbxModelFile gbxModelFile
+    local elapsedTime = (timestamp() - startTime) / 1000.0
+
+    if createdMeshes == undefined then
     (
         messageBox "Failed to read GBX model tag!" title:"Import Failed"
         return undefined
     )
-    logger.info "Reading: {} seconds" args:#(readTime)
-    logger.log "GBX Model reading complete\n"
-    -- Build GBX model geometry
-    logger.log "=== BUILDING GBX MODEL ==="
-    local gbxModelName = getFilenameFile gbxModelFile
-    
-    -- buildGBXModelMesh expects the parsed data, model name, and file path
-    local buildStartTime = timestamp()
-    local createdMeshes = buildGBXModelMesh gbxModelData gbxModelName gbxModelFile
-    local buildEndTime = timestamp()
-    local buildTime = (buildEndTime - buildStartTime) / 1000.0
-    
-    logger.info "Scene building: {} seconds" args:#(buildTime)
-    logger.log "GBX Model build complete\n"
-    
-    -- Refresh viewport
-    completeRedraw()
-    
-    local endTime = timestamp()
-    local elapsedTime = (endTime - startTime) / 1000.0
-    
+
     logger.log "=== IMPORT SUMMARY ==="
     logger.info "Total time: {} seconds" args:#(elapsedTime)
     logger.log "GBX Model import complete\n\n"
-    
-    local showDialogs = configManager.getBool "feedback" "show_completion_dialogs" true
 
-    -- Show success message
-    if showDialogs and createdMeshes != undefined and createdMeshes.count > 0 then
+    local showDialogs = configManager.getBool "feedback" "show_completion_dialogs" true
+    if showDialogs and createdMeshes.count > 0 then
     (
         local fileName = filenameFromPath gbxModelFile
         messageBox ("GBX model imported successfully!\n\n" + \
@@ -179,9 +103,11 @@ fn ImportGbxModel =
                     title:"Import Complete" \
                     beep:false
     )
-    
+
     clearListener()
     return createdMeshes
 )
--- === Run - auto-detects tag type from file ===
-ImportGbxModel()
+
+-- Tests set importerNoAutoRun = true to load these functions without importing.
+global importerNoAutoRun
+if importerNoAutoRun != true do ImportGbxModel()
