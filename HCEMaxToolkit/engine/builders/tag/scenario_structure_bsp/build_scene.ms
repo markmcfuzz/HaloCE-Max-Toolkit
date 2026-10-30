@@ -131,8 +131,7 @@ fn createBSPCollisionMaterial collisionMaterials bspName surfaceFlagsArray =
 	-- Slots 2..N+1: collision materials
 	for i = 1 to matColCount do
 	(
-		local mat = collisionMaterials[i]
-		local shaderRef = getFieldValue mat "shader"
+		local shaderRef = collisionMaterials[i]
 		-- shaderRef is a #name Dictionary; keys are name literals, access with [#key]
 		local shaderPathStr = if shaderRef != undefined and classOf shaderRef == Dictionary \
 			then shaderRef[#path] \
@@ -219,7 +218,7 @@ fn buildBSPCollisionMesh bsp multiMat meshName frameNode bspModelLayer \
 	local vertArray = #()
 	vertArray.count = bsp.vertices.count
 	for i = 1 to bsp.vertices.count do
-		vertArray[i] = bsp.vertices[i].point * haloScale
+		vertArray[i] = bsp.vertices[i] * haloScale
 	-- Single-sided geometry
 	local ssFaceArray  = #()
 	local ssMatIDArray = #()
@@ -459,11 +458,10 @@ fn buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName frameNode bsp
 				local mat = lm.materials[mi]
 
 				-- Vertices, UVs, and normals
-				for vi = 1 to mat.vertices.count do (
-					local v = mat.vertices[vi]
-					vertArray[vertOffset + vi]   = v.pos
-					uvArray[vertOffset + vi]     = v.uv
-					normalArray[vertOffset + vi] = v.normal
+				for vi = 1 to mat.positions.count do (
+					vertArray[vertOffset + vi]   = mat.positions[vi]
+					uvArray[vertOffset + vi]     = mat.uvs[vi]
+					normalArray[vertOffset + vi] = mat.normals[vi]
 				)
 				-- Faces: surfaces are indexed from the global surfaces array.
 				-- Winding is reversed (v2, v1, v0) to correct face normals (same as Blender).
@@ -557,11 +555,10 @@ fn buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName frameNode bsp
 			for mi = 1 to lm.materials.count do (
 				local mat = lm.materials[mi]
 				-- Vertices, UVs, normals
-				for vi = 1 to mat.vertices.count do (
-					local v = mat.vertices[vi]
-					vertArray[vOff + vi]   = v.pos
-					uvArray[vOff + vi]     = v.uv
-					normalArray[vOff + vi] = v.normal
+				for vi = 1 to mat.positions.count do (
+					vertArray[vOff + vi]   = mat.positions[vi]
+					uvArray[vOff + vi]     = mat.uvs[vi]
+					normalArray[vOff + vi] = mat.normals[vi]
 				)
 				-- Register or look up global material ID (GlyphFX DX material, else textured/checker)
 				local shaderName = if mat.shaderName != "" then mat.shaderName else "material_unknown"
@@ -984,9 +981,14 @@ fn buildBSPMarkers markersData frameNode markersLayer \
 -- MAIN ENTRY POINT
 -------------------------------------------------------
 
-fn buildBSPMesh bspData lightmapsRenderData bspName bspFilePath = (
+fn buildBSPMesh bspData bspName bspFilePath = (
 	-- Fresh shader parse cache for this import (tags may have changed on disk)
 	resetShaderResolverCache()
+	-- Read every render material's shader in one Lua run
+	local shaderFiles = #()
+	for lm in bspData.lightmaps do
+		for mat in lm.materials do append shaderFiles (shaderFilePathOf bspFilePath mat.shaderStruct)
+	prefetchShaderTags shaderFiles
 
 	-- Read import settings
 	local useDxMaterials       = configManager.getBool "visual" "use_directx_materials" true
@@ -1014,12 +1016,10 @@ fn buildBSPMesh bspData lightmapsRenderData bspName bspFilePath = (
 	-- Create (or find existing) frame node
 	local frameNode = getOrCreateFrameNode()
 
-	-- Get collision materials from parsed data
-	local collisionMaterials = getFieldValue bspData "collisionMaterials"
-	if collisionMaterials == undefined then collisionMaterials = #()
+	-- Collision materials are shader tag references
+	local collisionMaterials = bspData.collisionMaterials
 
-	-- Convert collisionBsp to fast-access structs
-	local bsp = convertCollisionBspData bspData
+	local bsp = bspData.collisionBsp
 	if bsp == undefined then (
 		logger.warn "No collision BSP data found."
 		return #()
@@ -1073,19 +1073,17 @@ fn buildBSPMesh bspData lightmapsRenderData bspName bspFilePath = (
 	)
     --
 	-- Build render geometry from lightmaps data
-	local globalSurfaceTuples = getFieldValue bspData "surfaces"
-	local globalSurfaces = if globalSurfaceTuples != undefined then \
-		mapBSPRenderSurfaces globalSurfaceTuples else #()
+	local globalSurfaces = bspData.renderSurfaces
+	local lightmapsRenderData = bspData.lightmaps
 
-	if lightmapsRenderData != undefined and lightmapsRenderData.count > 0 then (
+	if lightmapsRenderData.count > 0 then (
 		local renderMeshes = buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName bspContainer renderBspLayer \
 			mergeAllClusters:mergeAllClusters ssMat:ssMat tsMat:tsMat bspFilePath:bspFilePath useDxMaterials:useDxMaterials
 		for m in renderMeshes do append createdMeshes m
 	)
 
 	-- Build portals
-	local clusterPortalsRaw = getFieldValue bspData "clusterPortals"
-	local portalsData = mapBSPPortals clusterPortalsRaw
+	local portalsData = bspData.portals
 	if importPortalsCfg and portalsData.count > 0 then (
 		local portalContainer = createHaloContainer \
             name:"/Portal" \
@@ -1098,8 +1096,7 @@ fn buildBSPMesh bspData lightmapsRenderData bspName bspFilePath = (
 	)
 
 	-- Build fog planes
-	local fogPlanesRaw = getFieldValue bspData "fogPlanes"
-	local fogPlanesData = mapBSPFogPlanes fogPlanesRaw
+	local fogPlanesData = bspData.fogPlanes
 	if importFogPlanesCfg and fogPlanesData.count > 0 then (
 		local fogContainer = createHaloContainer \
             name:"/Fog Plane" \
@@ -1112,8 +1109,7 @@ fn buildBSPMesh bspData lightmapsRenderData bspName bspFilePath = (
 	)
 
 	-- Build weather polyhedra
-	local weatherPolyRaw = getFieldValue bspData "weatherPolyhedra"
-	local weatherPolyData = mapBSPWeatherPolyhedra weatherPolyRaw
+	local weatherPolyData = bspData.weatherPolyhedra
 	if importWeatherPolyCfg and weatherPolyData.count > 0 then (
 		local weatherContainer = createHaloContainer \
             name:"/Weather Polyhedra" \
@@ -1126,8 +1122,7 @@ fn buildBSPMesh bspData lightmapsRenderData bspName bspFilePath = (
 	)
 
 	-- Build markers
-	local markersRaw = getFieldValue bspData "markers"
-	local markersData = mapBSPMarkers markersRaw
+	local markersData = bspData.markers
 	if importMarkersCfg and markersData.count > 0 then (
 		local markerContainer = createHaloContainer \
             name:"/Markers" \
