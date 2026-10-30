@@ -109,6 +109,7 @@ fn importJmaFile jmaFile:undefined =
 		successMsg += "File: " + fileName + "\n"
 		successMsg += "Frames: " + (jmaData.frameCount as string) + "\n"
 		successMsg += "Frame Rate: " + (jmaData.frameRate as string) + " fps\n"
+		successMsg += "Time: " + (formattedPrint totalTime format:".3f") + " seconds\n"
 		
 		if missingNodes.count > 0 then
 			successMsg += "\nNote: " + (missingNodes.count as string) + " node(s) were not found in scene."

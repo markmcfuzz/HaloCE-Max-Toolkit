@@ -10,33 +10,81 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
+-- Reads JMA/JMO/JMR/... files through formats\jma\jma_cli.lua (formats\jma\jma.lua).
+-- Returns the same jmaFile struct (jma_struct.ms) as the previous MAXScript reader.
+
 -- Supported JMA version
 global SUPPORTED_JMA_VERSION = 16392
 
+-- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
+global luaRunScript
+if luaRunScript == undefined and rootEngine != undefined do
+	fileIn (rootEngine + "shared\\utils\\lua_bridge.ms")
+
 -------------------------------------------------------
--- SECTION READERS
+-- MAIN READ FUNCTION
 -------------------------------------------------------
 
--- Read JMA header (version, frame count, frame rate, actor info, node info)
-fn readJmaHeader fileStream jmaData =
+-- Read a complete JMA file and return a jmaFile struct with all data (undefined on error)
+fn readJmaFile filePath =
 (
-	jmaData.jmaVersion = readIntValue fileStream
-	
-	-- Validate version
-	if jmaData.jmaVersion != SUPPORTED_JMA_VERSION then
+	logger.log "=== READING JMA FILE ==="
+	logger.info "File: '{}'" args:#(filePath)
+
+	local outPath = (getDir #temp) + "\\hce_jma_read.bin"
+	deleteFile outPath
+	if not (luaRunScript "formats\\jma\\jma_cli.lua" #("read", filePath, outPath)) then
 	(
-		logger.error "Unsupported JMA version: {}" args:#(jmaData.jmaVersion)
-		logger.error "Expected version: {}" args:#(SUPPORTED_JMA_VERSION)
-		return false
+		logger.error "Error reading JMA file: '{}'" args:#(filePath)
+		return undefined
 	)
-	
-	jmaData.frameCount = readIntValue fileStream
-	jmaData.frameRate = readIntValue fileStream
-	jmaData.actorNamesIndex = readIntValue fileStream
-	jmaData.actorNames = readLineFromStream fileStream
-	jmaData.nodeCount = readIntValue fileStream
-	jmaData.nodeChecksum = readIntValue fileStream
-	
+	local f = luaOpenOutput outPath "jma" 1
+	if f == undefined then return undefined
+
+	local jmaData = jmaFile()
+	jmaData.jmaVersion = luaReadInt f
+	jmaData.frameCount = luaReadInt f
+	jmaData.frameRate = luaReadInt f
+	jmaData.actorNamesIndex = luaReadInt f
+	jmaData.actorNames = readString f
+	jmaData.nodeCount = luaReadInt f
+	jmaData.nodeChecksum = luaReadInt f
+
+	jmaData.nodes = for i = 1 to jmaData.nodeCount collect
+	(
+		local nodeName = readString f
+		local firstChild = luaReadInt f
+		local nextSibling = luaReadInt f
+		jmaNodes nodeName:nodeName firstChildNodeIndex:firstChild nextSiblingNodeIndex:nextSibling
+	)
+
+	-- Rotations arrive as written in the file; normalized here like the previous reader did
+	jmaData.frames = for fr = 1 to jmaData.frameCount collect
+	(
+		local frameData = jmaFrameData()
+		frameData.nodeFrames = for n = 1 to jmaData.nodeCount collect
+		(
+			local translation = luaReadPoint3 f
+			local qi = readFloat f
+			local qj = readFloat f
+			local qk = readFloat f
+			local qw = readFloat f
+			local nodeScale = readFloat f
+			jmaNodeFrame translation:translation rotation:(normalize (quat qi qj qk qw)) scale:nodeScale
+		)
+		frameData
+	)
+
+	-- Scale lines that were not numbers stay undefined, as before
+	for i = 1 to (luaReadInt f) do
+	(
+		local fr = luaReadInt f
+		local n = luaReadInt f
+		jmaData.frames[fr].nodeFrames[n].scale = undefined
+	)
+	fclose f
+	deleteFile outPath
+
 	logger.info "JMA Version: {}" args:#(jmaData.jmaVersion)
 	logger.info "Frame Count: {}" args:#(jmaData.frameCount)
 	logger.info "Frame Rate: {}" args:#(jmaData.frameRate)
@@ -44,108 +92,8 @@ fn readJmaHeader fileStream jmaData =
 	logger.info "Actor Name: {}" args:#(jmaData.actorNames)
 	logger.info "Node Count: {}" args:#(jmaData.nodeCount)
 	logger.info "Node Checksum: {}" args:#(jmaData.nodeChecksum)
-	
-	return true
+	logger.info "JMA file read successfully!\n"
+	jmaData
 )
 
--- Read all nodes (name, first child index, next sibling index)
-fn readJmaNodes fileStream jmaData =
-(
-	logger.info "Reading {} nodes..." args:#(jmaData.nodeCount)
-	
-	jmaData.nodes = #()
-	
-	for i = 1 to jmaData.nodeCount do
-	(
-		local node = jmaNodes()
-		
-		node.nodeName = readLineFromStream fileStream
-		node.firstChildNodeIndex = readIntValue fileStream
-		node.nextSiblingNodeIndex = readIntValue fileStream
-		
-		append jmaData.nodes node
-	)
-	
-	return true
-)
-
--- Read all frames and keyframe data
-fn readJmaFrames fileStream jmaData =
-(
-	logger.info "Reading {} frames..." args:#(jmaData.frameCount)
-	
-	jmaData.frames = #()
-	
-	for f = 1 to jmaData.frameCount do
-	(
-		local frameData = jmaFrameData()
-		frameData.nodeFrames = #()
-		
-		for n = 1 to jmaData.nodeCount do
-		(
-			local nodeFrame = jmaNodeFrame()
-			
-			nodeFrame.translation = readVectorValue fileStream
-			nodeFrame.rotation = readQuatValue fileStream
-			nodeFrame.scale = readFloatValue fileStream
-			
-			append frameData.nodeFrames nodeFrame
-		)
-		
-		append jmaData.frames frameData
-	)
-	
-	return true
-)
-
--------------------------------------------------------
--- MAIN READ FUNCTION
--------------------------------------------------------
-
--- Read a complete JMA file and return a jmaFile struct with all data
-fn readJmaFile filePath =
-(
-	logger.log "=== READING JMA FILE ==="
-	logger.info "File: '{}'" args:#(filePath)
-	
-	-- Create the data structure
-	local jmaData = jmaFile()
-	
-	-- Open the file for reading
-	local fileStream = openFile filePath mode:"r"
-	
-	if fileStream == undefined then
-	(
-		logger.error "Failed to open JMA file: '{}'" args:#(filePath)
-		return undefined
-	)
-	
-	try
-	(
-		-- Read header
-		if not (readJmaHeader fileStream jmaData) then
-			throw "Failed to read header - unsupported file version"
-		
-		-- Read nodes
-		if not (readJmaNodes fileStream jmaData) then
-			throw "Failed to read nodes"
-		
-		-- Read frame data
-		if not (readJmaFrames fileStream jmaData) then
-			throw "Failed to read frames"
-		
-		logger.info "JMA file read successfully!\n"
-	)
-	catch
-	(
-		logger.error "Error reading JMA file: {}" args:#(getCurrentException())
-		close fileStream
-		return undefined
-	)
-	
-	-- Close the file
-	close fileStream
-	return jmaData
-)
 scriptName = getFilenameFile (getThisScriptFilename()) + getFilenameType (getThisScriptFilename())
-logger.info "{} loaded." args:#(scriptName)

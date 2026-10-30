@@ -10,136 +10,92 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--------------------------------------------------------
--- SECTION WRITERS
--------------------------------------------------------
+-- Writes JMA/JMO/JMR/... files through formats\jma\jma_cli.lua (formats\jma\jma.lua):
+-- the data goes to Lua as binary and Lua writes the same text the previous MAXScript writer did.
 
--- Write JMA header (version, frame count, frame rate, actor info, node count, node checksum)
-fn writeHeader fileStream jmaData =
-(
-	format "%\n" jmaData.jmaVersion to:fileStream
-	format "%\n" jmaData.frameCount to:fileStream
-	format "%\n" jmaData.frameRate to:fileStream
-	format "%\n" jmaData.actorNamesIndex to:fileStream
-	format "%\n" jmaData.actorNames to:fileStream
-	format "%\n" jmaData.nodeCount to:fileStream
-	format "%\n" jmaData.nodeChecksum to:fileStream
-)
-
--- Write all nodes
-fn writeNodes fileStream jmaData =
-(
-	-- Write each node
-	for node in jmaData.nodes do
-	(
-		format "%\n" node.nodeName to:fileStream
-		format "%\n" node.firstChildNodeIndex to:fileStream
-		format "%\n" node.nextSiblingNodeIndex to:fileStream
-	)
-)
-
--- Write all keyframes
-fn writeKeyframes fileStream jmaData =
-(
-	-- Build keyframes in batches for better performance
-	local batchSize = 500000  -- Process 500000 frames at a time
-	local ss = StringStream ""
-	local frameCount = jmaData.keyframes.count
-	
-	for frameIdx = 1 to frameCount do
-	(
-		local keyframe = jmaData.keyframes[frameIdx]
-		local nodeCount = keyframe.nodeTranslation.count
-		
-		if frameIdx == 1 then
-		(
-			logger.debug "'frame 1' trans[1] = {} rot[1] = {} scl[1] = {}" args:#(
-				keyframe.nodeTranslation[1], keyframe.nodeRotation[1], keyframe.nodeScale[1])
-		)
-		
-		-- Write transform data for each node in this frame
-		for nodeIdx = 1 to nodeCount do
-		(
-			local trans = keyframe.nodeTranslation[nodeIdx]
-			local rot = keyframe.nodeRotation[nodeIdx]
-			local scl = keyframe.nodeScale[nodeIdx]
-			if scl == undefined then scl = 1.0
-			
-			-- Write translation (x, y, z)
-			format "%\t%\t%\n" (formatFloat trans[1]) (formatFloat trans[2]) (formatFloat trans[3]) to:ss
-			
-			-- Write rotation (i, j, k, w)
-			format "%\t%\t%\t%\n" (formatFloat rot[1]) (formatFloat rot[2]) (formatFloat rot[3]) (formatFloat rot[4]) to:ss
-			
-			-- Write scale (uniform)
-			format "%\n" (formatFloat scl) to:ss
-		)
-		
-		-- Write batch when buffer is full or at end
-		if (mod frameIdx batchSize) == 0 or frameIdx == frameCount then
-		(
-			format "%" (ss as string) to:fileStream
-			ss = StringStream ""
-		)
-	)
-)
+-- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
+global luaRunScript
+if luaRunScript == undefined and rootEngine != undefined do
+	fileIn (rootEngine + "shared\\utils\\lua_bridge.ms")
 
 -------------------------------------------------------
 -- MAIN EXPORT FUNCTION
 -------------------------------------------------------
 
--- Write complete JMA file
+-- Write complete JMA file. jmaData.keyframes: jmaKeyframes with per-node arrays
+-- (translation #(x,y,z), rotation #(i,j,k,w), scale). Returns #(success, writeTimeMs).
 fn writeJmaFile filePath jmaData =
 (
 	logger.log "=== WRITING JMA FILE ==="
 	logger.info "Output: '{}'" args:#(filePath)
-	
+
 	local writeStartTime = timestamp()
-	
-	-- Create/open file for writing
-	if doesFileExist filePath do deleteFile filePath
-	local fileStream = createFile filePath
-	
-	--logger.debug "createFile returned: {} " args:#(fileStream, classOf fileStream)
-	
-	if fileStream == undefined or fileStream == OK then
-	(
-		logger.error "Failed to create file: '{}'" args:#(filePath)
-		return #(false, 0)
-	)
-	
+	local inPath = (getDir #temp) + "\\hce_jma_write.bin"
+	local ok = false
+	local f = undefined
 	try
 	(
-		-- Write all sections in order
-		logger.info "writeHeader starting"
-		writeHeader fileStream jmaData
-		logger.info "writeNodes starting"
-		writeNodes fileStream jmaData
-		logger.info "writeKeyframes starting"
-		writeKeyframes fileStream jmaData
-		logger.info "writeKeyframes done"
-		
-		-- Close file
-		close fileStream
-		
-		local writeTime = timestamp() - writeStartTime
-		
-		logger.info "Version: {}" args:#(jmaData.jmaVersion)
-		logger.info "Frames: {}" args:#(jmaData.frameCount)
-		logger.info "Frame Rate: {}" args:#(jmaData.frameRate)
-		logger.info "Nodes: {}" args:#(jmaData.nodeCount)
-		logger.info "Actor: '{}'" args:#(jmaData.actorNames)
-		--logger.info "JMA file written: {} ms" args:#(writeTime)
-		--logger.log "JMA file written successfully\n"
-		
-		return #(true, writeTime)
+		f = fopen inPath "wb"
+		luaWriteString f "jma"
+		luaWriteInt f 1
+		luaWriteInt f jmaData.jmaVersion
+		luaWriteInt f jmaData.frameCount
+		luaWriteInt f jmaData.frameRate
+		luaWriteInt f jmaData.actorNamesIndex
+		luaWriteString f jmaData.actorNames
+		luaWriteInt f jmaData.nodeCount
+		luaWriteInt f jmaData.nodeChecksum
+
+		luaWriteInt f jmaData.nodes.count
+		for node in jmaData.nodes do
+		(
+			luaWriteString f node.nodeName
+			luaWriteInt f node.firstChildNodeIndex
+			luaWriteInt f node.nextSiblingNodeIndex
+		)
+
+		-- Every keyframe writes all the entries it has; a missing scale is written as 1
+		luaWriteInt f jmaData.keyframes.count
+		for keyframe in jmaData.keyframes do
+		(
+			luaWriteInt f keyframe.nodeTranslation.count
+			for n = 1 to keyframe.nodeTranslation.count do
+			(
+				local trans = keyframe.nodeTranslation[n]
+				local rot = keyframe.nodeRotation[n]
+				local scl = keyframe.nodeScale[n]
+				if scl == undefined then scl = 1.0
+				for i = 1 to 3 do luaWriteFloat f trans[i]
+				for i = 1 to 4 do luaWriteFloat f rot[i]
+				luaWriteFloat f scl
+			)
+		)
+		fclose f
+		f = undefined
+
+		if doesFileExist filePath do deleteFile filePath
+		ok = luaRunScript "formats\\jma\\jma_cli.lua" #("write", inPath, filePath)
 	)
 	catch
 	(
 		logger.error "Error writing JMA file: {}" args:#(getCurrentException())
-		close fileStream
+		if f != undefined do fclose f
+	)
+	deleteFile inPath
+
+	if not ok then
+	(
+		logger.error "Failed to create file: '{}'" args:#(filePath)
 		return #(false, 0)
 	)
+
+	local writeTime = timestamp() - writeStartTime
+	logger.info "Version: {}" args:#(jmaData.jmaVersion)
+	logger.info "Frames: {}" args:#(jmaData.frameCount)
+	logger.info "Frame Rate: {}" args:#(jmaData.frameRate)
+	logger.info "Nodes: {}" args:#(jmaData.nodeCount)
+	logger.info "Actor: '{}'" args:#(jmaData.actorNames)
+	#(true, writeTime)
 )
 
 scriptName = getFilenameFile (getThisScriptFilename()) + getFilenameType (getThisScriptFilename())
