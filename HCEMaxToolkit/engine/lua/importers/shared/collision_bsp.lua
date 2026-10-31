@@ -1,10 +1,10 @@
 -- Collision BSP geometry (surfaces, edges, vertices) as both model_collision_geometry and
 -- scenario_structure_bsp store it. Read in Max by builders\tag\shared\collision_bsp_reader.ms.
 
-local collision_bsp = {}
+local collisionBsp = {}
 
 -- Raw tag values: 0-based indices (-1 = none), vertices in Halo units
-function collision_bsp.write(w, bsp)
+function collisionBsp.write(w, bsp)
 	local surfaces = bsp["surfaces"]
 	local ints = {}
 	for i, s in ipairs(surfaces) do
@@ -34,4 +34,4 @@ function collision_bsp.write(w, bsp)
 	w:floats(floats, #vertices * 3)
 end
 
-return collision_bsp
+return collisionBsp

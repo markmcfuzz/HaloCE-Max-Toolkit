@@ -1,7 +1,7 @@
 -- Writes a tag element as the field tuples of the previous MAXScript parser:
 -- #(#("camelCaseName", value), ...), blocks as arrays of those. Read in Max by luaReadTuples (lua_bridge.ms).
 
-local tagdefs = require("core.halo1.tagdefs")
+local tagdefs = require("tags.tagdefs")
 local K = tagdefs.K
 
 local tuples = {}
@@ -13,7 +13,7 @@ tuples.V = V
 local INT_KINDS = { [K.I8] = true, [K.U8] = true, [K.I16] = true, [K.U16] = true, [K.I32] = true, [K.U32] = true }
 
 -- "map u-scale" -> "mapUScale", "rotation-animation center" -> "rotationAnimationCenter"
-function tuples.camel_case(name)
+function tuples.camelCase(name)
 	local out, first = {}, true
 	for word in name:gmatch("[^%s%-]+") do
 		if first then
@@ -26,7 +26,7 @@ function tuples.camel_case(name)
 	return table.concat(out)
 end
 
-local function value_code(fd)
+local function valueCode(fd)
 	local k = fd.kind
 	if INT_KINDS[k] then return V.INT
 	elseif k == K.F32 then return V.FLOAT
@@ -40,16 +40,16 @@ local function value_code(fd)
 	error(("field '%s' (%s) has no tuple form yet"):format(fd.key, fd.type), 0)
 end
 
--- c: compiled struct of e; fields before first_field are left out (default 1)
-function tuples.write(w, c, e, first_field)
+-- c: compiled struct of e; fields before firstField are left out (default 1)
+function tuples.write(w, c, e, firstField)
 	local fields = c.fields
-	first_field = first_field or 1
-	w:int(#fields - first_field + 1)
-	for i = first_field, #fields do
+	firstField = firstField or 1
+	w:int(#fields - firstField + 1)
+	for i = firstField, #fields do
 		local fd = fields[i]
 		local v = e[fd.key]
-		local code = value_code(fd)
-		w:string(tuples.camel_case(fd.name))
+		local code = valueCode(fd)
+		w:string(tuples.camelCase(fd.name))
 		w:int(code)
 		if code == V.INT then w:int(v)
 		elseif code == V.FLOAT then w:float(v)

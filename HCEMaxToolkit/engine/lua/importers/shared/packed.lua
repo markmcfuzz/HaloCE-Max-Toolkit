@@ -13,7 +13,7 @@ function packed.normalize(x, y, z)
 end
 
 -- 11.11.10-bit packed normal, sign bits 10, 21 and 31 (decompressNormal in the previous MAXScript importers)
-function packed.decompress_normal(n)
+function packed.decompressNormal(n)
 	local i = band(n, 1023) / 1023
 	local j = band(rshift(n, 11), 1023) / 1023
 	local k = band(rshift(n, 22), 511) / 511
