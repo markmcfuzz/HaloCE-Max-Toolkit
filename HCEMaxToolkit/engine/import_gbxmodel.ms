@@ -52,7 +52,8 @@ fn importGbxModelFile gbxModelFile =
 
     logger.log "=== BUILDING GBX MODEL ==="
     local buildStartTime = timestamp()
-    local createdMeshes = buildGBXModelMesh model (getFilenameFile gbxModelFile) gbxModelFile
+    -- Undo off: with undo on, every skinOps call got ~15x slower (Ctrl+Z won't remove the import)
+    local createdMeshes = with undo off (buildGBXModelMesh model (getFilenameFile gbxModelFile) gbxModelFile)
     logger.info "Scene building: {} seconds" args:#((timestamp() - buildStartTime) / 1000.0)
 
     completeRedraw()
