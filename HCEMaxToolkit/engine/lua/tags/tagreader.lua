@@ -2,11 +2,11 @@
 -- After each element come its tag-ref paths, data bytes and child blocks, in field order.
 local ffi = require("ffi")
 local bit = require("bit")
-local tagdefs = require("core.halo1.tagdefs")
+local tagdefs = require("tags.tagdefs")
 
 local K = tagdefs.K
 local bor, lshift = bit.bor, bit.lshift
-local ffi_string = ffi.string
+local ffiString = ffi.string
 
 ffi.cdef [[ typedef union { int32_t i; float f; } h1tag_i32f; ]]
 local conv = ffi.new("h1tag_i32f")
@@ -14,7 +14,7 @@ local conv = ffi.new("h1tag_i32f")
 local tagreader = {}
 
 -- Current file buffer (0-based byte pointer) and its Lua string anchor
-local p, anchor, file_size
+local p, anchor, fileSize
 
 local function i8(o)
     local v = p[o];
@@ -57,7 +57,7 @@ local function fourcc(o)
     if p[o] == 0xFF and p[o + 1] == 0xFF and p[o + 2] == 0xFF and p[o + 3] == 0xFF then
         return nil
     end
-    return ffi_string(p + o, 4)
+    return ffiString(p + o, 4)
 end
 
 local function cstring(o, max)
@@ -65,16 +65,16 @@ local function cstring(o, max)
     while n < max and p[o + n] ~= 0 do
         n = n + 1
     end
-    return ffi_string(p + o, n)
+    return ffiString(p + o, n)
 end
 
 local defs -- tagdefs instance used by the current read
 local warnings -- list of strings for the current read
 
--- Fixed part of one element; blocks/data keep their count/size until read_ext.
-local read_struct
+-- Fixed part of one element; blocks/data keep their count/size until readExt.
+local readStruct
 
-read_struct = function(c, base)
+readStruct = function(c, base)
     local e = {}
     local fields = c.fields
     for i = 1, #fields do
@@ -111,12 +111,12 @@ read_struct = function(c, base)
         elseif k == K.STRING then
             v = cstring(o, 32)
         elseif k == K.STRUCT then
-            v = read_struct(fd.sub, o)
+            v = readStruct(fd.sub, o)
         elseif k == K.ARRAY then
             v = {}
             local sub, size = fd.sub, fd.sub.size
             for j = 1, fd.count do
-                v[j] = read_struct(sub, o + (j - 1) * size)
+                v[j] = readStruct(sub, o + (j - 1) * size)
             end
         elseif k == K.I16x2 then
             v = {i16(o), i16(o + 2)}
@@ -130,10 +130,10 @@ read_struct = function(c, base)
     return e
 end
 
-local read_block
+local readBlock
 
 -- Reads the data stored after an element (paths, data, child blocks); returns new cursor.
-local function read_ext(c, base, e, cursor)
+local function readExt(c, base, e, cursor)
     local fields = c.fields
     for i = 1, #fields do
         local fd = fields[i]
@@ -141,12 +141,12 @@ local function read_ext(c, base, e, cursor)
         if k == K.TAGREF then
             local len = i32(base + fd.offset + 8)
             if len > 0 then
-                if cursor + len >= file_size then
+                if cursor + len >= fileSize then
                     error(
                         ("tag reference '%s' path runs past end of file at 0x%X (desync)"):format(
                             fd.key, cursor), 0)
                 end
-                local path = ffi_string(p + cursor, len)
+                local path = ffiString(p + cursor, len)
                 if p[cursor + len] ~= 0 then
                     error(("tag reference '%s' path not null-terminated at 0x%X (desync)"):format(
                               fd.key, cursor), 0)
@@ -157,7 +157,7 @@ local function read_ext(c, base, e, cursor)
         elseif k == K.DATA then
             local size = e[fd.key]
             if size > 0 then
-                if size > file_size - cursor then
+                if size > fileSize - cursor then
                     error(("data '%s' (%d bytes) runs past end of file at 0x%X (desync)"):format(
                               fd.key, size, cursor), 0)
                 end
@@ -174,25 +174,25 @@ local function read_ext(c, base, e, cursor)
                         fd.key, count, base), 0)
             end
             -- Modded tags exceed stock limits; a real desync is caught by the end-of-file checks.
-            if count > fd.max_count then
+            if count > fd.maxCount then
                 warnings[#warnings + 1] = ("block '%s' has %d elements (stock maximum %d)"):format(
-                                              fd.key, count, fd.max_count)
+                                              fd.key, count, fd.maxCount)
             end
             if count > 0 then
-                e[fd.key], cursor = read_block(defs:block_struct(fd), count, cursor)
+                e[fd.key], cursor = readBlock(defs:blockStruct(fd), count, cursor)
             else
                 e[fd.key] = {}
             end
         elseif k == K.STRUCT then
-            if fd.sub.has_ext then
-                cursor = read_ext(fd.sub, base + fd.offset, e[fd.key], cursor)
+            if fd.sub.hasExt then
+                cursor = readExt(fd.sub, base + fd.offset, e[fd.key], cursor)
             end
         elseif k == K.ARRAY then
             local sub = fd.sub
-            if sub.has_ext then
+            if sub.hasExt then
                 local arr = e[fd.key]
                 for j = 1, fd.count do
-                    cursor = read_ext(sub, base + fd.offset + (j - 1) * sub.size, arr[j], cursor)
+                    cursor = readExt(sub, base + fd.offset + (j - 1) * sub.size, arr[j], cursor)
                 end
             end
         end
@@ -200,20 +200,20 @@ local function read_ext(c, base, e, cursor)
     return cursor
 end
 
-read_block = function(c, count, cursor)
+readBlock = function(c, count, cursor)
     local size = c.size
-    if cursor + count * size > file_size then
+    if cursor + count * size > fileSize then
         error(("block '%s' (%d x %d bytes) runs past end of file at 0x%X"):format(c.name, count,
                                                                                   size, cursor), 0)
     end
     local list = {}
     for j = 1, count do
-        list[j] = read_struct(c, cursor + (j - 1) * size)
+        list[j] = readStruct(c, cursor + (j - 1) * size)
     end
     local ext = cursor + count * size
-    if c.has_ext then
+    if c.hasExt then
         for j = 1, count do
-            ext = read_ext(c, cursor + (j - 1) * size, list[j], ext)
+            ext = readExt(c, cursor + (j - 1) * size, list[j], ext)
         end
     end
     return list, ext
@@ -221,51 +221,51 @@ end
 
 -------------------------------------------------------------------------------
 
--- Returns { group, fourcc, version, root = <element table>, root_struct, size, warnings, bytes }.
-function tagreader.read_file(d, path)
+-- Returns { group, fourcc, version, root = <element table>, rootStruct, size, warnings, bytes }.
+function tagreader.readFile(d, path)
     local f, err = io.open(path, "rb")
     if not f then
         error("cannot open " .. path .. ": " .. tostring(err), 0)
     end
     local data = f:read("*a")
     f:close()
-    return tagreader.read_string(d, data)
+    return tagreader.readString(d, data)
 end
 
-function tagreader.read_string(d, data)
+function tagreader.readString(d, data)
     if #data < 64 then
         error("file too small to be a tag", 0)
     end
     anchor = data
-    file_size = #data
+    fileSize = #data
     p = ffi.cast("const uint8_t*", data)
     defs = d
     warnings = {}
 
-    local group_fourcc = ffi_string(p + 36, 4)
-    if ffi_string(p + 60, 4) ~= "blam" then
+    local groupFourcc = ffiString(p + 36, 4)
+    if ffiString(p + 60, 4) ~= "blam" then
         error("not a Halo tag file (no 'blam' signature)", 0)
     end
-    local group = d:group_by_fourcc(group_fourcc)
+    local group = d:groupByFourcc(groupFourcc)
     if not group then
-        error("unknown tag group '" .. group_fourcc .. "'", 0)
+        error("unknown tag group '" .. groupFourcc .. "'", 0)
     end
 
-    local root_c = d:root_struct(group)
-    local list, cursor = read_block(root_c, 1, 64)
-    if cursor ~= file_size then
+    local rootC = d:rootStruct(group)
+    local list, cursor = readBlock(rootC, 1, 64)
+    if cursor ~= fileSize then
         error(
             ("tag read ended at byte %d but file has %d bytes (definition does not match tag)"):format(
-                cursor, file_size), 0)
+                cursor, fileSize), 0)
     end
 
     local result = {
         group = group.name,
-        fourcc = group_fourcc,
+        fourcc = groupFourcc,
         version = u16(56),
         root = list[1],
-        root_struct = root_c, -- compiled struct of root (field order, names and types)
-        size = file_size,
+        rootStruct = rootC, -- compiled struct of root (field order, names and types)
+        size = fileSize,
         warnings = warnings,
         bytes = data -- whole file; data fields are { offset, size } into it
     }
