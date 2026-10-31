@@ -148,16 +148,22 @@ fn dxSetParamCenter dxMat baseName suffix p2 =
 	dxSetParam dxMat packedName (Point4 p2.x p2.y 0.0 0.0)
 )
 
--- Open the resolved disk texture of a map key as a bitmap value (DX texture params)
+-- Open the resolved disk texture of a map key as a bitmap value (DX texture params).
+-- Each file is opened once per import (_dxBitmapCache, cleared by resetShaderResolverCache).
+global _dxBitmapCache
 fn dxLoadBitmapForKey textureResult mapKey =
 (
 	if textureResult.mapFiles == undefined then return undefined
 	local filePath = textureResult.mapFiles[mapKey]
 	if filePath == undefined then return undefined
-	local bmp = undefined
+	if _dxBitmapCache == undefined then _dxBitmapCache = dictionary #string
+	local bmp = _dxBitmapCache[filePath]
+	if bmp != undefined then return bmp
 	try ( bmp = openBitMap filePath ) catch ( bmp = undefined )
 	if bmp == undefined then
 		logger.warn "Could not open bitmap: {}" args:#(filePath)
+	else
+		_dxBitmapCache[filePath] = bmp
 	bmp
 )
 
