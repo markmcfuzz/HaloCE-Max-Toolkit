@@ -1,25 +1,14 @@
--- Reads tags and writes what a 3ds Max importer needs. <importer> is the importer's Lua script,
--- relative to the engine folder (e.g. lua\importers\gbxmodel.lua).
---   luajit tag_to_max.lua <importer> <tag> <output.bin> [importer options...]
---   luajit tag_to_max.lua <importer> @<list.txt> <output.bin> [...]   (one tag path per line)
--- A list writes the tag count, then per tag: int 1 + importer data, or int 0 + error message.
-
--- Modules are required from the lua folder: require("tags.tagreader")
-local luaDir = ((arg[0]:match("^(.*)[/\\]") or ".") .. "/..")
-local engineDir = luaDir .. "/.."
-package.path = luaDir .. "/?.lua;" .. package.path
+-- Reads tags and writes what a 3ds Max importer needs (luaExportTag in lua_bridge.ms).
+--   run.lua bridge.tag export <importer> <tag> <output.bin> [importer options...]
+--   run.lua bridge.tag export <importer> @<list.txt> <output.bin> [...]   (one tag path per line)
+-- <importer> is a script name in lua\importers (e.g. gbxmodel). A list writes the tag count,
+-- then per tag: int 1 + importer data, or int 0 + error message.
 
 local tagdefs = require("tags.tagdefs")
 local tagreader = require("tags.tagreader")
 local maxbin = require("bridge.maxbin")
 
-local importerName, tagArg, outPath = arg[1], arg[2], arg[3]
-if not (importerName and tagArg and outPath) then
-	io.stderr:write("usage: luajit tag_to_max.lua <importer.lua> <tag | @list.txt> <output.bin> [importer options...]\n")
-	os.exit(2)
-end
-local options = {}
-for i = 4, #arg do options[#options + 1] = arg[i] end
+local tag = {}
 
 local function accepts(importer, group)
 	if type(importer.group) == "string" then return importer.group == group end
@@ -30,31 +19,34 @@ local function accepts(importer, group)
 end
 
 -- Reads one tag and writes the importer's data to w; warnings go to stdout
-local function export(importer, defs, path, w)
-	local tag = tagreader.readFile(defs, path)
-	if not accepts(importer, tag.group) then
-		error(("importer '%s' does not read %s tags"):format(importerName, tag.group), 0)
+local function exportOne(importerName, importer, defs, path, w, options)
+	local tagData = tagreader.readFile(defs, path)
+	if not accepts(importer, tagData.group) then
+		error(("importer '%s' does not read %s tags"):format(importerName, tagData.group), 0)
 	end
-	for _, warning in ipairs(tag.warnings) do io.stdout:write("warning: ", path, ": ", warning, "\n") end
-	-- tag.bytes (raw file) and tag.rootStruct are there for importers that need them
-	importer.write(tag.root, w, options, tag)
+	for _, warning in ipairs(tagData.warnings) do io.stdout:write("warning: ", path, ": ", warning, "\n") end
+	-- tagData.bytes (raw file) and tagData.rootStruct are there for importers that need them
+	importer.write(tagData.root, w, options, tagData)
 end
 
-local ok, err = pcall(function()
-	local script = engineDir .. "/" .. importerName
-	local file = io.open(script, "r")
-	if not file then error("no Lua importer at '" .. importerName .. "'", 0) end
-	file:close()
-	local importer = dofile(script)
+function tag.export(importerName, tagArg, outPath, ...)
+	if not (importerName and tagArg and outPath) then
+		error("usage: run.lua bridge.tag export <importer> <tag | @list.txt> <output.bin> [importer options...]", 0)
+	end
+	local options = { ... }
+	if not package.searchpath("importers." .. importerName, package.path) then
+		error(("no Lua importer '%s' in lua\\importers"):format(importerName), 0)
+	end
+	local importer = require("importers." .. importerName)
 	local defs = tagdefs.open()
 
-	-- Header checked by luaExportTag in lua_bridge.ms (the same script path it passed)
+	-- Header checked by luaOpenOutput in lua_bridge.ms
 	local w = maxbin.open(outPath)
 	w:string(importerName)
 	w:int(importer.version)
 
 	if tagArg:sub(1, 1) ~= "@" then
-		export(importer, defs, tagArg, w)
+		exportOne(importerName, importer, defs, tagArg, w, options)
 	else
 		local paths = {}
 		for line in assert(io.open(tagArg:sub(2), "r")):lines() do
@@ -65,7 +57,7 @@ local ok, err = pcall(function()
 		for _, path in ipairs(paths) do
 			-- Each tag goes to memory first, so a failing tag leaves nothing half-written
 			local mem = maxbin.memory()
-			local tagOk, tagErr = pcall(export, importer, defs, path, mem)
+			local tagOk, tagErr = pcall(exportOne, importerName, importer, defs, path, mem, options)
 			if tagOk then
 				w:int(1)
 				w.f:write(mem:contents())
@@ -76,8 +68,6 @@ local ok, err = pcall(function()
 		end
 	end
 	w:close()
-end)
-if not ok then
-	io.stderr:write(tostring(err), "\n")
-	os.exit(1)
 end
+
+return tag
