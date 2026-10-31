@@ -10,7 +10,7 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
--- Reads a model_collision_geometry tag through model_collision_geometry.lua in this folder (same read order).
+-- Reads a model_collision_geometry tag through lua\importers\model_collision_geometry.lua (same read order).
 
 -- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
 global luaExportTag
@@ -27,7 +27,7 @@ struct CollisionData (materials, regions, pathfindingSpheres, nodes)
 -- Returns a CollisionData, or undefined on error (details in the log)
 fn readCollisionWithLua tagPath =
 (
-	local f = luaExportTag "builders\\tag\\model_collision_geometry\\model_collision_geometry.lua" 1 tagPath
+	local f = luaExportTag "lua\\importers\\model_collision_geometry.lua" 1 tagPath
 	if f == undefined then return undefined
 
 	local materials = for i = 1 to (luaReadInt f) collect

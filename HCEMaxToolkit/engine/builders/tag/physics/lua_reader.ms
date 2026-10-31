@@ -10,7 +10,7 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
--- Reads a physics tag through physics.lua in this folder (same read order).
+-- Reads a physics tag through lua\importers\physics.lua (same read order).
 
 -- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
 global luaExportTag
@@ -26,7 +26,7 @@ struct PhysicsData (mass, density, poweredMassPointNames, massPoints)
 -- Returns a PhysicsData, or undefined on error (details in the log)
 fn readPhysicsWithLua tagPath =
 (
-	local f = luaExportTag "builders\\tag\\physics\\physics.lua" 1 tagPath
+	local f = luaExportTag "lua\\importers\\physics.lua" 1 tagPath
 	if f == undefined then return undefined
 
 	local mass = readFloat f

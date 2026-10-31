@@ -10,7 +10,7 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
--- Reads a camera_track through camera_track.lua in this folder (same read order).
+-- Reads a camera_track through lua\importers\camera_track.lua (same read order).
 
 -- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
 global luaExportTag
@@ -23,7 +23,7 @@ struct CameraControlPoint (position, orientation)
 -- Returns an array of CameraControlPoint, or undefined on error (details in the log)
 fn readCameraTrackWithLua tagPath =
 (
-	local f = luaExportTag "builders\\tag\\camera_track\\camera_track.lua" 1 tagPath
+	local f = luaExportTag "lua\\importers\\camera_track.lua" 1 tagPath
 	if f == undefined then return undefined
 
 	local points = for i = 1 to (luaReadInt f) collect

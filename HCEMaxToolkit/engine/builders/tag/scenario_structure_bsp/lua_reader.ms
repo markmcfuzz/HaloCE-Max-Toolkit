@@ -10,7 +10,7 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
--- Reads a scenario_structure_bsp tag through scenario_structure_bsp.lua in this folder (same read order).
+-- Reads a scenario_structure_bsp tag through lua\importers\scenario_structure_bsp.lua (same read order).
 
 -- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
 global luaExportTag
@@ -57,7 +57,7 @@ fn bspReadPointLists f = for i = 1 to (luaReadInt f) collect (for v = 1 to (luaR
 -- Returns a StructureBspData, or undefined on error (details in the log)
 fn readStructureBspWithLua tagPath =
 (
-	local f = luaExportTag "builders\\tag\\scenario_structure_bsp\\scenario_structure_bsp.lua" 1 tagPath options:#(haloScale)
+	local f = luaExportTag "lua\\importers\\scenario_structure_bsp.lua" 1 tagPath options:#(haloScale)
 	if f == undefined then return undefined
 
 	local collisionMaterials = for i = 1 to (luaReadInt f) collect luaReadTagRef f
