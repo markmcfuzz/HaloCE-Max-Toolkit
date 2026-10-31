@@ -4,7 +4,7 @@
         AutodeskProduct="3ds Max" 
         ProductType="Application" 
         Name="Halo CE Max Toolkit"
-        AppVersion="5.0.0"
+        AppVersion="6.0.0"
         ProductCode="{08eecb86-3e0c-467d-8340-c00a9e4a5434}" 
         UpgradeCode="{68b04f36-d00b-436e-9386-7337afcffa4a}">
     <CompanyDetails />
