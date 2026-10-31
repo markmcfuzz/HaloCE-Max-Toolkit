@@ -10,16 +10,11 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--- Reads JMA/JMO/JMR/... files through lua\formats\jma_cli.lua (lua\formats\jma.lua).
+-- Reads JMA/JMO/JMR/... files through lua\bridge\jma.lua (lua\formats\jma.lua).
 -- Returns the same jmaFile struct (jma_struct.ms) as the previous MAXScript reader.
 
 -- Supported JMA version
 global SUPPORTED_JMA_VERSION = 16392
-
--- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
-global luaRunScript
-if luaRunScript == undefined and rootEngine != undefined do
-	fileIn (rootEngine + "shared\\utils\\lua_bridge.ms")
 
 -------------------------------------------------------
 -- MAIN READ FUNCTION
@@ -33,12 +28,12 @@ fn readJmaFile filePath =
 
 	local outPath = (getDir #temp) + "\\hce_jma_read.bin"
 	deleteFile outPath
-	if not (luaRunScript "lua\\formats\\jma_cli.lua" #("read", filePath, outPath)) then
+	if not (luaRun "bridge.jma" "read" #(filePath, outPath)) then
 	(
 		logger.error "Error reading JMA file: '{}'" args:#(filePath)
 		return undefined
 	)
-	local f = luaOpenOutput outPath "jma" 1
+	local f = luaOpenOutput outPath "jma" 2
 	if f == undefined then return undefined
 
 	local jmaData = jmaFile()
@@ -73,14 +68,6 @@ fn readJmaFile filePath =
 			jmaNodeFrame translation:translation rotation:(normalize (quat qi qj qk qw)) scale:nodeScale
 		)
 		frameData
-	)
-
-	-- Scale lines that were not numbers stay undefined, as before
-	for i = 1 to (luaReadInt f) do
-	(
-		local fr = luaReadInt f
-		local n = luaReadInt f
-		jmaData.frames[fr].nodeFrames[n].scale = undefined
 	)
 	fclose f
 	deleteFile outPath
