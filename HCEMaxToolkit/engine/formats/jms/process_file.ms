@@ -10,7 +10,7 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--- Writes JMS files through formats\jms\jms_cli.lua (formats\jms\jms.lua): the data goes to Lua
+-- Writes JMS files through lua\formats\jms_cli.lua (lua\formats\jms.lua): the data goes to Lua
 -- as binary and Lua writes the same text the previous MAXScript writer did.
 
 -- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
@@ -147,7 +147,7 @@ fn writeJmsFile filePath jmsData =
 		writeJmsForLua f jmsData
 		fclose f
 		f = undefined
-		ok = luaRunScript "formats\\jms\\jms_cli.lua" #("write", inPath, filePath)
+		ok = luaRunScript "lua\\formats\\jms_cli.lua" #("write", inPath, filePath)
 	)
 	catch
 	(

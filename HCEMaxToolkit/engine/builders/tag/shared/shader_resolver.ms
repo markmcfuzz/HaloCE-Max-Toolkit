@@ -14,7 +14,7 @@
 -- Resolves shader tag references (from any tag block with a "shader" tagReference
 -- field - gbxmodel's shaders, scenario_structure_bsp's materials/collisionMaterials,
 -- etc.) to actual texture file paths. Each shader tag is read with Lua
--- (shader.lua in this folder), so the FULL tag data is available to callers
+-- (lua\importers\shader.lua), so the FULL tag data is available to callers
 -- (result.shaderEntry / result.mainEntry), not just the primary texture path.
 
 -------------------------------------------------------
@@ -159,7 +159,7 @@ fn shaderTagRefPath tagRefDict =
 	if p == undefined or p == "" or p == "NULL" then undefined else p
 )
 
--- Reads the given shader tags with Lua (shader.lua in this folder) in one run and caches them.
+-- Reads the given shader tags with Lua (lua\importers\shader.lua) in one run and caches them.
 -- Skips paths that are undefined, already cached, missing or not a supported shader class.
 fn prefetchShaderTags shaderFilePaths =
 (
@@ -169,7 +169,7 @@ fn prefetchShaderTags shaderFilePaths =
 		append paths p
 	if paths.count == 0 then return ok
 
-	local f = luaExportTags "builders\\tag\\shared\\shader.lua" 1 paths
+	local f = luaExportTags "lua\\importers\\shader.lua" 1 paths
 	if f == undefined then return ok
 	local count = luaReadInt f
 	for i = 1 to count do

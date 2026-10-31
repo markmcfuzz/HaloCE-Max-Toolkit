@@ -10,7 +10,7 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--- Writes JMA/JMO/JMR/... files through formats\jma\jma_cli.lua (formats\jma\jma.lua):
+-- Writes JMA/JMO/JMR/... files through lua\formats\jma_cli.lua (lua\formats\jma.lua):
 -- the data goes to Lua as binary and Lua writes the same text the previous MAXScript writer did.
 
 -- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
@@ -74,7 +74,7 @@ fn writeJmaFile filePath jmaData =
 		f = undefined
 
 		if doesFileExist filePath do deleteFile filePath
-		ok = luaRunScript "formats\\jma\\jma_cli.lua" #("write", inPath, filePath)
+		ok = luaRunScript "lua\\formats\\jma_cli.lua" #("write", inPath, filePath)
 	)
 	catch
 	(

@@ -827,7 +827,7 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	local faceShaders = #()
 	local normalsFiles = #()  -- normals saved by meshNormalsSave, deleted after Lua reads them
 
-	-- The meshes go to formats\jms\jms_cli.lua "mesh", which builds the JMS vertices
+	-- The meshes go to lua\formats\jms_cli.lua "mesh", which builds the JMS vertices
 	local meshPath = (getDir #temp) + "\\hce_jms_mesh.bin"
 	local meshFile = fopen meshPath "wb"
 	luaWriteString meshFile "jms_mesh"
@@ -1240,7 +1240,7 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	local timeLuaStart = timestamp()
 	local meshOutPath = (getDir #temp) + "\\hce_jms_mesh_out.bin"
 	deleteFile meshOutPath
-	local luaOk = luaRunScript "formats\\jms\\jms_cli.lua" #("mesh", meshPath, meshOutPath)
+	local luaOk = luaRunScript "lua\\formats\\jms_cli.lua" #("mesh", meshPath, meshOutPath)
 	deleteFile meshPath
 	for path in normalsFiles do deleteFile path
 	local outFile = if luaOk then luaOpenOutput meshOutPath "jms_mesh" 1 else undefined

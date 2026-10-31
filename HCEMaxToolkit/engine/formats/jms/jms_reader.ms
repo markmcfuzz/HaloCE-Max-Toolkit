@@ -10,7 +10,7 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ----------------------------------------------------------------------------
 
--- Reads JMS files through formats\jms\jms_cli.lua; returns the jmsFile struct (jms_struct.ms).
+-- Reads JMS files through lua\formats\jms_cli.lua; returns the jmsFile struct (jms_struct.ms).
 
 -- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
 global luaRunScript
@@ -112,7 +112,7 @@ fn logJmsData jmsData =
 -------------------------------------------------------
 
 -- Read a complete JMS file and return a jmsFile struct with all data (undefined on error).
--- The file is parsed by formats\jms\jms_cli.lua (formats\jms\jms.lua); every format the
+-- The file is parsed by lua\formats\jms_cli.lua (lua\formats\jms.lua); every format the
 -- previous MAXScript reader knew is supported: inline (old exporters), toolkit, Blender,
 -- invader-recover and fbx-to-jms, plus the smoothing groups section.
 fn readJmsFile filePath =
@@ -121,7 +121,7 @@ fn readJmsFile filePath =
 
 	local outPath = (getDir #temp) + "\\hce_jms_read.bin"
 	deleteFile outPath
-	if not (luaRunScript "formats\\jms\\jms_cli.lua" #("read", filePath, outPath)) then
+	if not (luaRunScript "lua\\formats\\jms_cli.lua" #("read", filePath, outPath)) then
 	(
 		logger.error "Error reading JMS file: '{}'" args:#(filePath)
 		return undefined

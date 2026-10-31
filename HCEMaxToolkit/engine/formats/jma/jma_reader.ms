@@ -10,7 +10,7 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--- Reads JMA/JMO/JMR/... files through formats\jma\jma_cli.lua (formats\jma\jma.lua).
+-- Reads JMA/JMO/JMR/... files through lua\formats\jma_cli.lua (lua\formats\jma.lua).
 -- Returns the same jmaFile struct (jma_struct.ms) as the previous MAXScript reader.
 
 -- Supported JMA version
@@ -33,7 +33,7 @@ fn readJmaFile filePath =
 
 	local outPath = (getDir #temp) + "\\hce_jma_read.bin"
 	deleteFile outPath
-	if not (luaRunScript "formats\\jma\\jma_cli.lua" #("read", filePath, outPath)) then
+	if not (luaRunScript "lua\\formats\\jma_cli.lua" #("read", filePath, outPath)) then
 	(
 		logger.error "Error reading JMA file: '{}'" args:#(filePath)
 		return undefined
