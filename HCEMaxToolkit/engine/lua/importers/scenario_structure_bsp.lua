@@ -68,12 +68,13 @@ function bspImporter.write(root, w, options, tag)
 	w:int(#collision)
 	if #collision > 0 then collisionBsp.write(w, collision[1]) end
 
-	-- Render triangles: 0-based vertex indices local to each lightmap material
+	-- Render triangles: 0-based vertex indices local to each lightmap material, unsigned 16-bit
+	-- (a material can have more than 32767 vertices)
 	local surfaces = root["surfaces"]
 	local ints = {}
 	for i, s in ipairs(surfaces) do
 		local v = s["vertices"]
-		ints[i * 3 - 2], ints[i * 3 - 1], ints[i * 3] = v[1]["a"], v[2]["a"], v[3]["a"]
+		ints[i * 3 - 2], ints[i * 3 - 1], ints[i * 3] = v[1]["a"] % 65536, v[2]["a"] % 65536, v[3]["a"] % 65536
 	end
 	w:int(#surfaces)
 	w:ints(ints, #surfaces * 3)

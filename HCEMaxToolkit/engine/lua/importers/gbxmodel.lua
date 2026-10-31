@@ -69,9 +69,11 @@ end
 
 -- Triangle strip -> 1-based faces, flipping every other triangle and dropping degenerate ones
 local function stripToFaces(triangles, vertexCount)
+	-- Indices are unsigned 16-bit (parts can have more than 32767 vertices); -1 padding becomes
+	-- 65535, which is out of range and dropped
 	local order = {}
 	for _, t in ipairs(triangles) do
-		push(order, t["vertex0 index"] + 1, t["vertex1 index"] + 1, t["vertex2 index"] + 1)
+		push(order, t["vertex0 index"] % 65536 + 1, t["vertex1 index"] % 65536 + 1, t["vertex2 index"] % 65536 + 1)
 	end
 	local faces = {}
 	for w = 1, #order - 2 do
