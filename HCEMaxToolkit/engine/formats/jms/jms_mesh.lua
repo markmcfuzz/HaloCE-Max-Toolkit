@@ -2,6 +2,7 @@
 -- Same rules as the previous MAXScript loop: one vertex per face corner, merged with an earlier
 -- vertex of the same object when the createVertexHash key matched.
 
+local ffi = require("ffi")
 local f32 = require("shared.utils.max_numbers").f32
 
 local floor, ceil, format = math.floor, math.ceil, string.format
@@ -29,6 +30,38 @@ local function top_two(bones, weights)
 	end
 	if second then return bones[first], bones[second], weights[second] end
 	return bones[first], -1, 0
+end
+
+-- Normal of every face corner from a file saved by meshNormalsSave (shared\utils\mesh_normals.ms):
+-- float x,y,z per normal, then per face 3 normal ids + specified bits (int32). m = rotMatrix rows
+-- (12 floats). Same result as MAXScript's normalize (normal * rotMatrix): Float product, then
+-- normalize in double precision (checked bit for bit against Max).
+function jms_mesh.saved_normals(path, normal_count, face_count, m)
+	local f = assert(io.open(path, "rb"))
+	local data = f:read("*a")
+	f:close()
+	if #data ~= normal_count * 12 + face_count * 16 then error("unexpected size of " .. path, 0) end
+	local values = ffi.cast("const float*", data)
+	local ids = ffi.cast("const int32_t*", ffi.cast("const uint8_t*", data) + normal_count * 12)
+
+	local world = {} -- world-space normal per normal id, computed once
+	local out = {}
+	for corner = 0, face_count * 3 - 1 do
+		local id = ids[math.floor(corner / 3) * 4 + corner % 3]
+		if id < 0 or id >= normal_count then error("normal id " .. id .. " out of range in " .. path, 0) end
+		local n = world[id]
+		if not n then
+			local x, y, z = values[id * 3], values[id * 3 + 1], values[id * 3 + 2]
+			local wx = f32(f32(f32(f32(x * m[1]) + f32(y * m[4])) + f32(z * m[7])) + m[10])
+			local wy = f32(f32(f32(f32(x * m[2]) + f32(y * m[5])) + f32(z * m[8])) + m[11])
+			local wz = f32(f32(f32(f32(x * m[3]) + f32(y * m[6])) + f32(z * m[9])) + m[12])
+			local length = math.sqrt(wx * wx + wy * wy + wz * wz)
+			n = { f32(wx / length), f32(wy / length), f32(wz / length) }
+			world[id] = n
+		end
+		out[corner * 3 + 1], out[corner * 3 + 2], out[corner * 3 + 3] = n[1], n[2], n[3]
+	end
+	return out
 end
 
 -- obj: { parent, positions = {x,y,z,...}, skin = nil | { {bones}, {weights} } per vertex,
