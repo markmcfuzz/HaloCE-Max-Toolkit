@@ -3,25 +3,25 @@
 --   luajit jma_cli.lua write <in.bin> <file.jma>    binary from Max -> JMA
 -- Errors go to stderr with exit code 1.
 
--- Modules are required from the engine folder: require("formats.jma.jma")
-local engine_dir = ((arg[0]:match("^(.*)[/\\]") or ".") .. "/../..")
-package.path = engine_dir .. "/?.lua;" .. package.path
+-- Modules are required from the lua folder: require("formats.jma")
+local luaDir = ((arg[0]:match("^(.*)[/\\]") or ".") .. "/..")
+package.path = luaDir .. "/?.lua;" .. package.path
 
-local jma = require("formats.jma.jma")
-local maxbin = require("core.halo1.maxbin")
+local jma = require("formats.jma")
+local maxbin = require("bridge.maxbin")
 
 -- Format version of the binaries exchanged with Max (checked on both sides)
 local FORMAT = "jma"
 local VERSION = 1
 
-local function read(jma_path, out_path)
-	local data = jma.read(jma_path)
-	local w = maxbin.open(out_path)
+local function read(jmaPath, outPath)
+	local data = jma.read(jmaPath)
+	local w = maxbin.open(outPath)
 	w:string(FORMAT)
 	w:int(VERSION)
-	w:ints({ data.version, data.frame_count, data.frame_rate, data.actor_count })
-	w:string(data.actor_name)
-	w:ints({ data.node_count, data.checksum })
+	w:ints({ data.version, data.frameCount, data.frameRate, data.actorCount })
+	w:string(data.actorName)
+	w:ints({ data.nodeCount, data.checksum })
 	for _, node in ipairs(data.nodes) do
 		w:string(node[1])
 		w:ints({ node[2], node[3] })
@@ -42,13 +42,13 @@ local function read(jma_path, out_path)
 	w:close()
 end
 
-local function write(in_path, jma_path)
-	local r = maxbin.read_file(in_path)
+local function write(inPath, jmaPath)
+	local r = maxbin.readFile(inPath)
 	if r:string() ~= FORMAT or r:int() ~= VERSION then error("unexpected data from Max (expected jma v1)", 0) end
 	local data = { nodes = {}, frames = {} }
-	data.version, data.frame_count, data.frame_rate, data.actor_count = r:int(), r:int(), r:int(), r:int()
-	data.actor_name = r:string()
-	data.node_count, data.checksum = r:int(), r:int()
+	data.version, data.frameCount, data.frameRate, data.actorCount = r:int(), r:int(), r:int(), r:int()
+	data.actorName = r:string()
+	data.nodeCount, data.checksum = r:int(), r:int()
 	for n = 1, r:int() do
 		local name = r:string()
 		data.nodes[n] = { name, r:int(), r:int() }
@@ -63,7 +63,7 @@ local function write(in_path, jma_path)
 		end
 		data.frames[f] = frame
 	end
-	if not jma.write(jma_path, data) then error("cannot write " .. jma_path, 0) end
+	if not jma.write(jmaPath, data) then error("cannot write " .. jmaPath, 0) end
 end
 
 local command, a, b = arg[1], arg[2], arg[3]

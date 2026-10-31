@@ -3,21 +3,21 @@
 -- vertex of the same object when the createVertexHash key matched.
 
 local ffi = require("ffi")
-local f32 = require("shared.utils.max_numbers").f32
+local f32 = require("formats.max_numbers").f32
 
 local floor, ceil, format = math.floor, math.ceil, string.format
 
-local jms_mesh = {}
+local jmsMesh = {}
 
 -- (x * 10000) as integer in MAXScript: Float product, truncated toward zero
-local function key_int(x)
+local function keyInt(x)
 	local y = f32(x * 10000)
 	return y >= 0 and floor(y) or ceil(y)
 end
 
 -- Two strongest bone weights of a vertex, as the old loop picked them (first maximum wins).
 -- bones/weights: lists of node indices and weights. Returns node0, node1, weight1 or nil.
-local function top_two(bones, weights)
+local function topTwo(bones, weights)
 	local n = #bones
 	if n == 0 then return nil end
 	local first = 1
@@ -36,19 +36,19 @@ end
 -- float x,y,z per normal, then per face 3 normal ids + specified bits (int32). m = rotMatrix rows
 -- (12 floats). Same result as MAXScript's normalize (normal * rotMatrix): Float product, then
 -- normalize in double precision (checked bit for bit against Max).
-function jms_mesh.saved_normals(path, normal_count, face_count, m)
+function jmsMesh.savedNormals(path, normalCount, faceCount, m)
 	local f = assert(io.open(path, "rb"))
 	local data = f:read("*a")
 	f:close()
-	if #data ~= normal_count * 12 + face_count * 16 then error("unexpected size of " .. path, 0) end
+	if #data ~= normalCount * 12 + faceCount * 16 then error("unexpected size of " .. path, 0) end
 	local values = ffi.cast("const float*", data)
-	local ids = ffi.cast("const int32_t*", ffi.cast("const uint8_t*", data) + normal_count * 12)
+	local ids = ffi.cast("const int32_t*", ffi.cast("const uint8_t*", data) + normalCount * 12)
 
 	local world = {} -- world-space normal per normal id, computed once
 	local out = {}
-	for corner = 0, face_count * 3 - 1 do
+	for corner = 0, faceCount * 3 - 1 do
 		local id = ids[math.floor(corner / 3) * 4 + corner % 3]
-		if id < 0 or id >= normal_count then error("normal id " .. id .. " out of range in " .. path, 0) end
+		if id < 0 or id >= normalCount then error("normal id " .. id .. " out of range in " .. path, 0) end
 		local n = world[id]
 		if not n then
 			local x, y, z = values[id * 3], values[id * 3 + 1], values[id * 3 + 2]
@@ -68,14 +68,14 @@ end
 --        uvs = {u,v,...}, faces = vertex per corner, tvfaces = uv per corner or nil,
 --        normals = {x,y,z per corner} }; indices are 1-based like Max's.
 -- Appends new vertices to `vertices` and returns the global (0-based) index of every corner.
-function jms_mesh.add_object(obj, vertices, corners)
+function jmsMesh.addObject(obj, vertices, corners)
 	-- Bone influence of each vertex, picked once per vertex
 	local node0, node1, weight1 = {}, {}, {}
-	local vertex_count = #obj.positions / 3
-	for v = 1, vertex_count do
+	local vertexCount = #obj.positions / 3
+	for v = 1, vertexCount do
 		local influence = obj.skin and obj.skin[v]
 		local a, b, w
-		if influence then a, b, w = top_two(influence[1], influence[2]) end
+		if influence then a, b, w = topTwo(influence[1], influence[2]) end
 		if a then
 			node0[v], node1[v], weight1[v] = a, b, w
 		else
@@ -85,7 +85,7 @@ function jms_mesh.add_object(obj, vertices, corners)
 
 	local seen = {}
 	local positions, uvs, normals, faces, tvfaces = obj.positions, obj.uvs, obj.normals, obj.faces, obj.tvfaces
-	local uv_count = #uvs / 2
+	local uvCount = #uvs / 2
 	for c = 1, #faces do
 		local v = faces[c]
 		local p = (v - 1) * 3
@@ -95,11 +95,11 @@ function jms_mesh.add_object(obj, vertices, corners)
 		local u, w = 0, 0
 		if tvfaces then
 			local t = tvfaces[c]
-			if t > 0 and t <= uv_count then u, w = uvs[t * 2 - 1], uvs[t * 2] end
+			if t > 0 and t <= uvCount then u, w = uvs[t * 2 - 1], uvs[t * 2] end
 		end
 		local key = format("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-			key_int(x), key_int(y), key_int(z), key_int(nx), key_int(ny), key_int(nz),
-			key_int(u), key_int(w), node0[v], node1[v], key_int(weight1[v]))
+			keyInt(x), keyInt(y), keyInt(z), keyInt(nx), keyInt(ny), keyInt(nz),
+			keyInt(u), keyInt(w), node0[v], node1[v], keyInt(weight1[v]))
 		local index = seen[key]
 		if not index then
 			index = #vertices
@@ -111,4 +111,4 @@ function jms_mesh.add_object(obj, vertices, corners)
 	end
 end
 
-return jms_mesh
+return jmsMesh

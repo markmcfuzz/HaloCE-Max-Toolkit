@@ -4,13 +4,13 @@
 --   luajit jms_cli.lua mesh <in.bin> <out.bin>      scene meshes -> JMS vertices (process_scene.ms)
 -- Errors go to stderr with exit code 1.
 
--- Modules are required from the engine folder: require("formats.jms.jms")
-local engine_dir = ((arg[0]:match("^(.*)[/\\]") or ".") .. "/../..")
-package.path = engine_dir .. "/?.lua;" .. package.path
+-- Modules are required from the lua folder: require("formats.jms")
+local luaDir = ((arg[0]:match("^(.*)[/\\]") or ".") .. "/..")
+package.path = luaDir .. "/?.lua;" .. package.path
 
-local jms = require("formats.jms.jms")
-local jms_mesh = require("formats.jms.jms_mesh")
-local maxbin = require("core.halo1.maxbin")
+local jms = require("formats.jms")
+local jmsMesh = require("formats.jms_mesh")
+local maxbin = require("bridge.maxbin")
 
 -- Format version of the binaries exchanged with Max (checked on both sides)
 local FORMAT = "jms"
@@ -19,11 +19,11 @@ local VERSION = 1
 -- Integers the old reader left undefined travel as this value (luaReadMaybeInt in lua_bridge.ms)
 local UNDEFINED_INT = -2147483648
 
-local function read(jms_path, out_path)
-	local data = jms.read(jms_path)
-	local w = maxbin.open(out_path)
+local function read(jmsPath, outPath)
+	local data = jms.read(jmsPath)
+	local w = maxbin.open(outPath)
 	local function maybe(v) w:int(v or UNDEFINED_INT) end
-	local undefined_floats = {} -- { kind, index }: 1 = marker radius, 2 = vertex weight
+	local undefinedFloats = {} -- { kind, index }: 1 = marker radius, 2 = vertex weight
 
 	w:string(FORMAT)
 	w:int(VERSION)
@@ -32,7 +32,7 @@ local function read(jms_path, out_path)
 	maybe(data.version)
 	maybe(data.checksum)
 
-	w:int(data.node_count)
+	w:int(data.nodeCount)
 	w:int(#data.nodes)
 	for _, n in ipairs(data.nodes) do
 		w:string(n.name)
@@ -42,14 +42,14 @@ local function read(jms_path, out_path)
 		w:floats(n.trans)
 	end
 
-	w:int(data.shader_count)
+	w:int(data.shaderCount)
 	w:int(#data.shaders)
 	for _, s in ipairs(data.shaders) do
 		w:string(s.name)
 		w:string(s.bitmap)
 	end
 
-	w:int(data.marker_count)
+	w:int(data.markerCount)
 	w:int(#data.markers)
 	for i, m in ipairs(data.markers) do
 		w:string(m.name)
@@ -58,14 +58,14 @@ local function read(jms_path, out_path)
 		w:floats(m.rot)
 		w:floats(m.trans)
 		w:float(m.radius or 0)
-		if not m.radius then undefined_floats[#undefined_floats + 1] = { 1, i } end
+		if not m.radius then undefinedFloats[#undefinedFloats + 1] = { 1, i } end
 	end
 
-	w:int(data.region_count)
+	w:int(data.regionCount)
 	w:int(#data.regions)
 	for _, name in ipairs(data.regions) do w:string(name) end
 
-	w:int(data.vertex_count)
+	w:int(data.vertexCount)
 	w:int(#data.vertices)
 	for i, v in ipairs(data.vertices) do
 		maybe(v.node0)
@@ -75,10 +75,10 @@ local function read(jms_path, out_path)
 		w:float(v.weight or 0)
 		w:floats({ v.u, v.v })
 		w:int(v.tex)
-		if not v.weight then undefined_floats[#undefined_floats + 1] = { 2, i } end
+		if not v.weight then undefinedFloats[#undefinedFloats + 1] = { 2, i } end
 	end
 
-	w:int(data.triangle_count)
+	w:int(data.triangleCount)
 	w:int(#data.triangles)
 	for _, t in ipairs(data.triangles) do
 		maybe(t.region)
@@ -88,11 +88,11 @@ local function read(jms_path, out_path)
 		maybe(t.c)
 	end
 
-	w:int(#data.smoothing_groups)
-	if #data.smoothing_groups > 0 then w:ints(data.smoothing_groups) end
+	w:int(#data.smoothingGroups)
+	if #data.smoothingGroups > 0 then w:ints(data.smoothingGroups) end
 
-	w:int(#undefined_floats)
-	for _, u in ipairs(undefined_floats) do w:ints(u) end
+	w:int(#undefinedFloats)
+	for _, u in ipairs(undefinedFloats) do w:ints(u) end
 	w:close()
 end
 
@@ -106,8 +106,8 @@ local function value(r)
 	error("unexpected value type " .. kind .. " in the data from Max", 0)
 end
 
-local function write(in_path, jms_path)
-	local r = maxbin.read_file(in_path)
+local function write(inPath, jmsPath)
+	local r = maxbin.readFile(inPath)
 	if r:string() ~= FORMAT or r:int() ~= VERSION then error("unexpected data from Max (expected jms v1)", 0) end
 	local function floats(n)
 		local t = {}
@@ -115,40 +115,40 @@ local function write(in_path, jms_path)
 		return t
 	end
 	local data = { nodes = {}, shaders = {}, markers = {}, regions = {}, vertices = {}, triangles = {},
-		smoothing_groups = {} }
+		smoothingGroups = {} }
 
-	data.version, data.checksum, data.node_count = value(r), value(r), value(r)
+	data.version, data.checksum, data.nodeCount = value(r), value(r), value(r)
 	for i = 1, r:int() do
 		data.nodes[i] = { name = value(r), child = value(r), sibling = value(r), rot = floats(4), trans = floats(3) }
 	end
-	data.shader_count = value(r)
+	data.shaderCount = value(r)
 	for i = 1, r:int() do data.shaders[i] = { name = value(r), bitmap = value(r) } end
-	data.marker_count = value(r)
+	data.markerCount = value(r)
 	for i = 1, r:int() do
 		data.markers[i] = { name = value(r), region = value(r), parent = value(r), rot = floats(4), trans = floats(3),
 			radius = r:float() }
 	end
-	data.region_count = value(r)
+	data.regionCount = value(r)
 	for i = 1, r:int() do data.regions[i] = value(r) end
-	data.vertex_count = value(r)
+	data.vertexCount = value(r)
 	for i = 1, r:int() do
 		data.vertices[i] = { node0 = value(r), pos = floats(3), normal = floats(3), node1 = value(r),
 			weight = value(r), u = r:float(), v = r:float(), tex = value(r) }
 	end
-	data.triangle_count = value(r)
+	data.triangleCount = value(r)
 	for i = 1, r:int() do
 		data.triangles[i] = { region = value(r), shader = value(r), a = value(r), b = value(r), c = value(r) }
 	end
-	data.write_smoothing = r:int() == 1
-	if data.write_smoothing then
-		for i = 1, r:int() do data.smoothing_groups[i] = value(r) end
+	data.writeSmoothing = r:int() == 1
+	if data.writeSmoothing then
+		for i = 1, r:int() do data.smoothingGroups[i] = value(r) end
 	end
-	if not jms.write(jms_path, data) then error("cannot write " .. jms_path, 0) end
+	if not jms.write(jmsPath, data) then error("cannot write " .. jmsPath, 0) end
 end
 
 -- Scene meshes from Max (extractGeometryData) -> JMS vertices + the vertex of every face corner
-local function mesh(in_path, out_path)
-	local r = maxbin.read_file(in_path)
+local function mesh(inPath, outPath)
+	local r = maxbin.readFile(inPath)
 	if r:string() ~= "jms_mesh" or r:int() ~= 2 then error("unexpected data from Max (expected jms_mesh v2)", 0) end
 	local vertices, corners = {}, {}
 	for _ = 1, r:int() do
@@ -165,18 +165,18 @@ local function mesh(in_path, out_path)
 				obj.skin[v] = { bones, weights }
 			end
 		end
-		local uv_count = r:int()
-		for i = 1, uv_count * 2 do obj.uvs[i] = r:float() end
-		if uv_count > 0 then obj.tvfaces = {} end
+		local uvCount = r:int()
+		for i = 1, uvCount * 2 do obj.uvs[i] = r:float() end
+		if uvCount > 0 then obj.tvfaces = {} end
 		local faces, tvfaces, normals = obj.faces, obj.tvfaces, obj.normals
-		local face_count = r:int()
+		local faceCount = r:int()
 		-- Normals saved in one go (file, count, rotMatrix rows), or per corner with each face
 		local saved
 		if r:int() == 1 then
 			saved = { path = r:string(), count = r:int(), m = {} }
 			for i = 1, 12 do saved.m[i] = r:float() end
 		end
-		for f = 0, face_count - 1 do
+		for f = 0, faceCount - 1 do
 			for c = 1, 3 do faces[f * 3 + c] = r:int() end
 			if tvfaces then
 				for c = 1, 3 do tvfaces[f * 3 + c] = r:int() end
@@ -185,11 +185,11 @@ local function mesh(in_path, out_path)
 				for i = 1, 9 do normals[f * 9 + i] = r:float() end
 			end
 		end
-		if saved then obj.normals = jms_mesh.saved_normals(saved.path, saved.count, face_count, saved.m) end
-		jms_mesh.add_object(obj, vertices, corners)
+		if saved then obj.normals = jmsMesh.savedNormals(saved.path, saved.count, faceCount, saved.m) end
+		jmsMesh.addObject(obj, vertices, corners)
 	end
 
-	local w = maxbin.open(out_path)
+	local w = maxbin.open(outPath)
 	w:string("jms_mesh")
 	w:int(1)
 	w:int(#vertices)
