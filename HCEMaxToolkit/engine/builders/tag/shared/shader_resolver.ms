@@ -169,7 +169,7 @@ fn prefetchShaderTags shaderFilePaths =
 		append paths p
 	if paths.count == 0 then return ok
 
-	local f = luaExportTags "lua\\importers\\shader.lua" 1 paths
+	local f = luaExportTags "shader" 1 paths
 	if f == undefined then return ok
 	local count = luaReadInt f
 	for i = 1 to count do
