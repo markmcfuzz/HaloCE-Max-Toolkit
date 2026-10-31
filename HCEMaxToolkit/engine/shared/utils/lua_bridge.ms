@@ -10,8 +10,8 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
--- Reads tags through LuaJIT for any tag importer: lua\bridge\tag_to_max.lua writes a little-endian
--- file (lua\bridge\maxbin.lua) that the importer reads with the functions below.
+-- Every Lua call goes through lua\run.lua: luaRun "<module>" "<function>" #(arguments).
+-- Data comes back in little-endian files (lua\bridge\maxbin.lua) read with the functions below.
 
 -------------------------------------------------------
 -- RUN LUAJIT
@@ -35,17 +35,17 @@ fn runLuaJit args =
 	#(process.ExitCode, output, errorTask.Result)
 )
 
--- Runs one of the toolkit's Lua scripts (path relative to the engine folder) with arguments.
+-- Runs a function of a Lua module, e.g. luaRun "bridge.jms" "read" #(jmsPath, outPath).
 -- Logs what it prints; returns true when it succeeded (errors are logged).
-fn luaRunScript script args =
+fn luaRun moduleName functionName args =
 (
-	local cmd = "\"" + rootEngine + script + "\""
+	local cmd = "\"" + rootEngine + "lua\\run.lua\" " + moduleName + " " + functionName
 	-- Quoted: arguments can be paths with spaces (no trailing backslash, it would escape the quote)
 	for a in args do cmd += " \"" + (a as string) + "\""
 
 	local result = runLuaJit cmd
 	if result[2] != "" do logger.info "Lua: {}" args:#(result[2])
-	if result[1] != 0 do logger.error "Lua {} failed: {}" args:#(getFilenameFile script, result[3])
+	if result[1] != 0 do logger.error "Lua {}.{} failed: {}" args:#(moduleName, functionName, result[3])
 	result[1] == 0
 )
 
@@ -77,28 +77,27 @@ fn luaCloseExport f importerName =
 	deleteFile (luaExportPath importerName)
 )
 
--- Runs an importer's Lua script (path relative to the engine folder, e.g.
--- "lua\\importers\\gbxmodel.lua") on the tag. Returns the open output file
--- (close it with luaCloseExport and the script's file name), or undefined on error (see the log).
-fn luaExportTag importerScript version tagPath options:#() =
+-- Runs an importer of lua\importers (e.g. "gbxmodel") on the tag. Returns the open output file
+-- (close it with luaCloseExport and the importer name), or undefined on error (see the log).
+fn luaExportTag importerName version tagPath options:#() =
 (
-	local outPath = luaExportPath (getFilenameFile importerScript)
+	local outPath = luaExportPath importerName
 	deleteFile outPath
-	if not (luaRunScript "lua\\bridge\\tag_to_max.lua" (#(importerScript, tagPath, outPath) + options)) then
+	if not (luaRun "bridge.tag" "export" (#(importerName, tagPath, outPath) + options)) then
 		return undefined
-	-- The header repeats the script path and the importer's format version
-	luaOpenOutput outPath importerScript version
+	-- The header repeats the importer name and its format version
+	luaOpenOutput outPath importerName version
 )
 
 -- Same as luaExportTag for several tags in one LuaJIT run. The file then holds the tag count
 -- and, per tag, luaReadInt 1 + the importer data, or 0 + an error message (readString).
-fn luaExportTags importerScript version tagPaths options:#() =
+fn luaExportTags importerName version tagPaths options:#() =
 (
-	local listPath = (getDir #temp) + "\\hce_" + (getFilenameFile importerScript) + "_list.txt"
+	local listPath = (getDir #temp) + "\\hce_" + importerName + "_list.txt"
 	local listFile = createFile listPath
 	for p in tagPaths do format "%\n" p to:listFile
 	close listFile
-	local f = luaExportTag importerScript version ("@" + listPath) options:options
+	local f = luaExportTag importerName version ("@" + listPath) options:options
 	deleteFile listPath
 	f
 )
@@ -191,29 +190,8 @@ fn luaReadTuples f =
 
 fn luaWriteInt f v = writeLong f (v as integer) #signed
 fn luaWriteFloat f v = writeFloat f (v as float)
-fn luaWriteString f s = writeString f s
-
--- A value the old writers printed with format "%": its text depends on its type, so the type
--- goes too (1 Integer, 2 Float, 3 anything else as text, e.g. "undefined")
-fn luaWriteValue f v =
-(
-	local c = classOf v
-	if c == Integer then (writeLong f 1 #signed; writeLong f v #signed)
-	else if c == Float then (writeLong f 2 #signed; writeFloat f v)
-	else (writeLong f 3 #signed; writeString f (v as string))
-)
-
--------------------------------------------------------
--- Integers a Lua reader could not parse (the old MAXScript readers gave undefined)
--------------------------------------------------------
-
-global luaUndefinedInt = bit.shift 1 31  -- -2147483648, written by Lua for "undefined"
-
-fn luaReadMaybeInt f =
-(
-	local v = readLong f #signed
-	if v == luaUndefinedInt then undefined else v
-)
+-- Names can be numbers (e.g. a "region" user property): written as their text
+fn luaWriteString f s = writeString f (s as string)
 
 scriptName = getFilenameFile (getThisScriptFilename()) + getFilenameType (getThisScriptFilename())
 logger.info "{} loaded." args:#(scriptName)
