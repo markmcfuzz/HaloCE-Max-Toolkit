@@ -1,7 +1,7 @@
 -- JMA/JMO/JMR/... animation source files: read and write with the same rules as the
 -- previous MAXScript reader (jma_reader.ms) and writer (process_file.ms).
 -- jma = { version, frameCount, frameRate, actorCount, actorName, nodeCount, checksum,
---         nodes = { { name, first_child, next_sibling } },
+--         nodes = { { name, firstChild, nextSibling } },
 --         frames = { { { trans = {x,y,z}, rot = {i,j,k,w}, scale } per node } per frame } }
 
 local maxNumbers = require("formats.max_numbers")
@@ -55,10 +55,15 @@ local function toFloats(line, count, lineNo)
 end
 
 -- Rotations are returned as read; the caller normalizes them (readQuatValue did it in Max).
--- A scale line that is not a number gives nil scale (Max got undefined there).
 function jma.read(path)
 	local nextLine = lineReader(path)
 	local function int() return toInt(nextLine()) end
+	local function float()
+		local line, lineNo = nextLine()
+		local v = tonumber(line)
+		if not v then error(("line %d: '%s' is not a number"):format(lineNo, line), 0) end
+		return v
+	end
 	local function floats(count)
 		local line, lineNo = nextLine()
 		return toFloats(line, count, lineNo)
@@ -86,8 +91,7 @@ function jma.read(path)
 		for n = 1, data.nodeCount do
 			local trans = floats(3) or { 0, 0, 0 }
 			local rot = floats(4) or { 0, 0, 0, 1 }
-			local scale = tonumber((nextLine()))
-			frame[n] = { trans = trans, rot = rot, scale = scale }
+			frame[n] = { trans = trans, rot = rot, scale = float() }
 		end
 		data.frames[f] = frame
 	end

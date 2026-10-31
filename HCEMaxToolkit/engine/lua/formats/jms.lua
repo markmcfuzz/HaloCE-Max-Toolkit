@@ -1,6 +1,6 @@
 -- JMS model source files: read and write with the same rules as the previous MAXScript
--- reader (jms_reader.ms) and writer (process_file.ms). Values the old reader left undefined
--- (a number that did not parse) are nil here.
+-- reader (jms_reader.ms) and writer (process_file.ms). A value that is not a number is an
+-- error with its line number.
 
 local maxNumbers = require("formats.max_numbers")
 
@@ -37,22 +37,24 @@ local function lineReader(path)
 	return reader
 end
 
--- "x" as integer: nil when it is not a number (MAXScript gave undefined)
+-- "x" as integer (MAXScript "as integer"), or nil when it is not a number
 local function asInt(text)
 	local v = text and tonumber(text)
 	if not v then return nil end
 	return v >= 0 and math.floor(v) or math.ceil(v)
 end
 
--- readIntValue: like asInt, but an "undefined" line counts as 0
-local function intValue(text)
-	if text == "undefined" then return 0 end
-	return asInt(text)
+-- Integer of the current line; "undefined" counts as 0 (old toolkit files have it)
+local function toInt(text, r)
+	if text and text:lower() == "undefined" then return 0 end
+	local v = asInt(text)
+	if not v then error(("line %d: '%s' is not a number"):format(r.lineNo(), tostring(text)), 0) end
+	return v
 end
 
--- A count must be a number (the old reader failed on its loop otherwise)
-local function countValue(v, what, r)
-	if not v then error(("line %d: %s count is not a number"):format(r.lineNo(), what), 0) end
+local function toFloat(text, r)
+	local v = text and tonumber(text)
+	if not v then error(("line %d: '%s' is not a number"):format(r.lineNo(), tostring(text)), 0) end
 	return v
 end
 
@@ -86,62 +88,60 @@ end
 
 local function readInline(r, firstLine, data)
 	local header = split(firstLine, " \t")
-	data.version, data.checksum, data.nodeCount = asInt(header[1]), asInt(header[2]), asInt(header[3])
+	data.version, data.checksum = toInt(header[1], r), toInt(header[2], r)
+	data.nodeCount = toInt(header[3], r)
 
 	-- Records with too few fields are skipped, as before
-	for _ = 1, countValue(data.nodeCount, "node", r) do
+	for _ = 1, data.nodeCount do
 		local p = split(r.line(), "\t")
 		if #p >= 10 then
-			data.nodes[#data.nodes + 1] = { name = p[1], child = asInt(p[2]), sibling = asInt(p[3]),
+			data.nodes[#data.nodes + 1] = { name = p[1], child = toInt(p[2], r), sibling = toInt(p[3], r),
 				rot = floats(p, 4, 4, r), trans = floats(p, 8, 3, r) }
 		end
 	end
 
-	data.shaderCount = asInt(r.line())
-	for _ = 1, countValue(data.shaderCount, "shader", r) do
+	data.shaderCount = toInt(r.line(), r)
+	for _ = 1, data.shaderCount do
 		local p = split(r.line(), "\t")
 		if #p >= 2 then data.shaders[#data.shaders + 1] = { name = p[1], bitmap = p[2] } end
 	end
 
-	data.markerCount = asInt(r.line())
-	for _ = 1, countValue(data.markerCount, "marker", r) do
+	data.markerCount = toInt(r.line(), r)
+	for _ = 1, data.markerCount do
 		local p = split(r.line(), "\t")
 		if #p >= 11 then
-			data.markers[#data.markers + 1] = { name = p[1], region = asInt(p[2]), parent = asInt(p[3]),
-				rot = floats(p, 4, 4, r), trans = floats(p, 8, 3, r), radius = tonumber(p[11]) }
+			data.markers[#data.markers + 1] = { name = p[1], region = toInt(p[2], r), parent = toInt(p[3], r),
+				rot = floats(p, 4, 4, r), trans = floats(p, 8, 3, r), radius = toFloat(p[11], r) }
 		end
 	end
 
-	data.regionCount = asInt(r.line())
-	for _ = 1, countValue(data.regionCount, "region", r) do
+	data.regionCount = toInt(r.line(), r)
+	for _ = 1, data.regionCount do
 		local name = r.line()
 		while name == "" do name = r.line() end
 		data.regions[#data.regions + 1] = name
 	end
 
-	data.vertexCount = asInt(r.line())
-	for i = 1, countValue(data.vertexCount, "vertex", r) do
+	data.vertexCount = toInt(r.line(), r)
+	for i = 1, data.vertexCount do
 		local p = split(r.line(), "\t")
 		if i == 1 and #p > 50 then
 			error("ultra-inline JMS (all vertices on one line) is not supported; convert it with the JMS Formatter first", 0)
 		end
 		if #p >= 12 then
 			local uv = floats(p, 10, 2, r)
-			local tex = asInt(p[12])
-			if not tex then error(("line %d: texture index '%s' is not a number"):format(r.lineNo(), p[12]), 0) end
-			data.vertices[#data.vertices + 1] = { node0 = asInt(p[1]), pos = floats(p, 2, 3, r),
-				normal = floats(p, 5, 3, r), node1 = asInt(p[8]), weight = tonumber(p[9]),
-				u = uv[1], v = uv[2], tex = tex }
+			data.vertices[#data.vertices + 1] = { node0 = toInt(p[1], r), pos = floats(p, 2, 3, r),
+				normal = floats(p, 5, 3, r), node1 = toInt(p[8], r), weight = toFloat(p[9], r),
+				u = uv[1], v = uv[2], tex = toInt(p[12], r) }
 		end
 	end
 
-	data.triangleCount = asInt(r.line())
-	for _ = 1, countValue(data.triangleCount, "triangle", r) do
+	data.triangleCount = toInt(r.line(), r)
+	for _ = 1, data.triangleCount do
 		local p = split(r.line(), "\t")
 		if #p >= 5 then
-			local region = p[1]:lower() == "undefined" and 0 or asInt(p[1])
-			data.triangles[#data.triangles + 1] = { region = region, shader = asInt(p[2]),
-				a = asInt(p[3]), b = asInt(p[4]), c = asInt(p[5]) }
+			data.triangles[#data.triangles + 1] = { region = toInt(p[1], r), shader = toInt(p[2], r),
+				a = toInt(p[3], r), b = toInt(p[4], r), c = toInt(p[5], r) }
 		end
 	end
 end
@@ -154,20 +154,17 @@ end
 -- or u, v and index on three lines (toolkit). An empty line gives 0, 0, 0.
 local function readUv(r)
 	local p = split(r.line(), " \t")
-	local u, v, tex
 	if #p >= 3 then
-		u, v, tex = tonumber(p[1]), tonumber(p[2]), asInt(p[3])
+		return toFloat(p[1], r), toFloat(p[2], r), toInt(p[3], r)
 	elseif #p == 2 then
-		u, v, tex = tonumber(p[1]), tonumber(p[2]), intValue(r.line())
+		local u, v = toFloat(p[1], r), toFloat(p[2], r)
+		return u, v, toInt(r.line(), r)
 	elseif #p == 1 then
-		u = tonumber(p[1])
-		v = tonumber(r.line())
-		tex = intValue(r.line())
-	else
-		u, v, tex = 0, 0, 0
+		local u = toFloat(p[1], r)
+		local v = toFloat(r.line(), r)
+		return u, v, toInt(r.line(), r)
 	end
-	if not (u and v and tex) then error(("line %d: texture coordinate is not a number"):format(r.lineNo()), 0) end
-	return u, v, tex
+	return 0, 0, 0
 end
 
 -- ";### SMOOTHING GROUPS ###" section after the triangles (optional). The old reader stopped
@@ -188,39 +185,39 @@ local function readSmoothingGroups(r, data)
 end
 
 local function readStandard(r, data)
-	data.version = intValue(r.line())
-	data.checksum = intValue(r.line())
+	data.version = toInt(r.line(), r)
+	data.checksum = toInt(r.line(), r)
 
-	data.nodeCount = intValue(r.line())
-	for _ = 1, countValue(data.nodeCount, "node", r) do
+	data.nodeCount = toInt(r.line(), r)
+	for _ = 1, data.nodeCount do
 		local name = r.line()
-		local child = intValue(r.line())
-		local sibling = intValue(r.line())
+		local child = toInt(r.line(), r)
+		local sibling = toInt(r.line(), r)
 		local rot = vectorLine(r, 4, { 0, 0, 0, 1 })
 		local trans = vectorLine(r, 3, { 0, 0, 0 })
 		data.nodes[#data.nodes + 1] = { name = name, child = child, sibling = sibling, rot = rot, trans = trans }
 	end
 
-	data.shaderCount = intValue(r.line())
-	for _ = 1, countValue(data.shaderCount, "shader", r) do
+	data.shaderCount = toInt(r.line(), r)
+	for _ = 1, data.shaderCount do
 		local name = r.line()
 		data.shaders[#data.shaders + 1] = { name = name, bitmap = r.line() }
 	end
 
-	data.markerCount = intValue(r.line())
-	for _ = 1, countValue(data.markerCount, "marker", r) do
+	data.markerCount = toInt(r.line(), r)
+	for _ = 1, data.markerCount do
 		local name = r.line()
-		local region = intValue(r.line())
-		local parent = intValue(r.line())
+		local region = toInt(r.line(), r)
+		local parent = toInt(r.line(), r)
 		local rot = vectorLine(r, 4, { 0, 0, 0, 1 })
 		local trans = vectorLine(r, 3, { 0, 0, 0 })
 		data.markers[#data.markers + 1] = { name = name, region = region, parent = parent,
-			rot = rot, trans = trans, radius = tonumber(r.line()) }
+			rot = rot, trans = trans, radius = toFloat(r.line(), r) }
 	end
 
 	-- Blank lines are skipped before each region name and before the vertex count
-	data.regionCount = intValue(r.line())
-	for _ = 1, countValue(data.regionCount, "region", r) do
+	data.regionCount = toInt(r.line(), r)
+	for _ = 1, data.regionCount do
 		local name = r.line()
 		while name == "" do name = r.line() end
 		data.regions[#data.regions + 1] = name
@@ -228,25 +225,25 @@ local function readStandard(r, data)
 
 	local countLine = r.line()
 	while countLine == "" do countLine = r.line() end
-	data.vertexCount = asInt(countLine)
-	for _ = 1, countValue(data.vertexCount, "vertex", r) do
+	data.vertexCount = toInt(countLine, r)
+	for _ = 1, data.vertexCount do
 		local vert = {}
-		vert.node0 = intValue(r.line())
+		vert.node0 = toInt(r.line(), r)
 		vert.pos = vectorLine(r, 3, { 0, 0, 0 })
 		vert.normal = vectorLine(r, 3, { 0, 0, 0 })
-		vert.node1 = intValue(r.line())
-		vert.weight = tonumber(r.line())
+		vert.node1 = toInt(r.line(), r)
+		vert.weight = toFloat(r.line(), r)
 		vert.u, vert.v, vert.tex = readUv(r)
 		data.vertices[#data.vertices + 1] = vert
 	end
 
-	data.triangleCount = intValue(r.line())
-	for _ = 1, countValue(data.triangleCount, "triangle", r) do
-		local region = intValue(r.line())
-		local shader = intValue(r.line())
+	data.triangleCount = toInt(r.line(), r)
+	for _ = 1, data.triangleCount do
+		local region = toInt(r.line(), r)
+		local shader = toInt(r.line(), r)
 		local p = split(r.line(), " \t")
 		local tri = { region = region, shader = shader, a = 0, b = 0, c = 0 }
-		if #p >= 3 then tri.a, tri.b, tri.c = asInt(p[1]), asInt(p[2]), asInt(p[3]) end
+		if #p >= 3 then tri.a, tri.b, tri.c = toInt(p[1], r), toInt(p[2], r), toInt(p[3], r) end
 		data.triangles[#data.triangles + 1] = tri
 	end
 
@@ -275,71 +272,65 @@ end
 -- Writing (same text as writeJmsFile)
 -------------------------------------------------------------------------------
 
--- Values the old writer printed with format "%": integer, float or text, as Max sent them
-local function valueText(v)
-	if type(v) == "table" then return floatText(v.float) end
-	return tostring(v)
-end
-
 local function fixedList(values)
 	local out = {}
 	for i, v in ipairs(values) do out[i] = fixed6(v) end
 	return table.concat(out, "\t")
 end
 
--- data uses the read layout, except that values printed with format "%" can be numbers,
--- strings or { float = x }, and smoothing groups are written only when writeSmoothing is set
+-- data uses the read layout; smoothing groups are written only when writeSmoothing is set.
+-- The weight is printed like MAXScript format "%", other floats with 6 decimals.
 function jms.write(path, data)
 	local lines = {}
 	local function add(text) lines[#lines + 1] = text end
-	add(valueText(data.version))
-	add(valueText(data.checksum))
-	add(valueText(data.nodeCount))
+	add(tostring(data.version))
+	add(tostring(data.checksum))
+	add(tostring(data.nodeCount))
 	for _, n in ipairs(data.nodes) do
-		add(valueText(n.name))
-		add(valueText(n.child))
-		add(valueText(n.sibling))
+		add(n.name)
+		add(tostring(n.child))
+		add(tostring(n.sibling))
 		add(fixedList(n.rot))
 		add(fixedList(n.trans))
 	end
-	add(valueText(data.shaderCount))
+	add(tostring(data.shaderCount))
 	for _, s in ipairs(data.shaders) do
-		add(valueText(s.name))
-		add(valueText(s.bitmap))
+		add(s.name)
+		add(s.bitmap)
 	end
-	add(valueText(data.markerCount))
+	add(tostring(data.markerCount))
 	for _, m in ipairs(data.markers) do
-		add(valueText(m.name))
-		add(valueText(m.region))
-		add(valueText(m.parent))
+		add(m.name)
+		add(tostring(m.region))
+		add(tostring(m.parent))
 		add(fixedList(m.rot))
 		add(fixedList(m.trans))
 		add(fixed6(m.radius))
 	end
-	add(valueText(data.regionCount))
-	for _, name in ipairs(data.regions) do add(valueText(name)) end
-	add(valueText(data.vertexCount))
+	add(tostring(data.regionCount))
+	for _, name in ipairs(data.regions) do add(name) end
+	add(tostring(data.vertexCount))
 	for _, v in ipairs(data.vertices) do
-		add(valueText(v.node0))
+		add(tostring(v.node0))
 		add(fixedList(v.pos))
 		add(fixedList(v.normal))
-		add(valueText(v.node1))
-		add(valueText(v.weight))
+		add(tostring(v.node1))
+		add(floatText(v.weight))
 		add(fixed6(v.u))
 		add(fixed6(v.v))
-		add(valueText(v.tex))
+		add(tostring(v.tex))
 	end
-	add(valueText(data.triangleCount))
+	add(tostring(data.triangleCount))
 	for _, t in ipairs(data.triangles) do
-		add(valueText(t.region))
-		add(valueText(t.shader))
-		add(valueText(t.a) .. "\t" .. valueText(t.b) .. "\t" .. valueText(t.c))
+		add(tostring(t.region))
+		add(tostring(t.shader))
+		add(tostring(t.a) .. "\t" .. tostring(t.b) .. "\t" .. tostring(t.c))
 	end
 	if data.writeSmoothing then
 		add("")
 		add(";### SMOOTHING GROUPS ###")
-		add(valueText(#data.smoothingGroups))
-		for _, sg in ipairs(data.smoothingGroups) do add(valueText(sg)) end
+		add(tostring(#data.smoothingGroups))
+		for _, sg in ipairs(data.smoothingGroups) do add(tostring(sg)) end
 	end
 
 	local f = io.open(path, "wb")
