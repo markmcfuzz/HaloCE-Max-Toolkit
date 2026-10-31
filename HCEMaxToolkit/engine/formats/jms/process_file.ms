@@ -10,13 +10,8 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--- Writes JMS files through lua\formats\jms_cli.lua (lua\formats\jms.lua): the data goes to Lua
+-- Writes JMS files through lua\bridge\jms.lua (lua\formats\jms.lua): the data goes to Lua
 -- as binary and Lua writes the same text the previous MAXScript writer did.
-
--- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
-global luaRunScript
-if luaRunScript == undefined and rootEngine != undefined do
-	fileIn (rootEngine + "shared\\utils\\lua_bridge.ms")
 
 -- True when the smoothing groups section is written (setting on and any group non-zero)
 fn jmsWritesSmoothingGroups jmsData =
@@ -28,52 +23,51 @@ fn jmsWritesSmoothingGroups jmsData =
 	anyGroup
 )
 
--- Binary for jms_cli.lua "write". Values printed with format "%" go with their type
--- (luaWriteValue); the others are floats printed with 6 decimals.
+-- Binary for bridge.jms "write" (lua\bridge\jms.lua reads it in this order)
 fn writeJmsForLua f jmsData =
 (
 	luaWriteString f "jms"
-	luaWriteInt f 1
-	luaWriteValue f jmsData.jmsVersion
-	luaWriteValue f jmsData.jmsChecksum
+	luaWriteInt f 2
+	luaWriteInt f jmsData.jmsVersion
+	luaWriteInt f jmsData.jmsChecksum
 
-	luaWriteValue f jmsData.nodeCount
+	luaWriteInt f jmsData.nodeCount
 	luaWriteInt f jmsData.nodes.count
 	for node in jmsData.nodes do
 	(
-		luaWriteValue f node.nodeName
-		luaWriteValue f node.firstChildNodeIndex
-		luaWriteValue f node.nextSiblingNodeIndex
+		luaWriteString f node.nodeName
+		luaWriteInt f node.firstChildNodeIndex
+		luaWriteInt f node.nextSiblingNodeIndex
 		for i = 1 to 4 do luaWriteFloat f node.nodeRotation[i]
 		for i = 1 to 3 do luaWriteFloat f node.nodeTranslation[i]
 	)
 
-	luaWriteValue f jmsData.shaderCount
+	luaWriteInt f jmsData.shaderCount
 	luaWriteInt f jmsData.shaders.count
 	for shader in jmsData.shaders do
 	(
-		luaWriteValue f shader.shaderName
-		luaWriteValue f shader.bitmapPath
+		luaWriteString f shader.shaderName
+		luaWriteString f shader.bitmapPath
 	)
 
-	luaWriteValue f jmsData.markerCount
+	luaWriteInt f jmsData.markerCount
 	luaWriteInt f jmsData.markers.count
 	for marker in jmsData.markers do
 	(
-		luaWriteValue f marker.markerName
-		luaWriteValue f marker.markerRegion
-		luaWriteValue f marker.parentNodeIndex
+		luaWriteString f marker.markerName
+		luaWriteInt f marker.markerRegion
+		luaWriteInt f marker.parentNodeIndex
 		for i = 1 to 4 do luaWriteFloat f marker.markerRotation[i]
 		for i = 1 to 3 do luaWriteFloat f marker.markerTranslation[i]
 		luaWriteFloat f marker.markerRadius
 	)
 
-	luaWriteValue f jmsData.regionCount
+	luaWriteInt f jmsData.regionCount
 	luaWriteInt f jmsData.regions.count
-	for reg in jmsData.regions do luaWriteValue f reg.regionName
+	for reg in jmsData.regions do luaWriteString f reg.regionName
 
 	-- Undefined vertices / triangles were skipped by the previous writer too
-	luaWriteValue f jmsData.vertexCount
+	luaWriteInt f jmsData.vertexCount
 	if jmsData.vertices == undefined then
 	(
 		logger.error "ERROR: jmsData.vertices is undefined!"
@@ -87,18 +81,18 @@ fn writeJmsForLua f jmsData =
 		for vertex in verts do
 		(
 			local tex = if vertex.texturePos == undefined then #(0.0, 0.0, 0) else vertex.texturePos
-			luaWriteValue f vertex.node0Index
+			luaWriteInt f vertex.node0Index
 			for i = 1 to 3 do luaWriteFloat f vertex.position[i]
 			for i = 1 to 3 do luaWriteFloat f vertex.normal[i]
-			luaWriteValue f vertex.node1Index
-			luaWriteValue f vertex.node1Weight
+			luaWriteInt f vertex.node1Index
+			luaWriteFloat f vertex.node1Weight
 			luaWriteFloat f tex[1]
 			luaWriteFloat f tex[2]
-			luaWriteValue f tex[3]
+			luaWriteInt f tex[3]
 		)
 	)
 
-	luaWriteValue f jmsData.triangleCount
+	luaWriteInt f jmsData.triangleCount
 	if jmsData.triangles == undefined then
 	(
 		logger.error "ERROR: jmsData.triangles is undefined!"
@@ -111,9 +105,9 @@ fn writeJmsForLua f jmsData =
 		luaWriteInt f tris.count
 		for tri in tris do
 		(
-			luaWriteValue f tri.regionIndex
-			luaWriteValue f tri.shaderIndex
-			for i = 1 to 3 do luaWriteValue f tri.vertexIndices[i]
+			luaWriteInt f tri.regionIndex
+			luaWriteInt f tri.shaderIndex
+			for i = 1 to 3 do luaWriteInt f tri.vertexIndices[i]
 		)
 	)
 
@@ -121,7 +115,7 @@ fn writeJmsForLua f jmsData =
 	(
 		luaWriteInt f 1
 		luaWriteInt f jmsData.smoothingGroups.count
-		for sg in jmsData.smoothingGroups do luaWriteValue f sg
+		for sg in jmsData.smoothingGroups do luaWriteInt f sg
 	)
 	else
 		luaWriteInt f 0
@@ -147,7 +141,7 @@ fn writeJmsFile filePath jmsData =
 		writeJmsForLua f jmsData
 		fclose f
 		f = undefined
-		ok = luaRunScript "lua\\formats\\jms_cli.lua" #("write", inPath, filePath)
+		ok = luaRun "bridge.jms" "write" #(inPath, filePath)
 	)
 	catch
 	(

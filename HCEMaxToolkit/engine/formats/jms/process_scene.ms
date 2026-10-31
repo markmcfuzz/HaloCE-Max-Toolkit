@@ -10,11 +10,6 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--- mesh_normals.ms is loaded by init.ms; load it if Max still runs an older toolkit
-global meshNormalsSave
-if meshNormalsSave == undefined and rootEngine != undefined do
-	fileIn (rootEngine + "shared\\utils\\mesh_normals.ms")
-
 -------------------------------------------------------
 -- HIERARCHY BUILDING
 -------------------------------------------------------
@@ -827,7 +822,7 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	local faceShaders = #()
 	local normalsFiles = #()  -- normals saved by meshNormalsSave, deleted after Lua reads them
 
-	-- The meshes go to lua\formats\jms_cli.lua "mesh", which builds the JMS vertices
+	-- The meshes go to bridge.jms "mesh" (lua\bridge\jms.lua), which builds the JMS vertices
 	local meshPath = (getDir #temp) + "\\hce_jms_mesh.bin"
 	local meshFile = fopen meshPath "wb"
 	luaWriteString meshFile "jms_mesh"
@@ -1240,7 +1235,7 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	local timeLuaStart = timestamp()
 	local meshOutPath = (getDir #temp) + "\\hce_jms_mesh_out.bin"
 	deleteFile meshOutPath
-	local luaOk = luaRunScript "lua\\formats\\jms_cli.lua" #("mesh", meshPath, meshOutPath)
+	local luaOk = luaRun "bridge.jms" "mesh" #(meshPath, meshOutPath)
 	deleteFile meshPath
 	for path in normalsFiles do deleteFile path
 	local outFile = if luaOk then luaOpenOutput meshOutPath "jms_mesh" 1 else undefined

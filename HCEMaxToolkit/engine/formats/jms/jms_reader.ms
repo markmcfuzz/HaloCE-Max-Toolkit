@@ -10,12 +10,7 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ----------------------------------------------------------------------------
 
--- Reads JMS files through lua\formats\jms_cli.lua; returns the jmsFile struct (jms_struct.ms).
-
--- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
-global luaRunScript
-if luaRunScript == undefined and rootEngine != undefined do
-	fileIn (rootEngine + "shared\\utils\\lua_bridge.ms")
+-- Reads JMS files through lua\bridge\jms.lua; returns the jmsFile struct (jms_struct.ms).
 
 -------------------------------------------------------
 -- AFTER READING
@@ -112,7 +107,7 @@ fn logJmsData jmsData =
 -------------------------------------------------------
 
 -- Read a complete JMS file and return a jmsFile struct with all data (undefined on error).
--- The file is parsed by lua\formats\jms_cli.lua (lua\formats\jms.lua); every format the
+-- The file is parsed by lua\bridge\jms.lua (lua\formats\jms.lua); every format the
 -- previous MAXScript reader knew is supported: inline (old exporters), toolkit, Blender,
 -- invader-recover and fbx-to-jms, plus the smoothing groups section.
 fn readJmsFile filePath =
@@ -121,27 +116,27 @@ fn readJmsFile filePath =
 
 	local outPath = (getDir #temp) + "\\hce_jms_read.bin"
 	deleteFile outPath
-	if not (luaRunScript "lua\\formats\\jms_cli.lua" #("read", filePath, outPath)) then
+	if not (luaRun "bridge.jms" "read" #(filePath, outPath)) then
 	(
 		logger.error "Error reading JMS file: '{}'" args:#(filePath)
 		return undefined
 	)
-	local f = luaOpenOutput outPath "jms" 1
+	local f = luaOpenOutput outPath "jms" 2
 	if f == undefined then return undefined
 
 	local jmsData = jmsFile()
 	-- Standard files had their rotations normalized by the old reader; inline ones did not
 	local normalizeRotations = (luaReadInt f) == 1
-	jmsData.jmsVersion = luaReadMaybeInt f
-	jmsData.jmsChecksum = luaReadMaybeInt f
+	jmsData.jmsVersion = luaReadInt f
+	jmsData.jmsChecksum = luaReadInt f
 
 	jmsData.nodeCount = luaReadInt f
 	jmsData.nodes = for i = 1 to (luaReadInt f) collect
 	(
 		local node = nodes()
 		node.nodeName = readString f
-		node.firstChildNodeIndex = luaReadMaybeInt f
-		node.nextSiblingNodeIndex = luaReadMaybeInt f
+		node.firstChildNodeIndex = luaReadInt f
+		node.nextSiblingNodeIndex = luaReadInt f
 		local rot = luaReadQuat f
 		node.nodeRotation = if normalizeRotations then normalize rot else rot
 		node.nodeTranslation = luaReadPoint3 f
@@ -161,8 +156,8 @@ fn readJmsFile filePath =
 	(
 		local marker = markers()
 		marker.markerName = readString f
-		marker.markerRegion = luaReadMaybeInt f
-		marker.parentNodeIndex = luaReadMaybeInt f
+		marker.markerRegion = luaReadInt f
+		marker.parentNodeIndex = luaReadInt f
 		local rot = luaReadQuat f
 		marker.markerRotation = if normalizeRotations then normalize rot else rot
 		marker.markerTranslation = luaReadPoint3 f
@@ -177,10 +172,10 @@ fn readJmsFile filePath =
 	jmsData.vertices = for i = 1 to (luaReadInt f) collect
 	(
 		local vert = vertices()
-		vert.node0Index = luaReadMaybeInt f
+		vert.node0Index = luaReadInt f
 		vert.position = luaReadPoint3 f
 		vert.normal = luaReadPoint3 f
-		vert.node1Index = luaReadMaybeInt f
+		vert.node1Index = luaReadInt f
 		vert.node1Weight = readFloat f
 		local u = readFloat f
 		local v = readFloat f
@@ -193,25 +188,16 @@ fn readJmsFile filePath =
 	jmsData.triangles = for i = 1 to (luaReadInt f) collect
 	(
 		local tri = triangles()
-		tri.regionIndex = luaReadMaybeInt f
-		tri.shaderIndex = luaReadMaybeInt f
-		local a = luaReadMaybeInt f
-		local b = luaReadMaybeInt f
-		local c = luaReadMaybeInt f
+		tri.regionIndex = luaReadInt f
+		tri.shaderIndex = luaReadInt f
+		local a = luaReadInt f
+		local b = luaReadInt f
+		local c = luaReadInt f
 		tri.vertexIndices = #(a, b, c)
 		tri
 	)
 
 	jmsData.smoothingGroups = for i = 1 to (luaReadInt f) collect luaReadInt f
-
-	-- Radius / weight lines that were not numbers stay undefined, as before
-	for i = 1 to (luaReadInt f) do
-	(
-		local kind = luaReadInt f
-		local index = luaReadInt f
-		if kind == 1 then jmsData.markers[index].markerRadius = undefined
-		else jmsData.vertices[index].node1Weight = undefined
-	)
 	fclose f
 	deleteFile outPath
 
