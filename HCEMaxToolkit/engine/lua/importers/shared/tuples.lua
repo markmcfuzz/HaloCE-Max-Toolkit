@@ -1,68 +1,101 @@
 -- Writes a tag element as the field tuples of the previous MAXScript parser:
 -- #(#("camelCaseName", value), ...), blocks as arrays of those. Read in Max by luaReadTuples (lua_bridge.ms).
-
-local tagdefs = require("tags.tagdefs")
-local K = tagdefs.K
+local tagDefs = require "tags.tag_defs"
+local readAs = tagDefs.readAs
 
 local tuples = {}
 
--- Value codes shared with luaReadTuples
-local V = { INT = 1, FLOAT = 2, COLOR = 3, ARGB = 4, POINT2 = 5, POINT3 = 6, TAGREF = 7, BLOCK = 8, STRING = 9 }
-tuples.V = V
+-- Value type sent before each value; luaReadTuples in lua_bridge.ms uses the same numbers
+local valueType = {
+    int = 1,
+    float = 2,
+    color = 3,
+    argb = 4,
+    point2 = 5,
+    point3 = 6,
+    tagRef = 7,
+    block = 8,
+    string = 9
+}
 
-local INT_KINDS = { [K.I8] = true, [K.U8] = true, [K.I16] = true, [K.U16] = true, [K.I32] = true, [K.U32] = true }
+local integerReadAs = {
+    [readAs.int8] = true,
+    [readAs.uint8] = true,
+    [readAs.int16] = true,
+    [readAs.uint16] = true,
+    [readAs.int32] = true,
+    [readAs.uint32] = true
+}
 
 -- "map u-scale" -> "mapUScale", "rotation-animation center" -> "rotationAnimationCenter"
-function tuples.camelCase(name)
-	local out, first = {}, true
-	for word in name:gmatch("[^%s%-]+") do
-		if first then
-			out[#out + 1] = word:sub(1, 1):lower() .. word:sub(2)
-			first = false
-		else
-			out[#out + 1] = word:sub(1, 1):upper() .. word:sub(2)
-		end
-	end
-	return table.concat(out)
+local function camelCase(name)
+    local out, first = {}, true
+    for word in name:gmatch("[^%s%-]+") do
+        if first then
+            out[#out + 1] = word:sub(1, 1):lower() .. word:sub(2)
+            first = false
+        else
+            out[#out + 1] = word:sub(1, 1):upper() .. word:sub(2)
+        end
+    end
+    return table.concat(out)
 end
 
-local function valueCode(fd)
-	local k = fd.kind
-	if INT_KINDS[k] then return V.INT
-	elseif k == K.F32 then return V.FLOAT
-	elseif k == K.F32x2 then return V.POINT2
-	elseif k == K.F32x3 then return fd.type == "real_rgb_color" and V.COLOR or V.POINT3
-	elseif k == K.F32x4 and fd.type == "real_argb_color" then return V.ARGB
-	elseif k == K.TAGREF then return V.TAGREF
-	elseif k == K.BLOCK then return V.BLOCK
-	elseif k == K.STRING then return V.STRING
-	end
-	error(("field '%s' (%s) has no tuple form yet"):format(fd.key, fd.type), 0)
+-- Value type of a compiled field (tag_defs.lua); errors for fields Max does not read yet
+local function valueTypeOf(field)
+    local fieldReadAs = field.readAs
+    if integerReadAs[fieldReadAs] then
+        return valueType.int
+    elseif fieldReadAs == readAs.float then
+        return valueType.float
+    elseif fieldReadAs == readAs.float2 then
+        return valueType.point2
+    elseif fieldReadAs == readAs.float3 then
+        return field.type == "real_rgb_color" and valueType.color or valueType.point3
+    elseif fieldReadAs == readAs.float4 and field.type == "real_argb_color" then
+        return valueType.argb
+    elseif fieldReadAs == readAs.tagRef then
+        return valueType.tagRef
+    elseif fieldReadAs == readAs.block then
+        return valueType.block
+    elseif fieldReadAs == readAs.string then
+        return valueType.string
+    end
+    error(("field '%s' (%s) has no tuple form yet"):format(field.key, field.type), 0)
 end
 
--- c: compiled struct of e; fields before firstField are left out (default 1)
-function tuples.write(w, c, e, firstField)
-	local fields = c.fields
-	firstField = firstField or 1
-	w:int(#fields - firstField + 1)
-	for i = firstField, #fields do
-		local fd = fields[i]
-		local v = e[fd.key]
-		local code = valueCode(fd)
-		w:string(tuples.camelCase(fd.name))
-		w:int(code)
-		if code == V.INT then w:int(v)
-		elseif code == V.FLOAT then w:float(v)
-		elseif code == V.POINT2 or code == V.POINT3 or code == V.COLOR then w:floats(v)
-		elseif code == V.ARGB then w:floats({ v[2], v[3], v[4], v[1] }) -- stored a,r,g,b; Max gets point4 r g b a
-		elseif code == V.TAGREF then w:tagref(v)
-		elseif code == V.STRING then w:string(v)
-		elseif code == V.BLOCK then
-			w:int(#v)
-			-- Elements were read with this compiled struct (empty blocks have none)
-			for _, child in ipairs(v) do tuples.write(w, fd.sub.compiled, child) end
-		end
-	end
+-- Writes every field of element (read with structDef) as name, value type and value.
+-- Fields before firstField are left out (default 1).
+function tuples.write(w, structDef, element, firstField)
+    local fields = structDef.fields
+    firstField = firstField or 1
+    w:int(#fields - firstField + 1)
+    for i = firstField, #fields do
+        local field = fields[i]
+        local value = element[field.key]
+        local fieldType = valueTypeOf(field)
+        w:string(camelCase(field.name))
+        w:int(fieldType)
+        if fieldType == valueType.int then
+            w:int(value)
+        elseif fieldType == valueType.float then
+            w:float(value)
+        elseif fieldType == valueType.point2 or fieldType == valueType.point3 or fieldType == valueType.color then
+            w:floats(value)
+        elseif fieldType == valueType.argb then
+            w:floats({value[2], value[3], value[4], value[1]}) -- stored a,r,g,b; Max gets point4 r g b a
+        elseif fieldType == valueType.tagRef then
+            w:tagref(value)
+        elseif fieldType == valueType.string then
+            w:string(value)
+        elseif fieldType == valueType.block then
+            w:int(#value)
+            -- Elements were read with this compiled struct (empty blocks have none)
+            for _, child in ipairs(value) do
+                tuples.write(w, field.sub.compiled, child)
+            end
+        end
+    end
 end
 
 return tuples
