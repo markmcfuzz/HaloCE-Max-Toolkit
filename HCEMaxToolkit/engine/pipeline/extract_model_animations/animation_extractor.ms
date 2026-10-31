@@ -13,11 +13,6 @@
 -- Extracts every animation of a model_animations tag to JMA/JMO/JMR/... source files.
 -- The work is done by lua\importers\model_animations.lua; this asks for the folder and reports.
 
--- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
-global luaExportTag
-if luaExportTag == undefined and rootEngine != undefined do
-    fileIn (rootEngine + "shared\\utils\\lua_bridge.ms")
-
 -- outputDir: when given (e.g. by a test script), no folder dialog and no completion dialog
 fn extractModelAnimations tagPath outputDir:undefined =
 (
@@ -37,7 +32,7 @@ fn extractModelAnimations tagPath outputDir:undefined =
     outputDir = trimRight outputDir "\\"
 
     local startTime = timestamp()
-    local f = luaExportTag "lua\\importers\\model_animations.lua" 2 tagPath options:#(outputDir)
+    local f = luaExportTag "model_animations" 2 tagPath options:#(outputDir)
     if f == undefined then
     (
         logger.error "Lua extractor failed | cannot extract animations."
