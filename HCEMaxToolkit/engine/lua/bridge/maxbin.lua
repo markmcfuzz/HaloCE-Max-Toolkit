@@ -47,7 +47,7 @@ function Writer:float(v) self:floats({ v }, 1) end
 function Writer:close() self.f:close() end
 
 -- Tag fourcc string -> integer as stored in the tag ("soso" -> 0x736F736F), -1 for none
-function maxbin.fourcc_int(s)
+function maxbin.fourccInt(s)
 	if not s then return -1 end
 	local a, b, c, d = s:byte(1, 4)
 	return ((a * 256 + b) * 256 + c) * 256 + d
@@ -56,7 +56,7 @@ end
 -- Tag reference { group, path }: path string, then group fourcc (luaReadTagRef in lua_bridge.ms)
 function Writer:tagref(ref)
 	self:string(ref.path)
-	self:int(maxbin.fourcc_int(ref.group))
+	self:int(maxbin.fourccInt(ref.group))
 end
 
 -------------------------------------------------------------------------------
@@ -66,7 +66,7 @@ end
 local Reader = {}
 Reader.__index = Reader
 
-function maxbin.read_file(path)
+function maxbin.readFile(path)
 	local f = assert(io.open(path, "rb"))
 	local data = f:read("*a")
 	f:close()
