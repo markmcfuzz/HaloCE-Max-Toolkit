@@ -10,6 +10,11 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
+-- mesh_normals.ms is loaded by init.ms; load it if Max still runs an older toolkit
+global meshNormalsSave
+if meshNormalsSave == undefined and rootEngine != undefined do
+	fileIn (rootEngine + "shared\\utils\\mesh_normals.ms")
+
 -------------------------------------------------------
 -- HIERARCHY BUILDING
 -------------------------------------------------------
@@ -820,12 +825,13 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	local shaderNames = for s in shaderArray collect s.shaderName
 	local faceRegions = #()
 	local faceShaders = #()
+	local normalsFiles = #()  -- normals saved by meshNormalsSave, deleted after Lua reads them
 
 	-- The meshes go to formats\jms\jms_cli.lua "mesh", which builds the JMS vertices
 	local meshPath = (getDir #temp) + "\\hce_jms_mesh.bin"
 	local meshFile = fopen meshPath "wb"
 	luaWriteString meshFile "jms_mesh"
-	luaWriteInt meshFile 1
+	luaWriteInt meshFile 2
 	luaWriteInt meshFile validObjects.count
 
 	-- ============================================================================
@@ -920,7 +926,8 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	local vertexFaceMap = #()  -- Store which faces use each vertex
 	local explicitNormalsCache = #()  -- Store explicit normals per face: #( #(corner1_normal, corner2_normal, corner3_normal), ... )
 	local hasExplicitNormals = false
-	
+	local normalsFile = undefined  -- #(path, normal count, rotMatrix) when saved in one go
+
 	-- If no smoothing groups, try to read explicit normals from Edit_Normals modifier
 	if not hasSmoothingGroups then
 	(
@@ -957,9 +964,28 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			-- Get the object's rotation to transform normals to world space
 			-- Using rotation quaternion converted to matrix works correctly for normals
 			local rotMatrix = obj.rotation as matrix3
-			
-			-- Read normals per face corner from Edit_Normals
-			for f = 1 to numFaces do
+
+			-- Fast way: when Edit_Normals is on top of the stack, the evaluated mesh has its normals;
+			-- save them in one go and let Lua do normalize (normal * rotMatrix)
+			if obj.modifiers[1] == editNormalsMod then
+			(
+				local path = (getDir #temp) + "\\hce_jms_normals_" + objIdx as string + ".bin"
+				local saved = try (meshNormalsSave obj path) catch
+				(
+					logger.warn "Normals could not be read in one go ({}), using Edit_Normals" args:#(getCurrentException())
+					undefined
+				)
+				if saved != undefined and saved[2] == numFaces then
+				(
+					normalsFile = #(path, saved[1], rotMatrix)
+					append normalsFiles path
+				)
+				else if saved != undefined then
+					deleteFile path
+			)
+
+			-- Otherwise read normals per face corner from Edit_Normals
+			if normalsFile == undefined then for f = 1 to numFaces do
 			(
 				local cornerNormals = #()
 				for corner = 1 to 3 do
@@ -1155,6 +1181,22 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 			writeFloat meshFile tvert.y
 		)
 		writeLong meshFile numFaces #signed
+		-- Normals: 1 = saved in one go (file, count, rotMatrix rows), 0 = per corner with each face
+		if normalsFile != undefined then
+		(
+			writeLong meshFile 1 #signed
+			writeString meshFile normalsFile[1]
+			writeLong meshFile normalsFile[2] #signed
+			for r = 1 to 4 do
+			(
+				local row = normalsFile[3][r]
+				writeFloat meshFile row.x
+				writeFloat meshFile row.y
+				writeFloat meshFile row.z
+			)
+		)
+		else
+			writeLong meshFile 0 #signed
 		for f = 1 to numFaces do
 		(
 			local face = getFace meshObj f
@@ -1168,7 +1210,7 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 				writeLong meshFile (tvFace.y as integer) #signed
 				writeLong meshFile (tvFace.z as integer) #signed
 			)
-			for corner = 1 to 3 do
+			if normalsFile == undefined then for corner = 1 to 3 do
 			(
 				-- Explicit normal, smoothing-group normal, or the face normal
 				local vNormal = faceNormals[f]
@@ -1200,6 +1242,7 @@ fn extractGeometryData nodeObjectArray shaderArray regionArray =
 	deleteFile meshOutPath
 	local luaOk = luaRunScript "formats\\jms\\jms_cli.lua" #("mesh", meshPath, meshOutPath)
 	deleteFile meshPath
+	for path in normalsFiles do deleteFile path
 	local outFile = if luaOk then luaOpenOutput meshOutPath "jms_mesh" 1 else undefined
 	if outFile == undefined then throw "Lua could not build the JMS vertices (see the log)"
 
