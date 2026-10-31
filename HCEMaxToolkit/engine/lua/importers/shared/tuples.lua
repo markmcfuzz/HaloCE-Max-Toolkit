@@ -66,33 +66,34 @@ end
 
 -- Writes every field of element (read with structDef) as name, value type and value.
 -- Fields before firstField are left out (default 1).
-function tuples.write(w, structDef, element, firstField)
+function tuples.write(output, structDef, element, firstField)
     local fields = structDef.fields
     firstField = firstField or 1
-    w:int(#fields - firstField + 1)
+    output:int(#fields - firstField + 1)
     for i = firstField, #fields do
         local field = fields[i]
         local value = element[field.key]
         local fieldType = valueTypeOf(field)
-        w:string(camelCase(field.name))
-        w:int(fieldType)
+        output:string(camelCase(field.name))
+        output:int(fieldType)
         if fieldType == valueType.int then
-            w:int(value)
+            output:int(value)
         elseif fieldType == valueType.float then
-            w:float(value)
-        elseif fieldType == valueType.point2 or fieldType == valueType.point3 or fieldType == valueType.color then
-            w:floats(value)
+            output:float(value)
+        elseif fieldType == valueType.point2 or fieldType == valueType.point3 or fieldType ==
+            valueType.color then
+            output:floats(value)
         elseif fieldType == valueType.argb then
-            w:floats({value[2], value[3], value[4], value[1]}) -- stored a,r,g,b; Max gets point4 r g b a
+            output:floats({value[2], value[3], value[4], value[1]}) -- stored a,r,g,b; Max gets point4 r g b a
         elseif fieldType == valueType.tagRef then
-            w:tagref(value)
+            output:tagref(value)
         elseif fieldType == valueType.string then
-            w:string(value)
+            output:string(value)
         elseif fieldType == valueType.block then
-            w:int(#value)
+            output:int(#value)
             -- Elements were read with this compiled struct (empty blocks have none)
             for _, child in ipairs(value) do
-                tuples.write(w, field.sub.compiled, child)
+                tuples.write(output, field.sub.compiled, child)
             end
         end
     end

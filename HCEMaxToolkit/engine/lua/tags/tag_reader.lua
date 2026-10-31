@@ -26,7 +26,9 @@ local tagBytes, fileSize, definitions, warnings
 
 local function int8(p, at)
     local v = p[at]
-    if v >= 128 then return v - 256 end
+    if v >= 128 then
+        return v - 256
+    end
     return v
 end
 
@@ -36,7 +38,9 @@ end
 
 local function int16(p, at)
     local v = p[at] * 256 + p[at + 1]
-    if v >= 32768 then return v - 65536 end
+    if v >= 32768 then
+        return v - 65536
+    end
     return v
 end
 
@@ -46,7 +50,9 @@ end
 
 local function uint32(p, at)
     local v = int32(p, at)
-    if v < 0 then return v + 4294967296 end
+    if v < 0 then
+        return v + 4294967296
+    end
     return v
 end
 
@@ -66,7 +72,9 @@ end
 -- Text up to the first zero byte, at most maxLength bytes
 local function text(p, at, maxLength)
     local n = 0
-    while n < maxLength and p[at + n] ~= 0 do n = n + 1 end
+    while n < maxLength and p[at + n] ~= 0 do
+        n = n + 1
+    end
     return ffiString(p + at, n)
 end
 
@@ -118,7 +126,12 @@ local function readFixed(structDef, elementStart)
         elseif fieldReadAs == readAs.float2 then
             value = {float(tagBytes, at), float(tagBytes, at + 4)}
         elseif fieldReadAs == readAs.float4 then
-            value = {float(tagBytes, at), float(tagBytes, at + 4), float(tagBytes, at + 8), float(tagBytes, at + 12)}
+            value = {
+                float(tagBytes, at),
+                float(tagBytes, at + 4),
+                float(tagBytes, at + 8),
+                float(tagBytes, at + 12)
+            }
         elseif fieldReadAs == readAs.tagRef then
             value = {group = fourcc(tagBytes, at), path = ""}
         elseif fieldReadAs == readAs.block then
@@ -138,7 +151,12 @@ local function readFixed(structDef, elementStart)
         elseif fieldReadAs == readAs.int16x2 then
             value = {int16(tagBytes, at), int16(tagBytes, at + 2)}
         elseif fieldReadAs == readAs.int16x4 then
-            value = {int16(tagBytes, at), int16(tagBytes, at + 2), int16(tagBytes, at + 4), int16(tagBytes, at + 6)}
+            value = {
+                int16(tagBytes, at),
+                int16(tagBytes, at + 2),
+                int16(tagBytes, at + 4),
+                int16(tagBytes, at + 6)
+            }
         elseif fieldReadAs == readAs.fourcc then
             value = fourcc(tagBytes, at)
         end
@@ -161,13 +179,14 @@ local function readTail(structDef, elementStart, element, tailPos)
             local length = int32(tagBytes, elementStart + field.offset + 8)
             if length > 0 then
                 if tailPos + length >= fileSize then
-                    error(("tag reference '%s' path runs past end of file at 0x%X (desync)"):format(
-                        field.key, tailPos), 0)
+                    error(
+                        ("tag reference '%s' path runs past end of file at 0x%X (desync)"):format(
+                            field.key, tailPos), 0)
                 end
                 local path = ffiString(tagBytes + tailPos, length)
                 if tagBytes[tailPos + length] ~= 0 then
                     error(("tag reference '%s' path not null-terminated at 0x%X (desync)"):format(
-                        field.key, tailPos), 0)
+                              field.key, tailPos), 0)
                 end
                 element[field.key].path = path
                 tailPos = tailPos + length + 1
@@ -178,7 +197,7 @@ local function readTail(structDef, elementStart, element, tailPos)
             if size > 0 then
                 if size > fileSize - tailPos then
                     error(("data '%s' (%d bytes) runs past end of file at 0x%X (desync)"):format(
-                        field.key, size, tailPos), 0)
+                              field.key, size, tailPos), 0)
                 end
                 element[field.key] = {offset = tailPos, size = size}
                 tailPos = tailPos + size
@@ -188,29 +207,33 @@ local function readTail(structDef, elementStart, element, tailPos)
         elseif fieldReadAs == readAs.block then
             local count = element[field.key]
             if count < 0 then
-                error(("block '%s' has invalid count %d at element 0x%X (desync or corrupt tag)"):format(
-                    field.key, count, elementStart), 0)
+                error(
+                    ("block '%s' has invalid count %d at element 0x%X (desync or corrupt tag)"):format(
+                        field.key, count, elementStart), 0)
             end
             -- Modded tags exceed stock limits; a real desync is caught by the end-of-file checks
             if count > field.maxCount then
                 warnings[#warnings + 1] = ("block '%s' has %d elements (stock maximum %d)"):format(
-                    field.key, count, field.maxCount)
+                                              field.key, count, field.maxCount)
             end
             if count > 0 then
-                element[field.key], tailPos = readBlock(definitions:blockStruct(field), count, tailPos)
+                element[field.key], tailPos = readBlock(definitions:blockStruct(field), count,
+                                                        tailPos)
             else
                 element[field.key] = {}
             end
         elseif fieldReadAs == readAs.struct then
             if field.sub.hasTail then
-                tailPos = readTail(field.sub, elementStart + field.offset, element[field.key], tailPos)
+                tailPos = readTail(field.sub, elementStart + field.offset, element[field.key],
+                                   tailPos)
             end
         elseif fieldReadAs == readAs.array then
             local sub = field.sub
             if sub.hasTail then
                 local list = element[field.key]
                 for j = 1, field.count do
-                    tailPos = readTail(sub, elementStart + field.offset + (j - 1) * sub.size, list[j], tailPos)
+                    tailPos = readTail(sub, elementStart + field.offset + (j - 1) * sub.size,
+                                       list[j], tailPos)
                 end
             end
         end
@@ -223,8 +246,9 @@ end
 readBlock = function(structDef, count, blockStart)
     local size = structDef.size
     if blockStart + count * size > fileSize then
-        error(("block '%s' (%d x %d bytes) runs past end of file at 0x%X"):format(
-            structDef.name, count, size, blockStart), 0)
+        error(("block '%s' (%d x %d bytes) runs past end of file at 0x%X"):format(structDef.name,
+                                                                                  count, size,
+                                                                                  blockStart), 0)
     end
     local list = {}
     for j = 1, count do
@@ -264,8 +288,9 @@ local function readTag(defs, tagData)
     local rootStruct = defs:rootStruct(group)
     local list, endPos = readBlock(rootStruct, 1, 64)
     if endPos ~= fileSize then
-        error(("tag read ended at byte %d but file has %d bytes (definition does not match tag)"):format(
-            endPos, fileSize), 0)
+        error(
+            ("tag read ended at byte %d but file has %d bytes (definition does not match tag)"):format(
+                endPos, fileSize), 0)
     end
 
     local result = {
@@ -305,11 +330,14 @@ bytesReader.__index = bytesReader
 -- Reader that moves forward as it reads. data: the bytes as a Lua string (e.g. tag.bytes,
 -- kept so the pointer stays valid); pos: start position (0 = first byte).
 function tagReader.openBytes(data, pos)
-    return setmetatable({data = data, p = ffi.cast("const uint8_t*", data), pos = pos or 0}, bytesReader)
+    return setmetatable({data = data, p = ffi.cast("const uint8_t*", data), pos = pos or 0},
+                        bytesReader)
 end
 
 -- Moves to a position
-function bytesReader:seek(pos) self.pos = pos end
+function bytesReader:seek(pos)
+    self.pos = pos
+end
 
 -- Signed 16-bit, big-endian
 function bytesReader:beI16()

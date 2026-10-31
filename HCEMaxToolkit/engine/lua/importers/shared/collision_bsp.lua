@@ -4,14 +4,15 @@ local collisionBsp = {}
 
 -- Writes one BSP with raw tag values: 0-based indices (-1 = none), vertices in Halo units.
 -- Each list goes as its count, then all its numbers in one go.
-function collisionBsp.write(w, bsp)
+function collisionBsp.write(output, bsp)
     local surfaces = bsp["surfaces"]
     local ints = {}
     for i, surface in ipairs(surfaces) do
-        ints[i * 3 - 2], ints[i * 3 - 1], ints[i * 3] = surface["first edge"], surface["flags"], surface["material"]
+        ints[i * 3 - 2], ints[i * 3 - 1], ints[i * 3] = surface["first edge"], surface["flags"],
+        surface["material"]
     end
-    w:int(#surfaces)
-    w:ints(ints, #surfaces * 3)
+    output:int(#surfaces)
+    output:ints(ints, #surfaces * 3)
 
     local edges = bsp["edges"]
     ints = {}
@@ -21,8 +22,8 @@ function collisionBsp.write(w, bsp)
         ints[at + 3], ints[at + 4] = edge["forward edge"], edge["reverse edge"]
         ints[at + 5], ints[at + 6] = edge["left surface"], edge["right surface"]
     end
-    w:int(#edges)
-    w:ints(ints, #edges * 6)
+    output:int(#edges)
+    output:ints(ints, #edges * 6)
 
     local vertices = bsp["vertices"]
     local floats = {}
@@ -30,8 +31,8 @@ function collisionBsp.write(w, bsp)
         local point = vertex["point"]
         floats[i * 3 - 2], floats[i * 3 - 1], floats[i * 3] = point[1], point[2], point[3]
     end
-    w:int(#vertices)
-    w:floats(floats, #vertices * 3)
+    output:int(#vertices)
+    output:floats(floats, #vertices * 3)
 end
 
 return collisionBsp
