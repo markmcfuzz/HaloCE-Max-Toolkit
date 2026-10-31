@@ -2,7 +2,7 @@
 --   luajit run.lua <module> <function> [arguments...]    e.g. run.lua bridge.jms read <file.jms> <out.bin>
 -- Errors go to stderr with exit code 1; anything printed goes to the Max log.
 
--- Modules are required from this folder: require("tags.tagreader")
+-- Modules are required from this folder: require("tags.tag_reader")
 local luaDir = arg[0]:match("^(.*)[/\\]") or "."
 package.path = luaDir .. "/?.lua;" .. package.path
 
