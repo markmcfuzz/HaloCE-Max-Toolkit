@@ -12,6 +12,11 @@
 
 global haloScale = 100.0
 
+-- mesh_normals.ms is loaded by init.ms; load it if Max still runs an older toolkit
+global meshNormalsApply
+if meshNormalsApply == undefined and rootEngine != undefined do
+	fileIn (rootEngine + "shared\\utils\\mesh_normals.ms")
+
 -------------------------------------------------------
 -- BITFIELD FLAG HELPERS
 -------------------------------------------------------
@@ -423,6 +428,7 @@ fn buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName frameNode bsp
 		-----------------------------------------------------------
 		-- PER-CLUSTER MODE (original behaviour)
 		-----------------------------------------------------------
+		local shaderMaterials = Dictionary #string  -- shader name -> its material
 		for li = 1 to lightmapsRenderData.count do (
 			local lm = lightmapsRenderData[li]
 			if lm.materials.count == 0 then continue
@@ -472,11 +478,16 @@ fn buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName frameNode bsp
 					faceArray[faceOffset + si]  = [surf[3] + vertOffset + 1, surf[2] + vertOffset + 1, surf[1] + vertOffset + 1]
 					matIDArray[faceOffset + si] = mi
 				)
-				-- Sub-material for this shader (GlyphFX DX material, else textured/checker)
+				-- Sub-material for this shader (GlyphFX DX material, else textured/checker), built once
+				-- per shader and shared by every cluster that uses it
 				local matName = if mat.shaderName != "" then mat.shaderName else ("material_" + mi as string)
-				local textureResult = if mat.shaderStruct != undefined then \
-					resolveShaderTexture bspFilePath mat.shaderStruct else undefined
-				local subMat = buildShaderViewportMaterial textureResult matName useDxMaterials:useDxMaterials
+				local subMat = if mat.shaderName != "" then shaderMaterials[mat.shaderName] else undefined
+				if subMat == undefined then (
+					local textureResult = if mat.shaderStruct != undefined then \
+						resolveShaderTexture bspFilePath mat.shaderStruct else undefined
+					subMat = buildShaderViewportMaterial textureResult matName useDxMaterials:useDxMaterials
+					if mat.shaderName != "" then shaderMaterials[mat.shaderName] = subMat
+				)
 				multiMat[mi]       = subMat
 				multiMat.names[mi] = matName
 				vertOffset += mat.vertexCount
@@ -501,7 +512,7 @@ fn buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName frameNode bsp
 			for i = 1 to faceArray.count do setTVFace newMesh i faceArray[i]
 			for i = 1 to newMesh.numfaces do setFaceSmoothGroup newMesh i 0
 			if normalArray.count == newMesh.numverts then
-				for i = 1 to normalArray.count do setNormal newMesh i normalArray[i]
+				meshNormalsApply newMesh faceArray normalArray
 			enableRefMsgs()
 			update newMesh
 			append createdMeshes newMesh
@@ -700,7 +711,7 @@ fn buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName frameNode bsp
 		for i = 1 to allUVs.count do setTVert mergedMesh i allUVs[i]
 		for i = 1 to masterFaces.count do setTVFace mergedMesh i allFaces[i]
 		for i = 1 to masterFaces.count do setFaceSmoothGroup mergedMesh i 0
-		for i = 1 to masterVerts.count do setNormal mergedMesh i masterNormals[i]
+		meshNormalsApply mergedMesh masterFaces masterNormals
 		enableRefMsgs()
 		update mergedMesh
 
