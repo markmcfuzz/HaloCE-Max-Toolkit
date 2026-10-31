@@ -18,6 +18,11 @@
 global haloScale = 1.0
 global boneSize = 1.0
 
+-- mesh_normals.ms is loaded by init.ms; load it if Max still runs an older toolkit
+global meshNormalsApply
+if meshNormalsApply == undefined and rootEngine != undefined do
+	fileIn (rootEngine + "shared\\utils\\mesh_normals.ms")
+
 -------------------------------------------------------
 -- SKELETON DETECTION AND REUSE
 -------------------------------------------------------
@@ -849,9 +854,8 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 			for f = 1 to meshObj.numfaces do
 				setFaceSmoothGroup meshObj f 0
 			
-			-- Apply explicit vertex normals from JMS data
-			for v = 1 to regionVertNormals.count do
-				setNormal meshObj v regionVertNormals[v]
+			-- Apply explicit vertex normals from JMS data (in one go; setNormal per vertex took seconds)
+			meshNormalsApply meshObj regionFaces regionVertNormals
 		)
 		
 		-- Build bone weight arrays based on whether vertices were welded
