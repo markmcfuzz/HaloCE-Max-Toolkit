@@ -12,18 +12,13 @@
 
 -- Reads a camera_track through lua\importers\camera_track.lua (same read order).
 
--- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
-global luaExportTag
-if luaExportTag == undefined and rootEngine != undefined do
-	fileIn (rootEngine + "shared\\utils\\lua_bridge.ms")
-
 -- position: Point3 in Halo units; orientation: quat as stored in the tag
 struct CameraControlPoint (position, orientation)
 
 -- Returns an array of CameraControlPoint, or undefined on error (details in the log)
 fn readCameraTrackWithLua tagPath =
 (
-	local f = luaExportTag "lua\\importers\\camera_track.lua" 1 tagPath
+	local f = luaExportTag "camera_track" 1 tagPath
 	if f == undefined then return undefined
 
 	local points = for i = 1 to (luaReadInt f) collect
