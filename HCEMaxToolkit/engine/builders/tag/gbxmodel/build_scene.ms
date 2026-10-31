@@ -13,6 +13,11 @@
 global haloScale = 100.0
 global boneSize = 1.0
 
+-- mesh_normals.ms is loaded by init.ms; load it if Max still runs an older toolkit
+global meshNormalsApply
+if meshNormalsApply == undefined and rootEngine != undefined do
+	fileIn (rootEngine + "shared\\utils\\mesh_normals.ms")
+
 -------------------------------------------------------
 -- SKELETON DETECTION AND REUSE
 -------------------------------------------------------
@@ -647,12 +652,9 @@ fn createGBXModelGeometry gbxRegions geometryMeshes materialObj createdNodes =
 				for i = 1 to combinedMesh.numfaces do
 					setFaceSmoothGroup combinedMesh i 0
 				
-				-- Apply explicit normals
+				-- Apply explicit normals (in one go; setNormal per vertex took seconds)
 				if allNormals.count == combinedMesh.numverts then
-				(
-					for v = 1 to allNormals.count do
-						setNormal combinedMesh v allNormals[v]
-				)
+					meshNormalsApply combinedMesh allFaces allNormals
 				
 				-- Apply skinning
 				if allNodeIndices.count > 0 and createdNodes.count > 0 then
@@ -661,8 +663,9 @@ fn createGBXModelGeometry gbxRegions geometryMeshes materialObj createdNodes =
 					addModifier combinedMesh skinMod
 					skinMod.bone_Limit = 2
 					
+					-- The skin only updates after the last bone
 					for n = 1 to createdNodes.count do
-						skinOps.addBone skinMod createdNodes[n] 1
+						skinOps.addBone skinMod createdNodes[n] (if n == createdNodes.count then 1 else 0)
 					
 					for v = 1 to allNodeIndices.count do
 					(
