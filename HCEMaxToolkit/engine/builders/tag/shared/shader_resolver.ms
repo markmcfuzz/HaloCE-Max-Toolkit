@@ -142,9 +142,13 @@ global _shaderResolverCache = dictionary #string
 
 -- Clear the parse cache. Call once at the start of an import job before resolving
 -- shaders one-by-one (resolveAllShaderTextures does this internally already).
+-- Bitmaps opened for DX materials, by file path (dxLoadBitmapForKey); also cleared per import
+global _dxBitmapCache = dictionary #string
+
 fn resetShaderResolverCache =
 (
 	_shaderResolverCache = dictionary #string
+	_dxBitmapCache = dictionary #string
 )
 
 -- Extract the bitmap path from a parser tag-ref dictionary (undefined if empty)
