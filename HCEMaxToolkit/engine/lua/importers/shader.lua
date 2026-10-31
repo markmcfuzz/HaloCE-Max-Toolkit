@@ -1,7 +1,7 @@
 -- Any shader tag -> 3ds Max: the parent 'shader' fields and the shader type's own fields,
--- as parser-style tuples (halo1\tuples.lua). Read in Max by builders\tag\shared\shader_resolver.ms.
+-- as parser-style tuples (shared\tuples.lua). Read in Max by builders\tag\shared\shader_resolver.ms.
 
-local tuples = require("core.halo1.tuples")
+local tuples = require("importers.shared.tuples")
 
 local shader = {
 	group = {
@@ -15,7 +15,7 @@ local shader = {
 
 function shader.write(root, w, options, tag)
 	-- Field 1 of every shader type is the inherited 'shader' struct
-	local c = tag.root_struct
+	local c = tag.rootStruct
 	tuples.write(w, c.fields[1].sub, root["shader"])
 	tuples.write(w, c, root, 2)
 end

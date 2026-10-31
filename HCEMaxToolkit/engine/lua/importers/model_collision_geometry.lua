@@ -1,7 +1,7 @@
 -- model_collision_geometry -> 3ds Max: materials, regions, pathfinding spheres and node BSPs
 -- (raw values, the builder does the math). Read in Max by builders\tag\model_collision_geometry\lua_reader.ms.
 
-local collision_bsp = require("core.halo1.collision_bsp")
+local collisionBsp = require("importers.shared.collision_bsp")
 
 local collision = { group = "model_collision_geometry", version = 1 }
 
@@ -35,7 +35,7 @@ function collision.write(root, w)
 		w:string(n["name"])
 		w:int(n["region"])
 		w:int(#n["bsps"])
-		for _, bsp in ipairs(n["bsps"]) do collision_bsp.write(w, bsp) end
+		for _, bsp in ipairs(n["bsps"]) do collisionBsp.write(w, bsp) end
 	end
 end
 

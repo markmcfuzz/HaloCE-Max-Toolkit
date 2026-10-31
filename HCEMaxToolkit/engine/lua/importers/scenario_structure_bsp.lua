@@ -3,19 +3,19 @@
 -- builders\tag\scenario_structure_bsp\lua_reader.ms; options: { halo scale }.
 
 local ffi = require("ffi")
-local packed = require("core.halo1.packed")
-local collision_bsp = require("core.halo1.collision_bsp")
+local packed = require("importers.shared.packed")
+local collisionBsp = require("importers.shared.collision_bsp")
 
-local decompress_normal = packed.decompress_normal
+local decompressNormal = packed.decompressNormal
 
 -- Compressed render vertex, little-endian (binormal/tangent are not used)
 ffi.cdef [[ typedef struct { float px, py, pz; uint32_t normal, binormal, tangent; float u, v; } h1bsp_cvert; ]]
 local CVERT_SIZE = 32
 
-local bsp_importer = { group = "scenario_structure_bsp", version = 1 }
+local bspImporter = { group = "scenario_structure_bsp", version = 1 }
 
 -- Rendered vertices of one lightmap material: positions (scaled), UVs (u, 1 - v), normals
-local function write_render_vertices(w, mat, bytes, scale)
+local function writeRenderVertices(w, mat, bytes, scale)
 	local count = mat["vertex buffers"][1]["count"]
 	local data = mat["compressed vertices"]
 	-- Like the previous importer, no vertices are read when the data is empty
@@ -33,7 +33,7 @@ local function write_render_vertices(w, mat, bytes, scale)
 		local v = verts[i]
 		pos[i * 3 + 1], pos[i * 3 + 2], pos[i * 3 + 3] = v.px * scale, v.py * scale, v.pz * scale
 		uvs[i * 2 + 1], uvs[i * 2 + 2] = v.u, 1 - v.v
-		normals[i * 3 + 1], normals[i * 3 + 2], normals[i * 3 + 3] = decompress_normal(v.normal)
+		normals[i * 3 + 1], normals[i * 3 + 2], normals[i * 3 + 3] = decompressNormal(v.normal)
 	end
 	w:int(count)
 	w:floats(pos, count * 3)
@@ -42,7 +42,7 @@ local function write_render_vertices(w, mat, bytes, scale)
 end
 
 -- Polygons stored as a block of { point } vertices (portals, fog planes), scaled
-local function write_polygons(w, list, scale)
+local function writePolygons(w, list, scale)
 	w:int(#list)
 	for _, item in ipairs(list) do
 		local floats = {}
@@ -55,7 +55,7 @@ local function write_polygons(w, list, scale)
 	end
 end
 
-function bsp_importer.write(root, w, options, tag)
+function bspImporter.write(root, w, options, tag)
 	local scale = tonumber(options[1]) or 100
 	local bytes = tag.bytes
 
@@ -66,7 +66,7 @@ function bsp_importer.write(root, w, options, tag)
 	-- Only the first collision BSP is used
 	local collision = root["collision bsp"]
 	w:int(#collision)
-	if #collision > 0 then collision_bsp.write(w, collision[1]) end
+	if #collision > 0 then collisionBsp.write(w, collision[1]) end
 
 	-- Render triangles: 0-based vertex indices local to each lightmap material
 	local surfaces = root["surfaces"]
@@ -86,12 +86,12 @@ function bsp_importer.write(root, w, options, tag)
 		for _, mat in ipairs(lm["materials"]) do
 			w:tagref(mat["shader"])
 			w:ints({ mat["surfaces"], mat["surface count"], mat["vertex buffers"][1]["count"] })
-			write_render_vertices(w, mat, bytes, scale)
+			writeRenderVertices(w, mat, bytes, scale)
 		end
 	end
 
-	write_polygons(w, root["cluster portals"], scale)
-	write_polygons(w, root["fog planes"], scale)
+	writePolygons(w, root["cluster portals"], scale)
+	writePolygons(w, root["fog planes"], scale)
 
 	local weather = root["weather polyhedra"]
 	w:int(#weather)
@@ -112,4 +112,4 @@ function bsp_importer.write(root, w, options, tag)
 	end
 end
 
-return bsp_importer
+return bspImporter
