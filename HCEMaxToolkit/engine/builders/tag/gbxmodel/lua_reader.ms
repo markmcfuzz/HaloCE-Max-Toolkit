@@ -13,11 +13,6 @@
 -- Reads a gbxmodel into a GBXModel (model_data.ms). The read order must match
 -- gbxmodel.write() in lua\importers\gbxmodel.lua.
 
--- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
-global luaExportTag
-if luaExportTag == undefined and rootEngine != undefined do
-	fileIn (rootEngine + "shared\\utils\\lua_bridge.ms")
-
 fn gbxReadNodes f =
 (
 	for n = 1 to (luaReadInt f) collect
@@ -118,7 +113,7 @@ fn gbxReadGeometry f =
 -- Returns a GBXModel, or undefined on error (details in the log)
 fn readGbxModelWithLua tagPath =
 (
-	local f = luaExportTag "lua\\importers\\gbxmodel.lua" 1 tagPath options:#(haloScale)
+	local f = luaExportTag "gbxmodel" 1 tagPath options:#(haloScale)
 	if f == undefined then return undefined
 
 	local uScale = readFloat f

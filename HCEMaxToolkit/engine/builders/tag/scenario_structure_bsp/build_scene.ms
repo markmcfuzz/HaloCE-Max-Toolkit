@@ -12,11 +12,6 @@
 
 global haloScale = 100.0
 
--- mesh_normals.ms is loaded by init.ms; load it if Max still runs an older toolkit
-global meshNormalsApply
-if meshNormalsApply == undefined and rootEngine != undefined do
-	fileIn (rootEngine + "shared\\utils\\mesh_normals.ms")
-
 -------------------------------------------------------
 -- BITFIELD FLAG HELPERS
 -------------------------------------------------------

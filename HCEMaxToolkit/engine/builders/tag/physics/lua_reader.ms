@@ -12,11 +12,6 @@
 
 -- Reads a physics tag through lua\importers\physics.lua (same read order).
 
--- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
-global luaExportTag
-if luaExportTag == undefined and rootEngine != undefined do
-	fileIn (rootEngine + "shared\\utils\\lua_bridge.ms")
-
 -- Raw tag values; position/radius in Halo units. poweredMassPoint: 0-based index, -1 = none
 struct PhysicsMassPoint (name, poweredMassPoint, modelNode, flags, frictionType, relativeMass, relativeDensity, \
 	density, radius, frictionParallelScale, frictionPerpendicularScale, position, forward, up)
@@ -26,7 +21,7 @@ struct PhysicsData (mass, density, poweredMassPointNames, massPoints)
 -- Returns a PhysicsData, or undefined on error (details in the log)
 fn readPhysicsWithLua tagPath =
 (
-	local f = luaExportTag "lua\\importers\\physics.lua" 1 tagPath
+	local f = luaExportTag "physics" 1 tagPath
 	if f == undefined then return undefined
 
 	local mass = readFloat f

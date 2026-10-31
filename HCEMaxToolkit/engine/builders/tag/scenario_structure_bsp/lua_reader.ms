@@ -12,11 +12,6 @@
 
 -- Reads a scenario_structure_bsp tag through lua\importers\scenario_structure_bsp.lua (same read order).
 
--- lua_bridge.ms is loaded by init.ms; reload it if Max still runs an older toolkit.
-global luaExportTag
-if luaExportTag == undefined and rootEngine != undefined do
-	fileIn (rootEngine + "shared\\utils\\lua_bridge.ms")
-
 -- Render data of one lightmap material. Vertices are scaled; uvs are [u, 1 - v, 0].
 -- shaderStruct has the "shader" field that resolveShaderTexture reads.
 struct BSPRenderMaterialData (shaderName, shaderStruct, surfacesStart, surfaceCount, vertexCount, positions, uvs, normals)
@@ -57,7 +52,7 @@ fn bspReadPointLists f = for i = 1 to (luaReadInt f) collect (for v = 1 to (luaR
 -- Returns a StructureBspData, or undefined on error (details in the log)
 fn readStructureBspWithLua tagPath =
 (
-	local f = luaExportTag "lua\\importers\\scenario_structure_bsp.lua" 1 tagPath options:#(haloScale)
+	local f = luaExportTag "scenario_structure_bsp" 1 tagPath options:#(haloScale)
 	if f == undefined then return undefined
 
 	local collisionMaterials = for i = 1 to (luaReadInt f) collect luaReadTagRef f
