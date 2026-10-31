@@ -2,59 +2,54 @@
 --   run.lua bridge.jma read <file.jma> <out.bin>    JMA -> binary for Max
 --   run.lua bridge.jma write <in.bin> <file.jma>    binary from Max -> JMA
 
-local jma = require("formats.jma")
-local maxbin = require("bridge.maxbin")
+local jma = require "formats.jma"
+local maxbin = require "bridge.maxbin"
 
 local jmaBridge = {}
 
--- Format version of the binaries exchanged with Max (checked on both sides)
-local FORMAT = "jma"
-local READ_VERSION = 2
-local WRITE_VERSION = 1
+-- Name and version at the start of each binary (Max checks the same values)
+local binaryName = "jma"
+local readVersion = 2  -- JMA -> Max
+local writeVersion = 1 -- Max -> JMA
 
 function jmaBridge.read(jmaPath, outPath)
 	local data = jma.read(jmaPath)
-	local w = maxbin.open(outPath)
-	w:string(FORMAT)
-	w:int(READ_VERSION)
-	w:ints({ data.version, data.frameCount, data.frameRate, data.actorCount })
-	w:string(data.actorName)
-	w:ints({ data.nodeCount, data.checksum })
+	local output = maxbin.open(outPath, binaryName, readVersion)
+	output:ints({ data.version, data.frameCount, data.frameRate, data.actorCount })
+	output:string(data.actorName)
+	output:ints({ data.nodeCount, data.checksum })
 	for _, node in ipairs(data.nodes) do
-		w:string(node[1])
-		w:ints({ node[2], node[3] })
+		output:string(node[1])
+		output:ints({ node[2], node[3] })
 	end
 	-- Per node: translation, raw rotation (Max normalizes it), scale
 	for _, frame in ipairs(data.frames) do
 		for _, pose in ipairs(frame) do
-			w:floats(pose.trans)
-			w:floats(pose.rot)
-			w:float(pose.scale)
+			output:floats(pose.trans)
+			output:floats(pose.rot)
+			output:float(pose.scale)
 		end
 	end
-	w:close()
+	output:close()
 end
 
 function jmaBridge.write(inPath, jmaPath)
-	local r = maxbin.readFile(inPath)
-	if r:string() ~= FORMAT or r:int() ~= WRITE_VERSION then
-		error(("unexpected data from Max (expected %s v%d)"):format(FORMAT, WRITE_VERSION), 0)
-	end
+	local input = maxbin.readFile(inPath, binaryName, writeVersion)
 	local data = { nodes = {}, frames = {} }
-	data.version, data.frameCount, data.frameRate, data.actorCount = r:int(), r:int(), r:int(), r:int()
-	data.actorName = r:string()
-	data.nodeCount, data.checksum = r:int(), r:int()
-	for n = 1, r:int() do
-		local name = r:string()
-		data.nodes[n] = { name, r:int(), r:int() }
+	data.version, data.frameCount, data.frameRate, data.actorCount = input:int(), input:int(), input:int(), input:int()
+	data.actorName = input:string()
+	data.nodeCount, data.checksum = input:int(), input:int()
+	for n = 1, input:int() do
+		local name = input:string()
+		data.nodes[n] = { name, input:int(), input:int() }
 	end
 	-- Each written frame has its own node count (writeJmaFile wrote every entry it had)
-	for f = 1, r:int() do
+	for f = 1, input:int() do
 		local frame = {}
-		for n = 1, r:int() do
-			local trans = { r:float(), r:float(), r:float() }
-			local rot = { r:float(), r:float(), r:float(), r:float() }
-			frame[n] = { trans = trans, rot = rot, scale = r:float() }
+		for n = 1, input:int() do
+			local trans = { input:float(), input:float(), input:float() }
+			local rot = { input:float(), input:float(), input:float(), input:float() }
+			frame[n] = { trans = trans, rot = rot, scale = input:float() }
 		end
 		data.frames[f] = frame
 	end

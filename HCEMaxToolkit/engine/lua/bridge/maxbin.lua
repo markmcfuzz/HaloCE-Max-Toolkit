@@ -1,102 +1,127 @@
--- Little-endian binary writer for the files 3ds Max reads (shared\utils\lua_bridge.ms).
--- Strings are null-terminated; ints are int32; floats are float32.
+-- Binary files exchanged with 3ds Max (read and written there by shared\utils\lua_bridge.ms).
+-- Little-endian: ints are int32, floats are float32, strings end with a zero byte.
+-- Each file starts with a name and a version, so both sides know they speak the same format.
 
-local ffi = require("ffi")
+local ffi = require "ffi" -- LuaJIT: C types and direct memory access
 local tobit = require("bit").tobit
-
-local Writer = {}
-Writer.__index = Writer
 
 local maxbin = {}
 
-function maxbin.open(path)
-	local f = assert(io.open(path, "wb"))
-	return setmetatable({ f = f }, Writer)
+-------------------------------------------------------------------------------
+-- Writing files for Max (read there with luaReadInt, readFloat, readString...)
+-------------------------------------------------------------------------------
+
+-- Functions shared by every writer
+local writer = {}
+writer.__index = writer
+
+-- Writer to a file. With a name and version, writes them first (luaOpenOutput checks them in Max).
+function maxbin.open(path, name, version)
+	local output = setmetatable({ file = assert(io.open(path, "wb")) }, writer)
+	if name then
+		output:string(name)
+		output:int(version)
+	end
+	return output
 end
 
 -- Writer that keeps the bytes in memory; :contents() returns them
 function maxbin.memory()
 	local parts = {}
-	local sink = { write = function(_, ...) for i = 1, select("#", ...) do parts[#parts + 1] = select(i, ...) end end }
-	local w = setmetatable({ f = sink }, Writer)
-	function w:contents() return table.concat(parts) end
-	return w
+	local memoryFile = { write = function(_, text) parts[#parts + 1] = text end }
+	local output = setmetatable({ file = memoryFile }, writer)
+	function output:contents() return table.concat(parts) end
+	return output
 end
 
-function Writer:string(s) self.f:write(s, "\0") end
+-- Bytes as they are (e.g. the contents of a memory writer)
+function writer:bytes(data) self.file:write(data) end
 
-function Writer:ints(t, n)
-	n = n or #t
-	if n == 0 then return end
-	local buf = ffi.new("int32_t[?]", n)
+-- Text followed by a zero byte
+function writer:string(text) self.file:write(text .. "\0") end
+
+-- The first count values of a list (default: all) as int32
+function writer:ints(values, count)
+	count = count or #values
+	if count == 0 then return end
+	local buffer = ffi.new("int32_t[?]", count)
 	-- tobit wraps unsigned values (flags >= 2^31) to int32, as MAXScript reads them
-	for i = 1, n do buf[i - 1] = tobit(t[i]) end
-	self.f:write(ffi.string(buf, n * 4))
+	for i = 1, count do buffer[i - 1] = tobit(values[i]) end
+	self.file:write(ffi.string(buffer, count * 4))
 end
 
-function Writer:floats(t, n)
-	n = n or #t
-	if n == 0 then return end
-	local buf = ffi.new("float[?]", n)
-	for i = 1, n do buf[i - 1] = t[i] end
-	self.f:write(ffi.string(buf, n * 4))
+-- The first count values of a list (default: all) as float32
+function writer:floats(values, count)
+	count = count or #values
+	if count == 0 then return end
+	local buffer = ffi.new("float[?]", count)
+	for i = 1, count do buffer[i - 1] = values[i] end
+	self.file:write(ffi.string(buffer, count * 4))
 end
 
-function Writer:int(v) self:ints({ v }, 1) end
-function Writer:float(v) self:floats({ v }, 1) end
-function Writer:close() self.f:close() end
+function writer:int(value) self:ints({ value }, 1) end
+function writer:float(value) self:floats({ value }, 1) end
+function writer:close() self.file:close() end
 
--- Tag fourcc string -> integer as stored in the tag ("soso" -> 0x736F736F), -1 for none
-function maxbin.fourccInt(s)
-	if not s then return -1 end
-	local a, b, c, d = s:byte(1, 4)
+-- Tag fourcc text -> integer as stored in the tag ("soso" -> 0x736F736F), -1 for none
+local function fourccInt(fourcc)
+	if not fourcc then return -1 end
+	local a, b, c, d = fourcc:byte(1, 4)
 	return ((a * 256 + b) * 256 + c) * 256 + d
 end
 
--- Tag reference { group, path }: path string, then group fourcc (luaReadTagRef in lua_bridge.ms)
-function Writer:tagref(ref)
+-- Tag reference { group, path }: path, then group fourcc (luaReadTagRef in Max)
+function writer:tagref(ref)
 	self:string(ref.path)
-	self:int(maxbin.fourccInt(ref.group))
+	self:int(fourccInt(ref.group))
 end
 
 -------------------------------------------------------------------------------
--- Reading files that 3ds Max wrote (luaWrite* in lua_bridge.ms), same layout
+-- Reading files that Max wrote (luaWriteInt, luaWriteFloat, luaWriteString in Max)
 -------------------------------------------------------------------------------
 
-local Reader = {}
-Reader.__index = Reader
+-- Functions shared by every reader
+local reader = {}
+reader.__index = reader
 
-function maxbin.readFile(path)
+-- Reader of a whole file. With a name and version, the file must start with them.
+function maxbin.readFile(path, name, version)
 	local f = assert(io.open(path, "rb"))
 	local data = f:read("*a")
 	f:close()
-	return setmetatable({ data = data, p = ffi.cast("const uint8_t*", data), pos = 0, size = #data }, Reader)
+	local input = setmetatable({ data = data, p = ffi.cast("const uint8_t*", data), pos = 0, size = #data }, reader)
+	if name and (input:string() ~= name or input:int() ~= version) then
+		error(("unexpected data from Max (expected %s v%d)"):format(name, version), 0)
+	end
+	return input
 end
 
-local function need(self, n)
-	if self.pos + n > self.size then error("unexpected end of the data written by Max", 0) end
+-- Errors when fewer than count bytes are left
+local function checkLeft(input, count)
+	if input.pos + count > input.size then error("unexpected end of the data written by Max", 0) end
 end
 
-function Reader:int()
-	need(self, 4)
-	local v = ffi.cast("const int32_t*", self.p + self.pos)[0]
+function reader:int()
+	checkLeft(self, 4)
+	local value = ffi.cast("const int32_t*", self.p + self.pos)[0]
 	self.pos = self.pos + 4
-	return v
+	return value
 end
 
-function Reader:float()
-	need(self, 4)
-	local v = ffi.cast("const float*", self.p + self.pos)[0]
+function reader:float()
+	checkLeft(self, 4)
+	local value = ffi.cast("const float*", self.p + self.pos)[0]
 	self.pos = self.pos + 4
-	return v
+	return value
 end
 
-function Reader:string()
+-- Text up to the next zero byte
+function reader:string()
 	local stop = self.data:find("\0", self.pos + 1, true)
 	if not stop then error("unterminated string in the data written by Max", 0) end
-	local s = self.data:sub(self.pos + 1, stop - 1)
+	local text = self.data:sub(self.pos + 1, stop - 1)
 	self.pos = stop
-	return s
+	return text
 end
 
 return maxbin

@@ -3,177 +3,174 @@
 --   run.lua bridge.jms write <in.bin> <file.jms>    binary from Max -> JMS
 --   run.lua bridge.jms mesh <in.bin> <out.bin>      scene meshes -> JMS vertices
 
-local jms = require("formats.jms")
-local jmsMesh = require("formats.jms_mesh")
-local maxbin = require("bridge.maxbin")
+local jms = require "formats.jms"
+local jmsMesh = require "formats.jms_mesh"
+local maxbin = require "bridge.maxbin"
 
 local jmsBridge = {}
 
--- Format version of the binaries exchanged with Max (checked on both sides)
-local FORMAT = "jms"
-local VERSION = 2
+-- Name and version at the start of each binary (Max checks the same values)
+local binaryName = "jms"
+local binaryVersion = 2
+local meshBinaryName = "jms_mesh"
+local meshInVersion = 2  -- scene meshes from Max
+local meshOutVersion = 1 -- JMS vertices back to Max
 
 function jmsBridge.read(jmsPath, outPath)
 	local data = jms.read(jmsPath)
-	local w = maxbin.open(outPath)
+	local output = maxbin.open(outPath, binaryName, binaryVersion)
 
-	w:string(FORMAT)
-	w:int(VERSION)
 	-- Standard files had their rotations normalized by the old reader; inline ones did not
-	w:int(data.inline and 0 or 1)
-	w:ints({ data.version, data.checksum })
+	output:int(data.inline and 0 or 1)
+	output:ints({ data.version, data.checksum })
 
-	w:int(data.nodeCount)
-	w:int(#data.nodes)
-	for _, n in ipairs(data.nodes) do
-		w:string(n.name)
-		w:ints({ n.child, n.sibling })
-		w:floats(n.rot)
-		w:floats(n.trans)
+	output:int(data.nodeCount)
+	output:int(#data.nodes)
+	for _, node in ipairs(data.nodes) do
+		output:string(node.name)
+		output:ints({ node.child, node.sibling })
+		output:floats(node.rot)
+		output:floats(node.trans)
 	end
 
-	w:int(data.shaderCount)
-	w:int(#data.shaders)
-	for _, s in ipairs(data.shaders) do
-		w:string(s.name)
-		w:string(s.bitmap)
+	output:int(data.shaderCount)
+	output:int(#data.shaders)
+	for _, shader in ipairs(data.shaders) do
+		output:string(shader.name)
+		output:string(shader.bitmap)
 	end
 
-	w:int(data.markerCount)
-	w:int(#data.markers)
-	for _, m in ipairs(data.markers) do
-		w:string(m.name)
-		w:ints({ m.region, m.parent })
-		w:floats(m.rot)
-		w:floats(m.trans)
-		w:float(m.radius)
+	output:int(data.markerCount)
+	output:int(#data.markers)
+	for _, marker in ipairs(data.markers) do
+		output:string(marker.name)
+		output:ints({ marker.region, marker.parent })
+		output:floats(marker.rot)
+		output:floats(marker.trans)
+		output:float(marker.radius)
 	end
 
-	w:int(data.regionCount)
-	w:int(#data.regions)
-	for _, name in ipairs(data.regions) do w:string(name) end
+	output:int(data.regionCount)
+	output:int(#data.regions)
+	for _, name in ipairs(data.regions) do output:string(name) end
 
-	w:int(data.vertexCount)
-	w:int(#data.vertices)
-	for _, v in ipairs(data.vertices) do
-		w:int(v.node0)
-		w:floats(v.pos)
-		w:floats(v.normal)
-		w:int(v.node1)
-		w:floats({ v.weight, v.u, v.v })
-		w:int(v.tex)
+	output:int(data.vertexCount)
+	output:int(#data.vertices)
+	for _, vertex in ipairs(data.vertices) do
+		output:int(vertex.node0)
+		output:floats(vertex.pos)
+		output:floats(vertex.normal)
+		output:int(vertex.node1)
+		output:floats({ vertex.weight, vertex.u, vertex.v })
+		output:int(vertex.tex)
 	end
 
-	w:int(data.triangleCount)
-	w:int(#data.triangles)
-	for _, t in ipairs(data.triangles) do
-		w:ints({ t.region, t.shader, t.a, t.b, t.c })
+	output:int(data.triangleCount)
+	output:int(#data.triangles)
+	for _, triangle in ipairs(data.triangles) do
+		output:ints({ triangle.region, triangle.shader, triangle.a, triangle.b, triangle.c })
 	end
 
-	w:int(#data.smoothingGroups)
-	if #data.smoothingGroups > 0 then w:ints(data.smoothingGroups) end
-	w:close()
+	output:int(#data.smoothingGroups)
+	if #data.smoothingGroups > 0 then output:ints(data.smoothingGroups) end
+	output:close()
 end
 
 function jmsBridge.write(inPath, jmsPath)
-	local r = maxbin.readFile(inPath)
-	if r:string() ~= FORMAT or r:int() ~= VERSION then
-		error(("unexpected data from Max (expected %s v%d)"):format(FORMAT, VERSION), 0)
-	end
-	local function floats(n)
-		local t = {}
-		for i = 1, n do t[i] = r:float() end
-		return t
+	local input = maxbin.readFile(inPath, binaryName, binaryVersion)
+	local function floats(count)
+		local values = {}
+		for i = 1, count do values[i] = input:float() end
+		return values
 	end
 	local data = { nodes = {}, shaders = {}, markers = {}, regions = {}, vertices = {}, triangles = {},
 		smoothingGroups = {} }
 
-	data.version, data.checksum, data.nodeCount = r:int(), r:int(), r:int()
-	for i = 1, r:int() do
-		data.nodes[i] = { name = r:string(), child = r:int(), sibling = r:int(), rot = floats(4), trans = floats(3) }
+	data.version, data.checksum, data.nodeCount = input:int(), input:int(), input:int()
+	for i = 1, input:int() do
+		data.nodes[i] = { name = input:string(), child = input:int(), sibling = input:int(), rot = floats(4),
+			trans = floats(3) }
 	end
-	data.shaderCount = r:int()
-	for i = 1, r:int() do data.shaders[i] = { name = r:string(), bitmap = r:string() } end
-	data.markerCount = r:int()
-	for i = 1, r:int() do
-		data.markers[i] = { name = r:string(), region = r:int(), parent = r:int(), rot = floats(4), trans = floats(3),
-			radius = r:float() }
+	data.shaderCount = input:int()
+	for i = 1, input:int() do data.shaders[i] = { name = input:string(), bitmap = input:string() } end
+	data.markerCount = input:int()
+	for i = 1, input:int() do
+		data.markers[i] = { name = input:string(), region = input:int(), parent = input:int(), rot = floats(4),
+			trans = floats(3), radius = input:float() }
 	end
-	data.regionCount = r:int()
-	for i = 1, r:int() do data.regions[i] = r:string() end
-	data.vertexCount = r:int()
-	for i = 1, r:int() do
-		data.vertices[i] = { node0 = r:int(), pos = floats(3), normal = floats(3), node1 = r:int(),
-			weight = r:float(), u = r:float(), v = r:float(), tex = r:int() }
+	data.regionCount = input:int()
+	for i = 1, input:int() do data.regions[i] = input:string() end
+	data.vertexCount = input:int()
+	for i = 1, input:int() do
+		data.vertices[i] = { node0 = input:int(), pos = floats(3), normal = floats(3), node1 = input:int(),
+			weight = input:float(), u = input:float(), v = input:float(), tex = input:int() }
 	end
-	data.triangleCount = r:int()
-	for i = 1, r:int() do
-		data.triangles[i] = { region = r:int(), shader = r:int(), a = r:int(), b = r:int(), c = r:int() }
+	data.triangleCount = input:int()
+	for i = 1, input:int() do
+		data.triangles[i] = { region = input:int(), shader = input:int(), a = input:int(), b = input:int(),
+			c = input:int() }
 	end
-	data.writeSmoothing = r:int() == 1
+	data.writeSmoothing = input:int() == 1
 	if data.writeSmoothing then
-		for i = 1, r:int() do data.smoothingGroups[i] = r:int() end
+		for i = 1, input:int() do data.smoothingGroups[i] = input:int() end
 	end
 	if not jms.write(jmsPath, data) then error("cannot write " .. jmsPath, 0) end
 end
 
 -- Scene meshes from Max (extractGeometryData) -> JMS vertices + the vertex of every face corner
 function jmsBridge.mesh(inPath, outPath)
-	local r = maxbin.readFile(inPath)
-	if r:string() ~= "jms_mesh" or r:int() ~= 2 then error("unexpected data from Max (expected jms_mesh v2)", 0) end
+	local input = maxbin.readFile(inPath, meshBinaryName, meshInVersion)
 	local vertices, corners = {}, {}
-	for _ = 1, r:int() do
-		local obj = { parent = r:int(), positions = {}, uvs = {}, faces = {}, normals = {} }
-		for i = 1, r:int() * 3 do obj.positions[i] = r:float() end
-		if r:int() == 1 then
+	for _ = 1, input:int() do
+		local obj = { parent = input:int(), positions = {}, uvs = {}, faces = {}, normals = {} }
+		for i = 1, input:int() * 3 do obj.positions[i] = input:float() end
+		if input:int() == 1 then
 			obj.skin = {}
-			for v = 1, #obj.positions / 3 do
+			for vertex = 1, #obj.positions / 3 do
 				local bones, weights = {}, {}
-				for i = 1, r:int() do
-					bones[i] = r:int()
-					weights[i] = r:float()
+				for i = 1, input:int() do
+					bones[i] = input:int()
+					weights[i] = input:float()
 				end
-				obj.skin[v] = { bones, weights }
+				obj.skin[vertex] = { bones, weights }
 			end
 		end
-		local uvCount = r:int()
-		for i = 1, uvCount * 2 do obj.uvs[i] = r:float() end
+		local uvCount = input:int()
+		for i = 1, uvCount * 2 do obj.uvs[i] = input:float() end
 		if uvCount > 0 then obj.tvfaces = {} end
 		local faces, tvfaces, normals = obj.faces, obj.tvfaces, obj.normals
-		local faceCount = r:int()
+		local faceCount = input:int()
 		-- Normals saved in one go (file, count, rotMatrix rows), or per corner with each face
 		local saved
-		if r:int() == 1 then
-			saved = { path = r:string(), count = r:int(), m = {} }
-			for i = 1, 12 do saved.m[i] = r:float() end
+		if input:int() == 1 then
+			saved = { path = input:string(), count = input:int(), rotMatrix = {} }
+			for i = 1, 12 do saved.rotMatrix[i] = input:float() end
 		end
-		for f = 0, faceCount - 1 do
-			for c = 1, 3 do faces[f * 3 + c] = r:int() end
+		for face = 0, faceCount - 1 do
+			for corner = 1, 3 do faces[face * 3 + corner] = input:int() end
 			if tvfaces then
-				for c = 1, 3 do tvfaces[f * 3 + c] = r:int() end
+				for corner = 1, 3 do tvfaces[face * 3 + corner] = input:int() end
 			end
 			if not saved then
-				for i = 1, 9 do normals[f * 9 + i] = r:float() end
+				for i = 1, 9 do normals[face * 9 + i] = input:float() end
 			end
 		end
-		if saved then obj.normals = jmsMesh.savedNormals(saved.path, saved.count, faceCount, saved.m) end
+		if saved then obj.normals = jmsMesh.savedNormals(saved.path, saved.count, faceCount, saved.rotMatrix) end
 		jmsMesh.addObject(obj, vertices, corners)
 	end
 
-	local w = maxbin.open(outPath)
-	w:string("jms_mesh")
-	w:int(1)
-	w:int(#vertices)
-	for _, v in ipairs(vertices) do
-		w:int(v.node0)
-		w:floats(v.pos)
-		w:floats(v.normal)
-		w:int(v.node1)
-		w:floats({ v.weight, v.u, v.v })
+	local output = maxbin.open(outPath, meshBinaryName, meshOutVersion)
+	output:int(#vertices)
+	for _, vertex in ipairs(vertices) do
+		output:int(vertex.node0)
+		output:floats(vertex.pos)
+		output:floats(vertex.normal)
+		output:int(vertex.node1)
+		output:floats({ vertex.weight, vertex.u, vertex.v })
 	end
-	w:int(#corners)
-	if #corners > 0 then w:ints(corners) end
-	w:close()
+	output:int(#corners)
+	if #corners > 0 then output:ints(corners) end
+	output:close()
 end
 
 return jmsBridge
