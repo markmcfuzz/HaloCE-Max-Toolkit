@@ -10,8 +10,8 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
--- Reads tags through LuaJIT for any tag importer: core\halo1\tag_to_max.lua writes a little-endian
--- file (core\halo1\maxbin.lua) that the importer reads with the functions below.
+-- Reads tags through LuaJIT for any tag importer: lua\bridge\tag_to_max.lua writes a little-endian
+-- file (lua\bridge\maxbin.lua) that the importer reads with the functions below.
 
 -------------------------------------------------------
 -- RUN LUAJIT
@@ -78,13 +78,13 @@ fn luaCloseExport f importerName =
 )
 
 -- Runs an importer's Lua script (path relative to the engine folder, e.g.
--- "builders\\tag\\gbxmodel\\gbxmodel.lua") on the tag. Returns the open output file
+-- "lua\\importers\\gbxmodel.lua") on the tag. Returns the open output file
 -- (close it with luaCloseExport and the script's file name), or undefined on error (see the log).
 fn luaExportTag importerScript version tagPath options:#() =
 (
 	local outPath = luaExportPath (getFilenameFile importerScript)
 	deleteFile outPath
-	if not (luaRunScript "core\\halo1\\tag_to_max.lua" (#(importerScript, tagPath, outPath) + options)) then
+	if not (luaRunScript "lua\\bridge\\tag_to_max.lua" (#(importerScript, tagPath, outPath) + options)) then
 		return undefined
 	-- The header repeats the script path and the importer's format version
 	luaOpenOutput outPath importerScript version
@@ -104,7 +104,7 @@ fn luaExportTags importerScript version tagPaths options:#() =
 )
 
 -------------------------------------------------------
--- READERS (match core\halo1\maxbin.lua)
+-- READERS (match lua\bridge\maxbin.lua)
 -------------------------------------------------------
 
 fn luaReadInt f = readLong f #signed
@@ -161,7 +161,7 @@ fn luaReadARGB f =
 	point4 r g b a
 )
 
--- Field tuples written by core\halo1\tuples.lua, as the MAXScript parser made them:
+-- Field tuples written by lua\importers\shared\tuples.lua, as the MAXScript parser made them:
 -- #(#(name, value), ...); blocks are arrays of these. Read with getFieldValue.
 fn luaReadTuples f =
 (
@@ -186,7 +186,7 @@ fn luaReadTuples f =
 )
 
 -------------------------------------------------------
--- WRITERS: data for a Lua script (read by maxbin.read_file in core\halo1\maxbin.lua)
+-- WRITERS: data for a Lua script (read by maxbin.readFile in lua\bridge\maxbin.lua)
 -------------------------------------------------------
 
 fn luaWriteInt f v = writeLong f (v as integer) #signed

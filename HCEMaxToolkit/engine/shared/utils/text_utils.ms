@@ -10,7 +10,7 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
--- JMA/JMS files are read and written by Lua (formats\jma\jma.lua, formats\jms\jms.lua).
+-- JMA/JMS files are read and written by Lua (lua\formats\jma.lua, lua\formats\jms.lua).
 
 -- Float with 6 decimals, as the toolkit writes it in text files (formattedPrint ".6f")
 fn formatFloat val = formattedPrint val format:".6f"
