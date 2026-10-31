@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0] - 2026-10-30
+
+### Changed
+
+- **Tag and file reading moved to Lua (LuaJIT):**
+  - All tag importers, the shader reader and the `Model Animations Extractor` read tags with LuaJIT. The MAXScript tag parser was removed.
+  - JMS and JMA files are read and written with Lua; the files written are the same as before.
+  - Faster imports and exports, e.g. a 33k-vertex JMS: export 10.4 s -> 1.9 s, import scene build 5.4 s -> 1.1 s.
+  - A JMS/JMA value that is not a number now stops the import with its line number.
+- **Undo:** imports and the JMS export run with undo off for speed; `Ctrl+Z` no longer undoes an import.
+- **Camera Track export:** the tag is written with `invader-edit.exe` (path in `Settings` > `External Tools`).
+
+
+### Removed
+
+- **Settings:** `Skip Uncompressed Vertices` option of the GBXModel importer.
+
 ## [5.8.0] - 2026-10-28
 
 ### Added
