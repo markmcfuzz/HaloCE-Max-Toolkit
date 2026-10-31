@@ -28,6 +28,7 @@ fileIn (rootEngine + "builders\\helper_builder.ms")
 fileIn (rootEngine + "utility_coplanar_checker.ms")
 fileIn (scriptDir + "utils\\tag_utils.ms")
 fileIn (scriptDir + "utils\\lua_bridge.ms")
+fileIn (scriptDir + "utils\\mesh_normals.ms")
 fileIn (scriptDir + "utils\\build_utils.ms")
 fileIn (scriptDir + "utils\\text_utils.ms")
 
