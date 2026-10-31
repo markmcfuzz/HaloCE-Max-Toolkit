@@ -6,11 +6,11 @@
 
 local maxNumbers = require("formats.max_numbers")
 
-local num = maxNumbers.fixed6
+local fixed6 = maxNumbers.fixed6
 
 local jma = {}
 
-jma.SUPPORTED_VERSION = 16392
+jma.supportedVersion = 16392
 
 -------------------------------------------------------------------------------
 -- Reading
@@ -18,9 +18,9 @@ jma.SUPPORTED_VERSION = 16392
 
 -- Lines of a text file, trimmed like readLineFromStream (text_utils.ms)
 local function lineReader(path)
-	local f = assert(io.open(path, "rb"))
-	local text = f:read("*a")
-	f:close()
+	local file = assert(io.open(path, "rb"))
+	local text = file:read("*a")
+	file:close()
 	local pos, lineNo = 1, 0
 	return function()
 		if pos > #text then error(("unexpected end of file after line %d"):format(lineNo), 0) end
@@ -35,9 +35,9 @@ end
 -- MAXScript "as integer": "undefined" lines count as 0 (old JMS/JMA files)
 local function toInt(line, lineNo)
 	if line == "undefined" then return 0 end
-	local v = tonumber(line)
-	if not v then error(("line %d: '%s' is not a number"):format(lineNo, line), 0) end
-	return v >= 0 and math.floor(v) or math.ceil(v)
+	local value = tonumber(line)
+	if not value then error(("line %d: '%s' is not a number"):format(lineNo, line), 0) end
+	return value >= 0 and math.floor(value) or math.ceil(value)
 end
 
 -- First count numbers of a space/tab separated line, or nil when the line has fewer values
@@ -60,9 +60,9 @@ function jma.read(path)
 	local function int() return toInt(nextLine()) end
 	local function float()
 		local line, lineNo = nextLine()
-		local v = tonumber(line)
-		if not v then error(("line %d: '%s' is not a number"):format(lineNo, line), 0) end
-		return v
+		local value = tonumber(line)
+		if not value then error(("line %d: '%s' is not a number"):format(lineNo, line), 0) end
+		return value
 	end
 	local function floats(count)
 		local line, lineNo = nextLine()
@@ -71,8 +71,8 @@ function jma.read(path)
 
 	local data = { nodes = {}, frames = {} }
 	data.version = int()
-	if data.version ~= jma.SUPPORTED_VERSION then
-		error(("unsupported JMA version %d (expected %d)"):format(data.version, jma.SUPPORTED_VERSION), 0)
+	if data.version ~= jma.supportedVersion then
+		error(("unsupported JMA version %d (expected %d)"):format(data.version, jma.supportedVersion), 0)
 	end
 	data.frameCount = int()
 	data.frameRate = int()
@@ -81,19 +81,19 @@ function jma.read(path)
 	data.nodeCount = int()
 	data.checksum = int()
 
-	for n = 1, data.nodeCount do
+	for nodeIndex = 1, data.nodeCount do
 		local name = nextLine()
-		data.nodes[n] = { name, int(), int() }
+		data.nodes[nodeIndex] = { name, int(), int() }
 	end
 
-	for f = 1, data.frameCount do
+	for frameIndex = 1, data.frameCount do
 		local frame = {}
-		for n = 1, data.nodeCount do
+		for nodeIndex = 1, data.nodeCount do
 			local trans = floats(3) or { 0, 0, 0 }
 			local rot = floats(4) or { 0, 0, 0, 1 }
-			frame[n] = { trans = trans, rot = rot, scale = float() }
+			frame[nodeIndex] = { trans = trans, rot = rot, scale = float() }
 		end
-		data.frames[f] = frame
+		data.frames[frameIndex] = frame
 	end
 	return data
 end
@@ -115,16 +115,16 @@ function jma.write(path, data)
 	end
 	for _, frame in ipairs(data.frames) do
 		for _, pose in ipairs(frame) do
-			local t, r = pose.trans, pose.rot
-			parts[#parts + 1] = num(t[1]) .. "\t" .. num(t[2]) .. "\t" .. num(t[3])
-			parts[#parts + 1] = num(r[1]) .. "\t" .. num(r[2]) .. "\t" .. num(r[3]) .. "\t" .. num(r[4])
-			parts[#parts + 1] = num(pose.scale or 1)
+			local trans, rot = pose.trans, pose.rot
+			parts[#parts + 1] = fixed6(trans[1]) .. "\t" .. fixed6(trans[2]) .. "\t" .. fixed6(trans[3])
+			parts[#parts + 1] = fixed6(rot[1]) .. "\t" .. fixed6(rot[2]) .. "\t" .. fixed6(rot[3]) .. "\t" .. fixed6(rot[4])
+			parts[#parts + 1] = fixed6(pose.scale or 1)
 		end
 	end
-	local f = io.open(path, "wb")
-	if not f then return false end
-	f:write(table.concat(parts, "\r\n"), "\r\n")
-	f:close()
+	local file = io.open(path, "wb")
+	if not file then return false end
+	file:write(table.concat(parts, "\r\n"), "\r\n")
+	file:close()
 	return true
 end
 

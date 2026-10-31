@@ -1,17 +1,17 @@
 -- Numbers the way MAXScript computes and prints them, so Lua output matches the old MAXScript
 -- files byte for byte. MAXScript Float is a 32-bit float.
 
-local ffi = require("ffi")
+local ffi = require("ffi") -- LuaJIT: C types and direct memory access
 
 local format, floor = string.format, math.floor
-local fbox = ffi.new("float[1]")
+local floatBox = ffi.new("float[1]") -- one C float: storing a number in it rounds it to 32 bits
 
 local maxNumbers = {}
 
 -- Rounds to a 32-bit float (apply after every operation MAXScript would do in Float)
 function maxNumbers.f32(x)
-	fbox[0] = x
-	return fbox[0]
+	floatBox[0] = x
+	return floatBox[0]
 end
 
 -- formattedPrint x format:".6f": exact halves round to even (32.4765625 -> 32.476562)
