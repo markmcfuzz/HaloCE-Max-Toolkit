@@ -149,7 +149,7 @@ end
 -- Scene meshes from Max (extractGeometryData) -> JMS vertices + the vertex of every face corner
 local function mesh(in_path, out_path)
 	local r = maxbin.read_file(in_path)
-	if r:string() ~= "jms_mesh" or r:int() ~= 1 then error("unexpected data from Max (expected jms_mesh v1)", 0) end
+	if r:string() ~= "jms_mesh" or r:int() ~= 2 then error("unexpected data from Max (expected jms_mesh v2)", 0) end
 	local vertices, corners = {}, {}
 	for _ = 1, r:int() do
 		local obj = { parent = r:int(), positions = {}, uvs = {}, faces = {}, normals = {} }
@@ -169,13 +169,23 @@ local function mesh(in_path, out_path)
 		for i = 1, uv_count * 2 do obj.uvs[i] = r:float() end
 		if uv_count > 0 then obj.tvfaces = {} end
 		local faces, tvfaces, normals = obj.faces, obj.tvfaces, obj.normals
-		for f = 0, r:int() - 1 do
+		local face_count = r:int()
+		-- Normals saved in one go (file, count, rotMatrix rows), or per corner with each face
+		local saved
+		if r:int() == 1 then
+			saved = { path = r:string(), count = r:int(), m = {} }
+			for i = 1, 12 do saved.m[i] = r:float() end
+		end
+		for f = 0, face_count - 1 do
 			for c = 1, 3 do faces[f * 3 + c] = r:int() end
 			if tvfaces then
 				for c = 1, 3 do tvfaces[f * 3 + c] = r:int() end
 			end
-			for i = 1, 9 do normals[f * 9 + i] = r:float() end
+			if not saved then
+				for i = 1, 9 do normals[f * 9 + i] = r:float() end
+			end
 		end
+		if saved then obj.normals = jms_mesh.saved_normals(saved.path, saved.count, face_count, saved.m) end
 		jms_mesh.add_object(obj, vertices, corners)
 	end
 
