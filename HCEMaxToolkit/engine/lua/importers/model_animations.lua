@@ -4,7 +4,7 @@
 -- Math is rounded to 32-bit floats like MAXScript, so the text matches the old files.
 
 local bit = require("bit")
-local bytes = require("tags.bytes")
+local byteReader = require("tags.byte_reader")
 local maxNumbers = require("formats.max_numbers")
 local jma = require("formats.jma")
 local fallbackNodes = require("importers.shared.fallback_nodes")
@@ -25,7 +25,7 @@ local PI = f32(math.pi)
 -- Reading the tag bytes
 -------------------------------------------------------------------------------
 
-local src -- bytes reader over the tag file (set in write)
+local src -- byteReader over the tag file (set in write)
 
 -------------------------------------------------------------------------------
 -- Helpers (same math as the previous MAXScript extractor)
@@ -498,7 +498,7 @@ end
 
 function modelAnimations.write(root, w, options, tag)
 	local outDir = assert(options[1], "missing output folder"):gsub("[\\/]+$", "")
-	src = bytes.reader(tag.bytes)
+	src = byteReader.open(tag.bytes)
 
 	local messages = {}
 	local function log(level, text) messages[#messages + 1] = { level, text } end
