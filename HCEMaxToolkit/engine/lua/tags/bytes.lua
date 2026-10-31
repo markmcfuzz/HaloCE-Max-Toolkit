@@ -20,35 +20,35 @@ end
 
 function Reader:seek(pos) self.pos = pos end
 
-function Reader:be_i16()
+function Reader:beI16()
 	local p, o = self.p, self.pos
 	self.pos = o + 2
 	local v = p[o] * 256 + p[o + 1]
 	return v >= 32768 and v - 65536 or v
 end
 
-function Reader:be_float()
+function Reader:beFloat()
 	local p, o = self.p, self.pos
 	self.pos = o + 4
 	bits.i = bor(lshift(p[o], 24), lshift(p[o + 1], 16), lshift(p[o + 2], 8), p[o + 3])
 	return bits.f
 end
 
-function Reader:le_u16()
+function Reader:leU16()
 	local p, o = self.p, self.pos
 	self.pos = o + 2
 	return p[o] + p[o + 1] * 256
 end
 
 -- Signed 32-bit (unsigned values above 2^31 come back negative, like MAXScript's readLong)
-function Reader:le_i32()
+function Reader:leI32()
 	local p, o = self.p, self.pos
 	self.pos = o + 4
 	return bor(p[o], lshift(p[o + 1], 8), lshift(p[o + 2], 16), lshift(p[o + 3], 24))
 end
 
-function Reader:le_float()
-	bits.i = self:le_i32()
+function Reader:leFloat()
+	bits.i = self:leI32()
 	return bits.f
 end
 

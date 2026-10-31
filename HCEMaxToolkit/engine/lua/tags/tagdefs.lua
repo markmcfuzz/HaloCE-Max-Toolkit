@@ -1,13 +1,13 @@
 -- Loads the Halo CE JSON tag definitions and compiles each struct into fields with byte offsets.
 -- Every struct is checked against its declared size, so layout mistakes fail early.
 
-local json = require("core.halo1.json")
+local json = require("tags.json")
 
 local tagdefs = {}
 
-function tagdefs.default_dir()
+function tagdefs.defaultDir()
 	local here = debug.getinfo(1, "S").source:match("^@(.*)[/\\]") or "."
-	return here .. "/tag_definitions"
+	return here .. "/definitions"
 end
 
 -- Field kinds
@@ -76,7 +76,7 @@ local TYPES = {
 }
 
 -- "base map u-scale*#0 defaults to 1" -> "base map u-scale" ('#' description, ':' units, '*^!' flags)
-local function clean_name(name)
+local function cleanName(name)
 	if type(name) ~= "string" then return nil end
 	local cut = name:find("[#:]")
 	if cut then name = name:sub(1, cut - 1) end
@@ -85,7 +85,7 @@ local function clean_name(name)
 	if name == "" then return nil end
 	return name
 end
-tagdefs.clean_name = clean_name
+tagdefs.cleanName = cleanName
 
 -------------------------------------------------------------------------------
 -- Loading
@@ -96,12 +96,12 @@ Defs.__index = Defs
 
 -- dir: folder with _meta.json and <group>.json (defaults to core\halo1\tag_definitions)
 function tagdefs.open(dir)
-	dir = (dir or tagdefs.default_dir()):gsub("[/\\]$", "")
-	local meta = json.decode_file(dir .. "/_meta.json")
+	dir = (dir or tagdefs.defaultDir()):gsub("[/\\]$", "")
+	local meta = json.decodeFile(dir .. "/_meta.json")
 	local self = setmetatable({
 		dir = dir,
 		meta = meta,
-		by_fourcc = meta.tag_index or {},
+		byFourcc = meta.tag_index or {},
 		groups = {},      -- group name -> raw json
 		compiled = {},    -- "group/struct" -> compiled struct
 	}, Defs)
@@ -111,13 +111,13 @@ end
 function Defs:group(name)
 	local g = self.groups[name]
 	if g then return g end
-	g = json.decode_file(self.dir .. "/" .. name .. ".json")
+	g = json.decodeFile(self.dir .. "/" .. name .. ".json")
 	self.groups[name] = g
 	return g
 end
 
-function Defs:group_by_fourcc(fourcc)
-	local name = self.by_fourcc[fourcc]
+function Defs:groupByFourcc(fourcc)
+	local name = self.byFourcc[fourcc]
 	if not name then return nil end
 	return self:group(name)
 end
@@ -131,7 +131,7 @@ function Defs:lookup(group, section, name)
 		-- parent_tag is a group name ("unit") or a fourcc ("obje")
 		local parent = g.parent_tag
 		if type(parent) == "string" then
-			g = self:group(self.by_fourcc[parent] or parent)
+			g = self:group(self.byFourcc[parent] or parent)
 		else
 			g = nil
 		end
@@ -143,53 +143,53 @@ end
 -- Compiling
 -------------------------------------------------------------------------------
 
--- Returns { name, size, fields = {key, kind, offset, size, sub, ...}, has_ext }.
--- has_ext: the struct holds tag-refs, data or blocks (data stored after the element).
-function Defs:compile_struct(group, struct_name)
-	local cache_key = group.name .. "/" .. struct_name
-	local c = self.compiled[cache_key]
+-- Returns { name, size, fields = {key, kind, offset, size, sub, ...}, hasExt }.
+-- hasExt: the struct holds tag-refs, data or blocks (data stored after the element).
+function Defs:compileStruct(group, structName)
+	local cacheKey = group.name .. "/" .. structName
+	local c = self.compiled[cacheKey]
 	if c then return c end
 
-	local def, owner = self:lookup(group, "structs", struct_name)
-	cache_key = owner.name .. "/" .. struct_name
-	c = self.compiled[cache_key]
+	local def, owner = self:lookup(group, "structs", structName)
+	cacheKey = owner.name .. "/" .. structName
+	c = self.compiled[cacheKey]
 	if c then return c end
 
-	c = { name = struct_name, size = def.size, fields = {}, has_ext = false }
-	self.compiled[cache_key] = c -- register before recursing (self-referencing blocks)
+	c = { name = structName, size = def.size, fields = {}, hasExt = false }
+	self.compiled[cacheKey] = c -- register before recursing (self-referencing blocks)
 
 	local offset = 0
 	local used = {}
 	for _, fd in ipairs(def.fields) do
 		local t = fd.type
-		local kind, size, sub, count, max_count
+		local kind, size, sub, count, maxCount
 		if t == "pad" or t == "skip" then
 			kind, size = K.SKIP, fd.definition
 		elseif t == "struct" then
 			kind = K.STRUCT
-			sub = self:compile_struct(owner, fd.definition)
+			sub = self:compileStruct(owner, fd.definition)
 			size = sub.size
 		elseif t == "array" then
 			kind = K.ARRAY
-			local arr, arr_owner = self:lookup(owner, "arrays", fd.definition)
-			sub = self:compile_struct(arr_owner, arr.struct)
+			local arr, arrOwner = self:lookup(owner, "arrays", fd.definition)
+			sub = self:compileStruct(arrOwner, arr.struct)
 			count = arr.count
 			size = sub.size * count
 		elseif t == "block" then
 			kind, size = K.BLOCK, 12
-			local blk, blk_owner = self:lookup(owner, "blocks", fd.definition)
-			sub = { owner = blk_owner, struct = blk.struct } -- compiled lazily
-			max_count = blk.max_count
+			local blk, blkOwner = self:lookup(owner, "blocks", fd.definition)
+			sub = { owner = blkOwner, struct = blk.struct } -- compiled lazily
+			maxCount = blk.max_count
 		else
 			local info = TYPES[t]
 			if not info then
-				error(("unknown field type '%s' in %s/%s"):format(t, owner.name, struct_name), 0)
+				error(("unknown field type '%s' in %s/%s"):format(t, owner.name, structName), 0)
 			end
 			kind, size = info[1], info[2]
 		end
 
 		if size > 0 and kind ~= K.SKIP then
-			local name = clean_name(fd.name)
+			local name = cleanName(fd.name)
 			local key = name or ("field_" .. offset)
 			if used[key] then
 				local n = 2
@@ -200,13 +200,13 @@ function Defs:compile_struct(group, struct_name)
 			-- key is unique within the struct ("flags 2"); name keeps repeats as in the definition
 			c.fields[#c.fields + 1] = {
 				key = key, name = name or key, kind = kind, offset = offset, size = size,
-				sub = sub, count = count, max_count = max_count,
+				sub = sub, count = count, maxCount = maxCount,
 				type = t,
 			}
 			if kind == K.TAGREF or kind == K.DATA or kind == K.BLOCK then
-				c.has_ext = true
-			elseif (kind == K.STRUCT or kind == K.ARRAY) and sub.has_ext then
-				c.has_ext = true
+				c.hasExt = true
+			elseif (kind == K.STRUCT or kind == K.ARRAY) and sub.hasExt then
+				c.hasExt = true
 			end
 		end
 		offset = offset + size
@@ -214,34 +214,34 @@ function Defs:compile_struct(group, struct_name)
 
 	if offset ~= def.size then
 		error(("struct %s/%s: fields add up to %d bytes but definition says %d")
-			:format(owner.name, struct_name, offset, def.size), 0)
+			:format(owner.name, structName, offset, def.size), 0)
 	end
 	return c
 end
 
 -- Compiled struct for a block field's elements
-function Defs:block_struct(field)
+function Defs:blockStruct(field)
 	local sub = field.sub
 	if not sub.compiled then
-		sub.compiled = self:compile_struct(sub.owner, sub.struct)
+		sub.compiled = self:compileStruct(sub.owner, sub.struct)
 	end
 	return sub.compiled
 end
 
 -- Root struct of a group
-function Defs:root_struct(group)
+function Defs:rootStruct(group)
 	local blk = group.blocks[group.block]
-	return self:compile_struct(group, blk.struct)
+	return self:compileStruct(group, blk.struct)
 end
 
 -- Compiles every struct of every group; returns a list of error strings.
-function Defs:validate_all()
+function Defs:validateAll()
 	local errors = {}
-	for _, name in pairs(self.by_fourcc) do
+	for _, name in pairs(self.byFourcc) do
 		local ok, err = pcall(function()
 			local g = self:group(name)
 			for sname in pairs(g.structs) do
-				self:compile_struct(g, sname)
+				self:compileStruct(g, sname)
 			end
 		end)
 		if not ok then errors[#errors + 1] = name .. ": " .. tostring(err) end
