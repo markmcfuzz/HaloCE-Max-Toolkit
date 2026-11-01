@@ -3,8 +3,11 @@
 --   run.lua bridge.tag export <importer> @<list.txt> <output.bin> [...]   (one tag path per line)
 -- <importer> is a script name in lua\importers (e.g. gbxmodel). A list writes the tag count,
 -- then per tag: int 1 + importer data, or int 0 + error message.
+-- Writes tags from what Max wrote (luaWriteTag in lua_bridge.ms):
+--   run.lua bridge.tag write <exporter> <input.bin> <tag>   (<exporter> is a script in lua\exporters)
 local tagDefs = require "tags.tag_defs"
 local tagReader = require "tags.tag_reader"
+local tagWriter = require "tags.tag_writer"
 local maxbin = require "bridge.maxbin"
 
 local tag = {}
@@ -30,8 +33,8 @@ local function exportOne(importerName, importer, defs, path, output, options)
     for _, warning in ipairs(tagData.warnings) do
         io.stdout:write("warning: ", path, ": ", warning, "\n")
     end
-    -- tagData.bytes (raw file) and tagData.rootStruct are there for importers that need them
-    importer.write(tagData.root, output, options, tagData)
+    -- tagData.bytes (raw file), tagData.rootStruct and defs are there for importers that need them
+    importer.write(tagData.root, output, options, tagData, defs)
 end
 
 function tag.export(importerName, tagArg, outPath, ...)
@@ -76,6 +79,21 @@ function tag.export(importerName, tagArg, outPath, ...)
         end
     end
     output:close()
+end
+
+-- The input starts with the exporter name and version (luaWriteTag writes them)
+function tag.write(exporterName, inPath, tagPath)
+    if not (exporterName and inPath and tagPath) then
+        error("usage: run.lua bridge.tag write <exporter> <input.bin> <tag>", 0)
+    end
+    if not package.searchpath("exporters." .. exporterName, package.path) then
+        error(("no Lua exporter '%s' in lua\\exporters"):format(exporterName), 0)
+    end
+    local exporter = require("exporters." .. exporterName)
+    local defs = tagDefs.open()
+    local input = maxbin.readFile(inPath, exporterName, exporter.version)
+    local groupName, root = exporter.read(input, defs, tagPath)
+    tagWriter.writeFile(defs, groupName, root, tagPath)
 end
 
 return tag
