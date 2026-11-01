@@ -168,10 +168,10 @@ end
 -------------------------------------------------------------------------------
 
 -- Turns a JSON struct into { name, size, fields, hasTail }, cached. Each field is
--- { key, name, readAs, offset, size, sub, count, maxCount, type }:
+-- { key, name, readAs, offset, size, sub, count, maxCount, type, definition, owner }:
 --   key: unique name in the struct ("flags", "flags 2"); name: as in the definition
 --   sub: struct of a struct/array field, or { owner, struct } of a block field
---   type: JSON type name ("real_point_3d")
+--   type: JSON type name ("real_point_3d"); definition, owner: its JSON definition and group
 -- hasTail: the struct has tag references, data or blocks, whose contents (its tail) come after it.
 function definitions:compileStruct(group, structName)
     local cacheKey = group.name .. "/" .. structName
@@ -241,7 +241,9 @@ function definitions:compileStruct(group, structName)
                 sub = sub,
                 count = count,
                 maxCount = maxCount,
-                type = t
+                type = t,
+                definition = fd.definition,
+                owner = owner
             }
             if fieldReadAs == readAs.tagRef or fieldReadAs == readAs.data or fieldReadAs ==
                 readAs.block then
