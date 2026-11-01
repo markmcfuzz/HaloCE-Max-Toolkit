@@ -32,6 +32,7 @@ function menuCallback =
     local importGbxId = "ImportGBX`Halo CE"
     local importCollisionId = "ImportCollisionGeometry`Halo CE"
     local importPhysicsId = "ImportPhysics`Halo CE"
+    local importObjectId = "ImportObject`Halo CE"
     local importCameraTrackId = "ImportCameraTrack`Halo CE"
     local importStructureBspId = "ImportStructureBSP`Halo CE"
     importMenu.CreateAction "2B3C4D5E-6F70-8192-A3B4-C5D6E7F8091A" macroScriptTableId importJmsId
@@ -39,6 +40,7 @@ function menuCallback =
     importMenu.CreateAction "ADB41E81-D249-4539-8F5B-2406E02D8352" macroScriptTableId importGbxId
     importMenu.CreateAction "3C4D1F2E-1C7C-4D2C-8F1E-4F6D1E2B8C9A" macroScriptTableId importCollisionId
     importMenu.CreateAction "5F6A7B8C-9D0E-4F1A-8B2C-3D4E5F6A7B8C" macroScriptTableId importPhysicsId
+    importMenu.CreateAction "B66A2CC0-42DD-4D53-A827-E61EE38CCFD4" macroScriptTableId importObjectId
     importMenu.CreateAction "1A2B3C4D-5E6F-7081-92A3-B4C5D6E7F809" macroScriptTableId importCameraTrackId
     importMenu.CreateAction "2B3C4D5E-6F70-8192-A3B4-C5D6E7F8091B" macroScriptTableId importStructureBspId
     
@@ -49,6 +51,8 @@ function menuCallback =
     exportMenu.CreateAction "9A8B7C6D-5E4F-3A2B-1C0D-EF1A2B3C4D5E" macroScriptTableId exportJmsId
     exportMenu.CreateAction "6F5E4D3C-2B1A-0D9C-8B7A-6E5F4D3C2B1A" macroScriptTableId exportJmaId
     exportMenu.CreateAction "0A1B2C3D-4E5F-6071-8293-A4B5C6D7E8F9" macroScriptTableId exportCameraTrackId
+    local exportObjectId = "ExportObject`Halo CE"
+    exportMenu.CreateAction "076B1046-511E-4114-8C74-6D2E83049BF1" macroScriptTableId exportObjectId
     local buildShadersId = "BuildShaders`Halo CE"
     exportMenu.CreateAction "6B1F2C3D-8E4A-4F5B-9C6D-7E8F9A0B1C2D" macroScriptTableId buildShadersId
     
