@@ -34,14 +34,15 @@ include "builders\\tag\\gbxmodel\\build_scene.ms"
 -- MAIN IMPORT FUNCTIONS
 -------------------------------------------------------
 
-fn isGbxModelTag tagPath = (getTagClass tagPath) == "mod2"
+-- gbxmodel (mod2, PC) or model (mode, Xbox)
+fn isGbxModelTag tagPath = findItem #("mod2", "mode") (getTagClass tagPath) > 0
 
 -- Imports one file without dialogs. Returns the created meshes, or undefined on failure.
 fn importGbxModelFile gbxModelFile =
 (
     if not (isGbxModelTag gbxModelFile) then
     (
-        logger.error "Not a gbxmodel tag: '{}'" args:#(gbxModelFile)
+        logger.error "Not a gbxmodel or model tag: '{}'" args:#(gbxModelFile)
         return undefined
     )
 
@@ -63,8 +64,8 @@ fn importGbxModelFile gbxModelFile =
 fn ImportGbxModel =
 (
     local gbxModelFile = getOpenFileName \
-		caption:"Select Halo CE GBX Model Tag" \
-		types:"GBX Model (*.gbxmodel)|*.gbxmodel|All Files (*.*)|*.*" \
+		caption:"Select Halo CE Model Tag" \
+		types:"Model Tags (*.gbxmodel;*.model)|*.gbxmodel;*.model|GBX Model (*.gbxmodel)|*.gbxmodel|Model (*.model)|*.model|All Files (*.*)|*.*" \
 		historyCategory:"HaloCEGBXModel"
 
     if gbxModelFile == undefined then
@@ -85,7 +86,7 @@ fn ImportGbxModel =
 
     if createdMeshes == undefined then
     (
-        messageBox "Failed to read GBX model tag!" title:"Import Failed"
+        messageBox "Failed to read model tag!" title:"Import Failed"
         return undefined
     )
 
@@ -97,7 +98,7 @@ fn ImportGbxModel =
     if showDialogs and createdMeshes.count > 0 then
     (
         local fileName = filenameFromPath gbxModelFile
-        messageBox ("GBX model imported successfully!\n\n" + \
+        messageBox ("Model imported successfully!\n\n" + \
                     "File: " + fileName + "\n" + \
                     "Meshes created: " + createdMeshes.count as string + "\n" + \
                     "Time: " + (formattedPrint elapsedTime format:".3f") + " seconds") \
