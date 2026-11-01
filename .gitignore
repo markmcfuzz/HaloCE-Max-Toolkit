@@ -33,6 +33,7 @@ luac.out
 *releases/
 *hek_defs/
 *tags/
+!HCEMaxToolkit/engine/lua/tags/
 *guides/
 *backups/
 *build/
