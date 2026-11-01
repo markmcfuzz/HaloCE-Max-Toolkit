@@ -20,11 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - A JMS/JMA value that is not a number now stops the import with its line number.
 - **Undo:** imports and the JMS export run with undo off for speed; `Ctrl+Z` no longer undoes an import.
 - **Camera Track export:** the tag is written with `invader-edit.exe` (path in `Settings` > `External Tools`).
-
-
-### Removed
-
-- **Settings:** `Skip Uncompressed Vertices` option of the GBXModel importer.
+- **Settings:** Removed `Skip Uncompressed Vertices` option of the GBXModel importer.
 
 ## [5.8.0] - 2026-10-28
 
