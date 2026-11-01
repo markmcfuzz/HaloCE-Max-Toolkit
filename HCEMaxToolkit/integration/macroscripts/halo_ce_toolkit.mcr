@@ -73,6 +73,27 @@ macroScript ImportPhysics
     )
 )
 
+macroScript ImportObject
+    category: "Halo CE"
+    toolTip: "Object Tag"
+(
+    on execute do 
+    (
+        local thisScript = getThisScriptFilename()
+        local leafPath = pathConfig.removePathLeaf thisScript
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+        local scriptPath = pluginRoot + "\\engine\\import_object.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
+
 macroScript ImportCameraTrack
     category: "Halo CE"
     toolTip: "Camera Track Tag"
@@ -211,6 +232,27 @@ macroScript ExportCameraTrack
         local leafPath = pathConfig.removePathLeaf thisScript
         local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
         local scriptPath = pluginRoot + "\\engine\\export_camera_track.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
+
+macroScript ExportObject
+    category: "Halo CE"
+    toolTip: "Object Tag"
+(
+    on execute do
+    (
+        local thisScript = getThisScriptFilename()
+        local leafPath = pathConfig.removePathLeaf thisScript
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+        local scriptPath = pluginRoot + "\\engine\\export_object.ms"
         if doesFileExist scriptPath then
         (
             fileIn scriptPath
