@@ -69,6 +69,7 @@ fn createHaloCEToolkitMenu =
         addMacroToMenu importMenu "Halo CE" "ImportGBX" mm displayName:"GBX Model"
         addMacroToMenu importMenu "Halo CE" "ImportCollisionGeometry" mm displayName:"Collision Geometry"
         addMacroToMenu importMenu "Halo CE" "ImportPhysics" mm displayName:"Physics"
+        addMacroToMenu importMenu "Halo CE" "ImportObject" mm displayName:"Object Tag"
         addMacroToMenu importMenu "Halo CE" "ImportCameraTrack" mm displayName:"Camera Track"
         addMacroToMenu importMenu "Halo CE" "ImportStructureBSP" mm displayName:"Structure BSP"
 
@@ -77,6 +78,7 @@ fn createHaloCEToolkitMenu =
         addMacroToMenu exportMenu "Halo CE" "ExportJMS" mm displayName:"JMS Model"
         addMacroToMenu exportMenu "Halo CE" "ExportJointedModelAnimation" mm displayName:"JMA Animation"
         addMacroToMenu exportMenu "Halo CE" "ExportCameraTrack" mm displayName:"Camera Track"
+        addMacroToMenu exportMenu "Halo CE" "ExportObject" mm displayName:"Object Tag"
         addMacroToMenu exportMenu "Halo CE" "BuildShaders" mm displayName:"Shaders"
 
         -- Add Tools macros, grouped by target game
