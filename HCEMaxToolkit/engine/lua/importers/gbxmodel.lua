@@ -1,10 +1,11 @@
--- gbxmodel -> 3ds Max: nodes, regions/markers, shaders and one merged mesh per geometry.
+-- gbxmodel/model -> 3ds Max: nodes, regions/markers, shaders and one merged mesh per geometry.
 -- Read in Max by builders\tag\gbxmodel\lua_reader.ms; options: { halo scale }.
 local packed = require "importers.shared.packed"
 
 local normalize, decompressNormal = packed.normalize, packed.decompressNormal
 
-local gbxmodel = {group = "gbxmodel", version = 1}
+-- model (Xbox) is gbxmodel without the part-local node table
+local gbxmodel = {group = {"gbxmodel", "model"}, version = 1}
 
 -------------------------------------------------------------------------------
 -- Vertex decoding (same rules as the previous MAXScript importer)
@@ -129,8 +130,9 @@ local function buildGeometry(geometry, scale, uScale, vScale)
                 addCompressedVertices(mesh, compressed, scale, uScale, vScale)
             else
                 local localNodes = {}
-                local nodeTable = part["local_node_table"]
-                for i = 1, math.min(part["num_nodes"], #nodeTable) do
+                -- model parts have no local node table: their indices are already global
+                local nodeTable = part["local_node_table"] or {}
+                for i = 1, math.min(part["num_nodes"] or 0, #nodeTable) do
                     localNodes[i] = nodeTable[i]["node index"]
                 end
                 addUncompressedVertices(mesh, uncompressed, localNodes, scale, uScale, vScale)
