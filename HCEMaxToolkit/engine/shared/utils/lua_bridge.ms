@@ -193,5 +193,30 @@ fn luaWriteFloat f v = writeFloat f (v as float)
 -- Names can be numbers (e.g. a "region" user property): written as their text
 fn luaWriteString f s = writeString f (s as string)
 
+-------------------------------------------------------
+-- TAGS FROM MAX: data for an exporter of lua\exporters (e.g. "object")
+-------------------------------------------------------
+
+fn luaTagInputPath exporterName = (getDir #temp) + "\\hce_" + exporterName + "_write.bin"
+
+-- Starts the exporter's input with its name and version; finish it with luaWriteTag
+fn luaOpenTagInput exporterName version =
+(
+	local f = fopen (luaTagInputPath exporterName) "wb"
+	luaWriteString f exporterName
+	luaWriteInt f version
+	f
+)
+
+-- Closes the input and writes the tag. Returns true when it worked (errors are in the log)
+fn luaWriteTag f exporterName tagPath =
+(
+	fclose f
+	local inPath = luaTagInputPath exporterName
+	local ok = luaRun "bridge.tag" "write" #(exporterName, inPath, tagPath)
+	deleteFile inPath
+	ok
+)
+
 scriptName = getFilenameFile (getThisScriptFilename()) + getFilenameType (getThisScriptFilename())
 logger.info "{} loaded." args:#(scriptName)
