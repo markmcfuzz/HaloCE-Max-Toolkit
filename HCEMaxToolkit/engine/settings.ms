@@ -34,7 +34,18 @@ try (destroyDialog settingsImportRollout) catch ()
 -- Import Rollout
 rollout settingsImportRollout "Import Settings" width:225 (
 	group "Gbx/Model Importer" (
-		label lbl_gbxmodel "No options yet" align:#left
+		checkbox chk_gbxNodes "Nodes"
+			tooltip:"Creates the model nodes. If disabled, markers and skinning use a matching skeleton already in the scene."
+		checkbox chk_gbxMarkers "Markers"
+			tooltip:"Imports the markers of every region permutation."
+		checkbox chk_gbxGeometry "Geometry"
+			tooltip:"Imports the render geometry with its materials and skinning."
+		checkbox chk_gbxReuseNodes "Reuse Existing Nodes"
+			tooltip:"Reuses a skeleton in the scene with the same node names and hierarchy as the model."
+		checkbox chk_gbxReuseMarkers "Reuse Existing Markers"
+			tooltip:"Reuses markers in the scene with the same name as the imported markers."
+		edittext edt_gbxNodePrefix "Node Prefix:" fieldWidth:110
+			tooltip:"Replaces the node prefix of the tag (text up to the first space or '_'), e.g. 'bone' turns 'b_gun' into 'bone gun'. Empty keeps the tag names."
 	)
 
 	group "Collision Importer" (
@@ -79,6 +90,15 @@ rollout settingsImportRollout "Import Settings" width:225 (
 	)
 
 	on settingsImportRollout open do (
+		chk_gbxNodes.checked                  = configManager.getBool "import_gbxmodel"      "import_nodes"                  true
+		chk_gbxMarkers.checked                = configManager.getBool "import_gbxmodel"      "import_markers"                true
+		chk_gbxGeometry.checked               = configManager.getBool "import_gbxmodel"      "import_geometry"               true
+		chk_gbxReuseNodes.checked             = configManager.getBool "import_gbxmodel"      "reuse_existing_nodes"          true
+		chk_gbxReuseMarkers.checked           = configManager.getBool "import_gbxmodel"      "reuse_existing_markers"        true
+		edt_gbxNodePrefix.text                = configManager.getString "import_gbxmodel"    "node_prefix"                   ""
+		-- Reuse only applies when that part is created
+		chk_gbxReuseNodes.enabled             = chk_gbxNodes.checked
+		chk_gbxReuseMarkers.enabled           = chk_gbxMarkers.checked
 		--chk_importPathfindingSpheres.checked  = configManager.getBool "import_collision"    "import_pathfinding_spheres"    false
 		chk_reuseNodes.checked			      = configManager.getBool "import_jms"           "reuse_existing_nodes"          true
 		chk_reuseMarkers.checked              = configManager.getBool "import_jms"           "reuse_existing_markers"        true
@@ -93,6 +113,12 @@ rollout settingsImportRollout "Import Settings" width:225 (
 		chk_cameraAnimation.checked           = configManager.getBool "import_camera_track" "import_camera_animation"      true
 	)
 
+	on chk_gbxNodes                  changed val do (writeSetting "import_gbxmodel" "import_nodes" val; chk_gbxReuseNodes.enabled = val)
+	on chk_gbxMarkers                changed val do (writeSetting "import_gbxmodel" "import_markers" val; chk_gbxReuseMarkers.enabled = val)
+	on chk_gbxGeometry               changed val do writeSetting "import_gbxmodel"      "import_geometry"               val
+	on chk_gbxReuseNodes             changed val do writeSetting "import_gbxmodel"      "reuse_existing_nodes"          val
+	on chk_gbxReuseMarkers           changed val do writeSetting "import_gbxmodel"      "reuse_existing_markers"        val
+	on edt_gbxNodePrefix             changed val do writeStringSetting "import_gbxmodel" "node_prefix" (trimLeft (trimRight val))
 	--on chk_importPathfindingSpheres  changed val do writeSetting "import_collision"    "import_pathfinding_spheres"    val
 	on chk_reuseNodes                changed val do writeSetting "import_jms"           "reuse_existing_nodes"          val
 	on chk_reuseMarkers              changed val do writeSetting "import_jms"           "reuse_existing_markers"        val
@@ -172,7 +198,7 @@ if settingsFloater != undefined then (
 	try( closeRolloutFloater settingsFloater ) catch()
 )
 
-settingsFloater = newRolloutFloater "HCE Toolkit Settings" 270 785
+settingsFloater = newRolloutFloater "HCE Toolkit Settings" 270 905
 addRollout settingsImportRollout settingsFloater
 addRollout settingsExportRollout settingsFloater
 addRollout settingsGeneralRollout settingsFloater

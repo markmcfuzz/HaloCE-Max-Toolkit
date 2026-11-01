@@ -373,7 +373,21 @@ fn linkNodeHierarchy createdNodes nodeDataArray nodesLayer =
 	)
 )
 
-fn createGBXModelNodes gbxNodes =
+-- Replaces the tag's node prefix (text up to the first space or "_") with nodePrefix.
+-- A prefix not ending in space or "_" gets a space: "b_gun" + "bone" -> "bone gun".
+fn applyNodePrefix nodeName nodePrefix =
+(
+	if nodePrefix == "" then return nodeName
+	local lastChar = nodePrefix[nodePrefix.count]
+	if lastChar != " " and lastChar != "_" then nodePrefix += " "
+	local cut = 0
+	for i = 1 to nodeName.count while cut == 0 do
+		if nodeName[i] == " " or nodeName[i] == "_" then cut = i
+	nodePrefix + (substring nodeName (cut + 1) -1)
+)
+
+-- createNodes off: only uses a matching skeleton already in the scene (#() if there is none)
+fn createGBXModelNodes gbxNodes createNodes:true reuseNodes:true =
 (
 	if gbxNodes == undefined or gbxNodes.count == 0 then
 	(
@@ -381,37 +395,37 @@ fn createGBXModelNodes gbxNodes =
 		return #()
 	)
 
-	-- Get "Nodes" layer once (avoid repeated lookups)
-	local nodesLayer = LayerManager.getLayerFromName "Nodes"
-	if nodesLayer == undefined then
-		nodesLayer = LayerManager.newLayerFromName "Nodes"
-	
-	local createdNodes = #()
-	
-	-- Check if a matching skeleton already exists in the scene
 	logger.info "Checking for matching skeleton..."
 	local existingSkeleton = findMatchingSkeleton gbxNodes
-	
-	if existingSkeleton != undefined then
+
+	if not createNodes then
 	(
-		logger.info "Found existing skeleton! Asking user..."
-		-- Ask user if they want to reuse the existing skeleton
-		local reuseExisting = askReuseSkeletonDialog()
-		
+		if existingSkeleton != undefined then return existingSkeleton
+		logger.warn "Nodes disabled and no matching skeleton in the scene: no Skin and no markers"
+		return #()
+	)
+
+	if reuseNodes and existingSkeleton != undefined then
+	(
+		-- Only ask when dialogs are enabled; otherwise reuse silently (same as the JMS importer)
+		local reuseExisting = true
+		if configManager.getBool "feedback" "show_completion_dialogs" true then
+			reuseExisting = askReuseSkeletonDialog()
+
 		if reuseExisting then
 		(
 			logger.info "Reusing existing skeleton from scene"
 			return existingSkeleton
 		)
-		else
-		(
-			logger.info "Creating new skeleton"
-		)
+		logger.info "Creating new skeleton"
 	)
-	else
-	(
-		logger.info "No matching skeleton found, creating new one"
-	)
+
+	-- Get "Nodes" layer once (avoid repeated lookups)
+	local nodesLayer = LayerManager.getLayerFromName "Nodes"
+	if nodesLayer == undefined then
+		nodesLayer = LayerManager.newLayerFromName "Nodes"
+
+	local createdNodes = #()
 
 	-- First pass: create all nodes as spheres
 	for i = 1 to gbxNodes.count do
@@ -437,13 +451,16 @@ fn createGBXModelNodes gbxNodes =
 -- MARKER CREATION
 -------------------------------------------------------
 
-fn createGBXModelMarkers gbxRegions createdNodes =
+fn createGBXModelMarkers gbxRegions createdNodes reuseMarkers:true =
 (
 	if gbxRegions == undefined or gbxRegions.count == 0 then
 	(
 		logger.debug "No regions found for markers"
 		return #()
 	)
+
+	-- Markers need their parent nodes
+	if createdNodes.count == 0 then return #()
 
 	-- Get "Markers" layer once (avoid repeated lookups)
 	local markersLayer = LayerManager.getLayerFromName "Markers"
@@ -487,21 +504,14 @@ fn createGBXModelMarkers gbxRegions createdNodes =
 		)
 	)
 	
-	-- Ask user if they want to reuse existing markers
+	-- Only ask when dialogs are enabled; otherwise reuse silently (same as the JMS importer)
 	local reuseExisting = false
-	if hasExistingMarkers then
+	if hasExistingMarkers and reuseMarkers then
 	(
-		logger.info "Found existing markers! Asking user..."
-		reuseExisting = askReuseMarkersDialog()
-		
-		if reuseExisting then
-		(
-			logger.info "User chose to reuse existing markers"
-		)
-		else
-		(
-			logger.info "User chose to create new markers (duplicates allowed)"
-		)
+		reuseExisting = true
+		if configManager.getBool "feedback" "show_completion_dialogs" true then
+			reuseExisting = askReuseMarkersDialog()
+		logger.info "Reuse existing markers: {}" args:#(reuseExisting)
 	)
 	
 	for region in gbxRegions do
@@ -804,22 +814,36 @@ fn createGBXModelMultiMaterial gbxmodelPath shaders gbxModelName =
 fn buildGBXModelMesh model gbxModelName gbxmodelPath =
 (
 	logger.info "UV Scales: U: {}, V: {}" args:#(model.uScale, model.vScale)
-	
+
+	local section = "import_gbxmodel"
+	local importNodes = configManager.getBool section "import_nodes" true
+	local importMarkers = configManager.getBool section "import_markers" true
+	local importGeometry = configManager.getBool section "import_geometry" true
+	local reuseNodes = configManager.getBool section "reuse_existing_nodes" true
+	local reuseMarkers = configManager.getBool section "reuse_existing_markers" true
+	local nodePrefix = trimLeft (trimRight (configManager.getString section "node_prefix" ""))
+
+	-- Renamed before the skeleton search, so reuse matches the prefixed names
+	for n in model.nodes do n.name = applyNodePrefix n.name nodePrefix
+
 	-- Create nodes (skeleton) FIRST
 	local t1 = timestamp()
-	local createdNodes = createGBXModelNodes model.nodes
+	local createdNodes = createGBXModelNodes model.nodes createNodes:importNodes reuseNodes:reuseNodes
 	logger.info "Nodes created: {} in {} ms" args:#(createdNodes.count, (timestamp() - t1))
-	
+
 	-- Create markers from regions/permutations (local markers)
 	local t2 = timestamp()
-	local createdMarkers = createGBXModelMarkers model.regions createdNodes
+	local createdMarkers = if importMarkers then createGBXModelMarkers model.regions createdNodes reuseMarkers:reuseMarkers else #()
 	logger.info "Markers created: {} in {} ms" args:#(createdMarkers.count, (timestamp() - t2))
-	
+
 	-- Create geometry meshes (WITHOUT materials yet)
 	local t3 = timestamp()
-	local createdMeshes = createGBXModelGeometry model.regions model.geometries undefined createdNodes
+	local createdMeshes = if importGeometry then createGBXModelGeometry model.regions model.geometries undefined createdNodes else #()
 	logger.info "Geometry built: {} in {} ms" args:#(createdMeshes.count, (timestamp() - t3))
-	
+
+	-- Without geometry there is nothing to apply the materials to
+	if createdMeshes.count == 0 then return createdMeshes
+
 	-- Create materials LAST (reads shader tag files separately)
 	local t4 = timestamp()
 	local multiMat = createGBXModelMultiMaterial gbxmodelPath model.shaders gbxModelName
