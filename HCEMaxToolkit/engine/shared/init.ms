@@ -33,4 +33,6 @@ fileIn (scriptDir + "utils\\build_utils.ms")
 fileIn (scriptDir + "utils\\text_utils.ms")
 -- Opens the tag editor whenever an object tag Point is selected
 fileIn (rootEngine + "builders\\tag\\object\\tag_editor.ms")
+-- Names of tag Points and markers in the viewport (after tag_editor.ms and helper_builder.ms)
+fileIn (scriptDir + "viewport_labels.ms")
 
