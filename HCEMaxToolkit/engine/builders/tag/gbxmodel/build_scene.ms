@@ -774,8 +774,9 @@ fn createGBXModelMultiMaterial gbxmodelPath shaders gbxModelName =
 	local useDxMaterials = configManager.getBool "visual" "use_directx_materials" true
 	
 	local multiMat = MultiMaterial numSubs:shaders.count
-	multiMat.name = gbxModelName
-	
+	-- "cyborg gfx": Build Shaders lists the multimaterials named "*gfx*"
+	multiMat.name = if useDxMaterials then gbxModelName + " gfx" else gbxModelName
+
 	for i = 1 to shaders.count do
 	(
 		local shader = shaders[i]
