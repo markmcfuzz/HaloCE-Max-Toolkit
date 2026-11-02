@@ -1,0 +1,4 @@
+{
+    "object.bounding radius": "Defines the approximate maximum size of an object. Used to optimize rendering, shadows, LOD, collisions, physics, spawning, interactions and AI pathfinding. It must fully contain the object without being too large or too small, as incorrect values can cause visual, collision and gameplay issues.",
+    "object.acceleration scale": "Scales the acceleration of this object from forces like explosions, such as when weapons or powerups are moved by grenades. This does not apply to non-moving object types. If the scale is '0' then the item will not react."
+}
