@@ -24,16 +24,6 @@ fn tagEditorSelected =
 	if isObjectTagContainer obj then obj else undefined
 )
 
--- #(handle, name, tag group, tag file, keys, values, imported nodes still in the scene)
-fn tagEditorFields obj =
-(
-	local keys = for k in obj.fieldKeys collect k
-	local values = for v in obj.fieldValues collect v
-	local contents = 0
-	for n in obj.memberNodes where isValidNode n do contents += 1
-	#(obj.inode.handle, obj.name, obj.tagGroup, obj.tagFile, keys, values, contents)
-)
-
 -- Stores one field (undoable). Returns false when the key is not there
 fn tagEditorSetField obj key text =
 (
@@ -57,6 +47,133 @@ fn tagEditorSetFields obj keys values =
 fn tagEditorSelectContents obj =
 (
 	if isObjectTagContainer obj do select (for n in obj.memberNodes where isValidNode n collect n)
+)
+
+-- Layers where the importers put what each reference brings ("animation": nothing imported yet)
+fn tagRefLayers part = case part of
+(
+	"model": #("Geometry Model", "Nodes", "Markers")
+	"collision": #("Collision Model", "Pathfinding Spheres")
+	"physics": #("Physics")
+	default: #()
+)
+
+-- False for Points saved before the reference lists (object_tag_ca.ms)
+fn hasTagParts obj = try (obj.partsVersion != undefined) catch (false)
+
+-- Nodes of a reference ("model", "collision" or "physics"), imported or linked
+fn tagRefNodes obj part =
+(
+	if not (hasTagParts obj) then return #()
+	local list = case part of
+	(
+		"model": obj.modelNodes
+		"collision": obj.collisionNodes
+		"physics": obj.physicsNodes
+		default: #()
+	)
+	for n in list where isValidNode n collect n
+)
+
+fn setTagRefNodes obj part nodes = case part of
+(
+	"model": obj.modelNodes = nodes
+	"collision": obj.collisionNodes = nodes
+	"physics": obj.physicsNodes = nodes
+)
+
+-- Older Points get the new definition, and their lists are filled once from the layers
+fn upgradeObjectTagContainer obj =
+(
+	if not (hasTagParts obj) do fileIn (rootEngine + "builders\\tag\\object\\object_tag_ca.ms")
+	if not (hasTagParts obj) or obj.partsVersion >= 1 then return ok
+	with undo off
+	(
+		for part in #("model", "collision", "physics") do
+		(
+			local layers = tagRefLayers part
+			local nodes = for n in obj.memberNodes where isValidNode n and findItem layers n.layer.name > 0 collect n
+			setTagRefNodes obj part nodes
+		)
+		obj.partsVersion = 1
+	)
+)
+
+-- Below upgradeObjectTagContainer: at startup a function not defined yet is read as a local
+-- #(handle, name, tag group, tag file, keys, values, imported nodes still in the scene)
+fn tagEditorFields obj =
+(
+	upgradeObjectTagContainer obj
+	local keys = for k in obj.fieldKeys collect k
+	local values = for v in obj.fieldValues collect v
+	local contents = 0
+	for n in obj.memberNodes where isValidNode n do contents += 1
+	#(obj.inode.handle, obj.name, obj.tagGroup, obj.tagFile, keys, values, contents)
+)
+
+-- Select From Scene filters take only the node, so they read these globals
+global tagEditorPickPoint
+global tagEditorPickNodes = #()
+fn tagEditorCanLink n = n != tagEditorPickPoint and findItem tagEditorPickNodes n == 0
+fn tagEditorCanUnlink n = findItem tagEditorPickNodes n > 0
+
+-- Adds scene objects picked in Select From Scene to a reference (undoable). Returns how many
+fn tagEditorLinkRef obj part =
+(
+	tagEditorPickPoint = obj
+	tagEditorPickNodes = tagRefNodes obj part
+	local picked = selectByName title:("Link to " + part) buttonText:"Link" filter:tagEditorCanLink showHidden:true
+	if picked == undefined or picked.count == 0 then return 0
+	undo "Link Tag Nodes" on
+	(
+		setTagRefNodes obj part (tagEditorPickNodes + picked)
+		local members = for n in obj.memberNodes where isValidNode n collect n
+		for n in picked do appendIfUnique members n
+		obj.memberNodes = members
+	)
+	picked.count
+)
+
+-- Takes picked objects out of a reference (undoable); they stay in the scene. Returns how many
+fn tagEditorUnlinkRef obj part =
+(
+	tagEditorPickNodes = tagRefNodes obj part
+	if tagEditorPickNodes.count == 0 then return 0
+	local picked = selectByName title:("Unlink from " + part) buttonText:"Unlink" filter:tagEditorCanUnlink showHidden:true
+	if picked == undefined or picked.count == 0 then return 0
+	undo "Unlink Tag Nodes" on
+	(
+		local kept = for n in tagEditorPickNodes where findItem picked n == 0 collect n
+		setTagRefNodes obj part kept
+		-- Out of the Point's contents too, unless another reference still has them
+		local others = #()
+		for p in #("model", "collision", "physics") where p != part do join others (tagRefNodes obj p)
+		obj.memberNodes = for n in obj.memberNodes where isValidNode n and (findItem picked n == 0 or findItem others n > 0) collect n
+	)
+	picked.count
+)
+
+fn tagEditorSelectRef obj part =
+(
+	local nodes = tagRefNodes obj part
+	if nodes.count > 0 do select nodes
+	nodes.count
+)
+
+-- Eye button state: 0 = no nodes, 1 = all hidden, 2 = some visible
+fn tagEditorRefVisibility obj part =
+(
+	local nodes = tagRefNodes obj part
+	if nodes.count == 0 then 0 else if (for n in nodes where not n.isHidden collect n).count == 0 then 1 else 2
+)
+
+fn tagEditorShowRef obj part visible =
+(
+	local nodes = tagRefNodes obj part
+	undo "Show/Hide Tag Nodes" on
+		for n in nodes do n.isHidden = not visible
+	redrawViews()
+	nodes.count
 )
 
 -- Python never starts from the Point's own panel: Max blocks it there ("Safe Scene Script

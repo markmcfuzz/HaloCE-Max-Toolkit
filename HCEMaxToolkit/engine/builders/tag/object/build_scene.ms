@@ -14,26 +14,8 @@
 -- edited in the Qt tag editor (tag_editor.ms). It is not the parent of what it contains: the JMS
 -- exporter needs the frame root without a parent.
 
--- Same id always, so saved scenes keep working when this definition changes
-haloTagAttributeDef = attributes "Halo Object Tag" attribID:#(0x4A7C1E35, 0x2D9B6F08)
-(
-	parameters tagParams
-	(
-		tagGroup type:#string default:""
-		tagFile type:#string default:""
-		fieldKeys type:#stringTab tabSizeVariable:true
-		fieldValues type:#stringTab tabSizeVariable:true
-		memberNodes type:#nodeTab tabSizeVariable:true
-	)
-	-- No buttons here: this rollout is saved in the .max and Max blocks Python started from it.
-	-- Selecting the Point opens the tag editor, which has Select Contents.
-	rollout tagRollout "Halo Tag"
-	(
-		edittext tagFileBox "Tag file" labelOnTop:true readOnly:true
-		label editorLabel "Edit it in the Halo Tag Editor tab"
-		on tagRollout open do tagFileBox.text = tagFile
-	)
-)
+-- haloTagAttributeDef
+fileIn (rootEngine + "builders\\tag\\object\\object_tag_ca.ms")
 
 -- Highest node handle in the scene; nodes created later have higher ones
 fn getLastNodeHandle =
@@ -45,11 +27,16 @@ fn getLastNodeHandle =
 
 fn getNodesAfterHandle lastHandle = for o in objects where o.inode.handle > lastHandle collect o
 
--- data: ObjectTagData (lua_reader.ms), memberNodes: what was imported
-fn createObjectContainer data tagPath memberNodes =
+-- Nodes created between two getLastNodeHandle calls
+fn getNodesBetweenHandles firstHandle lastHandle =
+	for o in objects where o.inode.handle > firstHandle and o.inode.handle <= lastHandle collect o
+
+-- data: ObjectTagData (lua_reader.ms), memberNodes: everything imported
+-- parts: #(model nodes, collision nodes, physics nodes)
+fn createObjectContainer data tagPath memberNodes parts:#(#(), #(), #()) =
 (
 	local container = Point name:(filenameFromPath tagPath) size:30 box:true cross:false \
-		axistripod:false centermarker:false wirecolor:(color 255 200 0)
+		axistripod:false centermarker:false drawontop:true wirecolor:(color 255 200 0)
 	custAttributes.add container haloTagAttributeDef
 	local tagAttributes = custAttributes.get container haloTagAttributeDef
 	tagAttributes.tagGroup = data.group
@@ -57,6 +44,10 @@ fn createObjectContainer data tagPath memberNodes =
 	tagAttributes.fieldKeys = data.keys
 	tagAttributes.fieldValues = data.values
 	tagAttributes.memberNodes = memberNodes
+	tagAttributes.modelNodes = parts[1]
+	tagAttributes.collisionNodes = parts[2]
+	tagAttributes.physicsNodes = parts[3]
+	tagAttributes.partsVersion = 1
 	container
 )
 
