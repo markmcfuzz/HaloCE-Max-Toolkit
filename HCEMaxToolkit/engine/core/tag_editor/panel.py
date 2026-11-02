@@ -5,7 +5,7 @@ from pymxs import runtime as rt
 from .qt import QtCore, QtWidgets
 from . import elements
 from .layout import group_layout
-from .fields import ComboBox, field_editor, ref_path, tags_root_of, to_int
+from .fields import ComboBox, field_editor, field_label, ref_path, set_help, tags_root_of, to_int
 
 
 class Section(QtWidgets.QWidget):
@@ -96,7 +96,7 @@ class Block(QtWidgets.QGroupBox):
 
     def _fill(self):
         count = self._count()
-        self.title_label.setText("%s (%d)" % (self.field["name"].upper(), count))
+        set_help(self.title_label, self.field, "%s (%d)" % (self.field["name"].upper(), count))
         index = min(self.panel.block_index.get(self.count_key, 0), count - 1)
         self.picker.blockSignals(True)
         self.picker.clear()
@@ -197,12 +197,15 @@ class TagEditorPanel(QtWidgets.QWidget):
             elif key.endswith(("object.bounding radius", "object.bounding offset")):
                 rt.applyObjectBoundingRadius(self.node)  # the Influence helper
 
-    def ref_visibility(self, part):
-        return int(rt.tagEditorRefVisibility(self.node, part)) if self.node is not None else 0
+    def ref_visibility(self, part, kinds=None):
+        """0 = no nodes, 1 = all hidden, 2 = some visible; kinds None = all of them."""
+        if self.node is None:
+            return 0
+        return int(rt.tagEditorRefVisibility(self.node, part, kinds))
 
-    def show_ref(self, part, visible):
+    def show_ref(self, part, visible, kinds=None):
         if self.node is not None:
-            rt.tagEditorShowRef(self.node, part, visible)
+            rt.tagEditorShowRef(self.node, part, visible, kinds)
 
     def link_ref(self, part):
         # After the menu closes: refresh rebuilds the button that opened it
@@ -211,6 +214,11 @@ class TagEditorPanel(QtWidgets.QWidget):
 
     def unlink_ref(self, part):
         if self.node is not None and rt.tagEditorUnlinkRef(self.node, part) > 0:
+            QtCore.QTimer.singleShot(0, self.refresh)
+
+    def add_bounding_radius(self):
+        # Later: refresh rebuilds the "+" that was clicked into the eye
+        if self.node is not None and rt.tagEditorAddBoundingRadius(self.node):
             QtCore.QTimer.singleShot(0, self.refresh)
 
     def select_ref(self, part):
@@ -318,10 +326,10 @@ class TagEditorPanel(QtWidgets.QWidget):
                 form.addRow(Block(self, field, key))
             elif field["kind"] == "flags":
                 # Name on its own row, checkboxes below it
-                form.addRow(QtWidgets.QLabel(field["name"]))
+                form.addRow(field_label(field))
                 box = field_editor(self, field, key)
                 box.setContentsMargins(12, 0, 0, 0)
                 form.addRow(box)
             else:
-                form.addRow(field["name"], field_editor(self, field, key))
+                form.addRow(field_label(field), field_editor(self, field, key))
         return widget
