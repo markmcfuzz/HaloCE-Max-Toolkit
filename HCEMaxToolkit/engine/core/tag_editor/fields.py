@@ -1,8 +1,50 @@
 """Editors for one tag field. Values are text as in lua\\importers\\shared\\tag_fields.lua:
 numbers as typed, several numbers space-separated, angles in radians, refs as "group:path"."""
+import html
+import json
 import math
+import os
+import re
 
 from .qt import QtCore, QtGui, QtWidgets
+
+# Tooltip texts by help key ("object.bounding radius"), see lua\bridge\tag_ui.lua
+HELP_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "field_help.json")
+_help = None
+
+
+def help_text(field):
+    global _help
+    if _help is None:
+        try:
+            with open(HELP_PATH, encoding="utf-8") as f:
+                _help = json.load(f)
+        except (OSError, ValueError) as error:
+            print("Tag editor: could not read %s: %s" % (HELP_PATH, error))
+            _help = {}
+    return _help.get(field.get("help", ""), "")
+
+
+# Mark before names that have help; change its color here
+HELP_MARK = '<span style="color:#4FC3F7; font-weight:bold;">?</span>&nbsp;&nbsp;'
+
+
+def set_help(label, field, text):
+    """"? name" with the help as tooltip, when the field has one."""
+    help = help_text(field)
+    if not help:
+        label.setText(text)
+        return
+    label.setTextFormat(QtCore.Qt.RichText)
+    label.setText(HELP_MARK + html.escape(text))
+    label.setToolTip("<qt>%s</qt>" % html.escape(help))  # rich text wraps long lines
+    label.setCursor(QtCore.Qt.WhatsThisCursor)
+
+
+def field_label(field):
+    label = QtWidgets.QLabel()
+    set_help(label, field, field["name"])
+    return label
 
 
 # Spinners and lists change with the mouse wheel only when focused, so scrolling the panel is safe
@@ -70,9 +112,20 @@ def to_signed32(value):
     return value - 0x100000000 if value >= 0x80000000 else value
 
 
+class NumberLineEdit(QtWidgets.QLineEdit):
+    # Narrow by default (it still stretches): x y z rows fit next to the field name
+    def sizeHint(self):
+        hint = super().sizeHint()
+        return QtCore.QSize(min(hint.width(), 40), hint.height())
+
+    def minimumSizeHint(self):
+        hint = super().minimumSizeHint()
+        return QtCore.QSize(min(hint.width(), 30), hint.height())
+
+
 def number_edit(panel, key, part, count, angle):
     """Line edit for a float (part None) or one part of several; angles shown in degrees."""
-    edit = QtWidgets.QLineEdit()
+    edit = NumberLineEdit()
 
     def stored():
         value = panel.value(key)
@@ -104,7 +157,7 @@ def number_edit(panel, key, part, count, angle):
 class ColorEditor(QtWidgets.QWidget):
     """0-1 floats (r g b, or a r g b) and a swatch that opens the color picker."""
 
-    def __init__(self, panel, key, parts):
+    def __init__(self, panel, key, parts, labels):
         super().__init__()
         self.panel = panel
         self.key = key
@@ -113,8 +166,8 @@ class ColorEditor(QtWidgets.QWidget):
         layout = QtWidgets.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self.edits = [number_edit(panel, key, i, parts, False) for i in range(parts)]
-        for edit in self.edits:
-            layout.addWidget(edit)
+        for widget in with_part_labels(self.edits, labels):
+            layout.addWidget(widget)
         self.swatch = QtWidgets.QPushButton()
         self.swatch.setFixedSize(36, 20)
         self.swatch.setToolTip("Pick a color")
@@ -154,10 +207,23 @@ class ColorEditor(QtWidgets.QWidget):
             edit.show_value()
 
 
+def with_part_labels(widgets, labels):
+    """Gray "x", "y", "z" (or "from", "to"...) before each box."""
+    items = []
+    for i, widget in enumerate(widgets):
+        if labels and i < len(labels):
+            label = QtWidgets.QLabel(labels[i])
+            label.setEnabled(False)  # gray
+            items.append(label)
+        items.append(widget)
+    return items
+
+
 def row_of(widgets):
     row = QtWidgets.QWidget()
     layout = QtWidgets.QHBoxLayout(row)
     layout.setContentsMargins(0, 0, 0, 0)
+    layout.setSpacing(4)
     for w in widgets:
         layout.addWidget(w)
     return row
@@ -195,13 +261,16 @@ def enum_combo(panel, key, options):
 
 
 def flags_box(panel, key, options):
-    """One checkbox per bit; bits without a name keep their value."""
+    """One checkbox per bit; bits without a name or "unused" (padding) are hidden and keep
+    their value."""
     box = QtWidgets.QWidget()
     layout = QtWidgets.QVBoxLayout(box)
     layout.setContentsMargins(0, 0, 0, 0)
     layout.setSpacing(1)
     value = to_int(panel.value(key))
     for bit, name in enumerate(options):
+        if not name or re.fullmatch(r"unused\d*", name):
+            continue
         check = QtWidgets.QCheckBox(name)
         check.setChecked(bool((value >> bit) & 1))
 
@@ -221,9 +290,11 @@ def tags_root_of(path):
     return path.replace("\\", "/")[:at + 6] if at >= 0 else None
 
 
-# Object references whose imported nodes the eye shows / hides (tagRefLayers in tag_editor.ms)
+# Object references with eye and link buttons (tagRefNodes in tag_editor.ms)
 EYE_PARTS = {"object.model": "model", "object.animation graph": "animation",
-             "object.collision model": "collision", "object.physics": "physics"}
+             "object.collision model": "collision", "object.physics": "physics",
+             "object.bounding radius": "boundingRadius"}
+PART_NAMES = {"boundingRadius": "bounding radius helper"}
 
 
 def eye_part(key):
@@ -293,28 +364,84 @@ def link_button(panel, part):
     return button
 
 
+# What the eye's right-click menu offers (tagRefNodeKind in tag_editor.ms) and what is checked.
+# Kept while Max is open
+EYE_KINDS = {"model": ["Geometry", "Nodes", "Markers"], "collision": ["Geometry", "Pathfinding Spheres"]}
+_eye_shown = {"model": {"Geometry"}, "collision": {"Geometry", "Pathfinding Spheres"}}
+
+
 def eye_button(panel, part):
-    """Shows or hides the nodes this reference imported (undoable in Max)."""
+    """Shows or hides the nodes of a reference (undoable in Max); right-click picks which kinds."""
     button = QtWidgets.QToolButton()
     button.setCheckable(True)
     button.setAutoRaise(True)
     color = button.palette().color(QtGui.QPalette.ButtonText)
-    state = panel.ref_visibility(part)  # 0 = no nodes, 1 = all hidden, 2 = visible
+    kinds = EYE_KINDS.get(part)
+    name = PART_NAMES.get(part, part)
 
-    def show_state(visible):
+    def shown():
+        return [k for k in kinds if k in _eye_shown[part]] if kinds else None
+
+    def update():
+        has_nodes = panel.ref_visibility(part) > 0
+        visible = has_nodes and panel.ref_visibility(part, shown()) == 2
+        button.blockSignals(True)
+        button.setChecked(visible)
+        button.blockSignals(False)
         button.setIcon(eye_icon(visible, color))
-
-    button.setChecked(state == 2)
-    show_state(state == 2)
-    button.setEnabled(state > 0)
-    button.setToolTip("Show / hide the %s" % part if state > 0
-                      else "Nothing to show or hide: import or link the %s first" % part)
+        button.setEnabled(has_nodes)
+        if not has_nodes:
+            button.setToolTip("Nothing to show or hide: import or link the %s first" % name)
+        elif kinds:
+            button.setToolTip("Show / hide the %s: %s\nRight-click to choose what"
+                              % (name, ", ".join(shown())))
+        else:
+            button.setToolTip("Show / hide the %s" % name)
 
     def toggled(visible):
-        show_state(visible)
-        panel.show_ref(part, visible)
+        button.setIcon(eye_icon(visible, color))
+        panel.show_ref(part, visible, shown())
+
+    def choose(pos):
+        menu = QtWidgets.QMenu(button)
+        checked = _eye_shown[part]
+        for kind in kinds:
+            action = menu.addAction(kind)
+            action.setCheckable(True)
+            action.setChecked(kind in checked)
+            action.setEnabled(not (kind in checked and len(checked) == 1))  # one always stays
+            action.toggled.connect(lambda on, kind=kind: checked.add(kind) if on else checked.discard(kind))
+        (menu.exec if hasattr(menu, "exec") else menu.exec_)(button.mapToGlobal(pos))
+        update()
 
     button.toggled.connect(toggled)
+    if kinds:
+        button.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        button.customContextMenuRequested.connect(choose)
+    update()
+    return button
+
+
+def plus_icon(color):
+    size = 32
+    pixmap = QtGui.QPixmap(size, size)
+    pixmap.fill(QtCore.Qt.transparent)
+    painter = QtGui.QPainter(pixmap)
+    painter.setRenderHint(QtGui.QPainter.Antialiasing)
+    painter.setPen(QtGui.QPen(color, 3))
+    painter.drawLine(16, 6, 16, 26)
+    painter.drawLine(6, 16, 26, 16)
+    painter.end()
+    return QtGui.QIcon(pixmap)
+
+
+def add_helper_button(panel):
+    """Where the bounding radius eye goes when the Point has no helper (a tag made from scratch)."""
+    button = QtWidgets.QToolButton()
+    button.setAutoRaise(True)
+    button.setIcon(plus_icon(button.palette().color(QtGui.QPalette.ButtonText)))
+    button.setToolTip("Add the bounding radius helper, sized from these fields")
+    button.clicked.connect(panel.add_bounding_radius)
     return button
 
 
@@ -323,6 +450,30 @@ def ref_edit(panel, key, allowed, accepts):
     export checks it."""
     edit = QtWidgets.QLineEdit(ref_path(panel.value(key)))
     edit.setToolTip("Allowed: " + ", ".join(allowed) if allowed else "Allowed: any tag")
+
+    # Tag type list, only when more than one type is allowed (e.g. the shader types)
+    fourccs = [fourcc for _, fourcc in accepts]
+    combo = ComboBox() if len(accepts) > 1 else None
+
+    def show_group():
+        if combo is not None:
+            value = panel.value(key)
+            group = value.split(":", 1)[0] if ":" in value else ""
+            combo.blockSignals(True)
+            combo.setCurrentIndex(fourccs.index(group) if group in fourccs else -1)
+            combo.blockSignals(False)
+
+    def pick_group(i):
+        if i >= 0:
+            panel.set_value(key, fourccs[i] + ":" + ref_path(panel.value(key)))
+
+    if combo is not None:
+        combo.addItems([name for name, _ in accepts])
+        combo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        combo.setMinimumContentsLength(10)
+        combo.setToolTip("Tag type")
+        show_group()
+        combo.currentIndexChanged.connect(pick_group)
 
     def commit():
         if not edit.isModified():
@@ -355,6 +506,7 @@ def ref_edit(panel, key, allowed, accepts):
         panel.remember_tags_root(tag_root)
         panel.set_value(key, fourcc + ":" + base[len(tag_root):].replace("/", "\\"))
         edit.setText(ref_path(panel.value(key)))
+        show_group()
 
     button = QtWidgets.QToolButton()
     button.setText("...")
@@ -363,7 +515,7 @@ def ref_edit(panel, key, allowed, accepts):
     edit.editingFinished.connect(commit)
     part = eye_part(key)
     buttons = [eye_button(panel, part), link_button(panel, part)] if part else []
-    return row_of(buttons + [edit, button])
+    return row_of(buttons + ([combo] if combo is not None else []) + [edit, button])
 
 
 def text_edit(panel, key, max_length):
@@ -384,17 +536,25 @@ def field_editor(panel, field, key):
     """Widget for a layout field (lua\\bridge\\tag_ui.lua) stored under key."""
     kind = field["kind"]
     if kind in ("float", "angle"):
-        return number_edit(panel, key, None, 1, kind == "angle")
+        edit = number_edit(panel, key, None, 1, kind == "angle")
+        part = eye_part(key)  # bounding radius: eye for its helper, "+" while there is none
+        if not part:
+            return edit
+        button = eye_button(panel, part) if panel.ref_visibility(part) > 0 else add_helper_button(panel)
+        return row_of([button, edit])
+    labels = field.get("partLabels")
     if kind in ("floats", "angles"):
         count = field["parts"]
-        return row_of([number_edit(panel, key, i, count, kind == "angles") for i in range(count)])
+        edits = [number_edit(panel, key, i, count, kind == "angles") for i in range(count)]
+        return row_of(with_part_labels(edits, labels))
     if kind == "color":
-        return ColorEditor(panel, key, field["parts"])
+        return ColorEditor(panel, key, field["parts"], labels)
     if kind == "int":
         return int_spin(panel, key, None, 1, field["min"], field["max"])
     if kind == "ints":
         count = field["parts"]
-        return row_of([int_spin(panel, key, i, count, -32768, 32767) for i in range(count)])
+        spins = [int_spin(panel, key, i, count, -32768, 32767) for i in range(count)]
+        return row_of(with_part_labels(spins, labels))
     if kind == "enum":
         return enum_combo(panel, key, field["options"])
     if kind == "flags":
