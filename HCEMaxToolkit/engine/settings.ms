@@ -153,6 +153,10 @@ rollout settingsGeneralRollout "General Settings" width:225 (
 	group "Visual" (
 		checkbox chk_useDirectXMaterials "Use GlyphFX Shaders"
 			tooltip:"Builds DirectX viewport materials from shader tag data when the shader type is supported."
+		checkbox chk_showMarkerNames "Show Marker Names"
+			tooltip:"Shows the name of each marker beside it in the viewport. A hotkey can be assigned to \"Toggle Marker Names\" (Halo CE category) in the Hotkey Editor."
+		checkbox chk_showNodeNames "Show Node Names"
+			tooltip:"Shows the name of each node beside it in the viewport. A hotkey can be assigned to \"Toggle Node Names\" (Halo CE category) in the Hotkey Editor."
 	)
 	group "Feedback" (
 		checkbox chk_showDialogs "Show Completion Task Dialogs"
@@ -173,6 +177,8 @@ rollout settingsGeneralRollout "General Settings" width:225 (
 
 	on settingsGeneralRollout open do (
 		chk_useDirectXMaterials.checked = configManager.getBool "visual" "use_directx_materials" true
+		chk_showMarkerNames.checked = showMarkerNames == true
+		chk_showNodeNames.checked = showNodeNames == true
 		chk_showDialogs.checked   = configManager.getBool "feedback" "show_completion_dialogs" true
 		chk_enableLogging.checked = configManager.getBool "logger" "enable_logging" false
 		chk_saveLogFile.checked   = configManager.getBool "logger" "enable_save_log_file" false
@@ -180,6 +186,8 @@ rollout settingsGeneralRollout "General Settings" width:225 (
 	)
 
 	on chk_useDirectXMaterials changed val do writeSetting "visual" "use_directx_materials" val
+	on chk_showMarkerNames changed val do setShowMarkerNames val  -- viewport_labels.ms
+	on chk_showNodeNames changed val do setShowNodeNames val
 	on chk_showDialogs changed val do writeSetting "feedback" "show_completion_dialogs" val
 	on chk_enableLogging changed val do writeSetting "logger" "enable_logging" val
 	on chk_saveLogFile changed val do writeSetting "logger" "enable_save_log_file" val
@@ -198,7 +206,7 @@ if settingsFloater != undefined then (
 	try( closeRolloutFloater settingsFloater ) catch()
 )
 
-settingsFloater = newRolloutFloater "HCE Toolkit Settings" 270 905
+settingsFloater = newRolloutFloater "HCE Toolkit Settings" 270 945
 addRollout settingsImportRollout settingsFloater
 addRollout settingsExportRollout settingsFloater
 addRollout settingsGeneralRollout settingsFloater
