@@ -52,10 +52,32 @@ local partCounts = {
     [readAs.int16x4] = 4
 }
 
--- What the editor shows for a field: kind plus what that kind needs
-local function fieldLayout(field, key)
+-- Letters shown before each box of a multi-part field
+local partLabels = {
+    real_point_2d = {"x", "y"},
+    real_point_3d = {"x", "y", "z"},
+    point_2d = {"x", "y"},
+    real_vector_2d = {"i", "j"},
+    real_vector_3d = {"i", "j", "k"},
+    real_euler_angles_2d = {"y", "p"},
+    real_euler_angles_3d = {"y", "p", "r"},
+    real_quaternion = {"i", "j", "k", "w"},
+    real_plane_2d = {"i", "j", "d"},
+    real_plane_3d = {"i", "j", "k", "d"},
+    rectangle_2d = {"t", "l", "b", "r"},
+    real_bounds = {"from", "to"},
+    short_bounds = {"from", "to"},
+    angle_bounds = {"from", "to"},
+    fraction_bounds = {"from", "to"},
+    real_rgb_color = {"r", "g", "b"},
+    real_argb_color = {"a", "r", "g", "b"}
+}
+
+-- What the editor shows for a field: kind plus what that kind needs.
+-- help: key in core\tag_editor\field_help.json ("object.bounding radius")
+local function fieldLayout(field, key, help)
     local t, r = field.type, field.readAs
-    local item = {name = field.name, key = key}
+    local item = {name = field.name, key = key, help = help, partLabels = partLabels[t]}
     local options = fieldOptions(field)
     if t:find("_enum$") and options then
         item.kind, item.options = "enum", options
@@ -109,10 +131,10 @@ end
 
 local structFields -- structFields and blockLayout call each other
 
-local function blockLayout(field, key)
+local function blockLayout(field, key, help)
     local sub = field.readAs == readAs.block and defs:blockStruct(field) or field.sub
     -- Arrays have a fixed count; blocks can grow up to max
-    local item = {kind = "block", name = field.name, key = key, fields = {}}
+    local item = {kind = "block", name = field.name, key = key, help = help, fields = {}}
     if field.readAs == readAs.array then
         item.fixed, item.count = true, field.count
     else
@@ -128,33 +150,37 @@ local function blockLayout(field, key)
     elseif key:find("object%.change colors$") then
         item.letters = ""
     end
-    structFields(sub, "", item.fields)
+    structFields(sub, "", item.fields, help .. ".")
     return item
 end
 
--- Fields of a struct in tag order; structs inside it are shown inline
-structFields = function(structDef, prefix, out)
+-- Fields of a struct in tag order; structs inside it are shown inline.
+-- helpPrefix: help key of prefix ("object.attachments.")
+structFields = function(structDef, prefix, out, helpPrefix)
     for _, field in ipairs(structDef.fields) do
+        local key, help = prefix .. field.key, helpPrefix .. field.key
         if field.readAs == readAs.struct then
-            structFields(field.sub, prefix .. field.key .. ".", out)
+            structFields(field.sub, key .. ".", out, help .. ".")
         elseif field.readAs == readAs.block or field.readAs == readAs.array then
-            out[#out + 1] = blockLayout(field, prefix .. field.key)
+            out[#out + 1] = blockLayout(field, key, help)
         else
-            out[#out + 1] = fieldLayout(field, prefix .. field.key)
+            out[#out + 1] = fieldLayout(field, key, help)
         end
     end
 end
 
--- Sections in tag order (object, unit, vehicle): the parent struct comes first
+-- Sections in tag order (object, unit, vehicle): the parent struct comes first.
+-- Help keys start with the struct name, the same in every group: "object.bounding radius"
 local function collectSections(structDef, prefix, title, sections)
     local section = {title = capitalize(title), fields = {}}
     for _, field in ipairs(structDef.fields) do
+        local key, help = prefix .. field.key, title .. "." .. field.key
         if field.readAs == readAs.struct then
-            collectSections(field.sub, prefix .. field.key .. ".", field.key, sections)
+            collectSections(field.sub, key .. ".", field.key, sections)
         elseif field.readAs == readAs.block or field.readAs == readAs.array then
-            section.fields[#section.fields + 1] = blockLayout(field, prefix .. field.key)
+            section.fields[#section.fields + 1] = blockLayout(field, key, help)
         else
-            section.fields[#section.fields + 1] = fieldLayout(field, prefix .. field.key)
+            section.fields[#section.fields + 1] = fieldLayout(field, key, help)
         end
     end
     if #section.fields > 0 then
