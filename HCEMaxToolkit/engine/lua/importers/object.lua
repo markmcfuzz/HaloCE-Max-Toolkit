@@ -1,9 +1,9 @@
--- Object tags (biped, vehicle, weapon, scenery, device_machine) -> 3ds Max: model, collision and physics paths, every field as text
--- (shared\tag_fields.lua). options[1]: where to write the panel script (bridge\tag_ui.lua).
+-- Object tags (biped, vehicle, weapon, scenery, device_machine) -> 3ds Max: model, collision and
+-- physics paths, every field as text (shared\tag_fields.lua).
 -- Read in Max by builders\tag\object\lua_reader.ms; written back by exporters\object.lua.
 local tagDefs = require "tags.tag_defs"
 local tagFields = require "importers.shared.tag_fields"
-local tagUi = require "bridge.tag_ui"
+local maxbin = require "bridge.maxbin"
 
 local readAs = tagDefs.readAs
 
@@ -40,10 +40,24 @@ function object.write(root, output, options, tagData, defs)
         output:string(field[1])
         output:string(field[2])
     end
+end
 
-    if options[1] then
-        tagUi.writeScript(defs, tagData.group, tagData.rootStruct, options[1])
+-- A new tag with every field zero / empty, in the same format as object.write:
+--   run.lua importers.object blank <group> <out.bin>
+function object.blank(groupName, outPath)
+    local known = false
+    for _, g in ipairs(object.group) do
+        known = known or g == groupName
     end
+    if not known then
+        error(("'%s' is not an object tag group"):format(tostring(groupName)), 0)
+    end
+    local defs = tagDefs.open()
+    local rootStruct = defs:rootStruct(defs:group(groupName))
+    local root = tagFields.unflatten(defs, rootStruct, {}, "")
+    local output = maxbin.open(outPath, "object", object.version)
+    object.write(root, output, {}, {group = groupName, rootStruct = rootStruct}, defs)
+    output:close()
 end
 
 return object
