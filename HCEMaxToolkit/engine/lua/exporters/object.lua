@@ -1,5 +1,6 @@
--- 3ds Max -> object tag (biped, vehicle, weapon, scenery, device_machine): the panel's fields, written by export_object.ms, back to tables
--- for tags\tag_writer.lua. Each tag reference gets the group of the file it points to.
+-- 3ds Max -> object tag (biped, vehicle, weapon, scenery, device_machine): the Point's fields,
+-- written by builders\tag\object\export_tag.ms, back to tables for tags\tag_writer.lua.
+-- Each tag reference gets the group of the file it points to.
 local tagDefs = require "tags.tag_defs"
 local tagFields = require "importers.shared.tag_fields"
 
@@ -16,58 +17,6 @@ local function fileExists(path)
         f:close()
     end
     return f ~= nil
-end
-
--- True when group name is the fourcc group or inherits from it (shader_model from shdr)
-local function inherits(defs, name, fourcc)
-    local ok, g = pcall(defs.group, defs, name)
-    while ok and g do
-        if g.tag == fourcc then
-            return true
-        end
-        local parent = g.parent_tag
-        if type(parent) ~= "string" then
-            return false
-        end
-        ok, g = pcall(defs.group, defs, defs.byFourcc[parent] or parent)
-    end
-    return false
-end
-
--- Groups the field accepts, in its allowed order, each followed by the groups inheriting it
-local function acceptedGroups(defs, field)
-    local allowed = field.definition and field.definition.allowed or {}
-    local names = {}
-    for _, name in pairs(defs.byFourcc) do
-        names[#names + 1] = name
-    end
-    table.sort(names)
-    local fourccOf = {}
-    for fourcc, name in pairs(defs.byFourcc) do
-        fourccOf[name] = fourcc
-    end
-
-    local result, added = {}, {}
-    local function addGroup(fourcc)
-        if not added[fourcc] then
-            added[fourcc] = true
-            result[#result + 1] = fourcc
-        end
-    end
-    if #allowed == 0 then
-        for _, name in ipairs(names) do
-            addGroup(fourccOf[name])
-        end
-    end
-    for _, fourcc in ipairs(allowed) do
-        addGroup(fourcc)
-        for _, name in ipairs(names) do
-            if inherits(defs, name, fourcc) then
-                addGroup(fourccOf[name])
-            end
-        end
-    end
-    return result
 end
 
 -- Picks the group of a reference whose path changed in Max; tagsRoot ends with "tags\"
@@ -95,7 +44,7 @@ local function resolveRef(defs, field, ref, tagsRoot, key)
     if ref.group and exists(ref.group) then
         return
     end
-    local accepted = acceptedGroups(defs, field)
+    local accepted = defs:acceptedGroups(field)
     for _, fourcc in ipairs(accepted) do
         if exists(fourcc) then
             ref.group = fourcc
