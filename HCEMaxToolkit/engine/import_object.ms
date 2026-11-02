@@ -79,13 +79,20 @@ fn importObjectFile tagPath =
     local lastHandle = getLastNodeHandle()
     local tagsRoot = getTagsRootFromTagPath tagPath
     importReferencedTag tagsRoot data.modelRef importGbxModelFile
+    local modelHandle = getLastNodeHandle()
     importReferencedTag tagsRoot data.collisionRef importCollisionFile
+    local collisionHandle = getLastNodeHandle()
     importReferencedTag tagsRoot data.physicsRef importPhysicsFile
+    local physicsHandle = getLastNodeHandle()
+    -- What each reference brought, for the editor's eye and link buttons
+    local parts = #(getNodesBetweenHandles lastHandle modelHandle, \
+                    getNodesBetweenHandles modelHandle collisionHandle, \
+                    getNodesBetweenHandles collisionHandle physicsHandle)
 
     -- Created last, so physics doesn't count it among the model nodes
     local memberNodes = getNodesAfterHandle lastHandle
     append memberNodes (createBoundingRadiusHelper data tagPath)
-    local container = createObjectContainer data tagPath memberNodes
+    local container = createObjectContainer data tagPath memberNodes parts:parts
     logger.info "Change colors on {} materials" args:#(applyObjectChangeColors container)
     logger.info "Container '{}' with {} nodes" args:#(container.name, memberNodes.count)
 
