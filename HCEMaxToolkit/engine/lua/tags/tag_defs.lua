@@ -279,6 +279,59 @@ function definitions:rootStruct(group)
     return self:compileStruct(group, blk.struct)
 end
 
+-- True when group name is the fourcc group or inherits from it (shader_model from shdr)
+function definitions:inherits(name, fourcc)
+    local ok, g = pcall(self.group, self, name)
+    while ok and g do
+        if g.tag == fourcc then
+            return true
+        end
+        local parent = g.parent_tag
+        if type(parent) ~= "string" then
+            return false
+        end
+        ok, g = pcall(self.group, self, self.byFourcc[parent] or parent)
+    end
+    return false
+end
+
+-- Fourccs a tag reference field accepts, in its allowed order, each followed by the groups
+-- inheriting it (every group when the definition allows any)
+function definitions:acceptedGroups(field)
+    local allowed = field.definition and field.definition.allowed or {}
+    local names = {}
+    for _, name in pairs(self.byFourcc) do
+        names[#names + 1] = name
+    end
+    table.sort(names)
+    local fourccOf = {}
+    for fourcc, name in pairs(self.byFourcc) do
+        fourccOf[name] = fourcc
+    end
+
+    local result, added = {}, {}
+    local function addGroup(fourcc)
+        if not added[fourcc] then
+            added[fourcc] = true
+            result[#result + 1] = fourcc
+        end
+    end
+    if #allowed == 0 then
+        for _, name in ipairs(names) do
+            addGroup(fourccOf[name])
+        end
+    end
+    for _, fourcc in ipairs(allowed) do
+        addGroup(fourcc)
+        for _, name in ipairs(names) do
+            if self:inherits(name, fourcc) then
+                addGroup(fourccOf[name])
+            end
+        end
+    end
+    return result
+end
+
 -- Compiles every struct of every group; returns a list of error strings (empty = all good)
 function definitions:validateAll()
     local errors = {}
