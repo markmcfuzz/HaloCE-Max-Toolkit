@@ -497,3 +497,21 @@ macroScript HCEMaxToolkitSettings
         )
     )
 )
+
+-- Hotkey only (Customize > Hotkey Editor), no menu entry: same as Settings > Show Marker / Node Names
+
+macroScript ToggleMarkerNames
+    category: "Halo CE"
+    toolTip: "Toggle Marker Names"
+(
+    on isChecked do showMarkerNames == true
+    on execute do if setShowMarkerNames != undefined do setShowMarkerNames (showMarkerNames != true)
+)
+
+macroScript ToggleNodeNames
+    category: "Halo CE"
+    toolTip: "Toggle Node Names"
+(
+    on isChecked do showNodeNames == true
+    on execute do if setShowNodeNames != undefined do setShowNodeNames (showNodeNames != true)
+)
