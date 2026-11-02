@@ -10,17 +10,15 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
--- Reads an object tag (biped, vehicle, weapon, scenery, device_machine) through lua\importers\object.lua.
+-- Reads an object tag (biped, vehicle, weapon, scenery, device_machine) through lua\importers\object.lua,
+-- or makes a new empty one (newObjectWithLua).
 
 -- Refs are tags-relative paths with extension ("" = none). keys/values: every field as text
 struct ObjectTagData (group, modelRef, collisionRef, physicsRef, keys, values)
 
--- Also writes the panel script to uiScriptPath. Returns an ObjectTagData, or undefined on error
-fn readObjectWithLua tagPath uiScriptPath =
+-- Reads what object.write wrote and closes the file
+fn readObjectData f =
 (
-	local f = luaExportTag "object" 1 tagPath options:#(uiScriptPath)
-	if f == undefined then return undefined
-
 	local group = readString f
 	local modelRef = readString f
 	local collisionRef = readString f
@@ -36,6 +34,25 @@ fn readObjectWithLua tagPath uiScriptPath =
 
 	ObjectTagData group:group modelRef:modelRef collisionRef:collisionRef physicsRef:physicsRef \
 		keys:keys values:values
+)
+
+-- Returns an ObjectTagData, or undefined on error
+fn readObjectWithLua tagPath =
+(
+	local f = luaExportTag "object" 1 tagPath
+	if f == undefined then return undefined
+	readObjectData f
+)
+
+-- Every field of a new tag of that group ("vehicle"), zero / empty. Undefined on error
+fn newObjectWithLua group =
+(
+	local outPath = luaExportPath "object"
+	deleteFile outPath
+	if not (luaRun "importers.object" "blank" #(group, outPath)) then return undefined
+	local f = luaOpenOutput outPath "object" 1
+	if f == undefined then return undefined
+	readObjectData f
 )
 
 scriptName = getFilenameFile (getThisScriptFilename()) + getFilenameType (getThisScriptFilename())

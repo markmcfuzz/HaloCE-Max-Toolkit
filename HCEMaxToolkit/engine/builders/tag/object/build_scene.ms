@@ -10,8 +10,30 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
--- Container of an imported object tag: a Point helper with the tag panel (lua\bridge\tag_ui.lua).
--- It is not the parent of what it contains: the JMS exporter needs the frame root without a parent.
+-- Container of an imported object tag: a Point helper holding every tag field as text; they are
+-- edited in the Qt tag editor (tag_editor.ms). It is not the parent of what it contains: the JMS
+-- exporter needs the frame root without a parent.
+
+-- Same id always, so saved scenes keep working when this definition changes
+haloTagAttributeDef = attributes "Halo Object Tag" attribID:#(0x4A7C1E35, 0x2D9B6F08)
+(
+	parameters tagParams
+	(
+		tagGroup type:#string default:""
+		tagFile type:#string default:""
+		fieldKeys type:#stringTab tabSizeVariable:true
+		fieldValues type:#stringTab tabSizeVariable:true
+		memberNodes type:#nodeTab tabSizeVariable:true
+	)
+	-- No buttons here: this rollout is saved in the .max and Max blocks Python started from it.
+	-- Selecting the Point opens the tag editor, which has Select Contents.
+	rollout tagRollout "Halo Tag"
+	(
+		edittext tagFileBox "Tag file" labelOnTop:true readOnly:true
+		label editorLabel "Edit it in the Halo Tag Editor tab"
+		on tagRollout open do tagFileBox.text = tagFile
+	)
+)
 
 -- Highest node handle in the scene; nodes created later have higher ones
 fn getLastNodeHandle =
@@ -23,13 +45,13 @@ fn getLastNodeHandle =
 
 fn getNodesAfterHandle lastHandle = for o in objects where o.inode.handle > lastHandle collect o
 
--- data: ObjectTagData (lua_reader.ms), attributeDef: the panel, memberNodes: what was imported
-fn createObjectContainer data tagPath attributeDef memberNodes =
+-- data: ObjectTagData (lua_reader.ms), memberNodes: what was imported
+fn createObjectContainer data tagPath memberNodes =
 (
 	local container = Point name:(filenameFromPath tagPath) size:30 box:true cross:false \
 		axistripod:false centermarker:false wirecolor:(color 255 200 0)
-	custAttributes.add container attributeDef
-	local tagAttributes = custAttributes.get container attributeDef
+	custAttributes.add container haloTagAttributeDef
+	local tagAttributes = custAttributes.get container haloTagAttributeDef
 	tagAttributes.tagGroup = data.group
 	tagAttributes.tagFile = tagPath
 	tagAttributes.fieldKeys = data.keys
