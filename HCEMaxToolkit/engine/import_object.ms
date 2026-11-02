@@ -91,7 +91,7 @@ fn importObjectFile tagPath =
 
     -- Created last, so physics doesn't count it among the model nodes
     local memberNodes = getNodesAfterHandle lastHandle
-    append memberNodes (createBoundingRadiusHelper data tagPath)
+    append memberNodes (createBoundingRadiusHelper data.keys data.values (filenameFromPath tagPath))
     local container = createObjectContainer data tagPath memberNodes parts:parts
     logger.info "Change colors on {} materials" args:#(applyObjectChangeColors container)
     logger.info "Container '{}' with {} nodes" args:#(container.name, memberNodes.count)
