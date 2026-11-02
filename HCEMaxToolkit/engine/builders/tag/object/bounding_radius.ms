@@ -49,10 +49,10 @@ fn setBoundingRadiusHelper h keys values =
 	true
 )
 
--- data: ObjectTagData (lua_reader.ms)
-fn createBoundingRadiusHelper data tagPath =
+-- Sized from the tag's fields; tagName: "warthog.vehicle"
+fn createBoundingRadiusHelper keys values tagName =
 (
-	local h = InfluenceHelper name:((filenameFromPath tagPath) + ".boundingRadius")
+	local h = InfluenceHelper name:(tagName + ".boundingRadius")
 	h.on = false
 	h.showNear = true
 	h.nearColor = color 255 0 0
@@ -64,17 +64,32 @@ fn createBoundingRadiusHelper data tagPath =
 	h.EnableBias = true
 	h.bias = 0.3
 	h.BiasSelected = false
-	setBoundingRadiusHelper h data.keys data.values
+	setBoundingRadiusHelper h keys values
 	h
+)
+
+-- The editor's "+" when the Point has no helper (a tag made from scratch). Undoable
+fn tagEditorAddBoundingRadius obj =
+(
+	if not (isObjectTagContainer obj) or (boundingRadiusHelpers obj).count > 0 then return false
+	undo "Add Bounding Radius" on
+	(
+		local h = createBoundingRadiusHelper obj.fieldKeys obj.fieldValues obj.name
+		local members = for n in obj.memberNodes where isValidNode n collect n
+		append members h
+		obj.memberNodes = members
+	)
+	redrawViews()
+	true
 )
 
 -- Updates the Point's helper after an edit in the tag editor (also on undo / redo)
 fn applyObjectBoundingRadius obj =
 (
 	if not (isObjectTagContainer obj) then return false
-	local h = undefined
-	for n in obj.memberNodes where isValidNode n and classOf n == InfluenceHelper and matchPattern n.name pattern:"*.boundingRadius" do h = n
-	if h == undefined then return false
+	local helpers = boundingRadiusHelpers obj  -- tag_editor.ms
+	if helpers.count == 0 then return false
+	local h = helpers[helpers.count]
 	local changed = with undo off (setBoundingRadiusHelper h obj.fieldKeys obj.fieldValues)
 	if changed do redrawViews()
 	changed
