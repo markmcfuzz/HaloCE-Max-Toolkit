@@ -221,6 +221,103 @@ def tags_root_of(path):
     return path.replace("\\", "/")[:at + 6] if at >= 0 else None
 
 
+# Object references whose imported nodes the eye shows / hides (tagRefLayers in tag_editor.ms)
+EYE_PARTS = {"object.model": "model", "object.animation graph": "animation",
+             "object.collision model": "collision", "object.physics": "physics"}
+
+
+def eye_part(key):
+    if "[" not in key:
+        for suffix, part in EYE_PARTS.items():
+            if key.endswith(suffix):
+                return part
+    return None
+
+
+def eye_icon(visible, color):
+    """Drawn here so no image files are needed: an open eye, or a crossed out one."""
+    size = 32
+    pixmap = QtGui.QPixmap(size, size)
+    pixmap.fill(QtCore.Qt.transparent)
+    painter = QtGui.QPainter(pixmap)
+    painter.setRenderHint(QtGui.QPainter.Antialiasing)
+    painter.setPen(QtGui.QPen(color, 2.5))
+    outline = QtGui.QPainterPath()
+    outline.moveTo(3, 16)
+    outline.quadTo(16, 1, 29, 16)
+    outline.quadTo(16, 31, 3, 16)
+    painter.drawPath(outline)
+    if visible:
+        painter.setBrush(color)
+        painter.drawEllipse(QtCore.QPointF(16, 16), 5, 5)
+    else:
+        painter.drawLine(5, 28, 27, 4)
+    painter.end()
+    return QtGui.QIcon(pixmap)
+
+
+def link_icon(color):
+    """Two chain links."""
+    size = 32
+    pixmap = QtGui.QPixmap(size, size)
+    pixmap.fill(QtCore.Qt.transparent)
+    painter = QtGui.QPainter(pixmap)
+    painter.setRenderHint(QtGui.QPainter.Antialiasing)
+    painter.setPen(QtGui.QPen(color, 2.5))
+    painter.translate(16, 16)
+    painter.rotate(-45)
+    painter.drawRoundedRect(QtCore.QRectF(-14, -5, 17, 10), 5, 5)
+    painter.drawRoundedRect(QtCore.QRectF(-3, -5, 17, 10), 5, 5)
+    painter.end()
+    return QtGui.QIcon(pixmap)
+
+
+def link_button(panel, part):
+    """Menu to link scene objects to a reference, unlink them or select them."""
+    button = QtWidgets.QToolButton()
+    button.setAutoRaise(True)
+    button.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+    button.setStyleSheet("QToolButton::menu-indicator { image: none; }")
+    button.setIcon(link_icon(button.palette().color(QtGui.QPalette.ButtonText)))
+    if part == "animation":
+        button.setEnabled(False)
+        button.setToolTip("Animations can't be linked yet")
+        return button
+    button.setToolTip("Link scene objects as the %s" % part)
+    linked = panel.ref_visibility(part) > 0
+    menu = QtWidgets.QMenu(button)
+    menu.addAction("Link Objects...", lambda: panel.link_ref(part))
+    menu.addAction("Unlink Objects...", lambda: panel.unlink_ref(part)).setEnabled(linked)
+    menu.addAction("Select Linked", lambda: panel.select_ref(part)).setEnabled(linked)
+    button.setMenu(menu)
+    return button
+
+
+def eye_button(panel, part):
+    """Shows or hides the nodes this reference imported (undoable in Max)."""
+    button = QtWidgets.QToolButton()
+    button.setCheckable(True)
+    button.setAutoRaise(True)
+    color = button.palette().color(QtGui.QPalette.ButtonText)
+    state = panel.ref_visibility(part)  # 0 = no nodes, 1 = all hidden, 2 = visible
+
+    def show_state(visible):
+        button.setIcon(eye_icon(visible, color))
+
+    button.setChecked(state == 2)
+    show_state(state == 2)
+    button.setEnabled(state > 0)
+    button.setToolTip("Show / hide the %s" % part if state > 0
+                      else "Nothing to show or hide: import or link the %s first" % part)
+
+    def toggled(visible):
+        show_state(visible)
+        panel.show_ref(part, visible)
+
+    button.toggled.connect(toggled)
+    return button
+
+
 def ref_edit(panel, key, allowed, accepts):
     """Path without extension, typed or picked with "..."; the group stays in the value and
     export checks it."""
@@ -264,7 +361,9 @@ def ref_edit(panel, key, allowed, accepts):
     button.setToolTip("Browse for a tag")
     button.clicked.connect(browse)
     edit.editingFinished.connect(commit)
-    return row_of([edit, button])
+    part = eye_part(key)
+    buttons = [eye_button(panel, part), link_button(panel, part)] if part else []
+    return row_of(buttons + [edit, button])
 
 
 def text_edit(panel, key, max_length):

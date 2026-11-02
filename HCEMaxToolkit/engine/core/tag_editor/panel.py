@@ -197,6 +197,26 @@ class TagEditorPanel(QtWidgets.QWidget):
             elif key.endswith(("object.bounding radius", "object.bounding offset")):
                 rt.applyObjectBoundingRadius(self.node)  # the Influence helper
 
+    def ref_visibility(self, part):
+        return int(rt.tagEditorRefVisibility(self.node, part)) if self.node is not None else 0
+
+    def show_ref(self, part, visible):
+        if self.node is not None:
+            rt.tagEditorShowRef(self.node, part, visible)
+
+    def link_ref(self, part):
+        # After the menu closes: refresh rebuilds the button that opened it
+        if self.node is not None and rt.tagEditorLinkRef(self.node, part) > 0:
+            QtCore.QTimer.singleShot(0, self.refresh)
+
+    def unlink_ref(self, part):
+        if self.node is not None and rt.tagEditorUnlinkRef(self.node, part) > 0:
+            QtCore.QTimer.singleShot(0, self.refresh)
+
+    def select_ref(self, part):
+        if self.node is not None:
+            rt.tagEditorSelectRef(self.node, part)  # the editor follows the new selection
+
     def _set_elements(self, count_key, result):
         """Stores the fields after a block change (one undo step) and shows the new element."""
         values, index = result
@@ -263,8 +283,8 @@ class TagEditorPanel(QtWidgets.QWidget):
         # New tags (and deleted imports) have nothing to select
         self.select_button.setEnabled(contents > 0)
         self.select_button.setToolTip(
-            "Selects the model, collision and physics imported with the tag" if contents > 0
-            else "Nothing to select: only imported tags bring a model, collision and physics")
+            "Selects the model, collision and physics of the tag" if contents > 0
+            else "Nothing to select: import the tag or link objects to it")
         self.export_button.setVisible(True)
 
         content = QtWidgets.QWidget()
