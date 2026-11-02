@@ -10,8 +10,9 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
--- Imports an object tag (biped, vehicle, weapon, scenery, device_machine): its gbxmodel, collision and physics with their own importers,
--- plus a Point helper named after the tag whose panel shows (and edits) every tag field.
+-- Imports an object tag (biped, vehicle, weapon, scenery, device_machine): its gbxmodel, collision
+-- and physics with their own importers, plus a Point named after the tag that holds every tag
+-- field; the Qt tag editor (builders\tag\object\tag_editor.ms) opens to edit them.
 
 -- The importers of the tags it contains are loaded without running them
 global importerNoAutoRun
@@ -32,9 +33,7 @@ logger.log "=== IMPORTING OBJECT TAG ==="
 
 include "builders\\tag\\object\\lua_reader.ms"
 include "builders\\tag\\object\\build_scene.ms"
-
--- Set by the panel script that lua\bridge\tag_ui.lua writes
-global haloTagAttributeDef
+include "builders\\tag\\object\\tag_editor.ms"
 
 -------------------------------------------------------
 -- MAIN IMPORT FUNCTIONS
@@ -71,15 +70,10 @@ fn importObjectFile tagPath =
     )
 
     local readStartTime = timestamp()
-    local uiScriptPath = (getDir #temp) + "\\hce_object_ui.ms"
-    local data = readObjectWithLua tagPath uiScriptPath
+    local data = readObjectWithLua tagPath
     if data == undefined then return undefined
     logger.info "Reading: {} seconds" args:#((timestamp() - readStartTime) / 1000.)
     logger.info "Fields: {}" args:#(data.keys.count)
-
-    haloTagAttributeDef = undefined
-    try ( fileIn uiScriptPath ) catch ( logger.error "Tag panel script failed: {}" args:#(getCurrentException()) )
-    if haloTagAttributeDef == undefined then return undefined
 
     -- Model first: collision and physics attach to its nodes
     local lastHandle = getLastNodeHandle()
@@ -90,7 +84,9 @@ fn importObjectFile tagPath =
 
     -- Created last, so physics doesn't count it among the model nodes
     local memberNodes = getNodesAfterHandle lastHandle
-    local container = createObjectContainer data tagPath haloTagAttributeDef memberNodes
+    append memberNodes (createBoundingRadiusHelper data tagPath)
+    local container = createObjectContainer data tagPath memberNodes
+    logger.info "Change colors on {} materials" args:#(applyObjectChangeColors container)
     logger.info "Container '{}' with {} nodes" args:#(container.name, memberNodes.count)
 
     completeRedraw()
@@ -133,6 +129,7 @@ fn ImportObject =
     logger.info "Total time: {} seconds" args:#(elapsedTime)
     logger.log "Object import complete\n\n"
 
+    -- Selecting it opens the tag editor (tag_editor.ms)
     select container
     local showDialogs = configManager.getBool "feedback" "show_completion_dialogs" true
     if showDialogs then
