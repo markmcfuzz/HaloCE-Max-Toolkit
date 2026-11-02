@@ -61,9 +61,14 @@ fn tagRefLayers part = case part of
 -- False for Points saved before the reference lists (object_tag_ca.ms)
 fn hasTagParts obj = try (obj.partsVersion != undefined) catch (false)
 
--- Nodes of a reference ("model", "collision" or "physics"), imported or linked
+-- The Influence helper made on import for the bounding radius (bounding_radius.ms)
+fn boundingRadiusHelpers obj =
+	for n in obj.memberNodes where isValidNode n and classOf n == InfluenceHelper and matchPattern n.name pattern:"*.boundingRadius" collect n
+
+-- Nodes of a reference ("model", "collision", "physics"; "boundingRadius" = its helper)
 fn tagRefNodes obj part =
 (
+	if part == "boundingRadius" then return boundingRadiusHelpers obj
 	if not (hasTagParts obj) then return #()
 	local list = case part of
 	(
@@ -73,6 +78,26 @@ fn tagRefNodes obj part =
 		default: #()
 	)
 	for n in list where isValidNode n collect n
+)
+
+-- What a node of a reference is, for the eye's right-click menu (by its layer; linked
+-- objects in other layers count as "Geometry")
+fn tagRefNodeKind part n =
+(
+	local layerName = n.layer.name
+	case part of
+	(
+		"model": if layerName == "Nodes" or layerName == "Markers" then layerName else "Geometry"
+		"collision": if layerName == "Pathfinding Spheres" then layerName else "Geometry"
+		default: "Geometry"
+	)
+)
+
+-- Nodes of a reference of those kinds (undefined = all)
+fn tagRefKindNodes obj part kinds =
+(
+	local nodes = tagRefNodes obj part
+	if kinds == undefined then nodes else for n in nodes where findItem kinds (tagRefNodeKind part n) > 0 collect n
 )
 
 fn setTagRefNodes obj part nodes = case part of
@@ -160,16 +185,16 @@ fn tagEditorSelectRef obj part =
 	nodes.count
 )
 
--- Eye button state: 0 = no nodes, 1 = all hidden, 2 = some visible
-fn tagEditorRefVisibility obj part =
+-- Eye button state for those kinds (undefined = all): 0 = no nodes, 1 = all hidden, 2 = some visible
+fn tagEditorRefVisibility obj part kinds =
 (
-	local nodes = tagRefNodes obj part
+	local nodes = tagRefKindNodes obj part kinds
 	if nodes.count == 0 then 0 else if (for n in nodes where not n.isHidden collect n).count == 0 then 1 else 2
 )
 
-fn tagEditorShowRef obj part visible =
+fn tagEditorShowRef obj part visible kinds =
 (
-	local nodes = tagRefNodes obj part
+	local nodes = tagRefKindNodes obj part kinds
 	undo "Show/Hide Tag Nodes" on
 		for n in nodes do n.isHidden = not visible
 	redrawViews()
@@ -207,7 +232,7 @@ fn tagEditorSelectionChanged =
 fileIn (rootEngine + "builders\\tag\\object\\export_tag.ms")
 -- Change colors shown on the model's materials (applyObjectChangeColors)
 fileIn (rootEngine + "builders\\tag\\object\\change_colors.ms")
--- Bounding radius helper (createBoundingRadiusHelper, applyObjectBoundingRadius)
+-- Bounding radius helper (createBoundingRadiusHelper, applyObjectBoundingRadius, tagEditorAddBoundingRadius)
 fileIn (rootEngine + "builders\\tag\\object\\bounding_radius.ms")
 
 -- Loaded at startup (shared\init.ms), so this works in every scene
