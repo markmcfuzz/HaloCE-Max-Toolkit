@@ -1,5 +1,6 @@
 -- Minimal JSON decoder (objects, arrays, strings, numbers, true/false/null).
--- Enough for the tag definition files; not a general-purpose validator.
+-- Enough for the tag definition files; not a general-purpose validator. json.encode writes
+-- what tag_ui.lua sends to the Python tag editor.
 local json = {}
 
 local byte, sub, find, char = string.byte, string.sub, string.find, string.char
@@ -188,6 +189,58 @@ function json.decodeFile(path)
     local s = f:read("*a")
     f:close()
     return json.decode(s)
+end
+
+local function encodeString(s)
+    s = s:gsub('[%c"\\]', function(c)
+        if c == '"' or c == "\\" then
+            return "\\" .. c
+        end
+        return ("\\u%04x"):format(c:byte())
+    end)
+    return '"' .. s .. '"'
+end
+
+-- Tables with t[1] (or empty) are arrays, the rest objects with sorted keys
+local function encodeValue(v, out)
+    local t = type(v)
+    if t == "string" then
+        out[#out + 1] = encodeString(v)
+    elseif t == "number" or t == "boolean" then
+        out[#out + 1] = tostring(v)
+    elseif v == nil or v == json.null then
+        out[#out + 1] = "null"
+    elseif next(v) == nil or v[1] ~= nil then
+        out[#out + 1] = "["
+        for i, item in ipairs(v) do
+            if i > 1 then
+                out[#out + 1] = ","
+            end
+            encodeValue(item, out)
+        end
+        out[#out + 1] = "]"
+    else
+        local keys = {}
+        for k in pairs(v) do
+            keys[#keys + 1] = k
+        end
+        table.sort(keys)
+        out[#out + 1] = "{"
+        for i, k in ipairs(keys) do
+            if i > 1 then
+                out[#out + 1] = ","
+            end
+            out[#out + 1] = encodeString(k) .. ":"
+            encodeValue(v[k], out)
+        end
+        out[#out + 1] = "}"
+    end
+end
+
+function json.encode(v)
+    local out = {}
+    encodeValue(v, out)
+    return concat(out)
 end
 
 return json
