@@ -26,7 +26,9 @@ function menuCallback =
     -- Add our test macro script action item to our menu
     local macroScriptTableId = 647394
     -- Our action identifier for the test action is the with '`' concatinated string of our macro script name and category
-    -- Add Import submenu actions
+    -- Add Import submenus: tags and source files (JMS / JMA)
+    local importTagMenu = importMenu.CreateSubMenu "3E9A41C7-6B2D-4F58-A1E3-8C47D09B5F26" "Tag"
+    local importSourceMenu = importMenu.CreateSubMenu "C51D7E08-92AF-4B36-8E1C-5A0F3B6D2E94" "Source"
     local importJmsId = "ImportJMS`Halo CE"
     local importAnimDataId = "ImportAnimationData`Halo CE"
     local importGbxId = "ImportGBX`Halo CE"
@@ -35,15 +37,15 @@ function menuCallback =
     local importObjectId = "ImportObject`Halo CE"
     local importCameraTrackId = "ImportCameraTrack`Halo CE"
     local importStructureBspId = "ImportStructureBSP`Halo CE"
-    importMenu.CreateAction "2B3C4D5E-6F70-8192-A3B4-C5D6E7F8091A" macroScriptTableId importJmsId
-    importMenu.CreateAction "EFD414B5-0B36-4092-BE7E-39D785F91B05" macroScriptTableId importAnimDataId
-    importMenu.CreateAction "ADB41E81-D249-4539-8F5B-2406E02D8352" macroScriptTableId importGbxId
-    importMenu.CreateAction "3C4D1F2E-1C7C-4D2C-8F1E-4F6D1E2B8C9A" macroScriptTableId importCollisionId
-    importMenu.CreateAction "5F6A7B8C-9D0E-4F1A-8B2C-3D4E5F6A7B8C" macroScriptTableId importPhysicsId
-    importMenu.CreateAction "B66A2CC0-42DD-4D53-A827-E61EE38CCFD4" macroScriptTableId importObjectId
-    importMenu.CreateAction "1A2B3C4D-5E6F-7081-92A3-B4C5D6E7F809" macroScriptTableId importCameraTrackId
-    importMenu.CreateAction "2B3C4D5E-6F70-8192-A3B4-C5D6E7F8091B" macroScriptTableId importStructureBspId
-    
+    importTagMenu.CreateAction "ADB41E81-D249-4539-8F5B-2406E02D8352" macroScriptTableId importGbxId
+    importTagMenu.CreateAction "3C4D1F2E-1C7C-4D2C-8F1E-4F6D1E2B8C9A" macroScriptTableId importCollisionId
+    importTagMenu.CreateAction "5F6A7B8C-9D0E-4F1A-8B2C-3D4E5F6A7B8C" macroScriptTableId importPhysicsId
+    importTagMenu.CreateAction "1A2B3C4D-5E6F-7081-92A3-B4C5D6E7F809" macroScriptTableId importCameraTrackId
+    importTagMenu.CreateAction "2B3C4D5E-6F70-8192-A3B4-C5D6E7F8091B" macroScriptTableId importStructureBspId
+    importTagMenu.CreateAction "B66A2CC0-42DD-4D53-A827-E61EE38CCFD4" macroScriptTableId importObjectId
+    importSourceMenu.CreateAction "2B3C4D5E-6F70-8192-A3B4-C5D6E7F8091A" macroScriptTableId importJmsId
+    importSourceMenu.CreateAction "EFD414B5-0B36-4092-BE7E-39D785F91B05" macroScriptTableId importAnimDataId
+
     -- Add Export submenu actions
     local exportJmsId = "ExportJMS`Halo CE"
     local exportJmaId = "ExportJointedModelAnimation`Halo CE"
@@ -51,8 +53,6 @@ function menuCallback =
     exportMenu.CreateAction "9A8B7C6D-5E4F-3A2B-1C0D-EF1A2B3C4D5E" macroScriptTableId exportJmsId
     exportMenu.CreateAction "6F5E4D3C-2B1A-0D9C-8B7A-6E5F4D3C2B1A" macroScriptTableId exportJmaId
     exportMenu.CreateAction "0A1B2C3D-4E5F-6071-8293-A4B5C6D7E8F9" macroScriptTableId exportCameraTrackId
-    local exportObjectId = "ExportObject`Halo CE"
-    exportMenu.CreateAction "076B1046-511E-4114-8C74-6D2E83049BF1" macroScriptTableId exportObjectId
     local buildShadersId = "BuildShaders`Halo CE"
     exportMenu.CreateAction "6B1F2C3D-8E4A-4F5B-9C6D-7E8F9A0B1C2D" macroScriptTableId buildShadersId
     
@@ -69,6 +69,7 @@ function menuCallback =
     --local quickSkinId = "QuickSkin`Halo CE"
     local cameraTrackGeneratorId = "CameraTrackGenerator`Halo CE"
     local retargetingId = "Retargeting`Halo CE"
+    local newObjectTagId = "NewObjectTag`Halo CE"
     toolsHceMenu.CreateAction "05C59238-B2A9-47D1-BA72-A781492FEDB4" macroScriptTableId sphereToHaloHelperId
     toolsHceMenu.CreateAction "7E8F9A0B-1C2D-3E4F-5A6B-7C8D9E0F1A2B" macroScriptTableId modelAnimationsExtractorId
     toolsHceMenu.CreateAction "2FFD9520-7961-4575-B7BE-C8673365D395" macroScriptTableId nodeRenamerId
@@ -76,6 +77,7 @@ function menuCallback =
     --toolsHceMenu.CreateAction "A6144B9D-A019-4F36-9844-77A1F706B556" macroScriptTableId quickSkinId
     toolsHceMenu.CreateAction "1EED9B0E-55BC-4054-A1E7-398370A8A898" macroScriptTableId cameraTrackGeneratorId
     toolsHceMenu.CreateAction "51891738-CBF2-4468-ACE3-F0EAD2094B0B" macroScriptTableId retargetingId
+    toolsHceMenu.CreateAction "E1B7C9A2-5D34-4F86-9C0B-7A2E6D18F453" macroScriptTableId newObjectTagId
     
     -- Add Tools > CER actions
     local packedUvFixerId = "PackedUvFixer`Halo CE"

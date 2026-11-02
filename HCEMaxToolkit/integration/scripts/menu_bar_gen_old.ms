@@ -62,23 +62,26 @@ fn createHaloCEToolkitMenu =
             )
         )
 
-        -- Add Import macros
+        -- Add Import macros: tags and source files (JMS / JMA)
         print "Adding Import macros..."
-        addMacroToMenu importMenu "Halo CE" "ImportJMS" mm displayName:"JMS Model"
-        addMacroToMenu importMenu "Halo CE" "ImportAnimationData" mm displayName:"Animation Data"
-        addMacroToMenu importMenu "Halo CE" "ImportGBX" mm displayName:"GBX Model"
-        addMacroToMenu importMenu "Halo CE" "ImportCollisionGeometry" mm displayName:"Collision Geometry"
-        addMacroToMenu importMenu "Halo CE" "ImportPhysics" mm displayName:"Physics"
-        addMacroToMenu importMenu "Halo CE" "ImportObject" mm displayName:"Object Tag"
-        addMacroToMenu importMenu "Halo CE" "ImportCameraTrack" mm displayName:"Camera Track"
-        addMacroToMenu importMenu "Halo CE" "ImportStructureBSP" mm displayName:"Structure BSP"
+        local importTagMenu = mm.createMenu "Tag"
+        local importSourceMenu = mm.createMenu "Source"
+        addMacroToMenu importTagMenu "Halo CE" "ImportGBX" mm displayName:"GBX-Model"
+        addMacroToMenu importTagMenu "Halo CE" "ImportCollisionGeometry" mm displayName:"Model Collision Geometry"
+        addMacroToMenu importTagMenu "Halo CE" "ImportPhysics" mm displayName:"Physics"
+        addMacroToMenu importTagMenu "Halo CE" "ImportCameraTrack" mm displayName:"Camera Track"
+        addMacroToMenu importTagMenu "Halo CE" "ImportStructureBSP" mm displayName:"Scenario Structure BSP"
+        addMacroToMenu importTagMenu "Halo CE" "ImportObject" mm displayName:"Object"
+        addMacroToMenu importSourceMenu "Halo CE" "ImportJMS" mm displayName:"Jointed Model Skeleton (JMS)"
+        addMacroToMenu importSourceMenu "Halo CE" "ImportAnimationData" mm displayName:"Jointed Model Animation (JMA)"
+        importMenu.addItem (mm.createSubMenuItem "Tag" importTagMenu) -1
+        importMenu.addItem (mm.createSubMenuItem "Source" importSourceMenu) -1
 
         -- Add Export macros
         print "Adding Export macros..."
         addMacroToMenu exportMenu "Halo CE" "ExportJMS" mm displayName:"JMS Model"
         addMacroToMenu exportMenu "Halo CE" "ExportJointedModelAnimation" mm displayName:"JMA Animation"
         addMacroToMenu exportMenu "Halo CE" "ExportCameraTrack" mm displayName:"Camera Track"
-        addMacroToMenu exportMenu "Halo CE" "ExportObject" mm displayName:"Object Tag"
         addMacroToMenu exportMenu "Halo CE" "BuildShaders" mm displayName:"Shaders"
 
         -- Add Tools macros, grouped by target game
@@ -94,6 +97,7 @@ fn createHaloCEToolkitMenu =
         --addMacroToMenu toolsHceMenu "Halo CE" "QuickSkin" mm displayName:"Quick Skin"
         addMacroToMenu toolsHceMenu "Halo CE" "CameraTrackGenerator" mm displayName:"Camera Track Builder"
         addMacroToMenu toolsHceMenu "Halo CE" "Retargeting" mm displayName:"Retargeting"
+        addMacroToMenu toolsHceMenu "Halo CE" "NewObjectTag" mm displayName:"Create Object Tag"
 
         addMacroToMenu toolsCerMenu "Halo CE" "PackedUvFixer" mm displayName:"Packed UV Fixer"
 

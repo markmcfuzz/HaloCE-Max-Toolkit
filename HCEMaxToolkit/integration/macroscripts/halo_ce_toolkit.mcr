@@ -12,7 +12,7 @@
 
 macroScript ImportGBX
     category: "Halo CE"
-    toolTip: "GBX-Model Tag"
+    toolTip: "GBX-Model"
 (
     on execute do 
     (
@@ -33,7 +33,7 @@ macroScript ImportGBX
 
 macroScript ImportCollisionGeometry
     category: "Halo CE"
-    toolTip: "Collision Geometry Tag"
+    toolTip: "Model Collision Geometry"
 (
     on execute do 
     (
@@ -54,7 +54,7 @@ macroScript ImportCollisionGeometry
 
 macroScript ImportPhysics
     category: "Halo CE"
-    toolTip: "Physics Tag"
+    toolTip: "Physics"
 (
     on execute do 
     (
@@ -75,7 +75,7 @@ macroScript ImportPhysics
 
 macroScript ImportObject
     category: "Halo CE"
-    toolTip: "Object Tag"
+    toolTip: "Object"
 (
     on execute do 
     (
@@ -96,7 +96,7 @@ macroScript ImportObject
 
 macroScript ImportCameraTrack
     category: "Halo CE"
-    toolTip: "Camera Track Tag"
+    toolTip: "Camera Track"
 (
     on execute do 
     (
@@ -159,7 +159,7 @@ macroScript ImportJMS
 
 macroScript ImportStructureBSP
     category: "Halo CE"
-    toolTip: "Structure BSP Tag"
+    toolTip: "Scenario Structure BSP"
 (
     on execute do 
     (
@@ -232,27 +232,6 @@ macroScript ExportCameraTrack
         local leafPath = pathConfig.removePathLeaf thisScript
         local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
         local scriptPath = pluginRoot + "\\engine\\export_camera_track.ms"
-        if doesFileExist scriptPath then
-        (
-            fileIn scriptPath
-        )
-        else
-        (
-            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
-        )
-    )
-)
-
-macroScript ExportObject
-    category: "Halo CE"
-    toolTip: "Object Tag"
-(
-    on execute do
-    (
-        local thisScript = getThisScriptFilename()
-        local leafPath = pathConfig.removePathLeaf thisScript
-        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
-        local scriptPath = pluginRoot + "\\engine\\export_object.ms"
         if doesFileExist scriptPath then
         (
             fileIn scriptPath
@@ -401,6 +380,27 @@ macroScript Retargeting
         local leafPath = pathConfig.removePathLeaf thisScript
         local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
         local scriptPath = pluginRoot + "\\engine\\tool_retargeting.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
+
+macroScript NewObjectTag
+    category: "Halo CE"
+    toolTip: "Create Object Tag"
+(
+    on execute do
+    (
+        local thisScript = getThisScriptFilename()
+        local leafPath = pathConfig.removePathLeaf thisScript
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+        local scriptPath = pluginRoot + "\\engine\\tool_new_object.ms"
         if doesFileExist scriptPath then
         (
             fileIn scriptPath
