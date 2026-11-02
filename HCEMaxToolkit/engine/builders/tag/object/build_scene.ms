@@ -36,7 +36,7 @@ fn getNodesBetweenHandles firstHandle lastHandle =
 fn createObjectContainer data tagPath memberNodes parts:#(#(), #(), #()) =
 (
 	local container = Point name:(filenameFromPath tagPath) size:30 box:true cross:false \
-		axistripod:false centermarker:false drawontop:true wirecolor:(color 255 200 0)
+		axistripod:false centermarker:false drawontop:true wirecolor:(color 80 230 40)
 	custAttributes.add container haloTagAttributeDef
 	local tagAttributes = custAttributes.get container haloTagAttributeDef
 	tagAttributes.tagGroup = data.group
