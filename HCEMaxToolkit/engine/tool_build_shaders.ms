@@ -12,7 +12,7 @@
 
 -- Build Shaders
 -- Turns the GlyphFX DirectX materials of a Multi/Sub-Object material whose name
--- contains "gfx" into shader tags, using invader-edit (path set in Settings).
+-- contains "gfx" into shader tags, written by the toolkit's Lua tag writer.
 -- Shader type: a "#fourcc" tag in the material name ("armor #soso") wins, otherwise
 -- the material's .fx file name decides. chicago_extended shares the chicago effect,
 -- so it needs "#scex".
@@ -27,7 +27,6 @@ gc light:true
 scriptName = getFilenameFile (getThisScriptFilename())
 logger.loadConfig callerScriptName:scriptName
 
-include "shared\\utils\\invader_utils.ms"
 -- getTagsRootFromTagPath, shaderTagClassStrToString
 include "builders\\tag\\shared\\shader_resolver.ms"
 include "pipeline\\create_tag\\create_shader.ms"
@@ -121,60 +120,13 @@ struct ShaderBuildEntry (mat, slotId, shaderType, tagName, problem)
     -------------------------------------------------------
 
     -- Builds one shader tag. Returns #(ok, message, warnings)
-    fn buildShaderTag exePath tagsDir relTagPath entry enumCache =
+    fn buildShaderTag tagPath entry =
     (
-        local reader = readDxMaterialShaderOps entry.mat entry.shaderType
+        local reader = readDxMaterialShaderFields entry.mat entry.shaderType
         if reader == undefined then return #(false, "unsupported shader type " + entry.shaderType, #())
-        local warnings = reader.warnings
-
-        -- 1. New tag with its blocks (-N overwrites an existing tag)
-        local createArgs = #("-N")
-        for ins in reader.inserts do join createArgs #("-I", ins[1], ins[2] as string, "end")
-        local res = runInvaderEdit exePath tagsDir relTagPath createArgs
-        if res[1] != 0 then return #(false, res[3] + res[2], warnings)
-
-        -- 2. Enum option names (invader-edit only takes names), listed once per shader type
-        local enums = enumCache[entry.shaderType]
-        if enums == undefined then
-        (
-            res = runInvaderEdit exePath tagsDir relTagPath #("-l")
-            if res[1] != 0 then return #(false, res[3] + res[2], warnings)
-            enums = parseInvaderEnums res[2]
-            enumCache[entry.shaderType] = enums
-        )
-
-        -- 3. Field values
-        local setArgs = #()
-        for op in reader.sets do
-        (
-            local key = op[1]
-            local fieldValue = op[2]
-            if op[3] then
-            (
-                local keyParts = filterString key "."
-                local options = enums[keyParts[keyParts.count]]
-                if options == undefined or fieldValue < 0 or fieldValue >= options.count then
-                (
-                    append warnings ("'" + key + "': invalid enum value " + fieldValue as string + ", left at default")
-                    continue
-                )
-                fieldValue = options[fieldValue + 1]
-            )
-            join setArgs #("-S", key, fieldValue)
-        )
-        if setArgs.count > 0 then
-        (
-            res = runInvaderEditChunked exePath tagsDir relTagPath setArgs
-            if res[1] != 0 then return #(false, res[3] + res[2], warnings)
-        )
-        #(true, (reader.sets.count as string) + " field(s)", warnings)
-    )
-
-    -- First meaningful line of invader-edit's error output
-    fn firstErrorLine text =
-    (
-        local lines = filterString text "\r\n"
-        if lines.count == 0 then "unknown error" else lines[1]
+        if not (writeDxShaderTag reader entry.shaderType tagPath) then
+            return #(false, "could not write the tag (see the log)", reader.warnings)
+        #(true, (reader.keys.count as string) + " field(s)", reader.warnings)
     )
 
     -------------------------------------------------------
@@ -236,13 +188,6 @@ struct ShaderBuildEntry (mat, slotId, shaderType, tagName, problem)
 
         fn build =
         (
-            local exePath = getInvaderEditPath()
-            if exePath == undefined then
-            (
-                messageBox "invader-edit.exe was not found.\n\nSet its path in Halo CE Toolkit > Settings > External Tools." title:toolTitle
-                return false
-            )
-
             local selected = for i in lbxShaders.selection where entries[i].problem == undefined collect entries[i]
             if selected.count == 0 then
             (
@@ -259,11 +204,10 @@ struct ShaderBuildEntry (mat, slotId, shaderType, tagName, problem)
             )
             local tagsDir = folderParts[1]
             local relFolder = folderParts[2]
-            -- invader-edit -N does not create missing folders
+            -- The tag writer does not create missing folders
             pathUtils.createDirectoryRecursive edtFolder.text
 
             local startTime = timestamp()
-            local enumCache = dictionary #string
             local builtPaths = #()
             local created = 0
             local failures = #()
@@ -285,8 +229,9 @@ struct ShaderBuildEntry (mat, slotId, shaderType, tagName, problem)
                 )
                 append builtPaths (toLower relTagPath)
 
-                local existed = doesFileExist (tagsDir + "\\" + relTagPath)
-                local result = buildShaderTag exePath tagsDir relTagPath entry enumCache
+                local tagPath = tagsDir + "\\" + relTagPath
+                local existed = doesFileExist tagPath
+                local result = buildShaderTag tagPath entry
 
                 for warning in result[3] do
                 (
@@ -302,7 +247,7 @@ struct ShaderBuildEntry (mat, slotId, shaderType, tagName, problem)
                 else
                 (
                     logger.error "Failed to build tags\\{}: {}" args:#(relTagPath, result[2])
-                    append failures (tagLabel + ": " + firstErrorLine result[2])
+                    append failures (tagLabel + ": " + result[2])
                 )
             )
 
