@@ -10,8 +10,8 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
--- Shows an object's change colors on its GlyphFX shader_model materials: "Change Color (Only for
--- 3ds Max)" gets the change color that "Change Color Source" (1=A 2=B 3=C 4=D) points to.
+-- Shows an object's change colors on its GlyphFX materials: "Change Color (Only for 3ds Max)"
+-- gets the change color its source (1=A 2=B 3=C 4=D) points to (see materialChangeColorSource).
 
 -- "0.34 0.40 0.14" (0-1) -> Max color; white when it can't be read
 fn tagTextToColor text =
@@ -39,6 +39,23 @@ fn objectChangeColor fields blockKey index =
 	if (fieldCount fields (prefix + "permutations")) > 0 do
 		colorKey = prefix + "permutations[0].color lower bound"
 	if hasDictValue fields colorKey then tagTextToColor fields[colorKey] else white
+)
+
+-- Change color source of a GlyphFX material (1=A .. 4=D, 0 none): shader_model's own field, or
+-- for shader_transparent_generic the first active stage's Color0 Source. undefined: no change color
+fn materialChangeColorSource m =
+(
+	if not (isProperty m #ChangeColor) then return undefined
+	if isProperty m #ChangeColorSource then return m.ChangeColorSource
+	for i = 1 to 7 do
+	(
+		local prefix = "Stage" + (i as string)
+		local enabled = i == 1 or (isProperty m (("Enable" + prefix) as name) and getProperty m (("Enable" + prefix) as name))
+		local sourceName = (prefix + "_Color0Source") as name
+		if enabled and isProperty m sourceName and (getProperty m sourceName) > 0 then
+			return getProperty m sourceName
+	)
+	0
 )
 
 -- A material and every material inside it (Multi/Sub-Object)
@@ -71,9 +88,10 @@ fn applyObjectChangeColors obj =
 	local changed = 0
 	with undo off
 	(
-		for m in materials where isProperty m #ChangeColorSource and isProperty m #ChangeColor do
+		for m in materials do
 		(
-			local source = m.ChangeColorSource
+			local source = materialChangeColorSource m
+			if source == undefined then continue
 			local c = if source >= 1 and source <= count then objectChangeColor fields blockKey (source - 1) else white
 			-- Only when it changed: refreshing the viewport on every selection would be slow
 			if (m.ChangeColor as string) != (c as string) do
