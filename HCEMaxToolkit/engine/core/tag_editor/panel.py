@@ -301,8 +301,8 @@ class TagEditorPanel(QtWidgets.QWidget):
         sections = layout["sections"]
         for section in sections:
             title = section["title"]
-            # The tag's own section (the last one) starts open
-            expanded = self.expanded.get(title, section is sections[-1])
+            # Object (the first section) starts open
+            expanded = self.expanded.get(title, section is sections[0])
             column.addWidget(Section(
                 title,
                 lambda fields=section["fields"]: self.build_fields(fields, ""),

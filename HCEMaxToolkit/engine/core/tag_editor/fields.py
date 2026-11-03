@@ -364,10 +364,10 @@ def link_button(panel, part):
     return button
 
 
-# What the eye's right-click menu offers (tagRefNodeKind in tag_editor.ms) and what is checked.
-# Kept while Max is open
-EYE_KINDS = {"model": ["Geometry", "Nodes", "Markers"], "collision": ["Geometry", "Pathfinding Spheres"]}
-_eye_shown = {"model": {"Geometry"}, "collision": {"Geometry", "Pathfinding Spheres"}}
+# What the eye's right-click menu offers (tagRefNodeKind in tag_editor.ms) and what is checked,
+# as the import leaves it (lower LODs hidden). Kept while Max is open
+EYE_KINDS = {"model": ["Geometry", "LODs", "Nodes", "Markers"], "collision": ["Geometry", "Pathfinding Spheres"]}
+_eye_shown = {"model": {"Geometry", "Nodes", "Markers"}, "collision": {"Geometry", "Pathfinding Spheres"}}
 
 
 def eye_button(panel, part):
@@ -402,6 +402,11 @@ def eye_button(panel, part):
         button.setIcon(eye_icon(visible, color))
         panel.show_ref(part, visible, shown())
 
+    def set_kind(kind, on):
+        # Unchecked kinds stay hidden; checked ones follow the eye
+        (_eye_shown[part].add if on else _eye_shown[part].discard)(kind)
+        panel.show_ref(part, on and button.isChecked(), [kind])
+
     def choose(pos):
         menu = QtWidgets.QMenu(button)
         checked = _eye_shown[part]
@@ -410,7 +415,7 @@ def eye_button(panel, part):
             action.setCheckable(True)
             action.setChecked(kind in checked)
             action.setEnabled(not (kind in checked and len(checked) == 1))  # one always stays
-            action.toggled.connect(lambda on, kind=kind: checked.add(kind) if on else checked.discard(kind))
+            action.toggled.connect(lambda on, kind=kind: set_kind(kind, on))
         (menu.exec if hasattr(menu, "exec") else menu.exec_)(button.mapToGlobal(pos))
         update()
 
