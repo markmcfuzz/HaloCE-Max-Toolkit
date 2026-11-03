@@ -51,11 +51,12 @@ fn importPhysicsFile physicsFile =
 
     logger.log "=== BUILDING MASS POINT SPHERES ==="
     local buildStartTime = timestamp()
-    local createdSpheres = createMassPointSpheres \
+    -- Undo off: a long undo history makes every bone key slower later (Ctrl+Z won't remove the import)
+    local createdSpheres = with undo off (createMassPointSpheres \
         physicsData.massPoints \
         physicsData.poweredMassPointNames \
         physicsData.mass \
-        physicsData.density
+        physicsData.density)
     logger.info "Scene building: {} seconds" args:#((timestamp() - buildStartTime) / 1000.)
 
     completeRedraw()
