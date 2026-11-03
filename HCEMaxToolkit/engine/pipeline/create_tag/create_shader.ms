@@ -10,12 +10,8 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--- GlyphFX DirectX material -> shader tag operations
--- Inverse of builders\tag\shared\dx_material_builder.ms: reads the effect parameters of a
--- DirectX_9_Shader and turns them into invader-edit operations (block inserts + field sets).
--- Field keys are invader-edit's names; parameter names and bit orders mirror the builder.
--- Viewport-only parameters (lights, DebugMode, ChangeColor, SelfIlluminationColor,
--- MeterValue, noise slice counts, cubemap offsets...) have no tag field and are ignored.
+-- GlyphFX DirectX material -> shader tag fields (inverse of builders\tag\shared\dx_material_builder.ms),
+-- written by lua\exporters\shader.lua. Viewport-only parameters have no tag field and are ignored.
 
 -------------------------------------------------------
 -- Shader type detection
@@ -89,14 +85,15 @@ fn textureFileToBitmapRef filePath =
 -- Material reader
 -------------------------------------------------------
 
--- Collects invader-edit operations from one DirectX material.
--- sets entries: #(key, value, isEnum) - enum values stay as indices until the tool
--- resolves them to option names (see parseInvaderEnums in invader_utils.ms)
+-- 9 digits keep 32-bit floats exact
+fn _shaderFloatText v = formattedPrint (v as float) format:".9g"
+
+-- Collects the tag fields of one DirectX material as key/text pairs
 struct DxShaderReader
 (
 	dxMat,
-	inserts = #(),    -- #(blockKey, count)
-	sets = #(),
+	keys = #(),
+	values = #(),
 	warnings = #(),
 
 	fn getParam p =
@@ -105,30 +102,40 @@ struct DxShaderReader
 		try (getProperty dxMat p) catch (undefined)
 	),
 
-	fn addSet key fieldValue isEnum:false = append sets #(key, fieldValue, isEnum),
+	-- A key set again keeps the last text
+	fn addField key text =
+	(
+		local i = findItem keys key
+		if i == 0 then
+		(
+			append keys key
+			append values text
+		)
+		else values[i] = text
+	),
 
 	fn fieldFloat p key =
 	(
 		local v = getParam p
-		if v != undefined then addSet key (invaderFloat v)
+		if v != undefined then addField key (_shaderFloatText v)
 	),
 
 	fn fieldInt p key =
 	(
 		local v = getParam p
-		if v != undefined then addSet key ((v as integer) as string)
+		if v != undefined then addField key ((v as integer) as string)
 	),
 
-	fn fieldEnum p key =
-	(
-		local v = getParam p
-		if v != undefined then addSet key (v as integer) isEnum:true
-	),
+	-- Enums are written as their index
+	fn fieldEnum p key = fieldInt p key,
 
-	-- New tags start with every bit cleared, so only set bits are written
-	fn fieldFlag p key =
+	-- New tags start with every bit cleared, so only set bits are added
+	fn fieldFlag p key bitIndex =
 	(
-		if (getParam p) == true then addSet key "1"
+		if (getParam p) != true then return undefined
+		local i = findItem keys key
+		local bits = if i == 0 then 0 else (values[i] as integer)
+		addField key ((bit.set bits bitIndex true) as string)
 	),
 
 	-- Max colors are 0-255, tag colors 0-1 (inverse of tagColorToMaxColor)
@@ -143,11 +150,17 @@ struct DxShaderReader
 		)
 	),
 
+	fn _floatsText list =
+	(
+		local text = ""
+		for i = 1 to list.count do text += (if i > 1 then " " else "") + _shaderFloatText list[i]
+		text
+	),
+
 	fn fieldRGB p key =
 	(
 		local c = _colorComponents (getParam p)
-		if c != undefined then
-			addSet key (invaderFloat c[1] + "," + invaderFloat c[2] + "," + invaderFloat c[3])
+		if c != undefined then addField key (_floatsText #(c[1], c[2], c[3]))
 	),
 
 	-- ARGB: the effects expose the alpha as a separate 0-1 slider (alphaParam)
@@ -157,7 +170,7 @@ struct DxShaderReader
 		if c == undefined then return undefined
 		local a = getParam alphaParam
 		if a == undefined then a = c[4]
-		addSet key (invaderFloat a + "," + invaderFloat c[1] + "," + invaderFloat c[2] + "," + invaderFloat c[3])
+		addField key (_floatsText #(a, c[1], c[2], c[3]))
 	),
 
 	-- point2d / vector2d from a U/V float pair (float2 params aren't scriptable)
@@ -165,8 +178,7 @@ struct DxShaderReader
 	(
 		local u = getParam pU
 		local v = getParam pV
-		if u != undefined and v != undefined then
-			addSet key (invaderFloat u + "," + invaderFloat v)
+		if u != undefined and v != undefined then addField key (_floatsText #(u, v))
 	),
 
 	fn fieldVector3 pI pJ pK key =
@@ -175,10 +187,10 @@ struct DxShaderReader
 		local j = getParam pJ
 		local k = getParam pK
 		if i != undefined and j != undefined and k != undefined then
-			addSet key (invaderFloat i + "," + invaderFloat j + "," + invaderFloat k)
+			addField key (_floatsText #(i, j, k))
 	),
 
-	-- Texture param -> bitmap dependency. A texture switched off with its enable param
+	-- Texture param -> bitmap reference. A texture switched off with its enable param
 	-- is skipped, as the builder disables slots without a texture.
 	fn fieldBitmap texParam key enableParam:undefined =
 	(
@@ -193,10 +205,10 @@ struct DxShaderReader
 			append warnings ("'" + key + "': texture is not inside a data folder, reference left empty (" + filePath + ")")
 			return undefined
 		)
-		addSet key (ref + ".bitmap")
+		addField key ("bitm:" + ref)
 	),
 
-	fn addInsert blockKey count = if count > 0 then append inserts #(blockKey, count),
+	fn addBlock blockKey count = if count > 0 then addField blockKey (count as string),
 
 	-- Number of block entries: the highest enabled entry (firstAlwaysOn: entry 1 needs no enable flag)
 	fn countEnabled enablePrefix firstIdx lastIdx firstAlwaysOn:true =
@@ -215,497 +227,503 @@ struct DxShaderReader
 -- Shared blocks
 -------------------------------------------------------
 
--- Parent 'shader' block (inverse of _dxApplyBaseShaderParams)
-fn _readBaseShaderOps r =
+-- Parent 'shader' struct (inverse of _dxApplyBaseShaderParams)
+fn _readBaseShaderFields r =
 (
-	r.fieldFlag #SimpleParameterization "shader_flags.simple_parameterization"
-	r.fieldFlag #IgnoreNormals "shader_flags.ignore_normals"
-	r.fieldFlag #TransparentLit "shader_flags.transparent_lit"
-	r.fieldEnum #DetailLevel "detail_level"
-	r.fieldFloat #Power "power"
-	r.fieldRGB #ColorOfEmittedLight "color_of_emitted_light"
-	r.fieldRGB #TintColor "tint_color"
-	r.fieldEnum #MaterialType "material_type"
+	r.fieldFlag #SimpleParameterization "shader.flags" 1
+	r.fieldFlag #IgnoreNormals "shader.flags" 2
+	r.fieldFlag #TransparentLit "shader.flags" 3
+	r.fieldEnum #DetailLevel "shader.detailLevel"
+	r.fieldFloat #Power "shader.power"
+	r.fieldRGB #ColorOfEmittedLight "shader.colorOfEmittedLight"
+	r.fieldRGB #TintColor "shader.tintColor"
+	r.fieldEnum #MaterialType "shader.materialType"
 )
 
 -- One chicago/generic map entry (inverse of _dxApplyMapStage)
-fn _readMapStageOps r blockKey stageIdx layout:#chicago =
+fn _readMapStageFields r blockKey stageIdx layout:#chicago =
 (
 	local n = stageIdx as string
 	local pre = blockKey + "[" + ((stageIdx - 1) as string) + "]."
 	local mp = "Map" + n + "_"
 
-	r.fieldFlag ((mp + "Unfiltered") as name) (pre + "flags.unfiltered")
+	-- Chicago flags: unfiltered, alpha replicate, u-clamped, v-clamped; generic has no alpha replicate
+	local clampBit = if layout == #chicago then 3 else 2
+	r.fieldFlag ((mp + "Unfiltered") as name) (pre + "flags") 1
 	if layout == #chicago then
-		r.fieldFlag ((mp + "AlphaReplicate") as name) (pre + "flags.alpha_replicate")
-	r.fieldFlag ((mp + "UClamped") as name) (pre + "flags.u_clamped")
-	r.fieldFlag ((mp + "VClamped") as name) (pre + "flags.v_clamped")
+		r.fieldFlag ((mp + "AlphaReplicate") as name) (pre + "flags") 2
+	r.fieldFlag ((mp + "UClamped") as name) (pre + "flags") clampBit
+	r.fieldFlag ((mp + "VClamped") as name) (pre + "flags") (clampBit + 1)
 
 	if layout == #chicago then
 	(
-		r.fieldEnum ((mp + "ColorFunction") as name) (pre + "color_function")
-		r.fieldEnum ((mp + "AlphaFunction") as name) (pre + "alpha_function")
+		r.fieldEnum ((mp + "ColorFunction") as name) (pre + "colorFunction")
+		r.fieldEnum ((mp + "AlphaFunction") as name) (pre + "alphaFunction")
 	)
 
-	r.fieldFloat ((mp + "UScale") as name) (pre + "map_u_scale")
-	r.fieldFloat ((mp + "VScale") as name) (pre + "map_v_scale")
-	r.fieldFloat ((mp + "UOffset") as name) (pre + "map_u_offset")
-	r.fieldFloat ((mp + "VOffset") as name) (pre + "map_v_offset")
-	r.fieldFloat ((mp + "Rotation") as name) (pre + "map_rotation")
-	r.fieldFloat ((mp + "MipmapBias") as name) (pre + "mipmap_bias")
+	r.fieldFloat ((mp + "UScale") as name) (pre + "mapUScale")
+	r.fieldFloat ((mp + "VScale") as name) (pre + "mapVScale")
+	r.fieldFloat ((mp + "UOffset") as name) (pre + "mapUOffset")
+	r.fieldFloat ((mp + "VOffset") as name) (pre + "mapVOffset")
+	r.fieldFloat ((mp + "Rotation") as name) (pre + "mapRotation")
+	r.fieldFloat ((mp + "MipmapBias") as name) (pre + "mipmapBias")
 
 	r.fieldBitmap (("Map" + n + "Texture") as name) (pre + "map")
 
 	for axis in #("U", "V", "Rotation") do
 	(
-		local keyAxis = if axis == "Rotation" then "rotation" else toLower axis
-		r.fieldEnum ((axis + "AnimationSource" + n) as name) (pre + keyAxis + "_animation_source")
-		r.fieldEnum ((axis + "AnimationFunction" + n) as name) (pre + keyAxis + "_animation_function")
-		r.fieldFloat ((axis + "AnimationPeriod" + n) as name) (pre + keyAxis + "_animation_period")
-		r.fieldFloat ((axis + "AnimationPhase" + n) as name) (pre + keyAxis + "_animation_phase")
-		r.fieldFloat ((axis + "AnimationScale" + n) as name) (pre + keyAxis + "_animation_scale")
+		local keyAxis = pre + axis + "Animation"
+		r.fieldEnum ((axis + "AnimationSource" + n) as name) (keyAxis + "Source")
+		r.fieldEnum ((axis + "AnimationFunction" + n) as name) (keyAxis + "Function")
+		r.fieldFloat ((axis + "AnimationPeriod" + n) as name) (keyAxis + "Period")
+		r.fieldFloat ((axis + "AnimationPhase" + n) as name) (keyAxis + "Phase")
+		r.fieldFloat ((axis + "AnimationScale" + n) as name) (keyAxis + "Scale")
 	)
-	r.fieldPoint2 (("AnimationCenterU" + n) as name) (("AnimationCenterV" + n) as name) (pre + "rotation_animation_center")
+	r.fieldPoint2 (("AnimationCenterU" + n) as name) (("AnimationCenterV" + n) as name) (pre + "rotationAnimationCenter")
 )
 
 -- Chicago/generic attributes shared by both groups
-fn _readTransparentAttributeOps r flagsKey =
+fn _readTransparentAttributeFields r =
 (
-	r.fieldInt #NumericCounterLimit "numeric_counter_limit"
-	r.fieldFlag #AlphaTested (flagsKey + ".alpha_tested")
-	r.fieldFlag #Decal (flagsKey + ".decal")
-	r.fieldFlag #TwoSided (flagsKey + ".two_sided")
-	r.fieldFlag #FirstMapIsScreenspace (flagsKey + ".first_map_is_in_screenspace")
-	r.fieldFlag #DrawBeforeWater (flagsKey + ".draw_before_water")
-	r.fieldFlag #IgnoreEffect (flagsKey + ".ignore_effect")
-	r.fieldFlag #ScaleFirstMapWithDistance (flagsKey + ".scale_first_map_with_distance")
-	r.fieldFlag #Numeric (flagsKey + ".numeric")
-	r.fieldEnum #FirstMapType "first_map_type"
-	r.fieldEnum #FramebufferBlendFunction "framebuffer_blend_function"
-	r.fieldEnum #FramebufferFadeMode "framebuffer_fade_mode"
-	r.fieldEnum #FramebufferFadeSource "framebuffer_fade_source"
-	r.fieldFloat #LensFlareSpacing "lens_flare_spacing"
+	r.fieldInt #NumericCounterLimit "numericCounterLimit"
+	r.fieldFlag #AlphaTested "flags" 1
+	r.fieldFlag #Decal "flags" 2
+	r.fieldFlag #TwoSided "flags" 3
+	r.fieldFlag #FirstMapIsScreenspace "flags" 4
+	r.fieldFlag #DrawBeforeWater "flags" 5
+	r.fieldFlag #IgnoreEffect "flags" 6
+	r.fieldFlag #ScaleFirstMapWithDistance "flags" 7
+	r.fieldFlag #Numeric "flags" 8
+	r.fieldEnum #FirstMapType "firstMapType"
+	r.fieldEnum #FramebufferBlendFunction "framebufferBlendFunction"
+	r.fieldEnum #FramebufferFadeMode "framebufferFadeMode"
+	r.fieldEnum #FramebufferFadeSource "framebufferFadeSource"
+	r.fieldFloat #LensFlareSpacing "lensFlareSpacing"
 )
 
 -------------------------------------------------------
 -- shader_model
 -------------------------------------------------------
-fn readShaderModelOps r =
+fn readShaderModelFields r =
 (
-	_readBaseShaderOps r
+	_readBaseShaderFields r
 
-	r.fieldFlag #DetailAfterReflection "shader_model_flags.detail_after_reflection"
-	r.fieldFlag #TwoSided "shader_model_flags.two_sided"
-	r.fieldFlag #NotAlphaTested "shader_model_flags.not_alpha_tested"
-	r.fieldFlag #AlphaBlendedDecal "shader_model_flags.alpha_blended_decal"
-	r.fieldFlag #TrueAtmosphericFog "shader_model_flags.true_atmospheric_fog"
-	r.fieldFlag #DisableTwoSidedCulling "shader_model_flags.disable_two_sided_culling"
-	r.fieldFlag #UseXboxChannelOrder "shader_model_flags.use_xbox_multipurpose_channel_order"
+	r.fieldFlag #DetailAfterReflection "flags" 1
+	r.fieldFlag #TwoSided "flags" 2
+	r.fieldFlag #NotAlphaTested "flags" 3
+	r.fieldFlag #AlphaBlendedDecal "flags" 4
+	r.fieldFlag #TrueAtmosphericFog "flags" 5
+	r.fieldFlag #DisableTwoSidedCulling "flags" 6
+	r.fieldFlag #UseXboxChannelOrder "flags" 7
 
 	r.fieldFloat #Translucency "translucency"
-	r.fieldEnum #ChangeColorSource "change_color_source"
+	r.fieldEnum #ChangeColorSource "changeColorSource"
 
 	-- Self illumination
-	r.fieldFlag #NoRandomPhaseFlag "shader_model_more_flags.no_random_phase"
-	r.fieldEnum #SelfIlluminationColorSource "color_source"
-	r.fieldEnum #SelfIlluminationAnimationFunction "animation_function"
-	r.fieldFloat #SelfIlluminationAnimationPeriod "animation_period"
-	r.fieldRGB #AnimationColorLowerBound "animation_color_lower_bound"
-	r.fieldRGB #AnimationColorUpperBound "animation_color_upper_bound"
+	r.fieldFlag #NoRandomPhaseFlag "flags2" 1
+	r.fieldEnum #SelfIlluminationColorSource "colorSource"
+	r.fieldEnum #SelfIlluminationAnimationFunction "animationFunction"
+	r.fieldFloat #SelfIlluminationAnimationPeriod "animationPeriod"
+	r.fieldRGB #AnimationColorLowerBound "animationColorLowerBound"
+	r.fieldRGB #AnimationColorUpperBound "animationColorUpperBound"
 
 	-- Maps
-	r.fieldFloat #MapUScale "map_u_scale"
-	r.fieldFloat #MapVScale "map_v_scale"
-	r.fieldBitmap #BaseMapTexture "base_map" enableParam:#EnableBaseMap
-	r.fieldBitmap #MultipurposeMapTexture "multipurpose_map" enableParam:#EnableMultipurposeMap
-	r.fieldEnum #DetailFunction "detail_function"
-	r.fieldEnum #DetailMask "detail_mask"
-	r.fieldFloat #DetailMapScale "detail_map_scale"
-	r.fieldBitmap #DetailMapTexture "detail_map" enableParam:#EnableDetailMap
-	r.fieldFloat #DetailMapVScale "detail_map_v_scale"
+	r.fieldFloat #MapUScale "mapUScale"
+	r.fieldFloat #MapVScale "mapVScale"
+	r.fieldBitmap #BaseMapTexture "baseMap" enableParam:#EnableBaseMap
+	r.fieldBitmap #MultipurposeMapTexture "multipurposeMap" enableParam:#EnableMultipurposeMap
+	r.fieldEnum #DetailFunction "detailFunction"
+	r.fieldEnum #DetailMask "detailMask"
+	r.fieldFloat #DetailMapScale "detailMapScale"
+	r.fieldBitmap #DetailMapTexture "detailMap" enableParam:#EnableDetailMap
+	r.fieldFloat #DetailMapVScale "detailMapVScale"
 
 	-- Texture animation
 	for axis in #("U", "V", "Rotation") do
 	(
-		local keyAxis = if axis == "Rotation" then "rotation" else toLower axis
-		r.fieldEnum ((axis + "AnimationSource") as name) (keyAxis + "_animation_source")
-		r.fieldEnum ((axis + "AnimationFunction") as name) (keyAxis + "_animation_function")
-		r.fieldFloat ((axis + "AnimationPeriod") as name) (keyAxis + "_animation_period")
-		r.fieldFloat ((axis + "AnimationPhase") as name) (keyAxis + "_animation_phase")
-		r.fieldFloat ((axis + "AnimationScale") as name) (keyAxis + "_animation_scale")
+		local keyAxis = axis + "Animation"
+		r.fieldEnum ((axis + "AnimationSource") as name) (keyAxis + "Source")
+		r.fieldEnum ((axis + "AnimationFunction") as name) (keyAxis + "Function")
+		r.fieldFloat ((axis + "AnimationPeriod") as name) (keyAxis + "Period")
+		r.fieldFloat ((axis + "AnimationPhase") as name) (keyAxis + "Phase")
+		r.fieldFloat ((axis + "AnimationScale") as name) (keyAxis + "Scale")
 	)
-	r.fieldPoint2 #RotationAnimationCenterX #RotationAnimationCenterY "rotation_animation_center"
+	r.fieldPoint2 #RotationAnimationCenterX #RotationAnimationCenterY "rotationAnimationCenter"
 
 	-- Reflection
-	r.fieldFloat #PerpendicularBrightness "perpendicular_brightness"
-	r.fieldRGB #PerpendicularTintColor "perpendicular_tint_color"
-	r.fieldFloat #ParallelBrightness "parallel_brightness"
-	r.fieldRGB #ParallelTintColor "parallel_tint_color"
-	r.fieldBitmap #ReflectionCubeTexture "reflection_cube_map" enableParam:#EnableReflectionCube
+	r.fieldFloat #PerpendicularBrightness "perpendicularBrightness"
+	r.fieldRGB #PerpendicularTintColor "perpendicularTintColor"
+	r.fieldFloat #ParallelBrightness "parallelBrightness"
+	r.fieldRGB #ParallelTintColor "parallelTintColor"
+	r.fieldBitmap #ReflectionCubeTexture "reflectionCubeMap" enableParam:#EnableReflectionCube
 )
 
 -------------------------------------------------------
 -- shader_model_extended
 -------------------------------------------------------
 -- EnableExtended is a viewport-only comparison toggle, so the extension is always written
-fn readShaderModelExtendedOps r =
+fn readShaderModelExtendedFields r =
 (
-	readShaderModelOps r
+	readShaderModelFields r
 
 	-- Detail map 2
-	r.fieldEnum #Detail2Function "detail_2_function"
-	r.fieldEnum #Detail2Mask "detail_2_mask"
-	r.fieldFloat #Detail2MapScale "detail_2_map_scale"
-	r.fieldBitmap #Detail2MapTexture "detail_2_map" enableParam:#EnableDetail2Map
-	r.fieldFloat #Detail2MapVScale "detail_2_map_v_scale"
+	r.fieldEnum #Detail2Function "detail2Function"
+	r.fieldEnum #Detail2Mask "detail2Mask"
+	r.fieldFloat #Detail2MapScale "detail2MapScale"
+	r.fieldBitmap #Detail2MapTexture "detail2Map" enableParam:#EnableDetail2Map
+	r.fieldFloat #Detail2MapVScale "detail2MapVScale"
 
 	-- Bump
-	r.fieldBitmap #BaseNormalMapTexture "base_normal_map" enableParam:#EnableBaseNormalMap
-	r.fieldFloat #BaseNormalCoefficient "base_normal_coefficient"
+	r.fieldBitmap #BaseNormalMapTexture "baseNormalMap" enableParam:#EnableBaseNormalMap
+	r.fieldFloat #BaseNormalCoefficient "baseNormalCoefficient"
 	for n in #("1", "2") do
 	(
 		local pre = "DetailNormal" + n
-		local key = "detail_normal_" + n
-		r.fieldBitmap ((pre + "MapTexture") as name) (key + "_map") enableParam:((("Enable" + pre + "Map") as name))
-		r.fieldFloat ((pre + "Coefficient") as name) (key + "_coefficient")
-		r.fieldFloat ((pre + "Scale") as name) (key + "_scale")
-		r.fieldFloat ((pre + "VScale") as name) (key + "_v_scale")
+		r.fieldBitmap ((pre + "MapTexture") as name) (pre + "Map") enableParam:((("Enable" + pre + "Map") as name))
+		r.fieldFloat ((pre + "Coefficient") as name) (pre + "Coefficient")
+		r.fieldFloat ((pre + "Scale") as name) (pre + "Scale")
+		r.fieldFloat ((pre + "VScale") as name) (pre + "VScale")
 	)
 
 	-- Specular
-	r.fieldBitmap #SpecularColorMapTexture "specular_color_map" enableParam:#EnableSpecularColorMap
-	r.fieldFloat #SpecularColorCoefficient "specular_color_coefficient"
-	r.fieldFloat #SpecularColorExponent "specular_color_exponent"
-	r.fieldFlag #AlphaAsExponentMask "specular_color_flags.alpha_as_exponent_mask"
-	r.fieldFloat #SpecularLightingExponent "specular_lighting_exponent"
-	r.fieldFloat #SpecularLightingCoefficient "specular_lighting_coefficient"
-	r.fieldFlag #DoNotUseDlmsBsp "diffuse_lighting_flags.do_not_use_dlms_bsp"
+	r.fieldBitmap #SpecularColorMapTexture "specularColorMap" enableParam:#EnableSpecularColorMap
+	r.fieldFloat #SpecularColorCoefficient "specularColorCoefficient"
+	r.fieldFloat #SpecularColorExponent "specularColorExponent"
+	r.fieldFlag #AlphaAsExponentMask "specularColorFlags" 1
+	r.fieldFloat #SpecularLightingExponent "specularLightingExponent"
+	r.fieldFloat #SpecularLightingCoefficient "specularLightingCoefficient"
+	r.fieldFlag #DoNotUseDlmsBsp "diffuseLightingFlags" 1
 )
 
 -------------------------------------------------------
 -- shader_transparent_chicago (+ chicago_extended)
 -------------------------------------------------------
 
--- mapsKey/flagsKey: "maps"/"shader_transparent_chicago_flags" for chicago,
--- "maps_4_stage"/"shader_transparent_chicago_extended_flags" for chicago_extended
+-- mapsKey: "maps" for chicago, "4StageMaps" for chicago_extended
 -- (its 2-stage block is legacy-hardware fallback data and stays empty)
-fn readShaderChicagoOps r mapsKey flagsKey =
+fn readShaderChicagoFields r mapsKey =
 (
-	_readBaseShaderOps r
-	_readTransparentAttributeOps r flagsKey
+	_readBaseShaderFields r
+	_readTransparentAttributeFields r
 
-	r.fieldFlag #DontFadeActiveCamouflage "extra_flags.dont_fade_active_camouflage"
-	r.fieldFlag #NumericCountdownTimer "extra_flags.numeric_countdown_timer"
-	r.fieldFlag #CustomEditionBlending "extra_flags.custom_edition_blending"
+	r.fieldFlag #DontFadeActiveCamouflage "extraFlags" 1
+	r.fieldFlag #NumericCountdownTimer "extraFlags" 2
+	r.fieldFlag #CustomEditionBlending "extraFlags" 3
 
 	local mapCount = r.countEnabled "EnableMap" 1 4
-	r.addInsert mapsKey mapCount
+	r.addBlock mapsKey mapCount
 	for j = 1 to mapCount do
-		_readMapStageOps r mapsKey j layout:#chicago
+		_readMapStageFields r mapsKey j layout:#chicago
 )
 
 -------------------------------------------------------
 -- shader_transparent_generic
 -------------------------------------------------------
 
--- One combiner stage (inverse of _dxApplyGenericCombinerStage)
-fn _readGenericCombinerStageOps r stageIdx =
+-- One combiner stage (inverse of _dxApplyGenericCombinerStage). The stage repeats its
+-- field names: color side first, then alpha side ("inputA2")
+fn _readGenericCombinerStageFields r stageIdx =
 (
 	local pre = "Stage" + (stageIdx as string) + "_"
 	local key = "stages[" + ((stageIdx - 1) as string) + "]."
 
-	r.fieldFlag ((pre + "ColorMux") as name) (key + "flags.color_mux")
-	r.fieldFlag ((pre + "AlphaMux") as name) (key + "flags.alpha_mux")
-	r.fieldFlag ((pre + "AOutControlsColor0Animation") as name) (key + "flags.a_out_controls_color0_animation")
+	r.fieldFlag ((pre + "ColorMux") as name) (key + "flags") 1
+	r.fieldFlag ((pre + "AlphaMux") as name) (key + "flags") 2
+	r.fieldFlag ((pre + "AOutControlsColor0Animation") as name) (key + "flags") 3
 
-	r.fieldEnum ((pre + "Color0Source") as name) (key + "color0_source")
-	r.fieldEnum ((pre + "Color0AnimationFunction") as name) (key + "color0_animation_function")
-	r.fieldFloat ((pre + "Color0AnimationPeriod") as name) (key + "color0_animation_period")
-	r.fieldARGB ((pre + "Color0AnimationLowerBound") as name) ((pre + "Color0LowerAlpha") as name) (key + "color0_animation_lower_bound")
-	r.fieldARGB ((pre + "Color0AnimationUpperBound") as name) ((pre + "Color0UpperAlpha") as name) (key + "color0_animation_upper_bound")
+	r.fieldEnum ((pre + "Color0Source") as name) (key + "color0Source")
+	r.fieldEnum ((pre + "Color0AnimationFunction") as name) (key + "color0AnimationFunction")
+	r.fieldFloat ((pre + "Color0AnimationPeriod") as name) (key + "color0AnimationPeriod")
+	r.fieldARGB ((pre + "Color0AnimationLowerBound") as name) ((pre + "Color0LowerAlpha") as name) (key + "color0AnimationLowerBound")
+	r.fieldARGB ((pre + "Color0AnimationUpperBound") as name) ((pre + "Color0UpperAlpha") as name) (key + "color0AnimationUpperBound")
 	r.fieldARGB ((pre + "Color1") as name) ((pre + "Color1Alpha") as name) (key + "color1")
 
-	-- Color side
-	for inp in #("A", "B", "C", "D") do
+	for side in #(#("Color", ""), #("Alpha", "2")) do
 	(
-		r.fieldEnum ((pre + "ColorInput" + inp) as name) (key + "input_" + toLower inp)
-		r.fieldEnum ((pre + "ColorInput" + inp + "Mapping") as name) (key + "input_" + toLower inp + "_mapping")
+		local p = pre + side[1]
+		local suffix = side[2]
+		for inp in #("A", "B", "C", "D") do
+		(
+			r.fieldEnum ((p + "Input" + inp) as name) (key + "input" + inp + suffix)
+			r.fieldEnum ((p + "Input" + inp + "Mapping") as name) (key + "input" + inp + "Mapping" + suffix)
+		)
+		r.fieldEnum ((p + "OutputAB") as name) (key + "outputAB" + suffix)
+		r.fieldEnum ((p + "OutputCD") as name) (key + "outputCD" + suffix)
+		r.fieldEnum ((p + "OutputABCDMuxSum") as name) (key + "outputABCDMuxSum" + suffix)
+		r.fieldEnum ((p + "OutputMapping") as name) (key + "outputMapping" + suffix)
 	)
-	r.fieldEnum ((pre + "ColorOutputAB") as name) (key + "output_ab")
-	r.fieldEnum ((pre + "ColorOutputABFunction") as name) (key + "output_ab_function")
-	-- invader-edit names the color CD output "output_bc"
-	r.fieldEnum ((pre + "ColorOutputCD") as name) (key + "output_bc")
-	r.fieldEnum ((pre + "ColorOutputCDFunction") as name) (key + "output_cd_function")
-	r.fieldEnum ((pre + "ColorOutputABCDMuxSum") as name) (key + "output_ab_cd_mux_sum")
-	r.fieldEnum ((pre + "ColorOutputMapping") as name) (key + "output_mapping_color")
-
-	-- Alpha side (AB/CD always multiply, no function fields)
-	for inp in #("A", "B", "C", "D") do
-	(
-		r.fieldEnum ((pre + "AlphaInput" + inp) as name) (key + "input_" + toLower inp + "_alpha")
-		r.fieldEnum ((pre + "AlphaInput" + inp + "Mapping") as name) (key + "input_" + toLower inp + "_mapping_alpha")
-	)
-	r.fieldEnum ((pre + "AlphaOutputAB") as name) (key + "output_ab_alpha")
-	r.fieldEnum ((pre + "AlphaOutputCD") as name) (key + "output_cd_alpha")
-	r.fieldEnum ((pre + "AlphaOutputABCDMuxSum") as name) (key + "output_ab_cd_mux_sum_alpha")
-	r.fieldEnum ((pre + "AlphaOutputMapping") as name) (key + "output_mapping_alpha")
+	-- AB/CD functions exist on the color side only (alpha always multiplies)
+	r.fieldEnum ((pre + "ColorOutputABFunction") as name) (key + "outputABFunction")
+	r.fieldEnum ((pre + "ColorOutputCDFunction") as name) (key + "outputCDFunction")
 )
 
-fn readShaderGenericOps r =
+fn readShaderGenericFields r =
 (
-	_readBaseShaderOps r
-	_readTransparentAttributeOps r "shader_transparent_generic_flags"
+	_readBaseShaderFields r
+	_readTransparentAttributeFields r
 
 	local mapCount = r.countEnabled "EnableMap" 1 4
-	r.addInsert "maps" mapCount
+	r.addBlock "maps" mapCount
 	for j = 1 to mapCount do
-		_readMapStageOps r "maps" j layout:#generic
+		_readMapStageFields r "maps" j layout:#generic
 
 	local stageCount = r.countEnabled "EnableStage" 1 7
-	r.addInsert "stages" stageCount
+	r.addBlock "stages" stageCount
 	for j = 1 to stageCount do
-		_readGenericCombinerStageOps r j
+		_readGenericCombinerStageFields r j
 )
 
 -------------------------------------------------------
 -- shader_transparent_meter
 -------------------------------------------------------
-fn readShaderMeterOps r =
+fn readShaderMeterFields r =
 (
-	_readBaseShaderOps r
+	_readBaseShaderFields r
 
-	r.fieldFlag #Decal "meter_flags.decal"
-	r.fieldFlag #TwoSided "meter_flags.two_sided"
-	r.fieldFlag #FlashColorIsNegative "meter_flags.flash_color_is_negative"
-	r.fieldFlag #TintMode2 "meter_flags.tint_mode_2"
-	r.fieldFlag #Unfiltered "meter_flags.unfiltered"
+	r.fieldFlag #Decal "flags" 1
+	r.fieldFlag #TwoSided "flags" 2
+	r.fieldFlag #FlashColorIsNegative "flags" 3
+	r.fieldFlag #TintMode2 "flags" 4
+	r.fieldFlag #Unfiltered "flags" 5
 
 	r.fieldBitmap #MeterMap "map"
-	r.fieldRGB #GradientMinColor "gradient_min_color"
-	r.fieldRGB #GradientMaxColor "gradient_max_color"
-	r.fieldRGB #BackgroundColor "background_color"
-	r.fieldRGB #FlashColor "flash_color"
-	r.fieldRGB #MeterTintColor "meter_tint_color"
-	r.fieldFloat #MeterTransparency "meter_transparency"
-	r.fieldFloat #BackgroundTransparency "background_transparency"
+	r.fieldRGB #GradientMinColor "gradientMinColor"
+	r.fieldRGB #GradientMaxColor "gradientMaxColor"
+	r.fieldRGB #BackgroundColor "backgroundColor"
+	r.fieldRGB #FlashColor "flashColor"
+	r.fieldRGB #MeterTintColor "tintColor"
+	r.fieldFloat #MeterTransparency "meterTransparency"
+	r.fieldFloat #BackgroundTransparency "backgroundTransparency"
 
 	-- External sources
-	r.fieldEnum #MeterBrightnessSource "meter_brightness_source"
-	r.fieldEnum #FlashBrightnessSource "flash_brightness_source"
-	r.fieldEnum #ValueSource "value_source"
-	r.fieldEnum #GradientSource "gradient_source"
-	r.fieldEnum #FlashExtensionSource "flash_extension_source"
+	r.fieldEnum #MeterBrightnessSource "meterBrightnessSource"
+	r.fieldEnum #FlashBrightnessSource "flashBrightnessSource"
+	r.fieldEnum #ValueSource "valueSource"
+	r.fieldEnum #GradientSource "gradientSource"
+	r.fieldEnum #FlashExtensionSource "flashExtensionSource"
 )
 
 -------------------------------------------------------
 -- shader_transparent_water
 -------------------------------------------------------
-fn readShaderWaterOps r =
+fn readShaderWaterFields r =
 (
-	_readBaseShaderOps r
+	_readBaseShaderFields r
 
-	r.fieldFlag #BaseMapAlphaModulatesReflection "water_flags.base_map_alpha_modulates_reflection"
-	r.fieldFlag #BaseMapColorModulatesBackground "water_flags.base_map_color_modulates_background"
-	r.fieldFlag #AtmosphericFog "water_flags.atmospheric_fog"
-	r.fieldFlag #DrawBeforeFog "water_flags.draw_before_fog"
+	r.fieldFlag #BaseMapAlphaModulatesReflection "flags" 1
+	r.fieldFlag #BaseMapColorModulatesBackground "flags" 2
+	r.fieldFlag #AtmosphericFog "flags" 3
+	r.fieldFlag #DrawBeforeFog "flags" 4
 
-	r.fieldBitmap #BaseMapTexture "base_map" enableParam:#EnableBaseMap
-	r.fieldFloat #ViewPerpendicularBrightness "view_perpendicular_brightness"
-	r.fieldRGB #ViewPerpendicularTintColor "view_perpendicular_tint_color"
-	r.fieldFloat #ViewParallelBrightness "view_parallel_brightness"
-	r.fieldRGB #ViewParallelTintColor "view_parallel_tint_color"
-	r.fieldBitmap #ReflectionMapTexture "reflection_map" enableParam:#EnableReflectionMap
+	r.fieldBitmap #BaseMapTexture "baseMap" enableParam:#EnableBaseMap
+	r.fieldFloat #ViewPerpendicularBrightness "viewPerpendicularBrightness"
+	r.fieldRGB #ViewPerpendicularTintColor "viewPerpendicularTintColor"
+	r.fieldFloat #ViewParallelBrightness "viewParallelBrightness"
+	r.fieldRGB #ViewParallelTintColor "viewParallelTintColor"
+	r.fieldBitmap #ReflectionMapTexture "reflectionMap" enableParam:#EnableReflectionMap
 
 	-- Ripple globals (angles are raw radians, as the builder passes them)
-	r.fieldFloat #RippleAnimationAngle "ripple_animation_angle"
-	r.fieldFloat #RippleAnimationVelocity "ripple_animation_velocity"
-	r.fieldFloat #RippleScale "ripple_scale"
-	r.fieldBitmap #RippleMapsTexture "ripple_maps" enableParam:#EnableRippleMaps
-	r.fieldInt #RippleMipmapLevels "ripple_mipmap_levels"
-	r.fieldFloat #RippleMipmapFadeFactor "ripple_mipmap_fade_factor"
-	r.fieldFloat #RippleMipmapDetailBias "ripple_mipmap_detail_bias"
+	r.fieldFloat #RippleAnimationAngle "rippleAnimationAngle"
+	r.fieldFloat #RippleAnimationVelocity "rippleAnimationVelocity"
+	r.fieldFloat #RippleScale "rippleScale"
+	r.fieldBitmap #RippleMapsTexture "rippleMaps" enableParam:#EnableRippleMaps
+	r.fieldInt #RippleMipmapLevels "rippleMipmapLevels"
+	r.fieldFloat #RippleMipmapFadeFactor "rippleMipmapFadeFactor"
+	r.fieldFloat #RippleMipmapDetailBias "rippleMipmapDetailBias"
 
 	-- Ripple entries (the effect names them 0-based: Ripple0..Ripple3)
 	local rippleCount = r.countEnabled "EnableRipple" 0 3 firstAlwaysOn:false
-	r.addInsert "ripples" rippleCount
+	r.addBlock "ripples" rippleCount
 	for j = 0 to rippleCount - 1 do
 	(
 		local k = j as string
 		local pre = "Ripple" + k + "_"
 		local key = "ripples[" + k + "]."
-		r.fieldFloat ((pre + "ContributionFactor") as name) (key + "contribution_factor")
-		r.fieldFloat ((pre + "AnimationAngle") as name) (key + "animation_angle")
-		r.fieldFloat ((pre + "AnimationVelocity") as name) (key + "animation_velocity")
-		r.fieldPoint2 ((pre + "MapOffsetU") as name) ((pre + "MapOffsetV") as name) (key + "map_offset")
-		r.fieldInt ((pre + "MapRepeats") as name) (key + "map_repeats")
-		r.fieldInt ((pre + "MapIndex") as name) (key + "map_index")
+		r.fieldFloat ((pre + "ContributionFactor") as name) (key + "contributionFactor")
+		r.fieldFloat ((pre + "AnimationAngle") as name) (key + "animationAngle")
+		r.fieldFloat ((pre + "AnimationVelocity") as name) (key + "animationVelocity")
+		r.fieldPoint2 ((pre + "MapOffsetU") as name) ((pre + "MapOffsetV") as name) (key + "mapOffset")
+		r.fieldInt ((pre + "MapRepeats") as name) (key + "mapRepeats")
+		r.fieldInt ((pre + "MapIndex") as name) (key + "mapIndex")
 	)
 )
 
 -------------------------------------------------------
 -- shader_transparent_plasma
 -------------------------------------------------------
-fn readShaderPlasmaOps r =
+fn readShaderPlasmaFields r =
 (
-	_readBaseShaderOps r
+	_readBaseShaderFields r
 
-	r.fieldEnum #IntensitySource "intensity_source"
-	r.fieldFloat #IntensityExponent "intensity_exponent"
-	r.fieldEnum #OffsetSource "offset_source"
-	r.fieldFloat #OffsetAmount "offset_amount"
-	r.fieldFloat #OffsetExponent "offset_exponent"
+	r.fieldEnum #IntensitySource "intensitySource"
+	r.fieldFloat #IntensityExponent "intensityExponent"
+	r.fieldEnum #OffsetSource "offsetSource"
+	r.fieldFloat #OffsetAmount "offsetAmount"
+	r.fieldFloat #OffsetExponent "offsetExponent"
 
-	r.fieldFloat #PerpendicularBrightness "perpendicular_brightness"
-	r.fieldRGB #PerpendicularTintColor "perpendicular_tint_color"
-	r.fieldFloat #ParallelBrightness "parallel_brightness"
-	r.fieldRGB #ParallelTintColor "parallel_tint_color"
-	r.fieldEnum #TintColorSource "tint_color_source"
+	r.fieldFloat #PerpendicularBrightness "perpendicularBrightness"
+	r.fieldRGB #PerpendicularTintColor "perpendicularTintColor"
+	r.fieldFloat #ParallelBrightness "parallelBrightness"
+	r.fieldRGB #ParallelTintColor "parallelTintColor"
+	r.fieldEnum #TintColorSource "tintColorSource"
 
 	for noise in #("Primary", "Secondary") do
 	(
-		local key = toLower noise
-		r.fieldFloat ((noise + "AnimationPeriod") as name) (key + "_animation_period")
+		r.fieldFloat ((noise + "AnimationPeriod") as name) (noise + "AnimationPeriod")
 		r.fieldVector3 ((noise + "AnimationDirectionI") as name) ((noise + "AnimationDirectionJ") as name) \
-			((noise + "AnimationDirectionK") as name) (key + "_animation_direction")
-		r.fieldFloat ((noise + "NoiseMapScale") as name) (key + "_noise_map_scale")
-		r.fieldBitmap ((noise + "NoiseMapTexture") as name) (key + "_noise_map") enableParam:((("Enable" + noise + "NoiseMap") as name))
+			((noise + "AnimationDirectionK") as name) (noise + "AnimationDirection")
+		r.fieldFloat ((noise + "NoiseMapScale") as name) (noise + "NoiseMapScale")
+		r.fieldBitmap ((noise + "NoiseMapTexture") as name) (noise + "NoiseMap") enableParam:((("Enable" + noise + "NoiseMap") as name))
 	)
 )
 
 -------------------------------------------------------
 -- shader_transparent_glass
 -------------------------------------------------------
-fn readShaderGlassOps r =
+fn readShaderGlassFields r =
 (
-	_readBaseShaderOps r
+	_readBaseShaderFields r
 
-	r.fieldFlag #AlphaTested "shader_transparent_glass_flags.alpha_tested"
-	r.fieldFlag #Decal "shader_transparent_glass_flags.decal"
-	r.fieldFlag #TwoSided "shader_transparent_glass_flags.two_sided"
-	r.fieldFlag #BumpMapIsSpecularMask "shader_transparent_glass_flags.bump_map_is_specular_mask"
+	r.fieldFlag #AlphaTested "flags" 1
+	r.fieldFlag #Decal "flags" 2
+	r.fieldFlag #TwoSided "flags" 3
+	r.fieldFlag #BumpMapIsSpecularMask "flags" 4
 
 	-- Background tint
-	r.fieldRGB #BackgroundTintColor "background_tint_color"
-	r.fieldFloat #BackgroundTintMapScale "background_tint_map_scale"
-	r.fieldBitmap #BackgroundTintMapTexture "background_tint_map" enableParam:#EnableBackgroundTintMap
+	r.fieldRGB #BackgroundTintColor "backgroundTintColor"
+	r.fieldFloat #BackgroundTintMapScale "backgroundTintMapScale"
+	r.fieldBitmap #BackgroundTintMapTexture "backgroundTintMap" enableParam:#EnableBackgroundTintMap
 
 	-- Reflection
-	r.fieldEnum #ReflectionType "reflection_type"
-	r.fieldFloat #ReflPerpendicularBrightness "perpendicular_brightness"
-	r.fieldRGB #ReflPerpendicularTintColor "perpendicular_tint_color"
-	r.fieldFloat #ReflParallelBrightness "parallel_brightness"
-	r.fieldRGB #ReflParallelTintColor "parallel_tint_color"
-	r.fieldBitmap #ReflectionCubeTexture "reflection_map" enableParam:#EnableReflectionCube
+	r.fieldEnum #ReflectionType "reflectionType"
+	r.fieldFloat #ReflPerpendicularBrightness "perpendicularBrightness"
+	r.fieldRGB #ReflPerpendicularTintColor "perpendicularTintColor"
+	r.fieldFloat #ReflParallelBrightness "parallelBrightness"
+	r.fieldRGB #ReflParallelTintColor "parallelTintColor"
+	r.fieldBitmap #ReflectionCubeTexture "reflectionMap" enableParam:#EnableReflectionCube
 
 	-- Maps
-	r.fieldFloat #BumpMapScale "bump_map_scale"
-	r.fieldBitmap #BumpMapTexture "bump_map" enableParam:#EnableBumpMap
-	r.fieldFloat #DiffuseMapScale "diffuse_map_scale"
-	r.fieldBitmap #DiffuseMapTexture "diffuse_map" enableParam:#EnableDiffuseMap
-	r.fieldFloat #DiffuseDetailMapScale "diffuse_detail_map_scale"
-	r.fieldBitmap #DiffuseDetailMapTexture "diffuse_detail_map" enableParam:#EnableDiffuseDetailMap
-	r.fieldFloat #SpecularMapScale "specular_map_scale"
-	r.fieldBitmap #SpecularMapTexture "specular_map" enableParam:#EnableSpecularMap
-	r.fieldFloat #SpecularDetailMapScale "specular_detail_map_scale"
-	r.fieldBitmap #SpecularDetailMapTexture "specular_detail_map" enableParam:#EnableSpecularDetailMap
+	r.fieldFloat #BumpMapScale "bumpMapScale"
+	r.fieldBitmap #BumpMapTexture "bumpMap" enableParam:#EnableBumpMap
+	r.fieldFloat #DiffuseMapScale "diffuseMapScale"
+	r.fieldBitmap #DiffuseMapTexture "diffuseMap" enableParam:#EnableDiffuseMap
+	r.fieldFloat #DiffuseDetailMapScale "diffuseDetailMapScale"
+	r.fieldBitmap #DiffuseDetailMapTexture "diffuseDetailMap" enableParam:#EnableDiffuseDetailMap
+	r.fieldFloat #SpecularMapScale "specularMapScale"
+	r.fieldBitmap #SpecularMapTexture "specularMap" enableParam:#EnableSpecularMap
+	r.fieldFloat #SpecularDetailMapScale "specularDetailMapScale"
+	r.fieldBitmap #SpecularDetailMapTexture "specularDetailMap" enableParam:#EnableSpecularDetailMap
 )
 
 -------------------------------------------------------
 -- shader_environment
 -------------------------------------------------------
-fn readShaderEnvironmentOps r =
+-- Repeated names: flags (environment, diffuse, self-illumination, specular, reflection), type
+fn readShaderEnvironmentFields r =
 (
-	_readBaseShaderOps r
+	_readBaseShaderFields r
 
-	r.fieldFlag #AlphaTested "shader_environment_flags.alpha_tested"
-	r.fieldFlag #BumpMapIsSpecularMask "shader_environment_flags.bump_map_is_specular_mask"
-	r.fieldFlag #TrueAtmosphericFog "shader_environment_flags.true_atmospheric_fog"
-	r.fieldFlag #BumpAttenuation "shader_environment_flags.use_alternate_bump_attenuation"
-	r.fieldEnum #EnvironmentType "shader_environment_type"
-	r.fieldFloat #LensFlareSpacing "lens_flare_spacing"
+	r.fieldFlag #AlphaTested "flags" 1
+	r.fieldFlag #BumpMapIsSpecularMask "flags" 2
+	r.fieldFlag #TrueAtmosphericFog "flags" 3
+	r.fieldFlag #BumpAttenuation "flags" 4
+	r.fieldEnum #EnvironmentType "type"
+	r.fieldFloat #LensFlareSpacing "lensFlareSpacing"
 
 	-- Diffuse
-	r.fieldFlag #RescaleDetailMaps "diffuse_flags.rescale_detail_maps"
-	r.fieldFlag #RescaleBumpMap "diffuse_flags.rescale_bump_map"
-	r.fieldBitmap #BaseMapTexture "base_map" enableParam:#EnableBaseMap
-	r.fieldEnum #DetailMapFunction "detail_map_function"
-	r.fieldFloat #PrimaryDetailMapScale "primary_detail_map_scale"
-	r.fieldBitmap #PrimaryDetailMapTexture "primary_detail_map" enableParam:#EnablePrimaryDetailMap
-	r.fieldFloat #SecondaryDetailMapScale "secondary_detail_map_scale"
-	r.fieldBitmap #SecondaryDetailMapTexture "secondary_detail_map" enableParam:#EnableSecondaryDetailMap
-	r.fieldEnum #MicroDetailMapFunction "micro_detail_map_function"
-	r.fieldFloat #MicroDetailMapScale "micro_detail_map_scale"
-	r.fieldBitmap #MicroDetailMapTexture "micro_detail_map" enableParam:#EnableMicroDetailMap
-	r.fieldRGB #MaterialColor "material_color"
+	r.fieldFlag #RescaleDetailMaps "flags2" 1
+	r.fieldFlag #RescaleBumpMap "flags2" 2
+	r.fieldBitmap #BaseMapTexture "baseMap" enableParam:#EnableBaseMap
+	r.fieldEnum #DetailMapFunction "detailMapFunction"
+	r.fieldFloat #PrimaryDetailMapScale "primaryDetailMapScale"
+	r.fieldBitmap #PrimaryDetailMapTexture "primaryDetailMap" enableParam:#EnablePrimaryDetailMap
+	r.fieldFloat #SecondaryDetailMapScale "secondaryDetailMapScale"
+	r.fieldBitmap #SecondaryDetailMapTexture "secondaryDetailMap" enableParam:#EnableSecondaryDetailMap
+	r.fieldEnum #MicroDetailMapFunction "microDetailMapFunction"
+	r.fieldFloat #MicroDetailMapScale "microDetailMapScale"
+	r.fieldBitmap #MicroDetailMapTexture "microDetailMap" enableParam:#EnableMicroDetailMap
+	r.fieldRGB #MaterialColor "materialColor"
 
 	-- Bump
-	r.fieldFloat #BumpMapScale "bump_map_scale"
-	r.fieldBitmap #BumpMapTexture "bump_map" enableParam:#EnableBumpMap
+	r.fieldFloat #BumpMapScale "bumpMapScale"
+	r.fieldBitmap #BumpMapTexture "bumpMap" enableParam:#EnableBumpMap
 
 	-- Texture scrolling animation
 	for axis in #("U", "V") do
 	(
-		local keyAxis = toLower axis
-		r.fieldEnum ((axis + "AnimationFunction") as name) (keyAxis + "_animation_function")
-		r.fieldFloat ((axis + "AnimationPeriod") as name) (keyAxis + "_animation_period")
-		r.fieldFloat ((axis + "AnimationScale") as name) (keyAxis + "_animation_scale")
+		r.fieldEnum ((axis + "AnimationFunction") as name) (axis + "AnimationFunction")
+		r.fieldFloat ((axis + "AnimationPeriod") as name) (axis + "AnimationPeriod")
+		r.fieldFloat ((axis + "AnimationScale") as name) (axis + "AnimationScale")
 	)
 
 	-- Self-illumination
-	r.fieldFlag #unfilteredFlag "self_illumination_flags.unfiltered"
+	r.fieldFlag #unfilteredFlag "flags3" 1
 	for light in #("Primary", "Secondary", "Plasma") do
 	(
-		local key = toLower light
-		r.fieldRGB ((light + "OnColor") as name) (key + "_on_color")
-		r.fieldRGB ((light + "OffColor") as name) (key + "_off_color")
-		r.fieldEnum ((light + "AnimationFunction") as name) (key + "_animation_function")
-		r.fieldFloat ((light + "AnimationPeriod") as name) (key + "_animation_period")
-		r.fieldFloat ((light + "AnimationPhase") as name) (key + "_animation_phase")
+		r.fieldRGB ((light + "OnColor") as name) (light + "OnColor")
+		r.fieldRGB ((light + "OffColor") as name) (light + "OffColor")
+		r.fieldEnum ((light + "AnimationFunction") as name) (light + "AnimationFunction")
+		r.fieldFloat ((light + "AnimationPeriod") as name) (light + "AnimationPeriod")
+		r.fieldFloat ((light + "AnimationPhase") as name) (light + "AnimationPhase")
 	)
-	r.fieldFloat #SelfIlluminationMapScale "map_scale"
+	r.fieldFloat #SelfIlluminationMapScale "mapScale"
 	r.fieldBitmap #SelfIlluminationMapTexture "map" enableParam:#EnableSelfIlluminationMap
 
 	-- Specular
-	r.fieldFlag #SpecularOverbright "specular_flags.overbright"
-	r.fieldFlag #SpecularExtraShiny "specular_flags.extra_shiny"
-	r.fieldFlag #LightmapIsSpecular "specular_flags.lightmap_is_specular"
+	r.fieldFlag #SpecularOverbright "flags4" 1
+	r.fieldFlag #SpecularExtraShiny "flags4" 2
+	r.fieldFlag #LightmapIsSpecular "flags4" 3
 	r.fieldFloat #SpecBrightness "brightness"
-	r.fieldRGB #SpecPerpendicularColor "perpendicular_color"
-	r.fieldRGB #SpecParallelColor "parallel_color"
+	r.fieldRGB #SpecPerpendicularColor "perpendicularColor"
+	r.fieldRGB #SpecParallelColor "parallelColor"
 
 	-- Reflection
-	r.fieldFlag #DynamicMirror "reflection_flags.dynamic_mirror"
-	r.fieldEnum #ReflectionType "reflection_type"
-	r.fieldFloat #LightmapBrightnessScale "lightmap_brightness_scale"
-	r.fieldFloat #ReflPerpendicularBrightness "perpendicular_brightness"
-	r.fieldFloat #ReflParallelBrightness "parallel_brightness"
-	r.fieldBitmap #ReflectionCubeTexture "reflection_cube_map" enableParam:#EnableReflectionCube
+	r.fieldFlag #DynamicMirror "flags5" 1
+	r.fieldEnum #ReflectionType "type2"
+	r.fieldFloat #LightmapBrightnessScale "lightmapBrightnessScale"
+	r.fieldFloat #ReflPerpendicularBrightness "perpendicularBrightness"
+	r.fieldFloat #ReflParallelBrightness "parallelBrightness"
+	r.fieldBitmap #ReflectionCubeTexture "reflectionCubeMap" enableParam:#EnableReflectionCube
 )
 
 -------------------------------------------------------
--- Dispatcher
+-- Dispatcher and writer
 -------------------------------------------------------
 
--- Read a DirectX material as the given shader type. Returns a DxShaderReader with the
--- collected operations, or undefined for an unsupported type.
-fn readDxMaterialShaderOps dxMat shaderType =
+-- Reads a DirectX material as the given shader type. Returns a DxShaderReader with the
+-- collected fields, or undefined for an unsupported type.
+fn readDxMaterialShaderFields dxMat shaderType =
 (
 	local r = DxShaderReader dxMat:dxMat
 	case shaderType of
 	(
-		"shader_model": readShaderModelOps r
-		"shader_model_extended": readShaderModelExtendedOps r
-		"shader_transparent_chicago": readShaderChicagoOps r "maps" "shader_transparent_chicago_flags"
-		"shader_transparent_chicago_extended": readShaderChicagoOps r "maps_4_stage" "shader_transparent_chicago_extended_flags"
-		"shader_transparent_generic": readShaderGenericOps r
-		"shader_transparent_meter": readShaderMeterOps r
-		"shader_transparent_water": readShaderWaterOps r
-		"shader_transparent_plasma": readShaderPlasmaOps r
-		"shader_transparent_glass": readShaderGlassOps r
-		"shader_environment": readShaderEnvironmentOps r
+		"shader_model": readShaderModelFields r
+		"shader_model_extended": readShaderModelExtendedFields r
+		"shader_transparent_chicago": readShaderChicagoFields r "maps"
+		"shader_transparent_chicago_extended": readShaderChicagoFields r "4StageMaps"
+		"shader_transparent_generic": readShaderGenericFields r
+		"shader_transparent_meter": readShaderMeterFields r
+		"shader_transparent_water": readShaderWaterFields r
+		"shader_transparent_plasma": readShaderPlasmaFields r
+		"shader_transparent_glass": readShaderGlassFields r
+		"shader_environment": readShaderEnvironmentFields r
 		default: return undefined
 	)
 	r
+)
+
+-- Writes the reader's fields as a shader tag. Returns true when it worked (errors are in the log)
+fn writeDxShaderTag reader shaderType tagPath =
+(
+	local f = luaOpenTagInput "shader" 1
+	luaWriteString f shaderType
+	luaWriteInt f reader.keys.count
+	for i = 1 to reader.keys.count do
+	(
+		luaWriteString f reader.keys[i]
+		luaWriteString f reader.values[i]
+	)
+	luaWriteTag f "shader" tagPath
 )
 
 scriptName = getFilenameFile (getThisScriptFilename()) + getFilenameType (getThisScriptFilename())
