@@ -239,6 +239,8 @@ fileIn (rootEngine + "builders\\tag\\object\\export_tag.ms")
 fileIn (rootEngine + "builders\\tag\\object\\change_colors.ms")
 -- Bounding radius helper (createBoundingRadiusHelper, applyObjectBoundingRadius, tagEditorAddBoundingRadius)
 fileIn (rootEngine + "builders\\tag\\object\\bounding_radius.ms")
+-- Animation Player (animPlayerOpen, animPlayerApply, animPlayerStop)
+fileIn (rootEngine + "builders\\tag\\model_animations\\animation_player.ms")
 
 -- Loaded at startup (shared\init.ms), so this works in every scene
 callbacks.removeScripts id:#hceTagEditor
