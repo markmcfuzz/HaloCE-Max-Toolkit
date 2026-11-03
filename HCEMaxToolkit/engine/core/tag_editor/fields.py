@@ -6,7 +6,7 @@ import math
 import os
 import re
 
-from .qt import QtCore, QtGui, QtWidgets
+from .qt import QtCore, QtGui, QtWidgets, shiboken
 
 # Tooltip texts by help key ("object.bounding radius"), see lua\bridge\tag_ui.lua
 HELP_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "field_help.json")
@@ -370,6 +370,25 @@ EYE_KINDS = {"model": ["Geometry", "LODs", "Nodes", "Markers"], "collision": ["G
 _eye_shown = {"model": {"Geometry", "Nodes", "Markers"}, "collision": {"Geometry", "Pathfinding Spheres"}}
 
 
+class StayOpenMenu(QtWidgets.QMenu):
+    """Checkable items toggle without closing the menu, so the viewport shows each change."""
+
+    def _toggle(self, action):
+        if action is not None and action.isCheckable() and action.isEnabled():
+            action.trigger()
+            return True
+        return False
+
+    def mouseReleaseEvent(self, event):
+        if not self._toggle(self.actionAt(event.pos())):
+            super().mouseReleaseEvent(event)
+
+    def keyPressEvent(self, event):
+        keys = (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter, QtCore.Qt.Key_Space)
+        if not (event.key() in keys and self._toggle(self.activeAction())):
+            super().keyPressEvent(event)
+
+
 def eye_button(panel, part):
     """Shows or hides the nodes of a reference (undoable in Max); right-click picks which kinds."""
     button = QtWidgets.QToolButton()
@@ -408,16 +427,25 @@ def eye_button(panel, part):
         panel.show_ref(part, on and button.isChecked(), [kind])
 
     def choose(pos):
-        menu = QtWidgets.QMenu(button)
+        menu = StayOpenMenu(button)
         checked = _eye_shown[part]
+        actions = {}
+
+        def changed(kind, on):
+            set_kind(kind, on)
+            for k, action in actions.items():
+                action.setEnabled(not (k in checked and len(checked) == 1))  # one always stays
+            update()
+
         for kind in kinds:
-            action = menu.addAction(kind)
+            actions[kind] = action = menu.addAction(kind)
             action.setCheckable(True)
             action.setChecked(kind in checked)
-            action.setEnabled(not (kind in checked and len(checked) == 1))  # one always stays
-            action.toggled.connect(lambda on, kind=kind: set_kind(kind, on))
+            action.setEnabled(not (kind in checked and len(checked) == 1))
+            action.toggled.connect(lambda on, kind=kind: changed(kind, on))
         (menu.exec if hasattr(menu, "exec") else menu.exec_)(button.mapToGlobal(pos))
-        update()
+        if shiboken.isValid(button):
+            update()
 
     button.toggled.connect(toggled)
     if kinds:
@@ -448,6 +476,54 @@ def add_helper_button(panel):
     button.setToolTip("Add the bounding radius helper, sized from these fields")
     button.clicked.connect(panel.add_bounding_radius)
     return button
+
+
+def play_icon(color):
+    size = 32
+    pixmap = QtGui.QPixmap(size, size)
+    pixmap.fill(QtCore.Qt.transparent)
+    painter = QtGui.QPainter(pixmap)
+    painter.setRenderHint(QtGui.QPainter.Antialiasing)
+    painter.setPen(QtCore.Qt.NoPen)
+    painter.setBrush(color)
+    painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(9, 5), QtCore.QPointF(27, 16), QtCore.QPointF(9, 27)]))
+    painter.end()
+    return QtGui.QIcon(pixmap)
+
+
+class PlayerButton(QtWidgets.QToolButton):
+    """Opens the Animation Player (player.py) for the animation graph field at key."""
+
+    def __init__(self, panel, key):
+        super().__init__()
+        self.panel = panel
+        self.key = key
+        self.setAutoRaise(True)
+        self.setIcon(play_icon(self.palette().color(QtGui.QPalette.ButtonText)))
+        self.clicked.connect(lambda: panel.open_player(key))
+        panel.value_changed.connect(self._value_changed)
+        self._update()
+
+    def _problem(self):
+        if not ref_path(self.panel.value(self.key)).strip():
+            return "set the animation graph first"
+        path = self.panel.animation_tag_path(self.key)
+        if not path:
+            return "the object tag is not inside a tags folder"
+        if not os.path.isfile(path):
+            return "tag not found:\n" + path
+        if self.panel.ref_visibility("model") == 0:
+            return "import or link the model first"
+        return ""
+
+    def _update(self):
+        problem = self._problem()
+        self.setEnabled(not problem)
+        self.setToolTip("Animation Player" + (": " + problem if problem else ""))
+
+    def _value_changed(self, key):
+        if key == self.key:
+            self._update()
 
 
 def ref_edit(panel, key, allowed, accepts):
@@ -519,7 +595,10 @@ def ref_edit(panel, key, allowed, accepts):
     button.clicked.connect(browse)
     edit.editingFinished.connect(commit)
     part = eye_part(key)
-    buttons = [eye_button(panel, part), link_button(panel, part)] if part else []
+    if part == "animation":
+        buttons = [PlayerButton(panel, key)]
+    else:
+        buttons = [eye_button(panel, part), link_button(panel, part)] if part else []
     return row_of(buttons + ([combo] if combo is not None else []) + [edit, button])
 
 
