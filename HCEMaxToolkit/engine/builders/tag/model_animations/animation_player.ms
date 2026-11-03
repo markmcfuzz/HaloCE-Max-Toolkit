@@ -12,7 +12,8 @@
 
 -- Animation Player (engine\core\tag_editor\player.py): every animation of a model_animations
 -- tag is decoded once by lua\importers\animation_player.lua; a picked one goes as keys on the
--- bones of an object tag Point's model. Loaded by tag_editor.ms (uses tagRefNodes).
+-- bones of an object tag Point's model, or (obj undefined: Import > Tag > Model Animations) on
+-- the scene nodes with the same names. Loaded by tag_editor.ms (uses tagRefNodes).
 
 struct AnimPlayerTagData (tagPath, modDate, dataPath, nodeNames, names, exts, frameCounts, nodeCounts, offsets)
 global animPlayerTag
@@ -93,9 +94,19 @@ fn animPlayerRead i =
 )
 
 -- The Point's model bones for each tag node, by name (undefined when missing or not PRS).
--- Only that model: another object in the scene can have bones with the same names
+-- Only that model: another object in the scene can have bones with the same names.
+-- obj undefined: any scene node with that name, as the JMA importer does
 fn animPlayerNodes obj =
 (
+	if obj == undefined do
+	(
+		local sceneNodes = for nodeName in animPlayerTag.nodeNames collect
+		(
+			local n = getNodeByName nodeName
+			if n != undefined and classOf n.controller == prs then n else undefined
+		)
+		return sceneNodes
+	)
 	local byName = #()
 	local modelNodes = #()
 	for n in tagRefNodes obj "model" do
@@ -134,18 +145,20 @@ fn animPlayerControllerInverted nodes =
 )
 
 -- Pose and timeline before the player first touched a Point's bones, for Stop.
--- Per Point handle: #(nodes, rotations, positions, scales, animation range, slider time)
+-- Per Point handle (0 = scene bones): #(nodes, rotations, positions, scales, animation range, slider time)
 global animPlayerRestHandles = #()
 global animPlayerRestPoses = #()
 
+fn animPlayerRestKey obj = if obj == undefined then 0 else obj.inode.handle
+
 fn animPlayerSaveRest obj nodes =
 (
-	if findItem animPlayerRestHandles obj.inode.handle > 0 then return ok
+	if findItem animPlayerRestHandles (animPlayerRestKey obj) > 0 then return ok
 	local kept = for n in nodes where n != undefined collect n
 	local rotations = for n in kept collect n.rotation.controller.value
 	local positions = for n in kept collect n.position.controller.value
 	local scales = for n in kept collect n.scale.controller.value
-	append animPlayerRestHandles obj.inode.handle
+	append animPlayerRestHandles (animPlayerRestKey obj)
 	append animPlayerRestPoses #(kept, rotations, positions, scales, animationRange, sliderTime)
 )
 
@@ -159,7 +172,8 @@ for e in #(#filePostOpen, #systemPostReset, #systemPostNew) do
 fn animPlayerApply obj i =
 (
 	local data = animPlayerTag
-	if data == undefined or not (isObjectTagContainer obj) or i < 1 or i > data.names.count then return -1
+	if data == undefined or i < 1 or i > data.names.count then return -1
+	if obj != undefined and not (isObjectTagContainer obj) then return -1
 	local frameCount = data.frameCounts[i]
 	if frameCount == 0 then return -1
 	local startTime = timestamp()
@@ -233,28 +247,45 @@ fn animPlayerRestore i =
 fn animPlayerStop obj =
 (
 	stopAnimation()
-	if not (isValidNode obj) then return false
-	local i = findItem animPlayerRestHandles obj.inode.handle
+	if obj != undefined and not (isValidNode obj) then return false
+	local i = findItem animPlayerRestHandles (animPlayerRestKey obj)
 	if i == 0 then return false
 	animPlayerRestore i
 )
 
+-- When Model Animations closes: its keys stay on the scene bones (it's an import)
+fn animPlayerKeepScene =
+(
+	stopAnimation()
+	local i = findItem animPlayerRestHandles 0
+	if i > 0 do
+	(
+		deleteItem animPlayerRestHandles i
+		deleteItem animPlayerRestPoses i
+	)
+	ok
+)
+
 -- When the player closes: every Point it played on, also ones deleted meanwhile (their
--- bones are kept in the entry). Returns how many were restored
+-- bones are kept in the entry), not the scene bones. Returns how many were restored
 fn animPlayerStopAll =
 (
 	stopAnimation()
-	local count = animPlayerRestPoses.count
+	local count = 0
 	-- Last to first: the timeline ends as it was before the first one
-	for i = count to 1 by -1 do animPlayerRestore i
+	for i = animPlayerRestPoses.count to 1 by -1 where animPlayerRestHandles[i] != 0 do
+	(
+		animPlayerRestore i
+		count += 1
+	)
 	count
 )
 
 -- For the panel: #(tag name, names, exts, frame counts, bones found, tag node count), or the
--- error text
+-- error text. obj undefined: the scene bones
 fn animPlayerOpen obj tagPath =
 (
-	if not (isObjectTagContainer obj) then return "The object tag Point is gone"
+	if obj != undefined and not (isObjectTagContainer obj) then return "The object tag Point is gone"
 	if not (doesFileExist tagPath) then return ("Tag not found: " + tagPath)
 	local data = animPlayerLoadTag tagPath
 	if data == undefined then return "Could not read the animations (see the Max log)"
