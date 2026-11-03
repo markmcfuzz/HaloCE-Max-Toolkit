@@ -17,8 +17,8 @@ global viewportLabelsDraw
 if viewportLabelsDraw != undefined do unregisterRedrawViewsCallback viewportLabelsDraw
 
 -- Settings > General, or hotkeys for the "Toggle Marker Names" / "Toggle Node Names" actions
-global showMarkerNames = configManager.getBool "visual" "show_marker_names" true
-global showNodeNames = configManager.getBool "visual" "show_node_names" true
+global showMarkerNames = configManager.getBool "visual" "show_marker_names" false
+global showNodeNames = configManager.getBool "visual" "show_node_names" false
 
 -- Box size of a node, so its name starts outside it (bones: width; spheres: diameter)
 fn nodeLabelSize o =
