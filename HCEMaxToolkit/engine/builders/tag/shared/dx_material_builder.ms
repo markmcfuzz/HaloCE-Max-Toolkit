@@ -323,7 +323,7 @@ fn buildShaderModelExtendedDxMaterial textureResult fxFile =
 	dxSetParam dxMat #Detail2Function (getFieldValue mainEntry "detail2Function")
 	dxSetParam dxMat #Detail2Mask (getFieldValue mainEntry "detail2Mask")
 	dxSetParam dxMat #Detail2MapScale (zeroDefaultsToOne (getFieldValue mainEntry "detail2MapScale"))
-	dxSetParam dxMat #Detail2MapVScale (getFieldValue mainEntry "detail2MapVScale")
+	dxSetParam dxMat #Detail2MapVScale (getFieldValue mainEntry "detail2MapVscale")
 
 	-- Bump properties
 	dxSetParam dxMat #BaseNormalCoefficient (getFieldValue mainEntry "baseNormalCoefficient")
@@ -333,7 +333,7 @@ fn buildShaderModelExtendedDxMaterial textureResult fxFile =
 		local fieldPre = "detailNormal" + n
 		dxSetParam dxMat ((pre + "Coefficient") as name) (getFieldValue mainEntry (fieldPre + "Coefficient"))
 		dxSetParam dxMat ((pre + "Scale") as name) (getFieldValue mainEntry (fieldPre + "Scale"))
-		dxSetParam dxMat ((pre + "VScale") as name) (getFieldValue mainEntry (fieldPre + "VScale"))
+		dxSetParam dxMat ((pre + "VScale") as name) (getFieldValue mainEntry (fieldPre + "Vscale"))
 	)
 
 	-- Specular properties
@@ -537,6 +537,12 @@ fn _dxApplyGenericCombinerStage dxMat stageEntry stageIdx =
 	dxSetParam dxMat ((pre + "Color0AnimationLowerBound") as name) (tagARGBToMaxColor (getFieldValue stageEntry "color0AnimationLowerBound"))
 	dxSetParam dxMat ((pre + "Color0AnimationUpperBound") as name) (tagARGBToMaxColor (getFieldValue stageEntry "color0AnimationUpperBound"))
 	dxSetParam dxMat ((pre + "Color1") as name) (tagARGBToMaxColor (getFieldValue stageEntry "color1"))
+	-- The effect reads each ARGB alpha from its own slider ("Alpha (A of ARGB)"), not the color widget
+	for argb in #(#("color0AnimationLowerBound", "Color0LowerAlpha"), #("color0AnimationUpperBound", "Color0UpperAlpha"), #("color1", "Color1Alpha")) do
+	(
+		local p4 = getFieldValue stageEntry argb[1]
+		if classOf p4 == Point4 do dxSetParam dxMat ((pre + argb[2]) as name) p4.w
+	)
 
 	-- Inputs/outputs: occurrence 1 = color side, occurrence 2 = alpha side
 	for side in #(#("Color", 1), #("Alpha", 2)) do
@@ -551,15 +557,15 @@ fn _dxApplyGenericCombinerStage dxMat stageEntry stageIdx =
 		dxSetParam dxMat ((pre + sideName + "InputCMapping") as name) (getFieldValueNth stageEntry "inputCMapping" occ)
 		dxSetParam dxMat ((pre + sideName + "InputD") as name) (getFieldValueNth stageEntry "inputD" occ)
 		dxSetParam dxMat ((pre + sideName + "InputDMapping") as name) (getFieldValueNth stageEntry "inputDMapping" occ)
-		dxSetParam dxMat ((pre + sideName + "OutputAB") as name) (getFieldValueNth stageEntry "outputAb" occ)
-		dxSetParam dxMat ((pre + sideName + "OutputCD") as name) (getFieldValueNth stageEntry "outputCd" occ)
-		dxSetParam dxMat ((pre + sideName + "OutputABCDMuxSum") as name) (getFieldValueNth stageEntry "outputAbCdMux/sum" occ)
+		dxSetParam dxMat ((pre + sideName + "OutputAB") as name) (getFieldValueNth stageEntry "outputAB" occ)
+		dxSetParam dxMat ((pre + sideName + "OutputCD") as name) (getFieldValueNth stageEntry "outputCD" occ)
+		dxSetParam dxMat ((pre + sideName + "OutputABCDMuxSum") as name) (getFieldValueNth stageEntry "outputABCDMux/sum" occ)
 		dxSetParam dxMat ((pre + sideName + "OutputMapping") as name) (getFieldValueNth stageEntry "outputMapping" occ)
 	)
 
 	-- AB/CD combine functions exist on the color side only (alpha always multiplies)
-	dxSetParam dxMat ((pre + "ColorOutputABFunction") as name) (getFieldValueNth stageEntry "outputAbFunction" 1)
-	dxSetParam dxMat ((pre + "ColorOutputCDFunction") as name) (getFieldValueNth stageEntry "outputCdFunction" 1)
+	dxSetParam dxMat ((pre + "ColorOutputABFunction") as name) (getFieldValueNth stageEntry "outputABFunction" 1)
+	dxSetParam dxMat ((pre + "ColorOutputCDFunction") as name) (getFieldValueNth stageEntry "outputCDFunction" 1)
 
 	-- Stage 1 is always active; stages 2-7 are switched on per tag entry
 	if stageIdx >= 2 then
