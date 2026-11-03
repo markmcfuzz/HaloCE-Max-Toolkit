@@ -1,5 +1,6 @@
 -- model_animations -> JMA/JMO/JMR/... source files, one per animation (same output as the
--- previous MAXScript extractor). options: { output folder }. Writes a summary that
+-- previous MAXScript extractor). options: { output folder [, "3,7,12": only those (1-based)] }.
+-- Writes a summary that
 -- pipeline\extract_model_animations\animation_extractor.ms reads.
 -- Math is rounded to 32-bit floats like MAXScript, so the text matches the old files.
 local bit = require "bit" -- LuaJIT: bit operations on 32-bit integers
@@ -612,8 +613,9 @@ local function animationInfo(animation)
     }
 end
 
--- Writes one animation's file; returns true when written
-local function extractOne(anim, animations, nodes, outDir, log)
+-- Poses of one animation as the JMA has them: an overlay starts with its idle pose, base and
+-- replacement animations end with a looping copy of frame 1
+local function animationKeyframes(anim, animations, log)
     local info = readFrameInfo(anim)
 
     local idle
@@ -653,25 +655,18 @@ local function extractOne(anim, animations, nodes, outDir, log)
         keyframes[#keyframes + 1] = keyframe(frames[1], anim.nodeCount, totalX, totalY, totalZ,
                                              totalYaw)
     end
+    return keyframes
+end
 
+-- Writes one animation's file; returns true when written
+local function extractOne(anim, animations, nodes, outDir, log)
+    local keyframes = animationKeyframes(anim, animations, log)
     local path = outDir .. "\\" .. anim.name .. "." .. extension(anim)
     return writeJma(path, anim, nodes, keyframes)
 end
 
-function modelAnimations.write(root, output, options, tag)
-    local outDir = assert(options[1], "missing output folder"):gsub("[\\/]+$", "")
-    dataReader = tagReader.openBytes(tag.bytes)
-
-    local messages = {}
-    local function log(level, text)
-        messages[#messages + 1] = {level, text}
-    end
-
-    local animations = {}
-    for i, animation in ipairs(root["animations"]) do
-        animations[i] = animationInfo(animation)
-    end
-
+-- The tag's nodes { name, first child, next sibling }; empty when it has none and no fallback
+local function tagNodes(root, animations, log)
     local nodes = {}
     for i, node in ipairs(root["nodes"]) do
         nodes[i] = {node["name"], node["first child node index"], node["next sibling node index"]}
@@ -692,12 +687,67 @@ function modelAnimations.write(root, output, options, tag)
             nodes = known
         end
     end
+    return nodes
+end
+
+local function readAnimations(root)
+    local animations = {}
+    for i, animation in ipairs(root["animations"]) do
+        animations[i] = animationInfo(animation)
+    end
+    return animations
+end
+
+-- For the Animation Player (importers\animation_player.lua): the nodes, and per animation
+-- { name, ext, nodeCount, keyframes } (no keyframes when it can't be read)
+function modelAnimations.decodeAll(root, tag, log)
+    dataReader = tagReader.openBytes(tag.bytes)
+    local animations = readAnimations(root)
+    local nodes = tagNodes(root, animations, log)
+    local decoded = {}
+    for i, anim in ipairs(animations) do
+        local entry = {name = anim.name, ext = extension(anim), nodeCount = anim.nodeCount, keyframes = {}}
+        if #nodes > 0 and anim.nodeCount > 0 then
+            local ok, result = pcall(animationKeyframes, anim, animations, log)
+            if ok then
+                entry.keyframes = result
+            else
+                log(logLevel.error, ("Failed to read '%s': %s"):format(anim.name, tostring(result)))
+            end
+        end
+        decoded[i] = entry
+    end
+    dataReader = nil
+    return nodes, decoded
+end
+
+modelAnimations.logLevel = logLevel
+
+function modelAnimations.write(root, output, options, tag)
+    local outDir = assert(options[1], "missing output folder"):gsub("[\\/]+$", "")
+    dataReader = tagReader.openBytes(tag.bytes)
+
+    local only = nil
+    if options[2] and options[2] ~= "" then
+        only = {}
+        for index in options[2]:gmatch("%d+") do only[tonumber(index)] = true end
+    end
+
+    local messages = {}
+    local function log(level, text)
+        messages[#messages + 1] = {level, text}
+    end
+
+    local animations = readAnimations(root)
+    local nodes = tagNodes(root, animations, log)
 
     -- Without nodes nothing is written (the old extractor stopped there too)
     local hasNodes = #nodes > 0
     local extracted, skipped = 0, 0
-    for _, anim in ipairs(hasNodes and animations or {}) do
-        if anim.nodeCount == 0 then
+    for i, anim in ipairs(hasNodes and animations or {}) do
+        if only and not only[i] then
+            -- Not picked in the Animation Player
+        elseif anim.nodeCount == 0 then
             log(logLevel.warning, ("Skipping '%s': nodeCount is 0."):format(anim.name))
             skipped = skipped + 1
         else
