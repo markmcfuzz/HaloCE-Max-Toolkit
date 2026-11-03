@@ -72,6 +72,7 @@ fn createHaloCEToolkitMenu =
         addMacroToMenu importTagMenu "Halo CE" "ImportCameraTrack" mm displayName:"Camera Track"
         addMacroToMenu importTagMenu "Halo CE" "ImportStructureBSP" mm displayName:"Scenario Structure BSP"
         addMacroToMenu importTagMenu "Halo CE" "ImportObject" mm displayName:"Object"
+        addMacroToMenu importTagMenu "Halo CE" "ImportModelAnimations" mm displayName:"Model Animations"
         addMacroToMenu importSourceMenu "Halo CE" "ImportJMS" mm displayName:"Jointed Model Skeleton (JMS)"
         addMacroToMenu importSourceMenu "Halo CE" "ImportAnimationData" mm displayName:"Jointed Model Animation (JMA)"
         importMenu.addItem (mm.createSubMenuItem "Tag" importTagMenu) -1
