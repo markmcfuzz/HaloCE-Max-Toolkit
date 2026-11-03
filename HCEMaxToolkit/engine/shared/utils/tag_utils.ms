@@ -28,7 +28,8 @@ fn getTagClass filePath =
 -- Field tuples #(#(name, value), ...) (luaReadTuples)
 -------------------------------------------------------
 
--- Value of the first field with that name (names compare case-insensitively), or undefined
+-- Value of the first field with that name, or undefined. Names are case-sensitive: use the
+-- Lua reader's camelCase exactly ("output AB" -> "outputAB", "detail2 map vscale" -> "detail2MapVscale")
 fn getFieldValue dataArray fieldName =
 (
 	if classOf dataArray != Array then return undefined
