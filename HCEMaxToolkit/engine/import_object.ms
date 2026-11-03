@@ -75,27 +75,33 @@ fn importObjectFile tagPath =
     logger.info "Reading: {} seconds" args:#((timestamp() - readStartTime) / 1000.)
     logger.info "Fields: {}" args:#(data.keys.count)
 
-    -- Model first: collision and physics attach to its nodes
-    local lastHandle = getLastNodeHandle()
-    local tagsRoot = getTagsRootFromTagPath tagPath
-    importReferencedTag tagsRoot data.modelRef importGbxModelFile
-    local modelHandle = getLastNodeHandle()
-    importReferencedTag tagsRoot data.collisionRef importCollisionFile
-    local collisionHandle = getLastNodeHandle()
-    importReferencedTag tagsRoot data.physicsRef importPhysicsFile
-    local physicsHandle = getLastNodeHandle()
-    -- What each reference brought, for the editor's eye and link buttons
-    local parts = #(getNodesBetweenHandles lastHandle modelHandle, \
-                    getNodesBetweenHandles modelHandle collisionHandle, \
-                    getNodesBetweenHandles collisionHandle physicsHandle)
-    logger.info "Hidden LOD meshes: {}" args:#(hideModelLods parts[1])
+    -- Undo off, like the other importers: its long history made every bone key ~10x slower
+    -- afterwards (Ctrl+Z won't remove the import)
+    local container
+    with undo off
+    (
+        -- Model first: collision and physics attach to its nodes
+        local lastHandle = getLastNodeHandle()
+        local tagsRoot = getTagsRootFromTagPath tagPath
+        importReferencedTag tagsRoot data.modelRef importGbxModelFile
+        local modelHandle = getLastNodeHandle()
+        importReferencedTag tagsRoot data.collisionRef importCollisionFile
+        local collisionHandle = getLastNodeHandle()
+        importReferencedTag tagsRoot data.physicsRef importPhysicsFile
+        local physicsHandle = getLastNodeHandle()
+        -- What each reference brought, for the editor's eye and link buttons
+        local parts = #(getNodesBetweenHandles lastHandle modelHandle, \
+                        getNodesBetweenHandles modelHandle collisionHandle, \
+                        getNodesBetweenHandles collisionHandle physicsHandle)
+        logger.info "Hidden LOD meshes: {}" args:#(hideModelLods parts[1])
 
-    -- Created last, so physics doesn't count it among the model nodes
-    local memberNodes = getNodesAfterHandle lastHandle
-    append memberNodes (createBoundingRadiusHelper data.keys data.values (filenameFromPath tagPath))
-    local container = createObjectContainer data tagPath memberNodes parts:parts
-    logger.info "Change colors on {} materials" args:#(applyObjectChangeColors container)
-    logger.info "Container '{}' with {} nodes" args:#(container.name, memberNodes.count)
+        -- Created last, so physics doesn't count it among the model nodes
+        local memberNodes = getNodesAfterHandle lastHandle
+        append memberNodes (createBoundingRadiusHelper data.keys data.values (filenameFromPath tagPath))
+        container = createObjectContainer data tagPath memberNodes parts:parts
+        logger.info "Change colors on {} materials" args:#(applyObjectChangeColors container)
+        logger.info "Container '{}' with {} nodes" args:#(container.name, memberNodes.count)
+    )
 
     completeRedraw()
     container

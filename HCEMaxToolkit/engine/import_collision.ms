@@ -54,7 +54,8 @@ fn importCollisionFile collisionFile =
 
     logger.log "=== BUILDING COLLISION MESH ==="
     local buildStartTime = timestamp()
-    local createdMeshes = buildCollisionMesh collisionData (getFilenameFile collisionFile)
+    -- Undo off: a long undo history makes every bone key slower later (Ctrl+Z won't remove the import)
+    local createdMeshes = with undo off (buildCollisionMesh collisionData (getFilenameFile collisionFile))
     logger.info "Scene building: {} seconds" args:#((timestamp() - buildStartTime) / 1000.)
     logger.log "Collision geometry build complete\n"
 
