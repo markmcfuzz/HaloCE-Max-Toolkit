@@ -23,7 +23,6 @@ logger.loadConfig callerScriptName:scriptName
 logger.log "=== EXPORTING CAMERA TRACK ==="
 
 -- Load required modules
-include "shared\\utils\\invader_utils.ms"
 include "pipeline\\create_tag\\create_camera_track.ms"
 
 -------------------------------------------------------
@@ -68,7 +67,7 @@ fn exportCameraTrack =
 	
 	logger.info "Export path: '{}'" args:#(savePath)
 	
-	-- Write tag file (invader-edit)
+	-- Write tag file (Lua tag writer)
 	local writeResult = writeCameraTrackTag savePath cameraTrackData
 	local success = writeResult[1]
 
