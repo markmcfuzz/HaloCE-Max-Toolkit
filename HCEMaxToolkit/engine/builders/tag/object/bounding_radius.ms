@@ -53,12 +53,12 @@ fn setBoundingRadiusHelper h keys values =
 fn createBoundingRadiusHelper keys values tagName =
 (
 	local h = InfluenceHelper name:(tagName + ".boundingRadius")
-	h.on = false
+	h.on = true
 	h.showNear = true
-	h.nearColor = color 255 0 0
+	h.nearColor = color 255 146 233
 	h.farDist = 0.0
 	h.showFar = false
-	h.farColor = color 255 140 0
+	h.farColor = color 0 0 0
 	h.FalloffType = 2  -- Smoother
 	h.invert = false
 	h.EnableBias = true
