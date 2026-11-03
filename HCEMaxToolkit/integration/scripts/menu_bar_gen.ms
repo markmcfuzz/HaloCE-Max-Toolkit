@@ -37,12 +37,14 @@ function menuCallback =
     local importObjectId = "ImportObject`Halo CE"
     local importCameraTrackId = "ImportCameraTrack`Halo CE"
     local importStructureBspId = "ImportStructureBSP`Halo CE"
+    local importModelAnimationsId = "ImportModelAnimations`Halo CE"
     importTagMenu.CreateAction "ADB41E81-D249-4539-8F5B-2406E02D8352" macroScriptTableId importGbxId
     importTagMenu.CreateAction "3C4D1F2E-1C7C-4D2C-8F1E-4F6D1E2B8C9A" macroScriptTableId importCollisionId
     importTagMenu.CreateAction "5F6A7B8C-9D0E-4F1A-8B2C-3D4E5F6A7B8C" macroScriptTableId importPhysicsId
     importTagMenu.CreateAction "1A2B3C4D-5E6F-7081-92A3-B4C5D6E7F809" macroScriptTableId importCameraTrackId
     importTagMenu.CreateAction "2B3C4D5E-6F70-8192-A3B4-C5D6E7F8091B" macroScriptTableId importStructureBspId
     importTagMenu.CreateAction "B66A2CC0-42DD-4D53-A827-E61EE38CCFD4" macroScriptTableId importObjectId
+    importTagMenu.CreateAction "8D5C3E1A-46B7-4F92-B0E8-2A9C7D14F6B3" macroScriptTableId importModelAnimationsId
     importSourceMenu.CreateAction "2B3C4D5E-6F70-8192-A3B4-C5D6E7F8091A" macroScriptTableId importJmsId
     importSourceMenu.CreateAction "EFD414B5-0B36-4092-BE7E-39D785F91B05" macroScriptTableId importAnimDataId
 
