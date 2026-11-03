@@ -13,8 +13,9 @@
 -- Extracts every animation of a model_animations tag to JMA/JMO/JMR/... source files.
 -- The work is done by lua\importers\model_animations.lua; this asks for the folder and reports.
 
--- outputDir: when given (e.g. by a test script), no folder dialog and no completion dialog
-fn extractModelAnimations tagPath outputDir:undefined =
+-- outputDir: when given (e.g. by a test script), no folder dialog and no completion dialog.
+-- only: "3,7,12" extracts only those animations (1-based); "" extracts all
+fn extractModelAnimations tagPath outputDir:undefined only:"" =
 (
     local askedForFolder = outputDir == undefined
     if askedForFolder do
@@ -32,7 +33,7 @@ fn extractModelAnimations tagPath outputDir:undefined =
     outputDir = trimRight outputDir "\\"
 
     local startTime = timestamp()
-    local f = luaExportTag "model_animations" 2 tagPath options:#(outputDir)
+    local f = luaExportTag "model_animations" 2 tagPath options:#(outputDir, only)
     if f == undefined then
     (
         logger.error "Lua extractor failed | cannot extract animations."
