@@ -3,7 +3,7 @@ written through the MAXScript functions of builders\\tag\\object\\tag_editor.ms.
 from pymxs import runtime as rt
 
 from .qt import QtCore, QtWidgets
-from . import elements
+from . import elements, player
 from .layout import group_layout
 from .fields import ComboBox, field_editor, field_label, ref_path, set_help, tags_root_of, to_int
 
@@ -220,6 +220,16 @@ class TagEditorPanel(QtWidgets.QWidget):
         # Later: refresh rebuilds the "+" that was clicked into the eye
         if self.node is not None and rt.tagEditorAddBoundingRadius(self.node):
             QtCore.QTimer.singleShot(0, self.refresh)
+
+    def animation_tag_path(self, key):
+        """Full path of the animation graph tag at key; "" without a path or tags folder."""
+        path = ref_path(self.value(key)).strip()
+        root = self.tags_root()
+        return root + path.replace("\\", "/") + ".model_animations" if path and root else ""
+
+    def open_player(self, key):
+        if self.node is not None:
+            player.show(self.node, self.animation_tag_path(key))
 
     def select_ref(self, part):
         if self.node is not None:
