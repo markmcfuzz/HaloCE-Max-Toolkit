@@ -4,6 +4,7 @@ from pymxs import runtime as rt
 
 from .qt import QtCore, QtWidgets, shiboken, GetQMaxMainWindow
 from .panel import TagEditorPanel
+from . import tabs
 
 DOCK_NAME = "HCETagEditorDock"
 
@@ -40,6 +41,7 @@ def show():
         main.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
     dock.show()
     dock.raise_()
+    tabs.watch()
     _panel.refresh()
 
 
