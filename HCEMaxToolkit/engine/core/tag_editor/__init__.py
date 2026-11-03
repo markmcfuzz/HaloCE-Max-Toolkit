@@ -4,7 +4,7 @@ from pymxs import runtime as rt
 
 from .qt import QtCore, QtWidgets, shiboken, GetQMaxMainWindow
 from .panel import TagEditorPanel
-from . import tabs
+from . import tabs, player
 
 DOCK_NAME = "HCETagEditorDock"
 
@@ -53,6 +53,20 @@ def _command_panel(main):
         if dock.objectName() == "CommandPanel" or dock.windowTitle() == "Command Panel":
             return dock
     return None
+
+
+def close_all():
+    """New, reset or open scene: the editor and the players belong to the old scene."""
+    main = GetQMaxMainWindow()
+    for name in (DOCK_NAME, player.DOCK_NAME, player.IMPORT_DOCK_NAME):
+        for dock in main.findChildren(QtWidgets.QDockWidget, name):
+            if shiboken.isValid(dock):
+                dock.close()
+
+
+def show_model_animations(tag_path):
+    """Import > Tag > Model Animations (import_model_animations.ms)."""
+    player.show_scene(tag_path, _command_panel)
 
 
 def follow_selection():

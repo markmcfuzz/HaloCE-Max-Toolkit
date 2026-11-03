@@ -1,6 +1,7 @@
 """Animation Player: a tab next to the tag editor that lists the animations of an object's
 animation graph and puts the picked one as keys on its model's bones. The work is done by
-builders/tag/model_animations/animation_player.ms (animPlayerOpen, animPlayerApply, animPlayerStop)."""
+builders/tag/model_animations/animation_player.ms (animPlayerOpen, animPlayerApply, animPlayerStop).
+The same panel is Import > Tag > Model Animations (show_scene): node None, the scene bones."""
 import traceback
 
 from pymxs import runtime as rt
@@ -10,12 +11,14 @@ from .fields import ComboBox
 from . import tabs
 
 DOCK_NAME = "HCEAnimationPlayerDock"
+IMPORT_DOCK_NAME = "HCEModelAnimationsDock"
 EDITOR_DOCK_NAME = "HCETagEditorDock"  # see __init__.py
 
 # Max's real-time playback speeds (timeConfiguration.playbackSpeed 1 to 5)
 SPEEDS = ["¼×", "½×", "1×", "2×", "4×"]
 
-_panel = None
+# Open panels by dock name
+_panels = {}
 
 
 def media_icon(kind, color):
@@ -142,16 +145,19 @@ class AnimationPlayerPanel(QtWidgets.QWidget):
         return super().eventFilter(watched, event)
 
     def _node_ok(self):
+        if self.node is None:  # the scene bones
+            return True
         try:
-            return self.node is not None and bool(rt.isValidNode(self.node))
+            return bool(rt.isValidNode(self.node))
         except Exception:
             return False
 
     def load(self, node, tag_path):
-        """Lists the animations of tag_path for the object tag Point node (decoded once)."""
+        """Lists the animations of tag_path for the object tag Point node, or for the scene
+        bones when node is None (decoded once)."""
         self.node = node
         self.tag_path = tag_path
-        self.point_name = str(node.name)
+        self.point_name = "the scene" if node is None else str(node.name)
         self.list.clear()
         self.status.setText("")
         self.title.setText(tag_path.replace("/", "\\").rsplit("\\", 1)[-1] if tag_path else "Animation Player")
@@ -174,10 +180,12 @@ class AnimationPlayerPanel(QtWidgets.QWidget):
             return
         self.title.setText(str(tag_name))
         # "17 of 19" only when the model lacks some animated bones
-        bones = "%d bones of %s" % (total, self.point_name) if found == total \
-            else "%d of %d bones of %s" % (found, total, self.point_name)
+        where = "in the scene" if node is None else "of %s" % self.point_name
+        bones = "%d bones %s" % (total, where) if found == total \
+            else "%d of %d bones %s" % (found, total, where)
         if found == 0:
-            bones = "None of the %d animated bones are in %s's model" % (total, self.point_name)
+            model = "the scene" if node is None else "%s's model" % self.point_name
+            bones = "None of the %d animated bones are in %s" % (total, model)
         self.info.setText("%s\n%d animations of %s" % (bones, len(names), tag_name))
         for i, (name, ext, frame_count) in enumerate(zip(names, exts, frames)):
             item = QtWidgets.QListWidgetItem("%s  (%s · %d frames)" % (name, ext, frame_count))
@@ -318,8 +326,14 @@ class PlayerDock(QtWidgets.QDockWidget):
         super().closeEvent(event)
 
 
-def _is_open():
-    return _panel is not None and shiboken.isValid(_panel)
+class ImportDock(QtWidgets.QDockWidget):
+    def closeEvent(self, event):
+        # Import > Tag > Model Animations: the keys stay on the scene bones
+        try:
+            rt.animPlayerKeepScene()
+        except Exception:
+            traceback.print_exc()
+        super().closeEvent(event)
 
 
 def _dock(main, name):
@@ -329,26 +343,42 @@ def _dock(main, name):
     return None
 
 
-def show(node, tag_path):
-    """Opens the tab beside the tag editor (or brings it to the front) and loads the tag."""
-    global _panel
+def _open(name, title, dock_class, find_beside):
+    """The panel of dock name, made as a tab beside find_beside(main) (right side when it's
+    floating or None) the first time; brought to the front."""
     main = GetQMaxMainWindow()
-    if not _is_open():
-        dock = PlayerDock("Animation Player", main)
-        dock.setObjectName(DOCK_NAME)
+    panel = _panels.get(name)
+    if panel is None or not shiboken.isValid(panel):
+        # Looked up with this main: docks found through another (freed) main are deleted wrappers
+        beside = find_beside(main)
+        dock = dock_class(title, main)
+        dock.setObjectName(name)
         dock.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         dock.setMinimumWidth(320)
-        _panel = AnimationPlayerPanel(dock)
-        dock.setWidget(_panel)
-        editor = _dock(main, EDITOR_DOCK_NAME)
-        if editor is not None and not editor.isFloating():
-            main.addDockWidget(main.dockWidgetArea(editor), dock)
-            main.tabifyDockWidget(editor, dock)
+        panel = AnimationPlayerPanel(dock)
+        dock.setWidget(panel)
+        _panels[name] = panel
+        if beside is not None and not beside.isFloating():
+            main.addDockWidget(main.dockWidgetArea(beside), dock)
+            main.tabifyDockWidget(beside, dock)
         else:
             main.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
-    dock = _panel.parent()
+    dock = panel.parent()
     dock.show()
     dock.raise_()
     tabs.watch()
+    return panel
+
+
+def show(node, tag_path):
+    """Opens the tab beside the tag editor (or brings it to the front) and loads the tag."""
+    panel = _open(DOCK_NAME, "Animation Player", PlayerDock, lambda main: _dock(main, EDITOR_DOCK_NAME))
     # After the tab shows: loading the first time takes about a second
-    QtCore.QTimer.singleShot(0, lambda: _panel.load(node, tag_path))
+    QtCore.QTimer.singleShot(0, lambda: panel.load(node, tag_path))
+
+
+def show_scene(tag_path, find_command_panel):
+    """Import > Tag > Model Animations: the tag's animations for the scene bones, in a tab
+    beside the Command Panel (find_command_panel(main))."""
+    panel = _open(IMPORT_DOCK_NAME, "Model Animations", ImportDock, find_command_panel)
+    QtCore.QTimer.singleShot(0, lambda: panel.load(None, tag_path))

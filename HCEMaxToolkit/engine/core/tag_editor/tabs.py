@@ -2,7 +2,7 @@
 docks move, so the tabs are checked twice per second and the X put back when missing."""
 from .qt import QtCore, QtGui, QtWidgets, shiboken, GetQMaxMainWindow
 
-TITLES = ("Halo Tag Editor", "Animation Player")
+TITLES = ("Halo Tag Editor", "Animation Player", "Model Animations")
 BUTTON_NAME = "HCETabCloseButton"
 
 _timer = None
