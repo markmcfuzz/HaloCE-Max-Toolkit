@@ -80,8 +80,11 @@ fn tagRefNodes obj part =
 	for n in list where isValidNode n collect n
 )
 
+-- modelLowerLods, hideModelLods (before the functions that use them)
+fileIn (rootEngine + "builders\\tag\\object\\model_lods.ms")
+
 -- What a node of a reference is, for the eye's right-click menu (by its layer; linked
--- objects in other layers count as "Geometry")
+-- objects in other layers count as "Geometry"). Lower LODs are told apart in tagRefKindNodes
 fn tagRefNodeKind part n =
 (
 	local layerName = n.layer.name
@@ -97,7 +100,9 @@ fn tagRefNodeKind part n =
 fn tagRefKindNodes obj part kinds =
 (
 	local nodes = tagRefNodes obj part
-	if kinds == undefined then nodes else for n in nodes where findItem kinds (tagRefNodeKind part n) > 0 collect n
+	if kinds == undefined then return nodes
+	local lowerLods = if part == "model" then modelLowerLods nodes else #()
+	for n in nodes where findItem kinds (if findItem lowerLods n > 0 then "LODs" else tagRefNodeKind part n) > 0 collect n
 )
 
 fn setTagRefNodes obj part nodes = case part of
