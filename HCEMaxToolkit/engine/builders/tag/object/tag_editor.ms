@@ -233,6 +233,14 @@ fn tagEditorSelectionChanged =
 	catch (logger.error "Tag editor failed: {}" args:#(getCurrentException()))
 )
 
+-- Before a new, reset or opened scene: closes the editor and the players (if Python loaded)
+fn tagEditorCloseAll =
+(
+	if tagEditorPythonReady != true then return ok
+	try ((tagEditorModule()).close_all())
+	catch (logger.error "Tag editor failed to close: {}" args:#(getCurrentException()))
+)
+
 -- The editor's "Export Tag..." button (tagEditorExport)
 fileIn (rootEngine + "builders\\tag\\object\\export_tag.ms")
 -- Change colors shown on the model's materials (applyObjectChangeColors)
@@ -246,6 +254,9 @@ fileIn (rootEngine + "builders\\tag\\model_animations\\animation_player.ms")
 callbacks.removeScripts id:#hceTagEditor
 for e in #(#selectionSetChanged, #sceneUndo, #sceneRedo, #filePostOpen, #systemPostReset, #systemPostNew) do
 	callbacks.addScript e "tagEditorSelectionChanged()" id:#hceTagEditor
+-- "Pre": the player's Stop still restores the old scene, not the new one's timeline
+for e in #(#filePreOpen, #systemPreReset, #systemPreNew) do
+	callbacks.addScript e "tagEditorCloseAll()" id:#hceTagEditor
 
 scriptName = getFilenameFile (getThisScriptFilename()) + getFilenameType (getThisScriptFilename())
 logger.info "{} loaded." args:#(scriptName)
