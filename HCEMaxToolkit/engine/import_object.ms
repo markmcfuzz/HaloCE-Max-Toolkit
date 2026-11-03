@@ -88,6 +88,7 @@ fn importObjectFile tagPath =
     local parts = #(getNodesBetweenHandles lastHandle modelHandle, \
                     getNodesBetweenHandles modelHandle collisionHandle, \
                     getNodesBetweenHandles collisionHandle physicsHandle)
+    logger.info "Hidden LOD meshes: {}" args:#(hideModelLods parts[1])
 
     -- Created last, so physics doesn't count it among the model nodes
     local memberNodes = getNodesAfterHandle lastHandle
