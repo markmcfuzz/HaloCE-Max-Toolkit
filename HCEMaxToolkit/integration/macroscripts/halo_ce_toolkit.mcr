@@ -178,6 +178,27 @@ macroScript ImportStructureBSP
     )
 )
 
+macroScript ImportModelAnimations
+    category: "Halo CE"
+    toolTip: "Model Animations"
+(
+    on execute do
+    (
+        local thisScript = getThisScriptFilename()
+        local leafPath = pathConfig.removePathLeaf thisScript
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+        local scriptPath = pluginRoot + "\\engine\\import_model_animations.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
+
 -- Export Scripts
 
 macroScript ExportJointedModelAnimation
