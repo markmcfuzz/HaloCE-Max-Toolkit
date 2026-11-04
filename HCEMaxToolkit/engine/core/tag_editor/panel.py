@@ -3,7 +3,7 @@ written through the MAXScript functions of builders\\tag\\object\\tag_editor.ms.
 from pymxs import runtime as rt
 
 from .qt import QtCore, QtWidgets
-from . import elements, player
+from . import elements, player, preview
 from .layout import group_layout
 from .fields import ComboBox, field_editor, field_label, ref_path, set_help, tags_root_of, to_int
 
@@ -308,6 +308,12 @@ class TagEditorPanel(QtWidgets.QWidget):
         content = QtWidgets.QWidget()
         column = QtWidgets.QVBoxLayout(content)
         column.setContentsMargins(0, 0, 0, 0)
+        # Not tag data: only for objects with GlyphFX preview materials, closed at first
+        if rt.tagEditorPreviewState(node) is not None:
+            column.addWidget(Section(
+                preview.TITLE, lambda: preview.preview_box(self),
+                self.expanded.get(preview.TITLE, False),
+                lambda on: self.expanded.__setitem__(preview.TITLE, on)))
         sections = layout["sections"]
         for section in sections:
             title = section["title"]
