@@ -23,18 +23,20 @@ fn modelLodRank n =
 -- The LOD meshes that are not the best of their permutation (superhigh, or the best it has)
 fn modelLowerLods modelNodes =
 (
-	local prefixes = #()
-	local best = #()
-	local lodMeshes = for n in modelNodes where isValidNode n and n.layer.name == "Geometry Model" and modelLodRank n > 0 collect n
-	for n in lodMeshes do
+	local lodMeshes = #()  -- #(node, permutation prefix, rank)
+	local best = dictionary #string  -- permutation prefix: its best rank
+	for n in modelNodes where isValidNode n and n.layer.name == "Geometry Model" do
 	(
-		local words = filterString n.name " "
-		local prefix = substring n.name 1 (n.name.count - words[words.count].count)
-		local i = findItem prefixes prefix
-		if i == 0 then (append prefixes prefix; append best n)
-		else if modelLodRank n < modelLodRank best[i] do best[i] = n
+		local rank = modelLodRank n
+		if rank > 0 do
+		(
+			local words = filterString n.name " "
+			local prefix = substring n.name 1 (n.name.count - words[words.count].count)
+			append lodMeshes #(n, prefix, rank)
+			if not (hasDictValue best prefix) or rank < best[prefix] do best[prefix] = rank
+		)
 	)
-	for n in lodMeshes where findItem best n == 0 collect n
+	for m in lodMeshes where m[3] > best[m[2]] collect m[1]
 )
 
 -- On object import. Returns how many were hidden

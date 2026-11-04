@@ -101,7 +101,9 @@ fn tagRefKindNodes obj part kinds =
 (
 	local nodes = tagRefNodes obj part
 	if kinds == undefined then return nodes
-	local lowerLods = if part == "model" then modelLowerLods nodes else #()
+	-- Lower LODs are only looked for when Geometry or LODs are asked for
+	local lodKinds = findItem kinds "Geometry" > 0 or findItem kinds "LODs" > 0
+	local lowerLods = if part == "model" and lodKinds then modelLowerLods nodes else #()
 	for n in nodes where findItem kinds (if findItem lowerLods n > 0 then "LODs" else tagRefNodeKind part n) > 0 collect n
 )
 
@@ -199,10 +201,14 @@ fn tagEditorRefVisibility obj part kinds =
 
 fn tagEditorShowRef obj part visible kinds =
 (
-	local nodes = tagRefKindNodes obj part kinds
-	undo "Show/Hide Tag Nodes" on
-		for n in nodes do n.isHidden = not visible
-	redrawViews()
+	-- Only the nodes that change: each one updates the viewport and the Scene Explorer
+	local nodes = for n in tagRefKindNodes obj part kinds where n.isHidden == visible collect n
+	if nodes.count > 0 do
+	(
+		undo "Show/Hide Tag Nodes" on
+			for n in nodes do n.isHidden = not visible
+		redrawViews()
+	)
 	nodes.count
 )
 
@@ -224,12 +230,13 @@ fn tagEditorModule =
 	m
 )
 
--- Opens the editor when an object tag Point is selected and keeps it showing the selection
-fn tagEditorSelectionChanged =
+-- Opens the editor when an object tag Point is selected and keeps it showing the selection.
+-- force:false (selection change) leaves the panel alone if the same Point is still selected
+fn tagEditorSelectionChanged force:true =
 (
 	-- Python only loads once a tag Point is selected
 	if tagEditorPythonReady != true and tagEditorSelected() == undefined then return ok
-	try ((tagEditorModule()).follow_selection())
+	try ((tagEditorModule()).follow_selection force)
 	catch (logger.error "Tag editor failed: {}" args:#(getCurrentException()))
 )
 
@@ -252,7 +259,8 @@ fileIn (rootEngine + "builders\\tag\\model_animations\\animation_player.ms")
 
 -- Loaded at startup (shared\init.ms), so this works in every scene
 callbacks.removeScripts id:#hceTagEditor
-for e in #(#selectionSetChanged, #sceneUndo, #sceneRedo, #filePostOpen, #systemPostReset, #systemPostNew) do
+callbacks.addScript #selectionSetChanged "tagEditorSelectionChanged force:false" id:#hceTagEditor
+for e in #(#sceneUndo, #sceneRedo, #filePostOpen, #systemPostReset, #systemPostNew) do
 	callbacks.addScript e "tagEditorSelectionChanged()" id:#hceTagEditor
 -- "Pre": the player's Stop still restores the old scene, not the new one's timeline
 for e in #(#filePreOpen, #systemPreReset, #systemPreNew) do
