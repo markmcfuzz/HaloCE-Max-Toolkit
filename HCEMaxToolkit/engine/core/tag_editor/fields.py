@@ -365,9 +365,9 @@ def link_button(panel, part):
 
 
 # What the eye's right-click menu offers (tagRefNodeKind in tag_editor.ms) and what is checked,
-# as the import leaves it (lower LODs hidden). Kept while Max is open
+# as the import leaves it (lower LODs and markers hidden). Kept while Max is open
 EYE_KINDS = {"model": ["Geometry", "LODs", "Nodes", "Markers"], "collision": ["Geometry", "Pathfinding Spheres"]}
-_eye_shown = {"model": {"Geometry", "Nodes", "Markers"}, "collision": {"Geometry", "Pathfinding Spheres"}}
+_eye_shown = {"model": {"Geometry", "Nodes"}, "collision": {"Geometry", "Pathfinding Spheres"}}
 
 
 class StayOpenMenu(QtWidgets.QMenu):
@@ -402,8 +402,9 @@ def eye_button(panel, part):
         return [k for k in kinds if k in _eye_shown[part]] if kinds else None
 
     def update():
-        has_nodes = panel.ref_visibility(part) > 0
-        visible = has_nodes and panel.ref_visibility(part, shown()) == 2
+        state = panel.ref_visibility(part, shown())
+        visible = state == 2
+        has_nodes = state > 0 or panel.ref_visibility(part) > 0
         button.blockSignals(True)
         button.setChecked(visible)
         button.blockSignals(False)
@@ -426,23 +427,35 @@ def eye_button(panel, part):
         (_eye_shown[part].add if on else _eye_shown[part].discard)(kind)
         panel.show_ref(part, on and button.isChecked(), [kind])
 
-    def choose(pos):
-        menu = StayOpenMenu(button)
-        checked = _eye_shown[part]
-        actions = {}
+    menu = None  # made on the first right-click, then reused
 
-        def changed(kind, on):
-            set_kind(kind, on)
-            for k, action in actions.items():
-                action.setEnabled(not (k in checked and len(checked) == 1))  # one always stays
+    def sync_menu():
+        checked = _eye_shown[part]
+        for action in menu.actions():
+            kind = action.text()
+            action.blockSignals(True)
+            action.setChecked(kind in checked)
+            action.blockSignals(False)
+            action.setEnabled(not (kind in checked and len(checked) == 1))  # one always stays
+
+    def changed(kind, on):
+        # After the click (singleShot), not inside the menu's own click handling
+        set_kind(kind, on)
+        if menu is not None and shiboken.isValid(menu):
+            sync_menu()
+        if shiboken.isValid(button):
             update()
 
-        for kind in kinds:
-            actions[kind] = action = menu.addAction(kind)
-            action.setCheckable(True)
-            action.setChecked(kind in checked)
-            action.setEnabled(not (kind in checked and len(checked) == 1))
-            action.toggled.connect(lambda on, kind=kind: changed(kind, on))
+    def choose(pos):
+        nonlocal menu
+        if menu is None or not shiboken.isValid(menu):
+            menu = StayOpenMenu(button)
+            for kind in kinds:
+                action = menu.addAction(kind)
+                action.setCheckable(True)
+                action.toggled.connect(
+                    lambda on, kind=kind: QtCore.QTimer.singleShot(0, lambda: changed(kind, on)))
+        sync_menu()
         (menu.exec if hasattr(menu, "exec") else menu.exec_)(button.mapToGlobal(pos))
         if shiboken.isValid(button):
             update()

@@ -69,7 +69,7 @@ def show_model_animations(tag_path):
     player.show_scene(tag_path, _command_panel)
 
 
-def follow_selection():
+def follow_selection(force=True):
     """Opens the panel when an object tag Point is selected; brings its tab to the front
     when another Point is selected. Otherwise only shows the current selection."""
     if not _is_open():
@@ -77,6 +77,11 @@ def follow_selection():
             show()
         return
     previous = _panel.handle
+    if not force and previous is not None:
+        # Selection change, same Point: rebuilding would delete an open eye menu (and is slow)
+        node = rt.tagEditorSelected()
+        if node is not None and node.inode.handle == previous:
+            return
     _panel.refresh()
     if _panel.handle is not None and _panel.handle != previous:
         _panel.parent().raise_()
