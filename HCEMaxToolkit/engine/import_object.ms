@@ -94,6 +94,10 @@ fn importObjectFile tagPath =
                         getNodesBetweenHandles modelHandle collisionHandle, \
                         getNodesBetweenHandles collisionHandle physicsHandle)
         logger.info "Hidden LOD meshes: {}" args:#(hideModelLods parts[1])
+        -- Markers start hidden too, as the editor's eye menu shows them (fields.py)
+        local markers = for n in parts[1] where n.layer.name == "Markers" collect n
+        for n in markers do n.isHidden = true
+        logger.info "Hidden markers: {}" args:#(markers.count)
 
         -- Created last, so physics doesn't count it among the model nodes
         local memberNodes = getNodesAfterHandle lastHandle
