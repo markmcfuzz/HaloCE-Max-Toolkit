@@ -640,6 +640,9 @@ fn buildShaderGenericDxMaterial textureResult fxFile =
 	for j = 1 to stageCount do
 		_dxApplyGenericCombinerStage dxMat stageEntries[j] j
 
+	-- Animation Preview on, following the timeline (shader_animation.ms)
+	connectShaderAnimation dxMat
+
 	logger.info "DX material created: '{}' (shader_transparent_generic, {} map(s), {} stage(s), technique {})" args:#(textureResult.shaderName, mapCount, stageCount, techniqueIdx)
 	return dxMat
 )
