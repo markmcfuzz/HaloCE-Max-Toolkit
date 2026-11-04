@@ -10,8 +10,8 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
--- Shows an object's change colors on its GlyphFX materials: "Change Color (Only for 3ds Max)"
--- gets the change color its source (1=A 2=B 3=C 4=D) points to (see materialChangeColorSource).
+-- Shows an object's change colors on its GlyphFX materials: shader_transparent_generic gets all
+-- four (ChangeColorA-D), shader_model the one its source points to (see materialChangeColorSlots).
 
 -- "0.34 0.40 0.14" (0-1) -> Max color; white when it can't be read
 fn tagTextToColor text =
@@ -41,21 +41,15 @@ fn objectChangeColor fields blockKey index =
 	if hasDictValue fields colorKey then tagTextToColor fields[colorKey] else white
 )
 
--- Change color source of a GlyphFX material (1=A .. 4=D, 0 none): shader_model's own field, or
--- for shader_transparent_generic the first active stage's Color0 Source. undefined: no change color
-fn materialChangeColorSource m =
+-- Change color parameters of a GlyphFX material: #(#(parameter, source 1=A .. 4=D, 0 none), ...).
+-- Empty for materials without change color
+fn materialChangeColorSlots m =
 (
-	if not (isProperty m #ChangeColor) then return undefined
-	if isProperty m #ChangeColorSource then return m.ChangeColorSource
-	for i = 1 to 7 do
-	(
-		local prefix = "Stage" + (i as string)
-		local enabled = i == 1 or (isProperty m (("Enable" + prefix) as name) and getProperty m (("Enable" + prefix) as name))
-		local sourceName = (prefix + "_Color0Source") as name
-		if enabled and isProperty m sourceName and (getProperty m sourceName) > 0 then
-			return getProperty m sourceName
-	)
-	0
+	if isProperty m #ChangeColorA then
+		return #(#(#ChangeColorA, 1), #(#ChangeColorB, 2), #(#ChangeColorC, 3), #(#ChangeColorD, 4))
+	if isProperty m #ChangeColor and isProperty m #ChangeColorSource then
+		return #(#(#ChangeColor, m.ChangeColorSource))
+	#()
 )
 
 -- A material and every material inside it (Multi/Sub-Object)
@@ -81,6 +75,9 @@ fn applyObjectChangeColors obj =
 	for k in fields.keys where blockKey == undefined and matchPattern k pattern:"*change colors" and findString k "[" == undefined do
 		blockKey = k
 	local count = if blockKey == undefined then 0 else fieldCount fields blockKey
+	-- A to D; white when the object has fewer
+	local colors = #()
+	for i = 1 to 4 do append colors (if i <= count then objectChangeColor fields blockKey (i - 1) else white)
 
 	local nodes = for n in obj.memberNodes where isValidNode n and n.material != undefined collect n
 	local materials = #()
@@ -90,13 +87,20 @@ fn applyObjectChangeColors obj =
 	(
 		for m in materials do
 		(
-			local source = materialChangeColorSource m
-			if source == undefined then continue
-			local c = if source >= 1 and source <= count then objectChangeColor fields blockKey (source - 1) else white
-			-- Only when it changed: refreshing the viewport on every selection would be slow
-			if (m.ChangeColor as string) != (c as string) do
+			local matChanged = false
+			for slot in materialChangeColorSlots m do
 			(
-				m.ChangeColor = c
+				local source = slot[2]
+				local c = if source >= 1 and source <= 4 then colors[source] else white
+				-- Only when it changed: refreshing the viewport on every selection would be slow
+				if ((getProperty m slot[1]) as string) != (c as string) do
+				(
+					setProperty m slot[1] c
+					matChanged = true
+				)
+			)
+			if matChanged do
+			(
 				notifyDependents m
 				changed += 1
 			)
