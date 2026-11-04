@@ -33,6 +33,8 @@ fileIn (scriptDir + "utils\\build_utils.ms")
 fileIn (scriptDir + "utils\\text_utils.ms")
 -- Opens the tag editor whenever an object tag Point is selected
 fileIn (rootEngine + "builders\\tag\\object\\tag_editor.ms")
+-- GlyphFX Animation Preview follows the timeline (after tag_editor.ms: uses collectSubMaterials)
+fileIn (rootEngine + "builders\\tag\\shared\\shader_animation.ms")
 -- Names of tag Points, markers and nodes in the viewport (after tag_editor.ms and helper_builder.ms)
 fileIn (scriptDir + "utils\\viewport_labels.ms")
 
