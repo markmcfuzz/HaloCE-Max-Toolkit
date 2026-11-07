@@ -25,6 +25,18 @@ def help_text(field):
     return _help.get(field.get("help", ""), "")
 
 
+def flat_button(text, arrow):
+    """Flat, left-aligned button that keeps Max's theme (like the section titles)."""
+    button = QtWidgets.QToolButton()
+    button.setText(text)
+    button.setAutoRaise(True)
+    button.setArrowType(arrow)
+    button.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+    button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+    button.setStyleSheet("QToolButton { text-align: left; }")
+    return button
+
+
 # Mark before names that have help; change its color here
 HELP_MARK = '<span style="color:#4FC3F7; font-weight:bold;">?</span>&nbsp;&nbsp;'
 
