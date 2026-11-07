@@ -104,7 +104,7 @@ fn importObjectFile tagPath =
         append memberNodes (createBoundingRadiusHelper data.keys data.values (filenameFromPath tagPath))
         container = createObjectContainer data tagPath memberNodes parts:parts
         logger.info "Change colors on {} materials" args:#(applyObjectChangeColors container)
-        logger.info "Container '{}' with {} nodes" args:#(container.name, memberNodes.count)
+        logger.info "Container '{}' with {} objects" args:#(container.name, memberNodes.count)
     )
 
     completeRedraw()
@@ -154,12 +154,12 @@ fn ImportObject =
     (
         messageBox ("Object tag imported successfully!\n\n" + \
                     "File: " + (filenameFromPath tagPath) + "\n" + \
-                    "Nodes created: " + (container.memberNodes.count as string) + "\n" + \
+                    "Objects created: " + (container.memberNodes.count as string) + "\n" + \
                     "Time: " + (formattedPrint elapsedTime format:".3f") + " seconds") \
                     title:"Import Complete" \
                     beep:false
     )
-    clearListener()
+    --clearListener()
     container
 )
 
