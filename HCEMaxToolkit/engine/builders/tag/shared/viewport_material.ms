@@ -12,7 +12,7 @@
 
 -- Shared Viewport Material Builder
 -- Turns a resolved ShaderTextureResult (see shader_resolver.ms) into a single Max
--- material for one shader slot: a GlyphFX DirectX material when supported/enabled,
+-- material for one shader slot: a GlyphFX material (OSL or DirectX) when supported/enabled,
 -- otherwise a StandardMaterial with the resolved texture (or a checker placeholder
 -- when nothing could be resolved). Shared by every tag importer that assigns one
 -- material per shader reference (gbxmodel, scenario_structure_bsp, and future JMS).
@@ -23,7 +23,7 @@ fn buildShaderViewportMaterial textureResult shaderName useDxMaterials:true =
 	if textureResult != undefined then
 		logger.debug "Material '{}': textureFilePath: '{}'" args:#(shaderName, textureResult.textureFilePath)
 
-	-- Try a GlyphFX DirectX material first (fills every field from the parsed tag)
+	-- Try a GlyphFX material first (fills every field from the parsed tag)
 	local subMat = undefined
 	if useDxMaterials and textureResult != undefined then
 		subMat = buildDxMaterialForShader textureResult
