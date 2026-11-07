@@ -853,6 +853,10 @@ fn buildGBXModelMesh model gbxModelName gbxmodelPath =
 		meditMaterials[1] = multiMat
 		for mesh in createdMeshes where mesh != undefined do
 			mesh.material = multiMat
+		-- Alpha test / decal of the OSL materials needs their faces (dx_material_builder.ms)
+		local t5 = timestamp()
+		updateGlyphFxOpacity createdMeshes
+		logger.info "OSL opacity checked in {} ms" args:#(timestamp() - t5)
 	)
 	local matCount = if multiMat != undefined then 1 else 0
 	logger.info "Materials created: {} in {} ms" args:#(matCount, (timestamp() - t4))
