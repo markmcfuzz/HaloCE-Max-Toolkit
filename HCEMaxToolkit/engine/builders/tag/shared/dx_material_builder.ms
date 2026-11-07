@@ -10,9 +10,10 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--- GlyphFX DirectX Material Builder
--- Creates DirectX_9_Shader materials from parsed shader tag data (ShaderTextureResult)
--- and fills every exposed effect parameter with the tag values.
+-- GlyphFX Material Builder
+-- Creates GlyphFX materials from parsed shader tag data (ShaderTextureResult) and fills every
+-- exposed effect parameter with the tag values. shader_model, shader_model_extended and
+-- shader_environment are OSL maps (src\osl) in a Standard material; the rest DirectX_9_Shader.
 -- Currently supported: shader_model, shader_model_extended, shader_transparent_chicago,
 -- shader_transparent_chicago_extended (rendered with the chicago effect using its
 -- 4-stage maps only; the 2-stage fallback block exists solely for legacy hardware),
@@ -43,15 +44,19 @@ if _glyphFxDir == undefined then
 	local engineDir   = getFilenamePath (trimRight buildersDir "\\")
 	_glyphFxDir = engineDir + "shaders\\GlyphFX\\src\\fx\\"
 )
+-- The opaque shaders (OSL), next to fx\
+global _glyphFxOslDir = (getFilenamePath (trimRight _glyphFxDir "\\")) + "osl\\"
 
 -------------------------------------------------------
 -- Helpers
 -------------------------------------------------------
 
 -- Set an effect parameter only if the effect exposes it. Returns true on success.
+-- dxMat: a DirectX material or an OSL map (its bools are int 0/1)
 fn dxSetParam dxMat propName value =
 (
 	if value == undefined then return false
+	if classOf value == BooleanClass and classOf dxMat == OSLMap do value = if value then 1 else 0
 	local wasSet = false
 	try
 	(
@@ -167,6 +172,14 @@ fn dxLoadBitmapForKey textureResult mapKey =
 	bmp
 )
 
+-- Texture of a map key for a texture param: the file path for an OSL map (nothing to open),
+-- the bitmap for a DirectX material. Undefined when the map has no file on disk
+fn dxTextureForKey dxMat textureResult mapKey =
+(
+	if classOf dxMat != OSLMap then return dxLoadBitmapForKey textureResult mapKey
+	if textureResult.mapFiles == undefined then undefined else textureResult.mapFiles[mapKey]
+)
+
 -- Parent 'shader' block (radiosity + physics), exposed by every GlyphFX effect
 fn _dxApplyBaseShaderParams dxMat shaderEntry =
 (
@@ -189,22 +202,10 @@ fn _dxApplyBaseShaderParams dxMat shaderEntry =
 -------------------------------------------------------
 -- shader_model -> shader_model.fx
 -------------------------------------------------------
-fn buildShaderModelDxMaterial textureResult fxFile =
+-- Sets every parameter from the tag data, also on a material built before (tag editor edits)
+fn applyShaderModelParams dxMat textureResult =
 (
 	local mainEntry = textureResult.mainEntry
-	if mainEntry == undefined then return undefined
-
-	local dxMat = DirectX_9_Shader()
-	dxMat.name = textureResult.shaderName
-	dxMat.effectfile = fxFile
-
-	-- If the effect compiled, its parameters exist as properties
-	if not (isProperty dxMat #BaseMapTexture) then
-	(
-		logger.error "GlyphFX effect failed to load: {}" args:#(fxFile)
-		return undefined
-	)
-
 	_dxApplyBaseShaderParams dxMat textureResult.shaderEntry
 
 	-- Model flags bitfield (first 'flags' field of the soso block)
@@ -286,10 +287,10 @@ fn buildShaderModelDxMaterial textureResult fxFile =
 	dxSetParam dxMat #ParallelTintColor (tagColorToMaxColor (getFieldValue mainEntry "parallelTintColor"))
 
 	-- Textures + enable flags (unbound DX11 textures sample black, so disable missing ones)
-	local baseBmp   = dxLoadBitmapForKey textureResult "baseMap"
-	local multiBmp  = dxLoadBitmapForKey textureResult "multipurposeMap"
-	local detailBmp = dxLoadBitmapForKey textureResult "detailMap"
-	local cubeBmp   = dxLoadBitmapForKey textureResult "reflectionCubeMap"
+	local baseBmp   = dxTextureForKey dxMat textureResult "baseMap"
+	local multiBmp  = dxTextureForKey dxMat textureResult "multipurposeMap"
+	local detailBmp = dxTextureForKey dxMat textureResult "detailMap"
+	local cubeBmp   = dxTextureForKey dxMat textureResult "reflectionCubeMap"
 
 	if baseBmp != undefined then dxSetParam dxMat #BaseMapTexture baseBmp
 	dxSetParam dxMat #EnableBaseMap (baseBmp != undefined)
@@ -302,9 +303,7 @@ fn buildShaderModelDxMaterial textureResult fxFile =
 
 	if cubeBmp != undefined then dxSetParam dxMat #ReflectionCubeTexture cubeBmp
 	dxSetParam dxMat #EnableReflectionCube (cubeBmp != undefined)
-
-	logger.info "DX material created: '{}' ({})" args:#(textureResult.shaderName, textureResult.shaderType)
-	return dxMat
+	ok
 )
 
 -------------------------------------------------------
@@ -313,10 +312,9 @@ fn buildShaderModelDxMaterial textureResult fxFile =
 -- Same fields as shader_model plus the extension appended after the cube map:
 -- detail map 2, base/detail normal maps, specular color map + lighting, DLM flag.
 -- "0 = 1" fields of the extension stay raw; the effect substitutes 1 itself.
-fn buildShaderModelExtendedDxMaterial textureResult fxFile =
+fn applyShaderModelExtendedParams dxMat textureResult =
 (
-	local dxMat = buildShaderModelDxMaterial textureResult fxFile
-	if dxMat == undefined then return undefined
+	applyShaderModelParams dxMat textureResult
 	local mainEntry = textureResult.mainEntry
 
 	-- Detail map 2 (scale: tag 0 defaults to 1, V scale 0 is handled by the effect)
@@ -354,12 +352,11 @@ fn buildShaderModelExtendedDxMaterial textureResult fxFile =
 		#("detailNormal1Map", "DetailNormal1Map"), #("detailNormal2Map", "DetailNormal2Map"), \
 		#("specularColorMap", "SpecularColorMap")) do
 	(
-		local bmp = dxLoadBitmapForKey textureResult slot[1]
+		local bmp = dxTextureForKey dxMat textureResult slot[1]
 		if bmp != undefined then dxSetParam dxMat ((slot[2] + "Texture") as name) bmp
 		dxSetParam dxMat (("Enable" + slot[2]) as name) (bmp != undefined)
 	)
-
-	dxMat
+	ok
 )
 
 -------------------------------------------------------
@@ -408,7 +405,7 @@ fn _dxApplyMapStage dxMat textureResult mapEntry stageIdx mapKeyPrefix layout:#c
 	dxSetParam dxMat (("Map" + n + "_MipmapBias") as name) (getFieldValue mapEntry "mipmapBias")
 
 	-- Texture (Map 1 is always active; stages 2-4 use EnableMapN)
-	local stageBmp = dxLoadBitmapForKey textureResult (mapKeyPrefix + n)
+	local stageBmp = dxTextureForKey dxMat textureResult (mapKeyPrefix + n)
 	if stageBmp != undefined then dxSetParam dxMat (("Map" + n + "Texture") as name) stageBmp
 	if stageIdx >= 2 then
 		dxSetParam dxMat (("EnableMap" + n) as name) (stageBmp != undefined)
@@ -439,22 +436,10 @@ fn _dxApplyMapStage dxMat textureResult mapEntry stageIdx mapKeyPrefix layout:#c
 
 -- mapsFieldName/mapKeyPrefix: "maps"/"map" for chicago, "4StageMaps"/"4StageMap"
 -- for chicago_extended (its 2-stage block is legacy-hardware fallback data and is omitted)
-fn buildShaderChicagoDxMaterial textureResult fxFile mapsFieldName mapKeyPrefix =
+fn applyShaderChicagoParams dxMat textureResult mapsFieldName mapKeyPrefix =
 (
 	local mainEntry = textureResult.mainEntry
 	local shaderEntry = textureResult.shaderEntry
-	if mainEntry == undefined then return undefined
-
-	local dxMat = DirectX_9_Shader()
-	dxMat.name = textureResult.shaderName
-	dxMat.effectfile = fxFile
-
-	-- If the effect compiled, its parameters exist as properties
-	if not (isProperty dxMat #Map1Texture) then
-	(
-		logger.error "GlyphFX effect failed to load: {}" args:#(fxFile)
-		return undefined
-	)
 
 	-- Parent 'shader' block: radiosity + physics properties
 	_dxApplyBaseShaderParams dxMat shaderEntry
@@ -493,11 +478,7 @@ fn buildShaderChicagoDxMaterial textureResult fxFile mapsFieldName mapKeyPrefix 
 		dxSetParam dxMat #CustomEditionBlending (bit.get extraFlags 3)
 	)
 
-	-- Select the technique matching the framebuffer blend function
-	-- (fx declares them in tag-enum order: 0=alpha blend, 1=multiply, 2=double multiply, 3=add)
-	local blendFunc = getFieldValue mainEntry "framebufferBlendFunction"
-	if classOf blendFunc == Integer and blendFunc >= 0 and blendFunc <= 3 then
-		dxSetParam dxMat #technique blendFunc
+	-- The effect has one technique: FramebufferBlendFunction (set above) picks the blend
 
 	-- Map stages (up to 4)
 	local mapEntries = getFieldValue mainEntry mapsFieldName
@@ -506,9 +487,10 @@ fn buildShaderChicagoDxMaterial textureResult fxFile mapsFieldName mapKeyPrefix 
 		stageCount = amin mapEntries.count 4
 	for j = 1 to stageCount do
 		_dxApplyMapStage dxMat textureResult mapEntries[j] j mapKeyPrefix layout:#chicago
-
-	logger.info "DX material created: '{}' ({}, {} stage(s), technique {})" args:#(textureResult.shaderName, textureResult.shaderType, stageCount, blendFunc)
-	return dxMat
+	-- Maps the tag no longer has (tag editor edits)
+	for j = (amax 2 (stageCount + 1)) to 4 do
+		dxSetParam dxMat (("EnableMap" + (j as string)) as name) false
+	ok
 )
 
 -------------------------------------------------------
@@ -573,21 +555,11 @@ fn _dxApplyGenericCombinerStage dxMat stageEntry stageIdx =
 	ok
 )
 
-fn buildShaderGenericDxMaterial textureResult fxFile =
+-- Sets every parameter from the tag data, also on a material built before (tag editor edits):
+-- maps and stages the tag no longer has are switched off
+fn applyShaderGenericParams dxMat textureResult =
 (
 	local mainEntry = textureResult.mainEntry
-	if mainEntry == undefined then return undefined
-
-	local dxMat = DirectX_9_Shader()
-	dxMat.name = textureResult.shaderName
-	dxMat.effectfile = fxFile
-
-	-- If the effect compiled, its parameters exist as properties
-	if not (isProperty dxMat #Map1Texture) then
-	(
-		logger.error "GlyphFX effect failed to load: {}" args:#(fxFile)
-		return undefined
-	)
 
 	-- Parent 'shader' block: radiosity + physics properties
 	_dxApplyBaseShaderParams dxMat textureResult.shaderEntry
@@ -614,15 +586,7 @@ fn buildShaderGenericDxMaterial textureResult fxFile =
 	dxSetParam dxMat #FramebufferFadeSource (getFieldValue mainEntry "framebufferFadeSource")
 	dxSetParam dxMat #LensFlareSpacing (getFieldValue mainEntry "lensFlareSpacing")
 
-	-- Select the technique for the framebuffer blend function. The generic tag
-	-- enum reaches 7 but the effect implements 0-3; the rest use alpha blend.
-	local blendFunc = getFieldValue mainEntry "framebufferBlendFunction"
-	local techniqueIdx = 0
-	if classOf blendFunc == Integer and blendFunc >= 0 and blendFunc <= 3 then
-		techniqueIdx = blendFunc
-	else if classOf blendFunc == Integer then
-		logger.debug "No technique for framebuffer blend function {} - using alpha blend" args:#(blendFunc)
-	dxSetParam dxMat #technique techniqueIdx
+	-- The effect has one technique: FramebufferBlendFunction (set above) picks the blend
 
 	-- Map stages (up to 4)
 	local mapEntries = getFieldValue mainEntry "maps"
@@ -631,6 +595,8 @@ fn buildShaderGenericDxMaterial textureResult fxFile =
 		mapCount = amin mapEntries.count 4
 	for j = 1 to mapCount do
 		_dxApplyMapStage dxMat textureResult mapEntries[j] j "map" layout:#generic
+	for j = (amax 2 (mapCount + 1)) to 4 do
+		dxSetParam dxMat (("EnableMap" + (j as string)) as name) false
 
 	-- Combiner stages (up to 7)
 	local stageEntries = getFieldValue mainEntry "stages"
@@ -639,33 +605,19 @@ fn buildShaderGenericDxMaterial textureResult fxFile =
 		stageCount = amin stageEntries.count 7
 	for j = 1 to stageCount do
 		_dxApplyGenericCombinerStage dxMat stageEntries[j] j
+	for j = (amax 2 (stageCount + 1)) to 7 do
+		dxSetParam dxMat (("EnableStage" + (j as string)) as name) false
 
-	-- Animation Preview on, following the timeline (shader_animation.ms)
-	connectShaderAnimation dxMat
-
-	logger.info "DX material created: '{}' (shader_transparent_generic, {} map(s), {} stage(s), technique {})" args:#(textureResult.shaderName, mapCount, stageCount, techniqueIdx)
-	return dxMat
+	ok
 )
 
 -------------------------------------------------------
 -- shader_transparent_meter -> shader_transparent_meter.fx
 -------------------------------------------------------
 
-fn buildShaderMeterDxMaterial textureResult fxFile =
+fn applyShaderMeterParams dxMat textureResult =
 (
 	local mainEntry = textureResult.mainEntry
-	if mainEntry == undefined then return undefined
-
-	local dxMat = DirectX_9_Shader()
-	dxMat.name = textureResult.shaderName
-	dxMat.effectfile = fxFile
-
-	-- If the effect compiled, its parameters exist as properties
-	if not (isProperty dxMat #MeterMap) then
-	(
-		logger.error "GlyphFX effect failed to load: {}" args:#(fxFile)
-		return undefined
-	)
 
 	-- Parent 'shader' block: radiosity + physics properties (fills the radiosity TintColor)
 	_dxApplyBaseShaderParams dxMat textureResult.shaderEntry
@@ -695,32 +647,18 @@ fn buildShaderMeterDxMaterial textureResult fxFile =
 	dxSetParam dxMat #BackgroundTransparency (getFieldValue mainEntry "backgroundTransparency")
 
 	-- Meter map (MeterValue/FlashBrightness are viewport preview controls, not tag data)
-	local meterBmp = dxLoadBitmapForKey textureResult "map"
+	local meterBmp = dxTextureForKey dxMat textureResult "map"
 	if meterBmp != undefined then dxSetParam dxMat #MeterMap meterBmp
-
-	logger.info "DX material created: '{}' (shader_transparent_meter)" args:#(textureResult.shaderName)
-	return dxMat
+	ok
 )
 
 -------------------------------------------------------
 -- shader_transparent_water -> shader_transparent_water.fx
 -------------------------------------------------------
 
-fn buildShaderWaterDxMaterial textureResult fxFile =
+fn applyShaderWaterParams dxMat textureResult =
 (
 	local mainEntry = textureResult.mainEntry
-	if mainEntry == undefined then return undefined
-
-	local dxMat = DirectX_9_Shader()
-	dxMat.name = textureResult.shaderName
-	dxMat.effectfile = fxFile
-
-	-- If the effect compiled, its parameters exist as properties
-	if not (isProperty dxMat #BaseMapTexture) then
-	(
-		logger.error "GlyphFX effect failed to load: {}" args:#(fxFile)
-		return undefined
-	)
 
 	-- Parent 'shader' block: radiosity + physics properties
 	_dxApplyBaseShaderParams dxMat textureResult.shaderEntry
@@ -750,9 +688,9 @@ fn buildShaderWaterDxMaterial textureResult fxFile =
 	dxSetParam dxMat #RippleMipmapDetailBias (getFieldValue mainEntry "rippleMipmapDetailBias")
 
 	-- Textures + enable flags (unbound DX11 textures sample black, so disable missing ones)
-	local baseBmp   = dxLoadBitmapForKey textureResult "baseMap"
-	local reflBmp   = dxLoadBitmapForKey textureResult "reflectionMap"
-	local rippleBmp = dxLoadBitmapForKey textureResult "rippleMaps"
+	local baseBmp   = dxTextureForKey dxMat textureResult "baseMap"
+	local reflBmp   = dxTextureForKey dxMat textureResult "reflectionMap"
+	local rippleBmp = dxTextureForKey dxMat textureResult "rippleMaps"
 
 	if baseBmp != undefined then dxSetParam dxMat #BaseMapTexture baseBmp
 	dxSetParam dxMat #EnableBaseMap (baseBmp != undefined)
@@ -780,30 +718,19 @@ fn buildShaderWaterDxMaterial textureResult fxFile =
 		dxSetParam dxMat (("Ripple" + k + "_MapRepeats") as name) (zeroDefaultsToOne (getFieldValue rippleEntry "mapRepeats"))
 		dxSetParam dxMat (("Ripple" + k + "_MapIndex") as name) (getFieldValue rippleEntry "mapIndex")
 	)
-
-	logger.info "DX material created: '{}' (shader_transparent_water, {} ripple(s))" args:#(textureResult.shaderName, rippleCount)
-	return dxMat
+	-- Ripples the tag no longer has (tag editor edits)
+	for j = rippleCount + 1 to 4 do
+		dxSetParam dxMat (("EnableRipple" + ((j - 1) as string)) as name) false
+	ok
 )
 
 -------------------------------------------------------
 -- shader_transparent_plasma -> shader_transparent_plasma.fx
 -------------------------------------------------------
 
-fn buildShaderPlasmaDxMaterial textureResult fxFile =
+fn applyShaderPlasmaParams dxMat textureResult =
 (
 	local mainEntry = textureResult.mainEntry
-	if mainEntry == undefined then return undefined
-
-	local dxMat = DirectX_9_Shader()
-	dxMat.name = textureResult.shaderName
-	dxMat.effectfile = fxFile
-
-	-- If the effect compiled, its parameters exist as properties
-	if not (isProperty dxMat #PrimaryNoiseMapTexture) then
-	(
-		logger.error "GlyphFX effect failed to load: {}" args:#(fxFile)
-		return undefined
-	)
 
 	-- Parent 'shader' block: radiosity + physics properties
 	_dxApplyBaseShaderParams dxMat textureResult.shaderEntry
@@ -850,38 +777,24 @@ fn buildShaderPlasmaDxMaterial textureResult fxFile =
 	-- The noise maps are filmstrip atlases; slice count / border texels are viewport-only
 	-- controls (not tag data) that the artist tunes to the loaded image, so they are left at
 	-- the effect defaults here.
-	local primaryBmp   = dxLoadBitmapForKey textureResult "primaryNoiseMap"
-	local secondaryBmp = dxLoadBitmapForKey textureResult "secondaryNoiseMap"
+	local primaryBmp   = dxTextureForKey dxMat textureResult "primaryNoiseMap"
+	local secondaryBmp = dxTextureForKey dxMat textureResult "secondaryNoiseMap"
 
 	if primaryBmp != undefined then dxSetParam dxMat #PrimaryNoiseMapTexture primaryBmp
 	dxSetParam dxMat #EnablePrimaryNoiseMap (primaryBmp != undefined)
 
 	if secondaryBmp != undefined then dxSetParam dxMat #SecondaryNoiseMapTexture secondaryBmp
 	dxSetParam dxMat #EnableSecondaryNoiseMap (secondaryBmp != undefined)
-
-	logger.info "DX material created: '{}' (shader_transparent_plasma)" args:#(textureResult.shaderName)
-	return dxMat
+	ok
 )
 
 -------------------------------------------------------
 -- shader_transparent_glass -> shader_transparent_glass.fx
 -------------------------------------------------------
 
-fn buildShaderGlassDxMaterial textureResult fxFile =
+fn applyShaderGlassParams dxMat textureResult =
 (
 	local mainEntry = textureResult.mainEntry
-	if mainEntry == undefined then return undefined
-
-	local dxMat = DirectX_9_Shader()
-	dxMat.name = textureResult.shaderName
-	dxMat.effectfile = fxFile
-
-	-- If the effect compiled, its parameters exist as properties
-	if not (isProperty dxMat #DiffuseMapTexture) then
-	(
-		logger.error "GlyphFX effect failed to load: {}" args:#(fxFile)
-		return undefined
-	)
 
 	-- Glass flags: alpha-tested, decal, two-sided, bump map is specular mask
 	local flagsVal = getFieldValue mainEntry "flags"
@@ -912,13 +825,13 @@ fn buildShaderGlassDxMaterial textureResult fxFile =
 	dxSetParam dxMat #SpecularDetailMapScale (zeroDefaultsToOne (getFieldValue mainEntry "specularDetailMapScale"))
 
 	-- Textures + enable flags (unbound DX11 textures sample black, so disable missing ones)
-	local tintBmp       = dxLoadBitmapForKey textureResult "backgroundTintMap"
-	local reflBmp       = dxLoadBitmapForKey textureResult "reflectionMap"
-	local bumpBmp       = dxLoadBitmapForKey textureResult "bumpMap"
-	local diffuseBmp    = dxLoadBitmapForKey textureResult "diffuseMap"
-	local diffDetailBmp = dxLoadBitmapForKey textureResult "diffuseDetailMap"
-	local specBmp       = dxLoadBitmapForKey textureResult "specularMap"
-	local specDetailBmp = dxLoadBitmapForKey textureResult "specularDetailMap"
+	local tintBmp       = dxTextureForKey dxMat textureResult "backgroundTintMap"
+	local reflBmp       = dxTextureForKey dxMat textureResult "reflectionMap"
+	local bumpBmp       = dxTextureForKey dxMat textureResult "bumpMap"
+	local diffuseBmp    = dxTextureForKey dxMat textureResult "diffuseMap"
+	local diffDetailBmp = dxTextureForKey dxMat textureResult "diffuseDetailMap"
+	local specBmp       = dxTextureForKey dxMat textureResult "specularMap"
+	local specDetailBmp = dxTextureForKey dxMat textureResult "specularDetailMap"
 
 	if tintBmp != undefined then dxSetParam dxMat #BackgroundTintMapTexture tintBmp
 	dxSetParam dxMat #EnableBackgroundTintMap (tintBmp != undefined)
@@ -940,9 +853,7 @@ fn buildShaderGlassDxMaterial textureResult fxFile =
 
 	if specDetailBmp != undefined then dxSetParam dxMat #SpecularDetailMapTexture specDetailBmp
 	dxSetParam dxMat #EnableSpecularDetailMap (specDetailBmp != undefined)
-
-	logger.info "DX material created: '{}' (shader_transparent_glass)" args:#(textureResult.shaderName)
-	return dxMat
+	ok
 )
 
 -------------------------------------------------------
@@ -952,21 +863,9 @@ fn buildShaderGlassDxMaterial textureResult fxFile =
 -- The senv block declares "flags" five times (environment, diffuse,
 -- self-illumination, specular, reflection) and "type" twice (environment,
 -- reflection), so those are fetched by occurrence.
-fn buildShaderEnvironmentDxMaterial textureResult fxFile =
+fn applyShaderEnvironmentParams dxMat textureResult =
 (
 	local mainEntry = textureResult.mainEntry
-	if mainEntry == undefined then return undefined
-
-	local dxMat = DirectX_9_Shader()
-	dxMat.name = textureResult.shaderName
-	dxMat.effectfile = fxFile
-
-	-- If the effect compiled, its parameters exist as properties
-	if not (isProperty dxMat #BaseMapTexture) then
-	(
-		logger.error "GlyphFX effect failed to load: {}" args:#(fxFile)
-		return undefined
-	)
 
 	-- Parent 'shader' block: radiosity + physics properties
 	_dxApplyBaseShaderParams dxMat textureResult.shaderEntry
@@ -1056,13 +955,13 @@ fn buildShaderEnvironmentDxMaterial textureResult fxFile =
 	dxSetParam dxMat #ReflParallelBrightness (getFieldValue mainEntry "parallelBrightness")
 
 	-- Textures + enable flags (unbound DX11 textures sample black, so disable missing ones)
-	local baseBmp    = dxLoadBitmapForKey textureResult "baseMap"
-	local priBmp     = dxLoadBitmapForKey textureResult "primaryDetailMap"
-	local secBmp     = dxLoadBitmapForKey textureResult "secondaryDetailMap"
-	local microBmp   = dxLoadBitmapForKey textureResult "microDetailMap"
-	local bumpBmp    = dxLoadBitmapForKey textureResult "bumpMap"
-	local selfIllBmp = dxLoadBitmapForKey textureResult "map"
-	local cubeBmp    = dxLoadBitmapForKey textureResult "reflectionCubeMap"
+	local baseBmp    = dxTextureForKey dxMat textureResult "baseMap"
+	local priBmp     = dxTextureForKey dxMat textureResult "primaryDetailMap"
+	local secBmp     = dxTextureForKey dxMat textureResult "secondaryDetailMap"
+	local microBmp   = dxTextureForKey dxMat textureResult "microDetailMap"
+	local bumpBmp    = dxTextureForKey dxMat textureResult "bumpMap"
+	local selfIllBmp = dxTextureForKey dxMat textureResult "map"
+	local cubeBmp    = dxTextureForKey dxMat textureResult "reflectionCubeMap"
 
 	if baseBmp != undefined then dxSetParam dxMat #BaseMapTexture baseBmp
 	dxSetParam dxMat #EnableBaseMap (baseBmp != undefined)
@@ -1084,38 +983,82 @@ fn buildShaderEnvironmentDxMaterial textureResult fxFile =
 
 	if cubeBmp != undefined then dxSetParam dxMat #ReflectionCubeTexture cubeBmp
 	dxSetParam dxMat #EnableReflectionCube (cubeBmp != undefined)
-
-	logger.info "DX material created: '{}' (shader_environment)" args:#(textureResult.shaderName)
-	return dxMat
+	ok
 )
 
 -------------------------------------------------------
 -- Dispatcher
 -------------------------------------------------------
 
--- Returns a DirectX_9_Shader material for the shader, or undefined if the type
--- is not supported yet / the effect is missing / anything fails (caller falls back)
+-- #(effect file, a parameter that only exists when the effect compiled), or undefined.
+-- Opaque types are OSL: Nitrous draws every DirectX Shader in one camera-sorted group, so an
+-- opaque DirectX one could cover a transparent one. A native material is drawn before them
+fn _dxEffectOf shaderType = case shaderType of
+(
+	"shader_model": #("shader_model.osl", #BaseMapTexture)
+	"shader_model_extended": #("shader_model_extended.osl", #BaseMapTexture)
+	"shader_transparent_chicago": #("shader_transparent_chicago.fx", #Map1Texture)
+	"shader_transparent_chicago_extended": #("shader_transparent_chicago.fx", #Map1Texture)
+	"shader_transparent_generic": #("shader_transparent_generic.fx", #Map1Texture)
+	"shader_transparent_meter": #("shader_transparent_meter.fx", #MeterMap)
+	"shader_transparent_water": #("shader_transparent_water.fx", #BaseMapTexture)
+	"shader_transparent_plasma": #("shader_transparent_plasma.fx", #PrimaryNoiseMapTexture)
+	"shader_transparent_glass": #("shader_transparent_glass.fx", #DiffuseMapTexture)
+	"shader_environment": #("shader_environment.osl", #BaseMapTexture)
+	default: undefined
+)
+
+-- Sets every parameter from the tag data: on import, and again on a material built before
+-- (applyShaderTagFields, after a tag editor edit). False for an unknown type
+fn applyShaderParams mat textureResult =
+(
+	local dxMat = glyphFxParamHolder mat
+	case textureResult.shaderType of
+	(
+		"shader_model": applyShaderModelParams dxMat textureResult
+		"shader_model_extended": applyShaderModelExtendedParams dxMat textureResult
+		"shader_transparent_chicago": applyShaderChicagoParams dxMat textureResult "maps" "map"
+		"shader_transparent_chicago_extended": applyShaderChicagoParams dxMat textureResult "4StageMaps" "4StageMap"
+		"shader_transparent_generic": applyShaderGenericParams dxMat textureResult
+		"shader_transparent_meter": applyShaderMeterParams dxMat textureResult
+		"shader_transparent_water": applyShaderWaterParams dxMat textureResult
+		"shader_transparent_plasma": applyShaderPlasmaParams dxMat textureResult
+		"shader_transparent_glass": applyShaderGlassParams dxMat textureResult
+		"shader_environment": applyShaderEnvironmentParams dxMat textureResult
+		default: return false
+	)
+	true
+)
+
+-- Standard material with the OSL map in the Diffuse. The OSL does all the lighting:
+-- Self-Illumination 100 keeps Max lights off it (in the Self-Illum map it shows black)
+fn _buildOslMaterial oslFile shaderName =
+(
+	local o = OSLMap()
+	o.OSLPath = oslFile
+	o.OSLAutoUpdate = true
+	local m = StandardMaterial name:shaderName
+	m.diffuseMap = o
+	m.diffuseMapEnable = true
+	m.useSelfIllumColor = false
+	m.selfIllumAmount = 100
+	m.specularLevel = 0
+	m.glossiness = 0
+	m
+)
+
+-- Returns the GlyphFX material for the shader (OSL in a Standard material for the opaque
+-- types, DirectX_9_Shader for the rest), or undefined if the type is not supported yet /
+-- the effect is missing / anything fails (caller falls back)
 fn buildDxMaterialForShader textureResult =
 (
 	if textureResult == undefined or textureResult.mainEntry == undefined then return undefined
 
-	local fxName = case textureResult.shaderType of
-	(
-		"shader_model": "shader_model.fx"
-		"shader_model_extended": "shader_model_extended.fx"
-		"shader_transparent_chicago": "shader_transparent_chicago.fx"
-		"shader_transparent_chicago_extended": "shader_transparent_chicago.fx"
-		"shader_transparent_generic": "shader_transparent_generic.fx"
-		"shader_transparent_meter": "shader_transparent_meter.fx"
-		"shader_transparent_water": "shader_transparent_water.fx"
-		"shader_transparent_plasma": "shader_transparent_plasma.fx"
-		"shader_transparent_glass": "shader_transparent_glass.fx"
-		"shader_environment": "shader_environment.fx"
-		default: undefined
-	)
-	if fxName == undefined then return undefined
+	local effect = _dxEffectOf textureResult.shaderType
+	if effect == undefined then return undefined
 
-	local fxFile = _glyphFxDir + fxName
+	local isOsl = getFilenameType effect[1] == ".osl"
+	local fxFile = (if isOsl then _glyphFxOslDir else _glyphFxDir) + effect[1]
 	if not doesFileExist fxFile then
 	(
 		logger.warn "GlyphFX effect not found: {}" args:#(fxFile)
@@ -1123,38 +1066,253 @@ fn buildDxMaterialForShader textureResult =
 	)
 
 	local dxMat = undefined
+	local startTime = timestamp()
 	try
 	(
-		dxMat = case textureResult.shaderType of
+		if isOsl then
+			dxMat = _buildOslMaterial fxFile textureResult.shaderName
+		else
 		(
-			"shader_model": buildShaderModelDxMaterial textureResult fxFile
-			"shader_model_extended": buildShaderModelExtendedDxMaterial textureResult fxFile
-			"shader_transparent_chicago": buildShaderChicagoDxMaterial textureResult fxFile "maps" "map"
-			"shader_transparent_chicago_extended": buildShaderChicagoDxMaterial textureResult fxFile "4StageMaps" "4StageMap"
-			"shader_transparent_generic": buildShaderGenericDxMaterial textureResult fxFile
-			"shader_transparent_meter": buildShaderMeterDxMaterial textureResult fxFile
-			"shader_transparent_water": buildShaderWaterDxMaterial textureResult fxFile
-			"shader_transparent_plasma": buildShaderPlasmaDxMaterial textureResult fxFile
-			"shader_transparent_glass": buildShaderGlassDxMaterial textureResult fxFile
-			"shader_environment": buildShaderEnvironmentDxMaterial textureResult fxFile
-			default: undefined
+			dxMat = DirectX_9_Shader()
+			dxMat.name = textureResult.shaderName
+			dxMat.effectfile = fxFile
+		)
+		-- If the effect compiled, its parameters exist as properties
+		if not (isProperty (glyphFxParamHolder dxMat) effect[2]) then
+		(
+			logger.error "GlyphFX effect failed to load: {}" args:#(fxFile)
+			dxMat = undefined
+		)
+		else
+		(
+			applyShaderParams dxMat textureResult
+			-- Animation Preview on, following the timeline (effects that have it, shader_animation.ms)
+			if isOsl then showTextureMap dxMat true else connectShaderAnimation dxMat
+			logger.info "GlyphFX material created: '{}' ({}) in {} ms" args:#(textureResult.shaderName, textureResult.shaderType, timestamp() - startTime)
 		)
 	)
 	catch
 	(
-		logger.error "DX material build failed for '{}': {}" args:#(textureResult.shaderName, getCurrentException())
+		logger.error "GlyphFX material build failed for '{}': {}" args:#(textureResult.shaderName, getCurrentException())
 		dxMat = undefined
 	)
 
 	-- Max auto-assigns a software-render proxy material (OpenPBR) to the
 	-- DirectX Shader; clear it so only the DX effect remains
-	if dxMat != undefined then
+	if dxMat != undefined and classOf dxMat == DirectX_9_Shader then
 	(
 		try ( dxMat.renderMaterial = undefined )
 		catch ( logger.debug "Could not clear renderMaterial for '{}'" args:#(textureResult.shaderName) )
 	)
 
+	-- Every tag field, for the tag editor (shader_tag_ca.ms, also has editableShaderTypes)
+	if dxMat != undefined and textureResult.fieldKeys != undefined and findItem editableShaderTypes textureResult.shaderType > 0 do
+		setShaderTagFields dxMat textureResult.shaderType textureResult.shaderFilePath textureResult.fieldKeys textureResult.fieldValues
+
 	return dxMat
+)
+
+-------------------------------------------------------
+-- Opacity of the OSL materials (alpha test and decal)
+-------------------------------------------------------
+-- As the game (rasterizer_xbox_models.c): models cut alpha < 127 unless "Not Alpha Tested",
+-- "Alpha Blended Decal" blends instead, environment cuts the bump alpha with "Alpha Tested".
+-- Connected only when it changes something: with an Opacity Max treats the material as transparent.
+
+fn _oslParam o p dflt = if isProperty o p then getProperty o p else dflt
+
+-- #(texture file, alpha limit 0-255, whole texture) to look at; undefined when nothing is cut
+fn _oslOpacityCheck o =
+(
+	local check = undefined
+	if isProperty o #AlphaTested then
+	(
+		-- shader_environment: the whole bump map (it is not mapped like the faces' base UV)
+		if (_oslParam o #AlphaTested 0) == 1 and (_oslParam o #EnableBumpMap 1) == 1 do
+			check = #(_oslParam o #BumpMapTexture "", 127, true)
+	)
+	else if (_oslParam o #EnableBaseMap 1) == 1 then
+	(
+		local file = _oslParam o #BaseMapTexture ""
+		if (_oslParam o #AlphaBlendedDecal 0) == 1 then check = #(file, 255, false)
+		else if (_oslParam o #NotAlphaTested 1) == 0 do check = #(file, 127, false)
+	)
+	if check != undefined and check[1] == "" then undefined else check
+)
+
+-- #(bitmap, rows read so far) of a texture with alpha, opened once per run; false otherwise
+fn _oslAlphaImage images file =
+(
+	if hasDictValue images file then return images[file]
+	local img = false
+	local bm = if doesFileExist file then (try (openBitmap file) catch (undefined)) else undefined
+	if bm != undefined do
+	(
+		if bm.hasAlpha then
+		(
+			local rows = #()
+			rows[bm.height] = undefined
+			img = #(bm, rows)
+		)
+		else close bm
+	)
+	images[file] = img
+	img
+)
+
+-- True if some texel of the whole texture has alpha below limit
+fn _oslTextureAlphaBelow img limit =
+(
+	local bm = img[1]
+	local found = false
+	for y = 0 to bm.height - 1 while not found do
+		for c in (getPixels bm [0, y] bm.width) while not found do
+			if c.a < limit do found = true
+	found
+)
+
+-- True if a point of the faces with material ID id (undefined: all) falls on a texel with alpha
+-- below limit. Base UV scaled by Map U/V Scale, V flipped (row 0 is the top), 15 points per face
+fn _oslFacesAlphaBelow msh id img limit us vs =
+(
+	local bm = img[1]
+	local rows = img[2]
+	local w = bm.width
+	local h = bm.height
+	local steps = 4
+	local found = false
+	for f = 1 to msh.numfaces while not found do
+	(
+		if id == undefined or (getFaceMatID msh f) == id do
+		(
+			local tf = getTVFace msh f
+			local ta = getTVert msh tf.x
+			local tb = getTVert msh tf.y
+			local tc = getTVert msh tf.z
+			for i = 0 to steps while not found do
+				for j = 0 to (steps - i) while not found do
+				(
+					local uv = (ta * i + tb * j + tc * (steps - i - j)) / steps
+					local su = uv.x * us
+					local sv = (1.0 - uv.y) * vs
+					su -= floor su
+					sv -= floor sv
+					local x = amin (w - 1) (amax 0 ((floor (su * w)) as integer))
+					local y = amin (h - 1) (amax 0 ((floor (sv * h)) as integer))
+					if rows[y + 1] == undefined do rows[y + 1] = getPixels bm [0, y] w
+					if rows[y + 1][x + 1].a < limit do found = true
+				)
+		)
+	)
+	found
+)
+
+-- What each material was last decided from (anim handle -> text): a tag editor edit of an
+-- unrelated field does not read the textures again
+global _oslOpacityChecked = Dictionary #string
+
+-- Connects the Opacity output of the same OSL map on the OSL materials of the nodes whose faces
+-- get cut or blended, and takes it off the ones that don't. onlyMat: just that material.
+-- An Opacity set by hand (not this OSL's) is left alone. Returns how many changed
+fn updateGlyphFxOpacity nodes onlyMat:undefined =
+(
+	-- Each OSL material and #(node, material ID) where it is used
+	local mats = #()
+	local uses = #()
+	for n in nodes where isValidNode n and n.material != undefined do
+	(
+		local root = n.material
+		local pairs = #()
+		if classOf root == MultiMaterial then
+		(
+			for i = 1 to root.materialList.count do append pairs #(root.materialList[i], root.materialIDList[i])
+		)
+		else append pairs #(root, undefined)
+		for p in pairs where p[1] != undefined and (onlyMat == undefined or p[1] == onlyMat) do
+		(
+			if classOf (glyphFxParamHolder p[1]) == OSLMap do
+			(
+				local k = findItem mats p[1]
+				if k == 0 do
+				(
+					append mats p[1]
+					append uses #()
+					k = mats.count
+				)
+				append uses[k] #(n, p[2])
+			)
+		)
+	)
+
+	local images = Dictionary #string
+	local meshNodes = #()
+	local meshes = #()
+	local changed = 0
+	for k = 1 to mats.count do
+	(
+		local m = mats[k]
+		local o = glyphFxParamHolder m
+		local check = _oslOpacityCheck o
+		local us = _oslParam o #MapUScale 1.0
+		local vs = _oslParam o #MapVScale 1.0
+		local current = m.opacityMap
+		local ours = current != undefined and classOf current == MultiOutputChannelTexmapToTexmap and current.sourceMap == o
+		local handle = (getHandleByAnim m) as string
+		local key = (check as string) + " " + (us as string) + " " + (vs as string)
+		-- Same as last time and still as it was left: nothing to read
+		if hasDictValue _oslOpacityChecked handle and _oslOpacityChecked[handle] == key and (ours or current == undefined) do continue
+
+		local needed = false
+		local img = if check != undefined then _oslAlphaImage images check[1] else false
+		if img != false do
+		(
+			if check[3] then needed = _oslTextureAlphaBelow img check[2]
+			else
+			(
+				for u in uses[k] while not needed do
+				(
+					local mi = findItem meshNodes u[1]
+					if mi == 0 do
+					(
+						append meshNodes u[1]
+						append meshes (snapshotAsMesh u[1])
+						mi = meshes.count
+					)
+					local msh = meshes[mi]
+					needed = if getNumTVerts msh == 0 then _oslTextureAlphaBelow img check[2] \
+						else _oslFacesAlphaBelow msh u[2] img check[2] us vs
+				)
+			)
+		)
+		_oslOpacityChecked[handle] = key
+
+		-- Never the OSL map itself: that is its Col output and the material turns ghostly
+		if needed and current == undefined then
+		(
+			m.opacityMap = MultiOutputChannelTexmapToTexmap sourceMap:o outputChannelIndex:2
+			m.opacityMapEnable = true
+			changed += 1
+		)
+		else if not needed and ours do
+		(
+			m.opacityMap = undefined
+			m.opacityMapEnable = false
+			changed += 1
+		)
+		logger.debug "OSL opacity '{}': cut/blend {}, opacity {}" args:#(m.name, needed, (m.opacityMap != undefined))
+	)
+	for f in images.keys where images[f] != false do close images[f][1]
+	for msh in meshes do delete msh
+
+	-- Nitrous sorts the faces of a material that just got an Opacity wrong until the
+	-- transparency level is set again. The same level is enough (another one costs ~2 s)
+	if changed > 0 do
+	(
+		try (viewport.SetTransparencyLevel (viewport.GetTransparencyLevel()))
+		catch (logger.debug "Could not refresh the viewport transparency")
+		redrawViews()
+	)
+	changed
 )
 
 scriptName = getFilenameFile (getThisScriptFilename()) + getFilenameType (getThisScriptFilename())
