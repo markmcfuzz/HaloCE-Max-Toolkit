@@ -11,10 +11,10 @@
 ------------------------------------------------------------------------------
 
 -- Build Shaders
--- Turns the GlyphFX DirectX materials of a Multi/Sub-Object material whose name
+-- Turns the GlyphFX materials (DirectX or OSL) of a Multi/Sub-Object material whose name
 -- contains "gfx" into shader tags, written by the toolkit's Lua tag writer.
 -- Shader type: a "#fourcc" tag in the material name ("armor #soso") wins, otherwise
--- the material's .fx file name decides. chicago_extended shares the chicago effect,
+-- the material's .fx/.osl file name decides. chicago_extended shares the chicago effect,
 -- so it needs "#scex".
 
 -- Clear listener
@@ -63,13 +63,14 @@ struct ShaderBuildEntry (mat, slotId, shaderType, tagName, problem)
             entry.problem = "empty slot"
             return entry
         )
-        if classOf mat != DirectX_9_Shader then
+        local effectFile = glyphFxEffectFile mat
+        if effectFile == undefined then
         (
-            entry.problem = "not a DirectX material"
+            entry.problem = "not a GlyphFX material"
             return entry
         )
 
-        local fxType = shaderTypeFromFxFile mat.effectfile
+        local fxType = shaderTypeFromFxFile effectFile
         local fcc = findShaderFourCCInName mat.name
         entry.shaderType = if fcc != undefined then shaderTagClassStrToString fcc else fxType
         entry.tagName = shaderTagNameFromMaterialName mat.name
@@ -77,7 +78,7 @@ struct ShaderBuildEntry (mat, slotId, shaderType, tagName, problem)
         entry.problem = case of
         (
             (fxType == undefined): "effect is not a GlyphFX shader"
-            ((shaderTypeToFxName entry.shaderType) != fxType): ("#" + fcc + " does not match the effect " + fxType + ".fx")
+            ((shaderTypeToFxName entry.shaderType) != fxType): ("#" + fcc + " does not match the effect " + filenameFromPath effectFile)
             (entry.tagName == ""): "empty material name"
             default: undefined
         )
@@ -122,6 +123,13 @@ struct ShaderBuildEntry (mat, slotId, shaderType, tagName, problem)
     -- Builds one shader tag. Returns #(ok, message, warnings)
     fn buildShaderTag tagPath entry =
     (
+        -- Imported (tag editor) materials keep every field of their tag: written as they are
+        if hasShaderTagFields entry.mat and entry.mat.tagGroup == entry.shaderType then
+        (
+            if not (writeShaderTagFields entry.mat tagPath) then
+                return #(false, "could not write the tag (see the log)", #())
+            return #(true, (entry.mat.fieldKeys.count as string) + " field(s) from the tag editor", #())
+        )
         local reader = readDxMaterialShaderFields entry.mat entry.shaderType
         if reader == undefined then return #(false, "unsupported shader type " + entry.shaderType, #())
         if not (writeDxShaderTag reader entry.shaderType tagPath) then
