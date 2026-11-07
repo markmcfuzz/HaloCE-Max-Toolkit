@@ -1,27 +1,28 @@
-"""Animation Preview section: GlyphFX preview switch and A-D Out sliders on the object's
-materials (builders\\tag\\shared\\shader_animation.ms). Saved in the scene, not in the tag."""
+"""Animation Preview section of the Shaders tab: GlyphFX preview switch and A-D Out sliders on
+the materials of an object tag Point or a mesh (builders\\tag\\shared\\shader_animation.ms).
+Saved in the scene, not in the tag."""
 from pymxs import runtime as rt
 
 from .qt import QtCore, QtWidgets
 
-TITLE = "Animation Preview (3ds Max only)"
+TITLE = "Animation Preview"
 OUTS = ["A", "B", "C", "D"]
 
 
-def preview_box(panel):
+def preview_box(node):
     """Built when the section opens; reads the materials again."""
     widget = QtWidgets.QWidget()
     form = QtWidgets.QFormLayout(widget)
     form.setContentsMargins(6, 2, 0, 2)
-    state = rt.tagEditorPreviewState(panel.node)
+    state = rt.tagEditorPreviewState(node)
     if state is None:
         form.addRow(QtWidgets.QLabel("No GlyphFX materials with Animation Preview"))
         return widget
     state = list(state)
 
     def set_param(name, value):
-        if panel.node is not None:
-            rt.tagEditorSetPreview(panel.node, name, value)
+        if rt.isValidNode(node):
+            rt.tagEditorSetPreview(node, name, value)
 
     check = QtWidgets.QCheckBox("Animation Preview")
     check.setChecked(bool(state[0]))
