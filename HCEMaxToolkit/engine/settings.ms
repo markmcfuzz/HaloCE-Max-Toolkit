@@ -152,7 +152,7 @@ rollout settingsGeneralRollout "General Settings" width:225 (
 	
 	group "Visual" (
 		checkbox chk_useDirectXMaterials "Use GlyphFX Shaders"
-			tooltip:"Builds DirectX viewport materials from shader tag data when the shader type is supported."
+			tooltip:"Builds GlyphFX viewport materials from shader tag data when the shader type is supported (OSL for opaque shaders, DirectX for transparent ones)."
 		checkbox chk_showMarkerNames "Show Marker Names"
 			tooltip:"Shows the name of each marker beside it in the viewport. A hotkey can be assigned to \"Toggle Marker Names\" (Halo CE category) in the Hotkey Editor."
 		checkbox chk_showNodeNames "Show Node Names"
