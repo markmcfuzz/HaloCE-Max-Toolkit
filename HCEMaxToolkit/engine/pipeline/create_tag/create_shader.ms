@@ -10,7 +10,7 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------------------------
 
--- GlyphFX DirectX material -> shader tag fields (inverse of builders\tag\shared\dx_material_builder.ms),
+-- GlyphFX material (DirectX or OSL) -> shader tag fields (inverse of builders\tag\shared\dx_material_builder.ms),
 -- written by lua\exporters\shader.lua. Viewport-only parameters have no tag field and are ignored.
 
 -------------------------------------------------------
@@ -30,7 +30,7 @@ fn shaderTypeToFxName shaderType =
 	)
 )
 
--- Shader type of a DirectX material's effect file, or undefined for non-GlyphFX effects
+-- Shader type of a GlyphFX material's .fx or .osl file, or undefined for non-GlyphFX effects
 fn shaderTypeFromFxFile fxFile =
 (
 	if fxFile == undefined or fxFile == "" then return undefined
@@ -129,10 +129,13 @@ struct DxShaderReader
 	-- Enums are written as their index
 	fn fieldEnum p key = fieldInt p key,
 
+	-- A bool param: true for DirectX, 1 for OSL
+	fn isOn v = v == true or v == 1,
+
 	-- New tags start with every bit cleared, so only set bits are added
 	fn fieldFlag p key bitIndex =
 	(
-		if (getParam p) != true then return undefined
+		if not (isOn (getParam p)) then return undefined
 		local i = findItem keys key
 		local bits = if i == 0 then 0 else (values[i] as integer)
 		addField key ((bit.set bits bitIndex true) as string)
@@ -194,10 +197,15 @@ struct DxShaderReader
 	-- is skipped, as the builder disables slots without a texture.
 	fn fieldBitmap texParam key enableParam:undefined =
 	(
-		if enableParam != undefined and (getParam enableParam) == false then return undefined
+		if enableParam != undefined do
+		(
+			local enabled = getParam enableParam
+			if enabled == false or enabled == 0 then return undefined
+		)
 		local tex = getParam texParam
 		if tex == undefined then return undefined
-		local filePath = try (tex.filename) catch (undefined)
+		-- OSL textures are the file path
+		local filePath = if classOf tex == String then tex else try (tex.filename) catch (undefined)
 		if filePath == undefined or filePath == "" then return undefined
 		local ref = textureFileToBitmapRef filePath
 		if ref == undefined then
@@ -216,7 +224,7 @@ struct DxShaderReader
 		local count = 0
 		for n = firstIdx to lastIdx do
 		(
-			local enabled = if firstAlwaysOn and n == firstIdx then true else (getParam ((enablePrefix + (n as string)) as name)) == true
+			local enabled = if firstAlwaysOn and n == firstIdx then true else isOn (getParam ((enablePrefix + (n as string)) as name))
 			if enabled then count = n - firstIdx + 1
 		)
 		count
@@ -694,7 +702,8 @@ fn readShaderEnvironmentFields r =
 -- collected fields, or undefined for an unsupported type.
 fn readDxMaterialShaderFields dxMat shaderType =
 (
-	local r = DxShaderReader dxMat:dxMat
+	-- OSL materials keep their parameters on the OSL map (change_colors.ms)
+	local r = DxShaderReader dxMat:(glyphFxParamHolder dxMat)
 	case shaderType of
 	(
 		"shader_model": readShaderModelFields r
