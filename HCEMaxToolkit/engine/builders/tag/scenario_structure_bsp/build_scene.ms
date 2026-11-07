@@ -645,7 +645,7 @@ fn buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName frameNode bsp
 
 			globalMaterials[gi].name = finalName
 			-- DirectX_9_Shader materials have no .diffuse property; only recolor
-			-- the StandardMaterial fallback (textured or checker placeholder)
+			-- the Standard ones (an OSL one hides it behind its Diffuse map)
 			if isProperty globalMaterials[gi] #diffuse then
 				globalMaterials[gi].diffuse = stringToColor finalName
 		)
@@ -1086,6 +1086,8 @@ fn buildBSPMesh bspData bspName bspFilePath = (
 		local renderMeshes = buildBSPRenderMeshes lightmapsRenderData globalSurfaces bspName bspContainer renderBspLayer \
 			mergeAllClusters:mergeAllClusters ssMat:ssMat tsMat:tsMat bspFilePath:bspFilePath useDxMaterials:useDxMaterials
 		for m in renderMeshes do append createdMeshes m
+		-- Alpha test / decal of the OSL materials needs their faces (dx_material_builder.ms)
+		updateGlyphFxOpacity renderMeshes
 	)
 
 	-- Build portals
