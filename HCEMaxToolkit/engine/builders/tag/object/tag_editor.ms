@@ -24,6 +24,9 @@ fn tagEditorSelected =
 	if isObjectTagContainer obj then obj else undefined
 )
 
+-- Handle of the one selected node (any kind), 0 otherwise
+fn tagEditorSelectedHandle = if selection.count == 1 then selection[1].inode.handle else 0
+
 -- Stores one field (undoable). Returns false when the key is not there
 fn tagEditorSetField obj key text =
 (
@@ -222,8 +225,8 @@ fn tagEditorModule =
 	(
 		local sysPath = (python.import "sys").path
 		local corePath = rootEngine + "core"
-		try (sysPath.remove corePath) catch ()
-		sysPath.insert 0 corePath
+		-- Checked first: a failed remove prints a ValueError in the Listener even inside try
+		if not (sysPath.__contains__ corePath) do sysPath.insert 0 corePath
 	)
 	local m = python.import "tag_editor"
 	tagEditorPythonReady = true
