@@ -169,7 +169,7 @@ fn prefetchShaderTags shaderFilePaths =
 		append paths p
 	if paths.count == 0 then return ok
 
-	local f = luaExportTags "shader" 1 paths
+	local f = luaExportTags "shader" 2 paths
 	if f == undefined then return ok
 	local count = luaReadInt f
 	for i = 1 to count do
@@ -182,6 +182,16 @@ fn prefetchShaderTags shaderFilePaths =
 			parseInfo[#shaderType]  = shaderTagClassStrToString classStr
 			parseInfo[#shaderEntry] = luaReadTuples f
 			parseInfo[#mainEntry]   = luaReadTuples f
+			-- Every field as text, kept on the material for the tag editor
+			local keys = #()
+			local values = #()
+			for j = 1 to (luaReadInt f) do
+			(
+				append keys (readString f)
+				append values (readString f)
+			)
+			parseInfo[#fieldKeys]   = keys
+			parseInfo[#fieldValues] = values
 			_shaderResolverCache[paths[i]] = parseInfo
 		)
 		else
@@ -197,6 +207,7 @@ fn prefetchShaderTags shaderFilePaths =
 --   #shaderType  type string (e.g. "shader_model")
 --   #shaderEntry parent 'shader' block tuples (radiosity/physics)
 --   #mainEntry   shader-type block tuples (full tag data)
+--   #fieldKeys / #fieldValues  every field as text ("maps[0].map u-scale" = "1")
 fn readShaderTagParsed shaderFilePath =
 (
 	local cached = _shaderResolverCache[shaderFilePath]
@@ -358,7 +369,36 @@ struct ShaderTextureResult
 	mainEntry,         -- parsed shader-type block tuples (FULL tag data)
 	mapKeys,           -- array of map key strings in tag field order
 	mapPaths,          -- Dictionary: map key -> tag-relative bitmap path
-	mapFiles           -- Dictionary: map key -> resolved disk texture file (only found ones)
+	mapFiles,          -- Dictionary: map key -> resolved disk texture file (only found ones)
+	fieldKeys,         -- every tag field as text, for the tag editor (shader_tag_ca.ms)
+	fieldValues
+)
+
+-- Every bitmap reference of result.mainEntry to its disk texture (mapKeys, mapPaths, mapFiles).
+-- tagFilePath: any tag of the same tags folder. Returns the primary map key, or undefined
+fn resolveShaderMaps result tagFilePath =
+(
+	local coll = collectShaderMapRefs result.shaderType result.mainEntry
+	result.mapKeys  = coll.orderedKeys
+	result.mapPaths = dictionary #string
+	result.mapFiles = dictionary #string
+
+	local foundCount = 0
+	for key in coll.orderedKeys do
+	(
+		local tagPath = shaderTagRefPath (coll.refs[key])
+		result.mapPaths[key] = tagPath
+		local textureFile = buildTextureFilePath tagFilePath tagPath
+		if textureFile != undefined then
+		(
+			result.mapFiles[key] = textureFile
+			foundCount += 1
+		)
+		else
+			logger.debug "  Map '{}': texture not found on disk: 'data\\{}'" args:#(key, tagPath)
+	)
+	logger.info "Shader '{}' ({}): {} bitmap ref(s), {} texture(s) on disk" args:#(result.shaderName, result.shaderType, coll.orderedKeys.count, foundCount)
+	coll.primaryKey
 )
 
 -- Shader tag file that resolveShaderTexture reads for shaderStruct (undefined if none)
@@ -412,38 +452,20 @@ fn resolveShaderTexture tagFilePath shaderStruct =
 
 	result.shaderEntry = parseInfo[#shaderEntry]
 	result.mainEntry   = parseInfo[#mainEntry]
+	result.fieldKeys   = parseInfo[#fieldKeys]
+	result.fieldValues = parseInfo[#fieldValues]
 
-	-- Collect every bitmap reference and resolve them to disk files
-	local coll = collectShaderMapRefs result.shaderType result.mainEntry
-	result.mapKeys  = coll.orderedKeys
-	result.mapPaths = dictionary #string
-	result.mapFiles = dictionary #string
-
-	local foundCount = 0
-	for key in coll.orderedKeys do
-	(
-		local tagPath = shaderTagRefPath (coll.refs[key])
-		result.mapPaths[key] = tagPath
-		local textureFile = buildTextureFilePath tagFilePath tagPath
-		if textureFile != undefined then
-		(
-			result.mapFiles[key] = textureFile
-			foundCount += 1
-		)
-		else
-			logger.debug "  Map '{}': texture not found on disk: 'data\\{}'" args:#(key, tagPath)
-	)
-	logger.info "Shader '{}' ({}): {} bitmap ref(s), {} texture(s) on disk" args:#(result.shaderName, result.shaderType, coll.orderedKeys.count, foundCount)
+	local primaryKey = resolveShaderMaps result tagFilePath
 
 	-- Primary (diffuse) map keeps the legacy single-texture behavior
-	if coll.primaryKey == undefined then
+	if primaryKey == undefined then
 	(
 		logger.warn "No primary map in shader: {}\n" args:#(filenameFromPath shaderFilePath)
 		return result
 	)
-	result.baseMapPath = result.mapPaths[coll.primaryKey]
+	result.baseMapPath = result.mapPaths[primaryKey]
 
-	local textureFilePath = result.mapFiles[coll.primaryKey]
+	local textureFilePath = result.mapFiles[primaryKey]
 	if textureFilePath == undefined then
 	(
 		logger.warn "Texture not found: '{}'" args:#("data\\" + result.baseMapPath)
