@@ -1,11 +1,12 @@
 """Panel with the fields of the selected object tag Point, in tag order. Values are read and
-written through the MAXScript functions of builders\\tag\\object\\tag_editor.ms."""
+written through the MAXScript functions of builders\\tag\\object\\tag_editor.ms.
+The Shaders tab (shaders.py) is the same panel showing a material's shader tag fields."""
 from pymxs import runtime as rt
 
 from .qt import QtCore, QtWidgets
-from . import elements, player, preview
+from . import elements, player
 from .layout import group_layout
-from .fields import ComboBox, field_editor, field_label, ref_path, set_help, tags_root_of, to_int
+from .fields import ComboBox, field_editor, field_label, flat_button, ref_path, set_help, tags_root_of, to_int
 
 
 class Section(QtWidgets.QWidget):
@@ -143,8 +144,12 @@ class TagEditorPanel(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.node = None
-        self.handle = None
+        self.node = None  # object tag Point shown, None in the other views
+        self.handle = None  # selected node the view belongs to
+        self.view_key = None  # ("node" | "list" | "shader", id): same view keeps blocks and scroll
+        self.shader = None  # material shown in the Shaders tab, None in the tag editor
+        self.shader_from = None
+        self.back_title = ""
         self.values = {}
         self.tag_file = ""
         self.last_tags_root = None
@@ -152,6 +157,12 @@ class TagEditorPanel(QtWidgets.QWidget):
         self.expanded = {}  # open sections by title
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
+        # Shaders tab only (back to the list)
+        self.back_button = flat_button("", QtCore.Qt.LeftArrow)
+        self.back_button.setToolTip("Back")
+        self.back_button.clicked.connect(self.close_shader)
+        self.back_button.setVisible(False)
+        layout.addWidget(self.back_button)
         self.title = QtWidgets.QLabel()
         self.title.setStyleSheet("font-weight: bold;")
         self.info = QtWidgets.QLabel()
@@ -164,6 +175,10 @@ class TagEditorPanel(QtWidgets.QWidget):
         self.export_button = QtWidgets.QPushButton("Export Tag...")
         self.export_button.setToolTip("Writes the tag; asks where to save it")
         self.export_button.clicked.connect(self._export)
+        # Opens the Shaders tab: the preview and the shader tags of the object's materials
+        self.shaders_button = QtWidgets.QPushButton("Shaders")
+        self.shaders_button.clicked.connect(self._open_shaders)
+        self.shaders_button.setVisible(False)
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -171,6 +186,7 @@ class TagEditorPanel(QtWidgets.QWidget):
         layout.addWidget(self.info)
         buttons = QtWidgets.QHBoxLayout()
         buttons.addWidget(self.select_button)
+        buttons.addWidget(self.shaders_button)
         buttons.addWidget(self.export_button)
         layout.addLayout(buttons)
         layout.addWidget(self.scroll, 1)
@@ -186,8 +202,16 @@ class TagEditorPanel(QtWidgets.QWidget):
         self.last_tags_root = root
 
     def set_value(self, key, text):
-        """Stores a field on the Point (undoable); unknown keys and equal values are skipped."""
-        if self.node is None or key not in self.values or self.values[key] == text:
+        """Stores a field on the Point or shader (undoable); unknown keys and equal values are skipped."""
+        if key not in self.values or self.values[key] == text:
+            return
+        if self.shader is not None:
+            # Also sets the material's GlyphFX parameters again
+            if rt.shaderEditorSetField(self.shader, key, text):
+                self.values[key] = text
+                self.value_changed.emit(key)
+            return
+        if self.node is None:
             return
         if rt.tagEditorSetField(self.node, key, text):
             self.values[key] = text
@@ -238,7 +262,11 @@ class TagEditorPanel(QtWidgets.QWidget):
     def _set_elements(self, count_key, result):
         """Stores the fields after a block change (one undo step) and shows the new element."""
         values, index = result
-        if self.node is None or not rt.tagEditorSetFields(self.node, list(values), list(values.values())):
+        if self.shader is not None:
+            if not rt.shaderEditorSetFields(self.shader, list(values), list(values.values())):
+                return
+            self.values = dict(values)  # already applied: refresh must not apply them again
+        elif self.node is None or not rt.tagEditorSetFields(self.node, list(values), list(values.values())):
             return
         # Nested blocks start again at their first element
         for key in [k for k in self.block_index if k.startswith(count_key + "[")]:
@@ -259,17 +287,61 @@ class TagEditorPanel(QtWidgets.QWidget):
 
     def _export(self):
         # Clicking the button takes the focus, so a field being typed in is already stored
+        if self.shader is not None:
+            if rt.shaderEditorExport(self.shader) is not None:
+                self.refresh()  # shows the new tag path
+            return
         if self.node is not None and rt.tagEditorExport(self.node) is not None:
             self.refresh()  # shows the new tag path
 
     def _show_message(self, title, info):
         self.node = None
         self.handle = None
+        self.view_key = None
         self.title.setText(title)
         self.info.setText(info)
+        self.back_button.setVisible(False)
         self.select_button.setVisible(False)
+        self.shaders_button.setVisible(False)
         self.export_button.setVisible(False)
         self.scroll.setWidget(QtWidgets.QWidget())
+
+    def close_shader(self):
+        self.shader = None
+        QtCore.QTimer.singleShot(0, self.refresh)
+
+    def _open_shaders(self):
+        from . import shaders  # it imports this module
+        shaders.show()
+
+    def _set_view(self, key):
+        """Returns True when it is the same view as before (blocks and scroll stay)."""
+        same = key == self.view_key
+        if not same:
+            self.block_index = {}
+        self.view_key = key
+        return same
+
+    def _show_sections(self, sections, open_index, same, extra=()):
+        """Sections of a layout, extra ones (title, build) first; open_index starts open."""
+        scroll_pos = self.scroll.verticalScrollBar().value()
+        content = QtWidgets.QWidget()
+        column = QtWidgets.QVBoxLayout(content)
+        column.setContentsMargins(0, 0, 0, 0)
+        for title, build in extra:
+            column.addWidget(Section(title, build, self.expanded.get(title, False),
+                                     lambda on, title=title: self.expanded.__setitem__(title, on)))
+        for i, section in enumerate(sections):
+            title = section["title"]
+            column.addWidget(Section(
+                title,
+                lambda fields=section["fields"]: self.build_fields(fields, ""),
+                self.expanded.get(title, i == open_index),
+                lambda on, title=title: self.expanded.__setitem__(title, on)))
+        column.addStretch(1)
+        self.scroll.setWidget(content)
+        if same:
+            QtCore.QTimer.singleShot(0, lambda: self.scroll.verticalScrollBar().setValue(scroll_pos))
 
     def refresh(self):
         """Shows the selected Point; called on selection change, undo and redo."""
@@ -279,22 +351,20 @@ class TagEditorPanel(QtWidgets.QWidget):
                                "Select the Point of an imported object tag (e.g. warthog.vehicle).")
             return
         handle, name, group, tag_file, keys, values, contents = list(rt.tagEditorFields(node))
-        same_node = handle == self.handle
-        scroll_pos = self.scroll.verticalScrollBar().value()
         try:
             layout = group_layout(group)
         except RuntimeError as error:
             self._show_message(name, "Could not read the %s definitions:\n%s" % (group, error))
             return
 
-        if not same_node:
-            self.block_index = {}
+        same_node = self._set_view(("node", handle))
         self.node, self.handle = node, handle
         self.values = dict(zip(list(keys), list(values)))
         self.tag_file = tag_file
         # Also after undo / redo and block changes
         rt.applyObjectChangeColors(node)
         rt.applyObjectBoundingRadius(node)
+        self.back_button.setVisible(False)
         self.title.setText(name)
         self.info.setText(tag_file or "New tag, not exported yet")
         self.select_button.setVisible(True)
@@ -304,30 +374,13 @@ class TagEditorPanel(QtWidgets.QWidget):
             "Selects the model, collision and physics of the tag" if contents > 0
             else "Nothing to select: import the tag or link objects to it")
         self.export_button.setVisible(True)
+        # Only for objects with GlyphFX materials
+        self.shaders_button.setVisible(len(list(rt.shaderEditorObjectShaders(node))) > 0)
+        self.shaders_button.setToolTip("Opens the Shaders tab: animation preview and the shader tags"
+                                       " of the object's materials")
 
-        content = QtWidgets.QWidget()
-        column = QtWidgets.QVBoxLayout(content)
-        column.setContentsMargins(0, 0, 0, 0)
-        # Not tag data: only for objects with GlyphFX preview materials, closed at first
-        if rt.tagEditorPreviewState(node) is not None:
-            column.addWidget(Section(
-                preview.TITLE, lambda: preview.preview_box(self),
-                self.expanded.get(preview.TITLE, False),
-                lambda on: self.expanded.__setitem__(preview.TITLE, on)))
-        sections = layout["sections"]
-        for section in sections:
-            title = section["title"]
-            # Object (the first section) starts open
-            expanded = self.expanded.get(title, section is sections[0])
-            column.addWidget(Section(
-                title,
-                lambda fields=section["fields"]: self.build_fields(fields, ""),
-                expanded,
-                lambda on, title=title: self.expanded.__setitem__(title, on)))
-        column.addStretch(1)
-        self.scroll.setWidget(content)
-        if same_node:
-            QtCore.QTimer.singleShot(0, lambda: self.scroll.verticalScrollBar().setValue(scroll_pos))
+        # Object (the first section) starts open
+        self._show_sections(layout["sections"], 0, same_node)
 
     def build_fields(self, fields, prefix):
         """Form with layout fields in order; keys are prefix + field key."""
