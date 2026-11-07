@@ -4,7 +4,7 @@ from pymxs import runtime as rt
 
 from .qt import QtCore, QtWidgets, shiboken, GetQMaxMainWindow
 from .panel import TagEditorPanel
-from . import tabs, player
+from . import tabs, player, shaders
 
 DOCK_NAME = "HCETagEditorDock"
 
@@ -56,9 +56,9 @@ def _command_panel(main):
 
 
 def close_all():
-    """New, reset or open scene: the editor and the players belong to the old scene."""
+    """New, reset or open scene: the editor, the Shaders tab and the players belong to the old scene."""
     main = GetQMaxMainWindow()
-    for name in (DOCK_NAME, player.DOCK_NAME, player.IMPORT_DOCK_NAME):
+    for name in (DOCK_NAME, shaders.DOCK_NAME, player.DOCK_NAME, player.IMPORT_DOCK_NAME):
         for dock in main.findChildren(QtWidgets.QDockWidget, name):
             if shiboken.isValid(dock):
                 dock.close()
@@ -69,19 +69,26 @@ def show_model_animations(tag_path):
     player.show_scene(tag_path, _command_panel)
 
 
+def _refresh(panel, force):
+    """Shows the selection; True when it moved to another node. Selection change, same node:
+    rebuilding would delete an open eye menu (and is slow)."""
+    previous = panel.handle
+    if not force and previous is not None and int(rt.tagEditorSelectedHandle()) == previous:
+        return False
+    panel.refresh()
+    return panel.handle is not None and panel.handle != previous
+
+
 def follow_selection(force=True):
     """Opens the panel when an object tag Point is selected; brings its tab to the front
-    when another Point is selected. Otherwise only shows the current selection."""
+    when another Point is selected (not over the Shaders tab while it is the one shown).
+    Otherwise only shows the current selection. The Shaders tab follows it too."""
+    shader_panel = shaders.current()
+    if shader_panel is not None:
+        _refresh(shader_panel, force)
     if not _is_open():
         if rt.tagEditorSelected() is not None:
             show()
         return
-    previous = _panel.handle
-    if not force and previous is not None:
-        # Selection change, same Point: rebuilding would delete an open eye menu (and is slow)
-        node = rt.tagEditorSelected()
-        if node is not None and node.inode.handle == previous:
-            return
-    _panel.refresh()
-    if _panel.handle is not None and _panel.handle != previous:
+    if _refresh(_panel, force) and (shader_panel is None or not shader_panel.isVisible()):
         _panel.parent().raise_()
