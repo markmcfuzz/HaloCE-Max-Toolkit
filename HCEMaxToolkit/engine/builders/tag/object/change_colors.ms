@@ -41,8 +41,26 @@ fn objectChangeColor fields blockKey index =
 	if hasDictValue fields colorKey then tagTextToColor fields[colorKey] else white
 )
 
+-- Where a GlyphFX material keeps its parameters: the OSL map in the Diffuse of an OSL material
+-- (also behind a "Map Output Selector"), the material itself for a DirectX one
+fn glyphFxParamHolder mat =
+(
+	if classOf mat != StandardMaterial then return mat
+	local d = mat.diffuseMap
+	if d != undefined and classOf d == MultiOutputChannelTexmapToTexmap do d = d.sourceMap
+	if d != undefined and classOf d == OSLMap then d else mat
+)
+
+-- The .fx or .osl file of a GlyphFX material (named after its shader type); undefined otherwise
+fn glyphFxEffectFile mat =
+(
+	if classOf mat == DirectX_9_Shader then return mat.effectfile
+	local h = glyphFxParamHolder mat
+	if classOf h == OSLMap then h.OSLPath else undefined
+)
+
 -- Change color parameters of a GlyphFX material: #(#(parameter, source 1=A .. 4=D, 0 none), ...).
--- Empty for materials without change color
+-- Empty for materials without change color. m: its parameter holder (glyphFxParamHolder)
 fn materialChangeColorSlots m =
 (
 	if isProperty m #ChangeColorA then
@@ -85,8 +103,9 @@ fn applyObjectChangeColors obj =
 	local changed = 0
 	with undo off
 	(
-		for m in materials do
+		for mat in materials do
 		(
+			local m = glyphFxParamHolder mat
 			local matChanged = false
 			for slot in materialChangeColorSlots m do
 			(
