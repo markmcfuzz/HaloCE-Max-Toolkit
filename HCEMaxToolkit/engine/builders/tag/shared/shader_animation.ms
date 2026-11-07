@@ -44,11 +44,12 @@ fn findShaderAnimationMaterials =
 	shaderAnimationMaterials.count
 )
 
--- Materials with Animation Preview of an object tag Point (its imported nodes)
+-- Materials with Animation Preview of an object tag Point (its imported nodes) or of a mesh
 fn objectPreviewMaterials obj =
 (
+	local nodes = if isObjectTagContainer obj then obj.memberNodes else #(obj)
 	local materials = #()
-	for n in obj.memberNodes where isValidNode n and n.material != undefined do collectSubMaterials n.material materials
+	for n in nodes where isValidNode n and n.material != undefined do collectSubMaterials n.material materials
 	for m in materials where isProperty m #AnimationPreview collect m
 )
 
