@@ -1087,7 +1087,8 @@ fn buildDxMaterialForShader textureResult =
 		(
 			applyShaderParams dxMat textureResult
 			-- Animation Preview on, following the timeline (effects that have it, shader_animation.ms)
-			if isOsl then showTextureMap dxMat true else connectShaderAnimation dxMat
+			if isOsl then showTextureMap dxMat true
+			connectShaderAnimation (glyphFxParamHolder dxMat)
 			logger.info "GlyphFX material created: '{}' ({}) in {} ms" args:#(textureResult.shaderName, textureResult.shaderType, timestamp() - startTime)
 		)
 	)
