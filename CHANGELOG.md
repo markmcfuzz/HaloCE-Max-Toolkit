@@ -4,23 +4,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [6.0.0] - 2026-10-31
+## [6.0.0] - 2026-11-08
 
 ### Added
 
-- **GBXModel Importer:** also imports Xbox `.model` tags.
-- **Settings:** GBXModel importer options `Nodes`, `Markers`, `Geometry`, `Reuse Existing Nodes`, `Reuse Existing Markers` and `Node Prefix`.
+- **Object Importer** (`Import` > `Tag` > `Object`): imports `biped`, `vehicle`, `weapon`, `scenery` and `device_machine` tags with their model, collision and physics, under a Point that keeps all the tag's fields.
+- **Halo Tag Editor:** dockable panel to edit every field of an object tag, show/hide or link its references, and write it with `Export Tag...`.
+- **Shaders tab:** edits every field of the GlyphFX shaders (all types but `shader_transparent_chicago_extended`) with live viewport preview, `A Out`-`D Out` function sliders, `Loop to Timeline` and `Fit Timeline to Shader Animation`.
+- **Animation Player:** plays the tag's animations on the model's bones and extracts the selected ones to JMA files.
+- **Model Animations Importer** (`Import` > `Tag` > `Model Animations`): applies a `.model_animations` animation as keys on the scene bones.
+- **Create Object Tag** (`Tools` > `HCE`): creates an empty object tag Point to edit and export.
+- **GlyphFX Animation Preview:** imported GlyphFX materials animate with the timeline, like in game (e.g. energy shields), and show the object's change colors.
+- **GBXModel Importer:** imports Xbox `.model` tags; new options `Nodes`, `Markers`, `Geometry`, `Reuse Existing Nodes`, `Reuse Existing Markers` and `Node Prefix`.
+- **Viewport labels:** names for object tag Points, bounding radius, markers and nodes (`Show Marker Names`, `Show Node Names`).
 
 ### Changed
 
-- **Tag and file reading moved to Lua (LuaJIT):**
-  - All tag importers, the shader reader and the `Model Animations Extractor` read tags with LuaJIT. The MAXScript tag parser was removed.
-  - JMS and JMA files are read and written with Lua; the files written are the same as before.
-  - Faster imports and exports, e.g. a 33k-vertex JMS: export 10.4 s -> 1.9 s, import scene build 5.4 s -> 1.1 s.
-  - A JMS/JMA value that is not a number now stops the import with its line number.
-- **Undo:** imports and the JMS export run with undo off for speed; `Ctrl+Z` no longer undoes an import.
-- **Camera Track export:** the tag is written with `invader-edit.exe` (path in `Settings` > `External Tools`).
-- **Settings:** Removed `Skip Uncompressed Vertices` option of the GBXModel importer.
+- **Lua (LuaJIT):** all tags, JMS and JMA files are read and written with Lua; much faster imports and exports (e.g. 33k-vertex JMS export 10.4 s -> 1.9 s).
+- **Undo:** imports and the JMS export run with undo off; `Ctrl+Z` no longer undoes an import.
+- **invader-edit removed:** Camera Track export and Build Shaders use the toolkit's own tag writer; the `External Tools` settings were removed.
+- **GlyphFX `shader_model`, `shader_model_extended` and `shader_environment`:** now an OSL map in a Standard material, so they no longer cover transparent shaders. Use `Rendering Level` `Advanced` in the viewport.
+- **GlyphFX `shader_transparent_generic` and `shader_transparent_chicago`:** compile about 4x faster.
+- **Menu:** `Import` split into `Tag` and `Source`.
+- **Settings:** removed `Skip Uncompressed Vertices`.
+
+### Fixed
+
+- **GlyphFX materials:** `shader_transparent_generic` combiner outputs and stage color alpha, and `shader_model_extended` detail v-scales, were not imported.
 
 ## [5.8.0] - 2026-10-28
 
