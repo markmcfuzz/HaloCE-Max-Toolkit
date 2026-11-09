@@ -19,30 +19,56 @@ If you want to learn more in depth about the features and roadmap, check the [**
 
 ## Features
 ### Import:
-  - `GBX Model`
-  - `Camera Track`
-  - `Animation Data (JMA)`
-  - `Jointed Model Skeleton (JMS)`
-  - `Physics Mass Points`
-  - `Model Collision Geometry`
-  - `Scenario Structure BSP`
+  - **Tag:**
+    - `Gbxmodel`/`Model`
+    - `Physics Mass Points`
+    - `Model Collision Geometry`
+    - `Camera Track`
+    - `Scenario Structure BSP`
+    - `Object` (`biped`, `vehicle`, `weapon`, `scenery`, `device_machine`)
+      - Imports the object with its model, collision and physics, under a Point that keeps all the tag's fields.
+    - `Model Animations`
+      - Plays the tag's animations on the scene bones, picked from a list. Also extracts the selected animations to source files.
+  - **Source:**
+    - `Animation Data (JMA)`
+    - `Jointed Model Skeleton (JMS)`
 ### Export:
   - `JMS`
   - `JMA`
   - `Camera Track`
+  - `Shader Tags`
 ### Tools:
-  - `Sphere to Halo Marker Helper`
-    - Change the spheres with symbol `#` to new Halo Marker helpers.
-  - `Model Animation Extractor`
-    - Extracts all animation source from a `.model_animations` tag.
-  - `Camera Track Generator`
-    - Generate camera points taking a spline as reference.
-  - `Build Shaders`
-    - Creates shader tags from the GlyphFX materials of a Multi/Sub-Object material with `gfx` in its name (requires [invader-edit](https://github.com/SnowyMouse/invader)).
+  - **HCE:**
+    - `Sphere to Helper Converter`
+      - Change the spheres with symbol `#` to new Halo Marker helpers.
+    - `Model Animations Extractor`
+      - Extracts all animation source from a `.model_animations` tag.
+    - `Node Renamer`
+      - Batch-renames nodes in JMS and JMA files to follow Halo CE naming.
+    - `Bone Weight Limiter`
+      - Limits each vertex to 2 bone influences, as Halo CE requires.
+    - `Camera Track Builder`
+      - Generate camera points taking a spline as reference.
+    - `Retargeting`
+      - Transfers animations between different skeletons, even when bone names, axes or rest poses differ.
+    - `Create Object Tag`
+      - Creates an empty object tag to fill in the Halo Tag Editor and export.
+  - **CER:**
+    - `Packed UV Fixer`
+      - Fixes UVs of Halo Campaign Evolved models with horizontally packed textures.
+  - **H5:**
+    - `H5 Animation Tool`
+      - Converts Halo 5 animations to JMA files and retargets them to the Halo CE first person arms.
+### Halo Tag Editor:
+  - Dockable panel that edits every field of an object tag; opens when its Point is selected.
+  - Shows or hides the model, collision and physics of each reference, and links scene objects to them.
+  - `Export Tag...` writes the tag.
+  - **Shaders:** edits every field of the object's GlyphFX shaders with live viewport preview, and exports them as tags.
+  - **Animation Player:** plays the object's animations on its model (play/pause, loop, speed, timeline slider) and extracts the selected ones to source files.
 ### Settings:
   - **Import Settings:**
     - `GBXModel Importer`
-      - Skip Uncompressed vertices for fast import.
+      - Import nodes, markers and geometry; reuse existing nodes and markers; node prefix.
     - `JMS Importer`
       - Reuse existing nodes and markers.
     - `Scenario Structure BSP`
@@ -55,10 +81,9 @@ If you want to learn more in depth about the features and roadmap, check the [**
   - **General Settings:**
     - `Visual`
       - Use GlyphFX shaders.
+      - Show marker and node names in the viewport (also with hotkeys).
     - `Feedback`
       - Show completion task dialogs.
-    - `External Tools`
-      - Path to `invader-edit.exe` (used by `Build Shaders`).
     - `Developer`
       - Enable debug logging
       - Save log file
@@ -67,8 +92,9 @@ If you want to learn more in depth about the features and roadmap, check the [**
     - Checks if the selected objects have coplanar faces (red, green, blue). It provides visual feedback to help identify and fix nearly-coplanar issues before exporting.
 ### Other    
   - Additional validations and clear error handling for JMS Exporter.
-  - Improved performance for large models and animations compared to bluestreak.
-  - [**GlyphFX**](https://github.com/markmcfuzz/GlyphFX) integration to have Halo CE shaders in 3ds max.
+  - Improved performance for large models and animations compared to bluestreak; tags, JMS and JMA files are read and written with LuaJIT.
+  - [**GlyphFX**](https://github.com/markmcfuzz/GlyphFX) integration to have Halo CE shaders in 3ds max, animated with the timeline like in game.
+  - No external tools needed: tags are written by the toolkit itself.
   - Adds a new **Halo CE Toolkit** menu bar section inside 3ds Max for quick access to import/export/tools.
   - Executable installer for easy installation and uninstallation of the toolkit.
 
