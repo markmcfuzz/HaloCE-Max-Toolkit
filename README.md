@@ -103,7 +103,7 @@ If you want to learn more in depth about the features and roadmap, check the [**
 ![3dsmax](https://img.shields.io/badge/3ds%20Max-2023%2B-39a5cc?style=for-the-badge&logo=autodesk&logoColor=white)
 
 > [!WARNING]
-> The toolkit is built and tested for 3ds Max **2023 up to 2027**. However, it may not work properly on versions older than 2023, and those versions are not officially supported. If you are using an older version, please report any issues you find.
+> The toolkit is built and tested for 3ds Max **2023 up to 2026**. 3ds Max 2027 support is experimental and some things may fail, so 2026 or older is recommended for now. Versions older than 2023 may not work properly and are not officially supported. If you are using 2027 or an older version, please report any issues you find.
 
 ## Installation
 1. Download the latest executable from the [**Releases**](https://github.com/markmcfuzz/HaloCE-Max-Toolkit/releases) page.
