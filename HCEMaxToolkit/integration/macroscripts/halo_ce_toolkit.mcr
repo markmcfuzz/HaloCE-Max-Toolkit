@@ -199,6 +199,27 @@ macroScript ImportModelAnimations
     )
 )
 
+macroScript ImportActorVariant
+    category: "Halo CE"
+    toolTip: "Actor Variant"
+(
+    on execute do
+    (
+        local thisScript = getThisScriptFilename()
+        local leafPath = pathConfig.removePathLeaf thisScript
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+        local scriptPath = pluginRoot + "\\engine\\import_actor_variant.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
+
 -- Export Scripts
 
 macroScript ExportJointedModelAnimation
