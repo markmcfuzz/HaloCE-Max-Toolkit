@@ -66,23 +66,25 @@ fn createHaloCEToolkitMenu =
         print "Adding Import macros..."
         local importTagMenu = mm.createMenu "Tag"
         local importSourceMenu = mm.createMenu "Source"
-        addMacroToMenu importTagMenu "Halo CE" "ImportGBX" mm displayName:"GBX-Model"
-        addMacroToMenu importTagMenu "Halo CE" "ImportCollisionGeometry" mm displayName:"Model Collision Geometry"
-        addMacroToMenu importTagMenu "Halo CE" "ImportPhysics" mm displayName:"Physics"
+        -- Alphabetical order of the menu label
+        addMacroToMenu importTagMenu "Halo CE" "ImportActorVariant" mm displayName:"Actor Variant"
         addMacroToMenu importTagMenu "Halo CE" "ImportCameraTrack" mm displayName:"Camera Track"
-        addMacroToMenu importTagMenu "Halo CE" "ImportStructureBSP" mm displayName:"Scenario Structure BSP"
-        addMacroToMenu importTagMenu "Halo CE" "ImportObject" mm displayName:"Object"
+        addMacroToMenu importTagMenu "Halo CE" "ImportGBX" mm displayName:"GBX-Model"
         addMacroToMenu importTagMenu "Halo CE" "ImportModelAnimations" mm displayName:"Model Animations"
-        addMacroToMenu importSourceMenu "Halo CE" "ImportJMS" mm displayName:"Jointed Model Skeleton (JMS)"
+        addMacroToMenu importTagMenu "Halo CE" "ImportCollisionGeometry" mm displayName:"Model Collision Geometry"
+        addMacroToMenu importTagMenu "Halo CE" "ImportObject" mm displayName:"Object"
+        addMacroToMenu importTagMenu "Halo CE" "ImportPhysics" mm displayName:"Physics"
+        addMacroToMenu importTagMenu "Halo CE" "ImportStructureBSP" mm displayName:"Scenario Structure BSP"
         addMacroToMenu importSourceMenu "Halo CE" "ImportAnimationData" mm displayName:"Jointed Model Animation (JMA)"
+        addMacroToMenu importSourceMenu "Halo CE" "ImportJMS" mm displayName:"Jointed Model Skeleton (JMS)"
         importMenu.addItem (mm.createSubMenuItem "Tag" importTagMenu) -1
         importMenu.addItem (mm.createSubMenuItem "Source" importSourceMenu) -1
 
         -- Add Export macros
         print "Adding Export macros..."
-        addMacroToMenu exportMenu "Halo CE" "ExportJMS" mm displayName:"JMS Model"
-        addMacroToMenu exportMenu "Halo CE" "ExportJointedModelAnimation" mm displayName:"JMA Animation"
         addMacroToMenu exportMenu "Halo CE" "ExportCameraTrack" mm displayName:"Camera Track"
+        addMacroToMenu exportMenu "Halo CE" "ExportJointedModelAnimation" mm displayName:"JMA Animation"
+        addMacroToMenu exportMenu "Halo CE" "ExportJMS" mm displayName:"JMS Model"
         addMacroToMenu exportMenu "Halo CE" "BuildShaders" mm displayName:"Shaders"
 
         -- Add Tools macros, grouped by target game
@@ -91,14 +93,14 @@ fn createHaloCEToolkitMenu =
         local toolsCerMenu = mm.createMenu "CER"
         local toolsH5Menu = mm.createMenu "H5"
 
-        addMacroToMenu toolsHceMenu "Halo CE" "SphereToHaloMarkerHelper" mm displayName:"Convert Spheres to Halo Helper Markers"
+        addMacroToMenu toolsHceMenu "Halo CE" "SkinBoneLimiter" mm displayName:"Bone Weight Limiter"
+        addMacroToMenu toolsHceMenu "Halo CE" "CameraTrackGenerator" mm displayName:"Camera Track Builder"
+        addMacroToMenu toolsHceMenu "Halo CE" "NewObjectTag" mm displayName:"Create Object Tag"
         addMacroToMenu toolsHceMenu "Halo CE" "ModelAnimationsExtractor" mm displayName:"Model Animations Extractor"
         addMacroToMenu toolsHceMenu "Halo CE" "NodeRenamer" mm displayName:"Node Renamer"
-        addMacroToMenu toolsHceMenu "Halo CE" "SkinBoneLimiter" mm displayName:"Bone Weight Limiter"
         --addMacroToMenu toolsHceMenu "Halo CE" "QuickSkin" mm displayName:"Quick Skin"
-        addMacroToMenu toolsHceMenu "Halo CE" "CameraTrackGenerator" mm displayName:"Camera Track Builder"
         addMacroToMenu toolsHceMenu "Halo CE" "Retargeting" mm displayName:"Retargeting"
-        addMacroToMenu toolsHceMenu "Halo CE" "NewObjectTag" mm displayName:"Create Object Tag"
+        addMacroToMenu toolsHceMenu "Halo CE" "SphereToHaloMarkerHelper" mm displayName:"Sphere to Helper Converter"
 
         addMacroToMenu toolsCerMenu "Halo CE" "PackedUvFixer" mm displayName:"Packed UV Fixer"
 
