@@ -4,7 +4,7 @@ from pymxs import runtime as rt
 
 from .qt import QtCore, QtWidgets, shiboken, GetQMaxMainWindow
 from .panel import TagEditorPanel
-from . import tabs, player, shaders
+from . import tabs, player, shaders, actor
 
 DOCK_NAME = "HCETagEditorDock"
 
@@ -58,7 +58,7 @@ def _command_panel(main):
 def close_all():
     """New, reset or open scene: the editor, the Shaders tab and the players belong to the old scene."""
     main = GetQMaxMainWindow()
-    for name in (DOCK_NAME, shaders.DOCK_NAME, player.DOCK_NAME, player.IMPORT_DOCK_NAME):
+    for name in (DOCK_NAME, shaders.DOCK_NAME, player.DOCK_NAME, player.IMPORT_DOCK_NAME, actor.DOCK_NAME):
         for dock in main.findChildren(QtWidgets.QDockWidget, name):
             if shiboken.isValid(dock):
                 dock.close()
@@ -67,6 +67,11 @@ def close_all():
 def show_model_animations(tag_path):
     """Import > Tag > Model Animations (import_model_animations.ms)."""
     player.show_scene(tag_path, _command_panel)
+
+
+def show_actor(node, variant_path):
+    """Import > Tag > Actor Variant (import_actor_variant.ms): node is the unit's Point."""
+    actor.show(node, variant_path, _command_panel)
 
 
 def _refresh(panel, force):
