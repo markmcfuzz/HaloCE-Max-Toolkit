@@ -343,9 +343,10 @@ def _dock(main, name):
     return None
 
 
-def _open(name, title, dock_class, find_beside):
+def open_dock(name, title, dock_class, find_beside, panel_class=None):
     """The panel of dock name, made as a tab beside find_beside(main) (right side when it's
-    floating or None) the first time; brought to the front."""
+    floating or None) the first time; brought to the front. panel_class: AnimationPlayerPanel
+    or one made from it (actor.py)."""
     main = GetQMaxMainWindow()
     panel = _panels.get(name)
     if panel is None or not shiboken.isValid(panel):
@@ -355,7 +356,7 @@ def _open(name, title, dock_class, find_beside):
         dock.setObjectName(name)
         dock.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         dock.setMinimumWidth(320)
-        panel = AnimationPlayerPanel(dock)
+        panel = (panel_class or AnimationPlayerPanel)(dock)
         dock.setWidget(panel)
         _panels[name] = panel
         if beside is not None and not beside.isFloating():
@@ -372,7 +373,7 @@ def _open(name, title, dock_class, find_beside):
 
 def show(node, tag_path):
     """Opens the tab beside the tag editor (or brings it to the front) and loads the tag."""
-    panel = _open(DOCK_NAME, "Animation Player", PlayerDock, lambda main: _dock(main, EDITOR_DOCK_NAME))
+    panel = open_dock(DOCK_NAME, "Animation Player", PlayerDock, lambda main: _dock(main, EDITOR_DOCK_NAME))
     # After the tab shows: loading the first time takes about a second
     QtCore.QTimer.singleShot(0, lambda: panel.load(node, tag_path))
 
@@ -380,5 +381,5 @@ def show(node, tag_path):
 def show_scene(tag_path, find_command_panel):
     """Import > Tag > Model Animations: the tag's animations for the scene bones, in a tab
     beside the Command Panel (find_command_panel(main))."""
-    panel = _open(IMPORT_DOCK_NAME, "Model Animations", ImportDock, find_command_panel)
+    panel = open_dock(IMPORT_DOCK_NAME, "Model Animations", ImportDock, find_command_panel)
     QtCore.QTimer.singleShot(0, lambda: panel.load(None, tag_path))
