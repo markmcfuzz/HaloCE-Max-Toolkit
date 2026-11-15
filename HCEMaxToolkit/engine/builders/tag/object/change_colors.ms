@@ -96,6 +96,13 @@ fn applyObjectChangeColors obj =
 	-- A to D; white when the object has fewer
 	local colors = #()
 	for i = 1 to 4 do append colors (if i <= count then objectChangeColor fields blockKey (i - 1) else white)
+	-- An actor variant replaces the first ones ("r,g,b;r,g,b", import_actor_variant.ms)
+	local variantColors = getUserProp obj "hceVariantColors"
+	if variantColors != undefined do
+	(
+		local parts = filterString (variantColors as string) ";"
+		for i = 1 to (amin parts.count 4) do colors[i] = tagTextToColor (substituteString parts[i] "," " ")
+	)
 
 	local nodes = for n in obj.memberNodes where isValidNode n and n.material != undefined collect n
 	local materials = #()
