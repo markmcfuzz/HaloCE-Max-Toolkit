@@ -741,6 +741,7 @@ fn buildGeometry jmsData createdNodes materials jmsFileName =
 		-- Create mesh for this region
 		local meshObj = mesh vertices:regionVertPositions faces:regionFaces
 		meshObj.name = regionName + " " + fileNameNoExt
+		meshObj.wirecolor = color 0 0 0  -- black, like the BSP
 		
 		-- Set UV coordinates
 		setNumTVerts meshObj regionVertPositions.count

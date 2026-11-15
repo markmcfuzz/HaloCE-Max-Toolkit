@@ -638,6 +638,7 @@ fn createGBXModelGeometry gbxRegions geometryMeshes materialObj createdNodes =
 				-- Create combined mesh
 				local combinedMesh = mesh vertices:allVertices faces:allFaces materialIDs:allMatIDs
 				combinedMesh.name = meshName
+				combinedMesh.wirecolor = color 0 0 0  -- black, like the BSP
 				combinedMesh.material = materialObj
 				
 				-- Apply UVs
