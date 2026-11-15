@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [6.0.0] - 2026-11-08
+## [6.0.0] - 2026-11-14
 
 ### Added
 
@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Shaders tab:** edits every field of the GlyphFX shaders (all types but `shader_transparent_chicago_extended`) with live viewport preview, `A Out`-`D Out` function sliders, `Loop to Timeline` and `Fit Timeline to Shader Animation`.
 - **Animation Player:** plays the tag's animations on the model's bones and extracts the selected ones to JMA files.
 - **Model Animations Importer** (`Import` > `Tag` > `Model Animations`): applies a `.model_animations` animation as keys on the scene bones.
+- **Actor Variant Importer** (`Import` > `Tag` > `Actor Variant`): imports the character with its variant colors and its weapon in the hand.
+- **Actor panel:** lists the unit states and AI impulses of each actor mode (`Asleep` to `Flaming`) with the animation the game plays, or what it does when it's missing; plays them with the game's weapon IK.
 - **Create Object Tag** (`Tools` > `HCE`): creates an empty object tag Point to edit and export.
 - **GlyphFX Animation Preview:** imported GlyphFX materials animate with the timeline, like in game (e.g. energy shields), and show the object's change colors.
 - **GBXModel Importer:** imports Xbox `.model` tags; new options `Nodes`, `Markers`, `Geometry`, `Reuse Existing Nodes`, `Reuse Existing Markers` and `Node Prefix`.
