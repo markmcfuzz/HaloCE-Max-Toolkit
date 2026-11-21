@@ -1,0 +1,177 @@
+{
+    "label": "Boat (experimental)",
+    "summary": "Boat with pontoons.",
+    "notes": "Experimental: not tested in game.",
+    "vehicle_type": "human boat",
+    "size": [
+        1.93078,
+        0.68,
+        0.94014
+    ],
+    "vehicle": {
+        "fields": {
+            "flags": 3281,
+            "maximum forward speed": 0.2,
+            "maximum reverse speed": 0.05,
+            "speed acceleration": 0.003,
+            "speed deceleration": 0.006,
+            "maximum left turn": 30,
+            "maximum right turn (negative)": -30,
+            "turn rate": 90,
+            "blur speed": 0.08,
+            "ai destination radius": 2,
+            "ai pathfinding radius": 1.5
+        }
+    },
+    "physics": {
+        "fields": {
+            "moment scale": 0.3,
+            "mass": 2500,
+            "density": 0.5,
+            "ground depth": 0.2,
+            "water depth": 0.2,
+            "air friction": 0.001
+        },
+        "powered_mass_points": [
+            {
+                "name": "hydrofoil + propeller",
+                "flags": 10
+            },
+            {
+                "name": "hydrofoil (front)",
+                "flags": 8
+            },
+            {
+                "name": "hydrofoil (back)",
+                "flags": 8
+            }
+        ],
+        "parts": [
+            {
+                "type": "point",
+                "name": "hull front",
+                "radius": 0.06215,
+                "x": {
+                    "of_size": 0.42909
+                },
+                "z": {
+                    "of_size": 0.07379
+                }
+            },
+            {
+                "type": "point",
+                "name": "hull top",
+                "radius": 0.06215,
+                "x": {
+                    "of_size": -0.03503
+                },
+                "z": {
+                    "of_size": 0.37236
+                }
+            },
+            {
+                "type": "point",
+                "name": "hull back",
+                "radius": 0.06215,
+                "x": {
+                    "of_size": -0.43785
+                },
+                "z": {
+                    "of_size": 0.23183
+                }
+            },
+            {
+                "type": "point",
+                "name": "pontoon front",
+                "radius": 0.06215,
+                "x": {
+                    "of_size": 0.43785
+                },
+                "z": {
+                    "of_size": -0.30499
+                },
+                "mass_point": {
+                    "powered mass point": 0,
+                    "relative density": 4,
+                    "friction type": 1,
+                    "friction parallel scale": 0.5,
+                    "friction perpendicular scale": 1
+                }
+            },
+            {
+                "type": "point",
+                "name": "hull front",
+                "radius": 0.06215,
+                "half_track": 0.32353,
+                "x": {
+                    "of_size": 0.14226
+                },
+                "z": {
+                    "of_size": -0.08472
+                },
+                "mass_point": {
+                    "relative mass": 2,
+                    "friction type": 2,
+                    "friction parallel scale": 1,
+                    "friction perpendicular scale": 0.5
+                }
+            },
+            {
+                "type": "point",
+                "name": "hull back",
+                "radius": 0.06215,
+                "half_track": 0.27941,
+                "x": {
+                    "of_size": -0.26185
+                },
+                "z": {
+                    "of_size": -0.08472
+                },
+                "mass_point": {
+                    "relative mass": 2,
+                    "friction type": 2,
+                    "friction parallel scale": 1,
+                    "friction perpendicular scale": 0.5
+                }
+            },
+            {
+                "type": "point",
+                "name": "pontoon",
+                "radius": 0.06215,
+                "half_track": 0.10461,
+                "x": {
+                    "of_size": 0.12193
+                },
+                "z": {
+                    "of_size": -0.37236
+                },
+                "mass_point": {
+                    "powered mass point": 1,
+                    "relative density": 4,
+                    "friction type": 1,
+                    "friction parallel scale": 0.5,
+                    "friction perpendicular scale": 1
+                }
+            },
+            {
+                "type": "point",
+                "name": "fin",
+                "radius": 0.06215,
+                "half_track": 0.17647,
+                "x": {
+                    "of_size": -0.41156
+                },
+                "z": {
+                    "of_size": -0.28536
+                },
+                "mass_point": {
+                    "powered mass point": 2,
+                    "relative density": 4,
+                    "friction type": 1,
+                    "friction parallel scale": 0.5,
+                    "friction perpendicular scale": 1
+                }
+            }
+        ]
+    }
+}
