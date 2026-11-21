@@ -1,0 +1,540 @@
+{
+    "label": "Banshee",
+    "summary": "Exact copy of the original Banshee.",
+    "stock": true,
+    "vehicle_type": "alien fighter",
+    "size": [
+        1.97713,
+        2.4,
+        1.68834
+    ],
+    "vehicle": {
+        "fields": {
+            "flags": "6532",
+            "maximum forward speed": "0.22",
+            "maximum reverse speed": "0.03",
+            "speed acceleration": "0.008",
+            "speed deceleration": "0.016",
+            "maximum left turn": "1.5708",
+            "maximum right turn (negative)": "0",
+            "wheel circumference": "0",
+            "turn rate": "0.2",
+            "blur speed": "0",
+            "A in": "0",
+            "B in": "1",
+            "C in": "36",
+            "D in": "35",
+            "maximum left slide": "0",
+            "maximum right slide": "0",
+            "slide acceleration": "0",
+            "slide deceleration": "0",
+            "minimum flipping angular velocity": "0",
+            "maximum flipping angular velocity": "0",
+            "fixed gun yaw": "0",
+            "fixed gun pitch": "0.261799",
+            "ai sideslip distance": "0",
+            "ai destination radius": "5",
+            "ai avoidance distance": "8",
+            "ai pathfinding radius": "1.8",
+            "ai charge repeat timeout": "9",
+            "ai strafing abort range": "5.5",
+            "ai oversteering bounds": "0.034906585 0.5235988",
+            "ai steering maximum": "0.6981317",
+            "ai throttle maximum": "0",
+            "ai move-position time": "0"
+        }
+    },
+    "physics": {
+        "fields": {
+            "radius": "-1",
+            "moment scale": "1",
+            "mass": "4000",
+            "center of mass": "-0.11662291 0 0.5945494",
+            "density": "4",
+            "gravity scale": "1",
+            "ground friction": "0.2",
+            "ground depth": "0.15",
+            "ground damp fraction": "0.05",
+            "ground normal k1": "0.707107",
+            "ground normal k0": "0.5",
+            "water friction": "0.05",
+            "water depth": "0.25",
+            "water density": "1",
+            "air friction": "0.005",
+            "xx moment": "1501.4147",
+            "yy moment": "996.5348",
+            "zz moment": "1470.9744",
+            "inertial matrix and inverse": "2",
+            "inertial matrix and inverse[0].yy+zz    -xy     -zx": "1501.4146 -5.049164e-07 144.41425",
+            "inertial matrix and inverse[0].-xy    zz+xx    -yz": "-5.049164e-07 996.5346 -8.6680775e-06",
+            "inertial matrix and inverse[0].-zx     -yz    xx+yy": "144.41425 -8.6680775e-06 1470.9746",
+            "inertial matrix and inverse[1].yy+zz    -xy     -zx": "0.000672388 -2.3350915e-13 -6.601229e-05",
+            "inertial matrix and inverse[1].-xy    zz+xx    -yz": "-2.3350915e-13 0.0010034775 5.9361613e-12",
+            "inertial matrix and inverse[1].-zx     -yz    xx+yy": "-6.601229e-05 5.9361613e-12 0.0006863022"
+        },
+        "powered_mass_points": [
+            {
+                "name": "body antigrav",
+                "flags": "64",
+                "antigrav strength": "1",
+                "antigrav offset": "0",
+                "antigrav height": "0.75",
+                "antigrav damp fraction": "0.01",
+                "antigrav normal k1": "0.1",
+                "antigrav normal k0": "0"
+            },
+            {
+                "name": "wing antigrav",
+                "flags": "64",
+                "antigrav strength": "1",
+                "antigrav offset": "0",
+                "antigrav height": "0.25",
+                "antigrav damp fraction": "0.01",
+                "antigrav normal k1": "0.1",
+                "antigrav normal k0": "0"
+            }
+        ],
+        "mass_points": [
+            {
+                "node": "frame cab",
+                "fields": {
+                    "name": "canopy back",
+                    "powered mass point": "-1",
+                    "model node": "1",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.48039433 0 1.3083438",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "0.25",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.29999998"
+                }
+            },
+            {
+                "node": "frame cab",
+                "fields": {
+                    "name": "canopy middle",
+                    "powered mass point": "-1",
+                    "model node": "1",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.050241202 0 1.0799999",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "0.25",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.35"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "hull back",
+                    "powered mass point": "0",
+                    "model node": "0",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.7885785 0 0.7",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "0.25",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.39999998"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "hull middle",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.18218921 0 0.6180481",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "0.25",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.34"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "wing right back",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.27 -0.52 0.43999997",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "3",
+                    "friction parallel scale": "2",
+                    "friction perpendicular scale": "0.25",
+                    "radius": "0.35"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "wing right front",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "0.17999999 -0.44 0.43999997",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "3",
+                    "friction parallel scale": "2",
+                    "friction perpendicular scale": "0.25",
+                    "radius": "0.35"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "wing right tip",
+                    "powered mass point": "1",
+                    "model node": "0",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "0.024999999 -0.84999996 0.26999998",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "0.25",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.35"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "wing left back",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.27 0.52 0.43999997",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "3",
+                    "friction parallel scale": "2",
+                    "friction perpendicular scale": "0.25",
+                    "radius": "0.35"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "wing left front",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "0.17999999 0.44 0.43999997",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "3",
+                    "friction parallel scale": "2",
+                    "friction perpendicular scale": "0.25",
+                    "radius": "0.35"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "wing left tip",
+                    "powered mass point": "1",
+                    "model node": "0",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "0.024999999 0.84999996 0.26999998",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "0.25",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.35"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "front",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "0.34855127 0 0.6623144",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "0.25",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.44"
+                }
+            },
+            {
+                "node": "frame cab",
+                "fields": {
+                    "name": "canopy back",
+                    "powered mass point": "-1",
+                    "model node": "1",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.48039433 0 1.3083438",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.25"
+                }
+            },
+            {
+                "node": "frame cab",
+                "fields": {
+                    "name": "canopy middle",
+                    "powered mass point": "-1",
+                    "model node": "1",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.050241202 0 1.1082064",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.28"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "hull back",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.7885785 0 0.6672348",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.39999998"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "hull middle",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.18218921 0 0.6180481",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.34"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "wing right back",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.27 -0.52 0.43999997",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.34"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "wing right front",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "0.17999999 -0.44 0.43999997",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.29999998"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "wing right tip",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "0.024999999 -0.9 0.17999999",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.25"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "wing left back",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.27 0.52 0.43999997",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.34"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "wing left front",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "0.17999999 0.44 0.43999997",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.29999998"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "wing left tip",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "0.024999999 0.9 0.17999999",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.25"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "front",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "181.81818",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "0.34855127 0 0.6623144",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.44"
+                }
+            }
+        ]
+    }
+}
