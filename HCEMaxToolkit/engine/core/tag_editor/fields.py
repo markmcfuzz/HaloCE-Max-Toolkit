@@ -272,6 +272,26 @@ def enum_combo(panel, key, options):
     return combo
 
 
+def index_combo(panel, key, names, empty_name, missing):
+    """An index as "0: (frame)": index and name; -1 = none. missing: name of an index past the list."""
+    value = to_int(panel.value(key))
+    indices = list(range(-1, len(names)))
+    labels = ["-1: (none)"] + ["%d: (%s)" % (i, name or empty_name) for i, name in enumerate(names)]
+    if value not in indices:
+        indices.append(value)
+        labels.append("%d: (%s)" % (value, missing))
+    combo = ComboBox()
+    combo.addItems(labels)
+    combo.setCurrentIndex(indices.index(value))
+
+    def commit(i):
+        if i >= 0:
+            panel.set_value(key, str(indices[i]))
+
+    combo.currentIndexChanged.connect(commit)
+    return combo
+
+
 def flags_box(panel, key, options):
     """One checkbox per bit; bits without a name or "unused" (padding) are hidden and keep
     their value."""
@@ -373,6 +393,42 @@ def link_button(panel, part):
     menu.addAction("Unlink Objects...", lambda: panel.unlink_ref(part)).setEnabled(linked)
     menu.addAction("Select Linked", lambda: panel.select_ref(part)).setEnabled(linked)
     button.setMenu(menu)
+    return button
+
+
+def edit_icon(color):
+    """A pencil."""
+    size = 32
+    pixmap = QtGui.QPixmap(size, size)
+    pixmap.fill(QtCore.Qt.transparent)
+    painter = QtGui.QPainter(pixmap)
+    painter.setRenderHint(QtGui.QPainter.Antialiasing)
+    painter.setPen(QtGui.QPen(color, 2.5))
+    painter.translate(16, 16)
+    painter.rotate(-45)
+    painter.drawRect(QtCore.QRectF(-7, -4, 20, 8))
+    painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(-7, -4), QtCore.QPointF(-14, 0), QtCore.QPointF(-7, 4)]))
+    painter.end()
+    return QtGui.QIcon(pixmap)
+
+
+def open_tag_button(panel, part):
+    """Shows the reference's own tag in the editor (the physics tag Point of the object)."""
+    button = QtWidgets.QToolButton()
+    button.setAutoRaise(True)
+    button.setIcon(edit_icon(button.palette().color(QtGui.QPalette.ButtonText)))
+    if panel.has_ref_tag(part):
+        button.setToolTip("Edit the %s tag" % part)
+        button.clicked.connect(lambda: panel.open_ref(part))
+    elif part == "physics" and panel.group == "vehicle":
+        # A vehicle without one gets it from a template (new_physics.py)
+        button.setIcon(QtGui.QIcon())
+        button.setText("+")
+        button.setToolTip("Create its physics from a template (and fill this vehicle's fields)")
+        button.clicked.connect(panel.create_physics)
+    else:
+        button.setEnabled(False)
+        button.setToolTip("No %s tag in the scene: import the object again to edit it" % part)
     return button
 
 
@@ -624,6 +680,8 @@ def ref_edit(panel, key, allowed, accepts):
         buttons = [PlayerButton(panel, key)]
     else:
         buttons = [eye_button(panel, part), link_button(panel, part)] if part else []
+        if part == "physics":
+            buttons.append(open_tag_button(panel, part))
     return row_of(buttons + ([combo] if combo is not None else []) + [edit, button])
 
 
@@ -659,6 +717,14 @@ def field_editor(panel, field, key):
     if kind == "color":
         return ColorEditor(panel, key, field["parts"], labels)
     if kind == "int":
+        if key.startswith("mass points["):
+            names = getattr(panel, "model_node_names", None)
+            if names and key.endswith("].model node"):
+                return index_combo(panel, key, names, "deleted", "not in the scene")
+            if key.endswith("].powered mass point"):
+                count = max(0, to_int(panel.value("powered mass points")))
+                powered = [panel.value("powered mass points[%d].name" % i) for i in range(count)]
+                return index_combo(panel, key, powered, "no name", "not in the tag")
         return int_spin(panel, key, None, 1, field["min"], field["max"])
     if kind == "ints":
         count = field["parts"]
