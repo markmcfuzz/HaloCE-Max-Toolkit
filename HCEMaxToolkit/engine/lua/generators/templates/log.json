@@ -1,0 +1,30 @@
+{
+    "label": "Log",
+    "summary": "A tree trunk that rolls sideways and slides along its length.",
+    "vehicle_type": "turret",
+    "size": [
+        3,
+        0.6,
+        0.6
+    ],
+    "physics": {
+        "fields": {
+            "mass": 2000,
+            "density": 0.6,
+            "ground friction": 0.6,
+            "ground depth": 0.05,
+            "ground damp fraction": 0.1,
+            "air friction": 0.003
+        },
+        "parts": [
+            {
+                "type": "cylinder",
+                "name": "trunk",
+                "axis": "x",
+                "rings": 4,
+                "points": 8,
+                "point_ratio": 0.3
+            }
+        ]
+    }
+}
