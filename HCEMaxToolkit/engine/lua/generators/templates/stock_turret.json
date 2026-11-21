@@ -1,0 +1,180 @@
+{
+    "label": "Gun Turret",
+    "summary": "Exact copy of the original Gun Turret.",
+    "stock": true,
+    "vehicle_type": "turret",
+    "size": [
+        1.29907,
+        1.28,
+        0.90329
+    ],
+    "vehicle": {
+        "fields": {
+            "flags": "192",
+            "maximum forward speed": "0",
+            "maximum reverse speed": "0",
+            "speed acceleration": "0",
+            "speed deceleration": "0",
+            "maximum left turn": "0",
+            "maximum right turn (negative)": "0",
+            "wheel circumference": "0",
+            "turn rate": "0",
+            "blur speed": "0",
+            "A in": "0",
+            "B in": "0",
+            "C in": "33",
+            "D in": "0",
+            "maximum left slide": "0",
+            "maximum right slide": "0",
+            "slide acceleration": "0",
+            "slide deceleration": "0",
+            "minimum flipping angular velocity": "0",
+            "maximum flipping angular velocity": "0",
+            "fixed gun yaw": "0",
+            "fixed gun pitch": "0",
+            "ai sideslip distance": "0",
+            "ai destination radius": "0",
+            "ai avoidance distance": "0",
+            "ai pathfinding radius": "0",
+            "ai charge repeat timeout": "0",
+            "ai strafing abort range": "0",
+            "ai oversteering bounds": "0 0",
+            "ai steering maximum": "0",
+            "ai throttle maximum": "0",
+            "ai move-position time": "0"
+        }
+    },
+    "physics": {
+        "fields": {
+            "radius": "-1",
+            "moment scale": "1",
+            "mass": "2000",
+            "center of mass": "0.117608 -4.11906e-09 0.312146",
+            "density": "6",
+            "gravity scale": "1",
+            "ground friction": "0.2",
+            "ground depth": "0.15",
+            "ground damp fraction": "0.05",
+            "ground normal k1": "0.707107",
+            "ground normal k0": "0.5",
+            "water friction": "0.05",
+            "water depth": "0.25",
+            "water density": "1",
+            "air friction": "0.001",
+            "xx moment": "252.695",
+            "yy moment": "316.718",
+            "zz moment": "426.55",
+            "inertial matrix and inverse": "2",
+            "inertial matrix and inverse[0].yy+zz    -xy     -zx": "252.695 -7.30665e-06 12.9898",
+            "inertial matrix and inverse[0].-xy    zz+xx    -yz": "-7.30665e-06 316.718 -3.38089e-06",
+            "inertial matrix and inverse[0].-zx     -yz    xx+yy": "12.9898 -3.38089e-06 426.55",
+            "inertial matrix and inverse[1].yy+zz    -xy     -zx": "0.0039635496 9.015025e-11 -0.00012070232",
+            "inertial matrix and inverse[1].-xy    zz+xx    -yz": "9.015025e-11 0.003157384 2.2280445e-11",
+            "inertial matrix and inverse[1].-zx     -yz    xx+yy": "-0.00012070232 2.2280445e-11 0.0023480656"
+        },
+        "powered_mass_points": [
+            {
+                "name": "front",
+                "flags": "1",
+                "antigrav strength": "0",
+                "antigrav offset": "0",
+                "antigrav height": "0",
+                "antigrav damp fraction": "0",
+                "antigrav normal k1": "0",
+                "antigrav normal k0": "0"
+            },
+            {
+                "name": "back",
+                "flags": "1",
+                "antigrav strength": "0",
+                "antigrav offset": "0",
+                "antigrav height": "0",
+                "antigrav damp fraction": "0",
+                "antigrav normal k1": "0",
+                "antigrav normal k0": "0"
+            }
+        ],
+        "mass_points": [
+            {
+                "node": "frame rear claw",
+                "fields": {
+                    "name": "back",
+                    "powered mass point": "1",
+                    "model node": "10",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "470.588",
+                    "relative density": "1",
+                    "density": "6",
+                    "position": "-0.399071 -3.0006e-08 0.22",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.24"
+                }
+            },
+            {
+                "node": "frame left claw",
+                "fields": {
+                    "name": "front left",
+                    "powered mass point": "0",
+                    "model node": "9",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "470.588",
+                    "relative density": "1",
+                    "density": "6",
+                    "position": "0.42 0.4 0.22",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.24"
+                }
+            },
+            {
+                "node": "frame right claw",
+                "fields": {
+                    "name": "front right",
+                    "powered mass point": "0",
+                    "model node": "11",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "470.588",
+                    "relative density": "1",
+                    "density": "6",
+                    "position": "0.42 -0.4 0.22",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.24"
+                }
+            },
+            {
+                "node": "frame turret",
+                "fields": {
+                    "name": "body",
+                    "powered mass point": "-1",
+                    "model node": "4",
+                    "flags": "1",
+                    "relative mass": "1.25",
+                    "mass": "588.235",
+                    "relative density": "1",
+                    "density": "6",
+                    "position": "0.0471225 1e-08 0.533295",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.35"
+                }
+            }
+        ]
+    }
+}
