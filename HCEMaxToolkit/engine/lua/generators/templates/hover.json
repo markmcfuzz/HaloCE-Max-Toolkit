@@ -1,0 +1,104 @@
+{
+    "label": "Hover (antigrav)",
+    "summary": "Hovering scout vehicle.",
+    "vehicle_type": "alien scout",
+    "size": [
+        1.4,
+        1.26,
+        0.6
+    ],
+    "vehicle": {
+        "fields": {
+            "flags": 10693,
+            "maximum forward speed": 0.225,
+            "speed acceleration": 0.005,
+            "ai sideslip distance": 6,
+            "ai destination radius": 1.5,
+            "ai pathfinding radius": 0.8
+        }
+    },
+    "physics": {
+        "fields": {
+            "mass": 2000,
+            "density": 3,
+            "air friction": 0.0025
+        },
+        "powered_mass_points": [
+            {
+                "name": "front antigrav",
+                "flags": 64,
+                "antigrav strength": 1.5,
+                "antigrav height": 0.75,
+                "antigrav damp fraction": 0.02,
+                "antigrav normal k1": 0.5,
+                "antigrav normal k0": 0.258819
+            },
+            {
+                "name": "back antigrav",
+                "flags": 64,
+                "antigrav strength": 1.5,
+                "antigrav height": 0.75,
+                "antigrav damp fraction": 0.02,
+                "antigrav normal k1": 0.5,
+                "antigrav normal k0": 0.258819
+            }
+        ],
+        "parts": [
+            {
+                "type": "point",
+                "name": "wing",
+                "radius": 0.16,
+                "mirror": 1,
+                "x": {
+                    "from": "max",
+                    "radii": -1.4
+                },
+                "z": {
+                    "from": "min",
+                    "radii": 1
+                },
+                "mass_point": {
+                    "powered mass point": 0
+                }
+            },
+            {
+                "type": "point",
+                "name": "hull back",
+                "radius": 0.16,
+                "x": {
+                    "from": "min",
+                    "radii": 1
+                },
+                "z": {
+                    "from": "min",
+                    "radii": 1
+                },
+                "mass_point": {
+                    "powered mass point": 1
+                }
+            },
+            {
+                "type": "point",
+                "name": "hull mid",
+                "radius": 0.21,
+                "z": {
+                    "from": "min",
+                    "radii": 1.3
+                }
+            },
+            {
+                "type": "point",
+                "name": "hull front",
+                "radius": 0.21,
+                "x": {
+                    "from": "max",
+                    "radii": -1
+                },
+                "z": {
+                    "from": "min",
+                    "radii": 1
+                }
+            }
+        ]
+    }
+}
