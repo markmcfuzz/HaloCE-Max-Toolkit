@@ -1,0 +1,159 @@
+{
+    "label": "Lifepod",
+    "summary": "Exact copy of the original Lifepod.",
+    "stock": true,
+    "vehicle_type": "alien fighter",
+    "size": [
+        3.44522,
+        1.5,
+        1.5
+    ],
+    "vehicle": {
+        "fields": {
+            "flags": "6148",
+            "maximum forward speed": "0.5",
+            "maximum reverse speed": "0.1",
+            "speed acceleration": "0.05",
+            "speed deceleration": "0.03",
+            "maximum left turn": "30",
+            "maximum right turn (negative)": "-30",
+            "wheel circumference": "0",
+            "turn rate": "180",
+            "blur speed": "0.3",
+            "A in": "0",
+            "B in": "1",
+            "C in": "0",
+            "D in": "0",
+            "maximum left slide": "0.1",
+            "maximum right slide": "0.1",
+            "slide acceleration": "0.01",
+            "slide deceleration": "0.01",
+            "minimum flipping angular velocity": "0",
+            "maximum flipping angular velocity": "0",
+            "fixed gun yaw": "0",
+            "fixed gun pitch": "-0.436332",
+            "ai sideslip distance": "0",
+            "ai destination radius": "0",
+            "ai avoidance distance": "0",
+            "ai pathfinding radius": "0",
+            "ai charge repeat timeout": "0",
+            "ai strafing abort range": "0",
+            "ai oversteering bounds": "0 0",
+            "ai steering maximum": "0",
+            "ai throttle maximum": "0",
+            "ai move-position time": "0"
+        }
+    },
+    "physics": {
+        "fields": {
+            "radius": "1",
+            "moment scale": "0.3",
+            "mass": "4000",
+            "center of mass": "0.56660974 3e-08 0.4974805",
+            "density": "4",
+            "gravity scale": "1",
+            "ground friction": "0.2",
+            "ground depth": "0.2",
+            "ground damp fraction": "0.05",
+            "ground normal k1": "0.707107",
+            "ground normal k0": "0.5",
+            "water friction": "0.05",
+            "water depth": "0.25",
+            "water density": "1",
+            "air friction": "0.04",
+            "xx moment": "0.06680421",
+            "yy moment": "896.85144",
+            "zz moment": "896.7846",
+            "inertial matrix and inverse": "2",
+            "inertial matrix and inverse[0].yy+zz    -xy     -zx": "187.01482 0 -5.51883",
+            "inertial matrix and inverse[0].-xy    zz+xx    -yz": "0 1083.7994 0",
+            "inertial matrix and inverse[0].-zx     -yz    xx+yy": "-5.51883 0 1083.7327",
+            "inertial matrix and inverse[1].yy+zz    -xy     -zx": "0.0053479737 -0 2.7234168e-05",
+            "inertial matrix and inverse[1].-xy    zz+xx    -yz": "-0 0.00092267996 -0",
+            "inertial matrix and inverse[1].-zx     -yz    xx+yy": "2.7234168e-05 -0 0.0009228755"
+        },
+        "powered_mass_points": [],
+        "mass_points": [
+            {
+                "node": "frame lifepod",
+                "fields": {
+                    "name": "front",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "1000",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "1.0413387 3e-08 0.5044391",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "0.25",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.55"
+                }
+            },
+            {
+                "node": "frame lifepod",
+                "fields": {
+                    "name": "back",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "1000",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.64368427 3e-08 0.49435803",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.75"
+                }
+            },
+            {
+                "node": "frame lifepod",
+                "fields": {
+                    "name": "middle",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "1000",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "0.2172527 3e-08 0.48670545",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.72999996"
+                }
+            },
+            {
+                "node": "frame lifepod",
+                "fields": {
+                    "name": "nose",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "1",
+                    "relative mass": "1",
+                    "mass": "1000",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "1.6515325 3e-08 0.5044391",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.39999998"
+                }
+            }
+        ]
+    }
+}
