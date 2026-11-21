@@ -1,0 +1,65 @@
+{
+    "label": "Plane",
+    "summary": "Aircraft that hovers when slow and lifts with speed.",
+    "vehicle_type": "human plane",
+    "size": [
+        4,
+        3,
+        1.5
+    ],
+    "vehicle": {
+        "fields": {
+            "flags": 4,
+            "maximum forward speed": 0.5,
+            "maximum reverse speed": 0.1,
+            "speed acceleration": 0.03,
+            "speed deceleration": 0.01,
+            "maximum left turn": 90,
+            "maximum right turn (negative)": -90,
+            "turn rate": 180,
+            "blur speed": 0.3,
+            "maximum left slide": 0.1,
+            "maximum right slide": 0.1,
+            "slide acceleration": 0.01,
+            "slide deceleration": 0.01
+        }
+    },
+    "physics": {
+        "fields": {
+            "radius": {
+                "length": 0.45
+            },
+            "moment scale": 0.3,
+            "mass": 10000,
+            "density": 4,
+            "ground depth": 0.2,
+            "air friction": 0.02
+        },
+        "parts": [
+            {
+                "type": "row",
+                "name": "hull",
+                "count": 5,
+                "radius": 0.1,
+                "front_x": 0.4,
+                "back_x": -0.4,
+                "mass_point": {
+                    "relative mass": 2,
+                    "friction type": 1
+                }
+            },
+            {
+                "type": "point",
+                "name": "wing",
+                "radius": 0.08,
+                "mirror": 1,
+                "x": {
+                    "radii": -1
+                },
+                "mass_point": {
+                    "friction type": 3
+                }
+            }
+        ]
+    }
+}
