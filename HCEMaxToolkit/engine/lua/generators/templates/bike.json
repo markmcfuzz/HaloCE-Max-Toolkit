@@ -1,0 +1,149 @@
+{
+    "label": "Bike (2 wheels)",
+    "summary": "Two-wheeled vehicle, like a motorcycle.",
+    "notes": "Needs a roll animation to lean. Wider tires tip over less.",
+    "points_per_wheel": 2,
+    "vehicle_type": "human jeep",
+    "size": [
+        0.8,
+        0.35,
+        0.45
+    ],
+    "vehicle": {
+        "fields": {
+            "flags": 3281,
+            "maximum forward speed": 0.255,
+            "maximum reverse speed": 0.1,
+            "speed acceleration": 0.00275,
+            "speed deceleration": 0.011,
+            "maximum left turn": 30,
+            "maximum right turn (negative)": -30,
+            "wheel circumference": 1,
+            "turn rate": 180,
+            "blur speed": 0.08,
+            "ai destination radius": 1.75,
+            "ai pathfinding radius": 1
+        }
+    },
+    "physics": {
+        "fields": {
+            "mass": 1000,
+            "density": 5,
+            "ground friction": 0.23,
+            "ground depth": 0.1
+        },
+        "powered_mass_points": [
+            {
+                "name": "front",
+                "flags": 1
+            },
+            {
+                "name": "back",
+                "flags": 1
+            }
+        ],
+        "parts": [
+            {
+                "type": "wheels",
+                "name": "tire",
+                "radius": 0.14,
+                "sink": 0.75,
+                "half_track": 0.25,
+                "axles": [
+                    {
+                        "name": "front",
+                        "x": 0.36,
+                        "mass_point": {
+                            "powered mass point": 0,
+                            "relative mass": 2,
+                            "relative density": 0.5,
+                            "friction type": 1,
+                            "friction parallel scale": 0.75,
+                            "friction perpendicular scale": 0.45
+                        }
+                    },
+                    {
+                        "name": "back",
+                        "x": -0.36,
+                        "mass_point": {
+                            "powered mass point": 1,
+                            "relative mass": 2,
+                            "relative density": 0.5,
+                            "friction type": 1,
+                            "friction parallel scale": 0.45,
+                            "friction perpendicular scale": 0.65
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "point",
+                "name": "body front",
+                "radius": 0.1,
+                "x": {
+                    "radii": 2
+                },
+                "z": {
+                    "from": "min",
+                    "radii": 2.8
+                }
+            },
+            {
+                "type": "point",
+                "name": "body back",
+                "radius": 0.1,
+                "x": {
+                    "radii": -2
+                },
+                "z": {
+                    "from": "min",
+                    "radii": 2.8
+                }
+            },
+            {
+                "type": "point",
+                "name": "rider",
+                "radius": 0.1,
+                "z": {
+                    "from": "max",
+                    "radii": -1
+                },
+                "mass_point": {
+                    "relative mass": 0.5
+                }
+            }
+        ]
+    },
+    "options": {
+        "label": "Tire width",
+        "default": "medium",
+        "items": [
+            {
+                "name": "narrow",
+                "label": "Narrow (points at 15% of the width)",
+                "physics": {
+                    "part_values": {
+                        "tire": {
+                            "half_track": 0.15
+                        }
+                    }
+                }
+            },
+            {
+                "name": "medium",
+                "label": "Medium (25%)"
+            },
+            {
+                "name": "wide",
+                "label": "Wide (35%)",
+                "physics": {
+                    "part_values": {
+                        "tire": {
+                            "half_track": 0.35
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
