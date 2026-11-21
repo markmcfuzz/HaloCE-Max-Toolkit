@@ -33,6 +33,8 @@ fileIn (scriptDir + "utils\\build_utils.ms")
 fileIn (scriptDir + "utils\\text_utils.ms")
 -- Opens the tag editor whenever an object tag Point is selected
 fileIn (rootEngine + "builders\\tag\\object\\tag_editor.ms")
+-- Physics and .vehicle Points from templates (after tag_editor.ms: uses sceneModelNodes)
+fileIn (rootEngine + "builders\\tag\\physics\\new_from_template.ms")
 -- Shader tag fields kept on GlyphFX materials, for the tag editor
 fileIn (rootEngine + "builders\\tag\\shared\\shader_tag_ca.ms")
 -- GlyphFX Animation Preview follows the timeline (after tag_editor.ms: uses collectSubMaterials)
