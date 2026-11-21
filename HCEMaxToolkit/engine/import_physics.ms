@@ -33,8 +33,9 @@ include "builders\\tag\\physics\\build_scene.ms"
 
 fn isPhysicsTag tagPath = (getTagClass tagPath) == "phys"
 
--- Imports one file without dialogs. Returns the created spheres, or undefined on failure.
-fn importPhysicsFile physicsFile =
+-- Imports one file without dialogs. modelNodes: the model's nodes in tag order (undefined = those
+-- of the last model imported). Returns the tag's Point, or undefined on failure.
+fn importPhysicsFile physicsFile modelNodes:undefined =
 (
     if not (isPhysicsTag physicsFile) then
     (
@@ -46,22 +47,17 @@ fn importPhysicsFile physicsFile =
     local physicsData = readPhysicsWithLua physicsFile
     if physicsData == undefined then return undefined
     logger.info "Reading: {} seconds" args:#((timestamp() - readStartTime) / 1000.)
-    logger.info "Mass points: {}" args:#(physicsData.massPoints.count)
-    logger.info "Powered mass points: {}" args:#(physicsData.poweredMassPointNames.count)
+    logger.info "Fields: {}" args:#(physicsData.keys.count)
 
     logger.log "=== BUILDING MASS POINT SPHERES ==="
     local buildStartTime = timestamp()
     -- Undo off: a long undo history makes every bone key slower later (Ctrl+Z won't remove the import)
-    local createdSpheres = with undo off (createMassPointSpheres \
-        physicsData.massPoints \
-        physicsData.poweredMassPointNames \
-        physicsData.mass \
-        physicsData.density)
+    local container = with undo off (createPhysicsContainer physicsData physicsFile modelNodes:modelNodes)
+    logger.info "Mass points: {}" args:#(container.physicsNodes.count)
     logger.info "Scene building: {} seconds" args:#((timestamp() - buildStartTime) / 1000.)
 
     completeRedraw()
-    -- createMassPointSpheres returns undefined when the tag has no mass points
-    if createdSpheres == undefined then #() else createdSpheres
+    container
 )
 
 fn ImportPhysics =
@@ -85,10 +81,10 @@ fn ImportPhysics =
     )
 
     local startTime = timestamp()
-    local createdSpheres = importPhysicsFile physicsFile
+    local container = importPhysicsFile physicsFile
     local elapsedTime = (timestamp() - startTime) / 1000.
 
-    if createdSpheres == undefined then
+    if container == undefined then
     (
         messageBox "Failed to read physics tag!" title:"Import Failed"
         return undefined
@@ -98,20 +94,22 @@ fn ImportPhysics =
     logger.info "Total time: {} seconds" args:#(elapsedTime)
     logger.log "Physics import complete\n\n"
 
+    -- Selecting it opens the tag editor (tag_editor.ms)
+    select container
     local showDialogs = configManager.getBool "feedback" "show_completion_dialogs" true
 
-    if showDialogs and createdSpheres.count > 0 then
+    if showDialogs then
     (
         local fileName = filenameFromPath physicsFile
         messageBox ("Physics mass points imported successfully!\n\n" + \
                     "File: " + fileName + "\n" + \
-                    "Spheres created: " + createdSpheres.count as string + "\n" + \
+                    "Mass points: " + container.physicsNodes.count as string + "\n" + \
                     "Time: " + (formattedPrint elapsedTime format:".3f") + " seconds") \
                     title:"Import Complete" \
                     beep:false
     )
     clearListener()
-    return createdSpheres
+    return container
 )
 
 -- Tests set importerNoAutoRun = true to load these functions without importing.
