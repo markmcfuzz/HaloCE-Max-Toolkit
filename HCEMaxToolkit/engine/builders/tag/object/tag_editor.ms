@@ -13,15 +13,44 @@
 -- Opens the Qt tag editor (engine\core\tag_editor) when an object tag Point is selected and gives
 -- it the Point's fields. The tagEditor* functions are called from Python.
 
--- True for a Point made by import_object.ms (it has the tag fields)
+-- True for a Point made by import_object.ms or import_physics.ms (it has the tag fields)
 fn isObjectTagContainer obj = isValidNode obj and (try (obj.fieldKeys != undefined) catch (false))
 
--- The selected object tag Point, or undefined
+-- Mass point spheres of a physics tag Point (before the functions that use them)
+fileIn (rootEngine + "builders\\tag\\physics\\mass_points.ms")
+
+-- The physics tag Point a mass point sphere belongs to, or undefined
+fn massPointOwner obj =
+(
+	local owner = undefined
+	for p in helpers while owner == undefined do
+		if isPhysicsTagContainer p and findItem (for n in p.physicsNodes collect n) obj > 0 do owner = p
+	owner
+)
+
+-- The selected tag Point (or the physics Point of a selected mass point sphere), or undefined
 fn tagEditorSelected =
 (
 	if selection.count != 1 then return undefined
 	local obj = selection[1]
-	if isObjectTagContainer obj then obj else undefined
+	if isObjectTagContainer obj then obj else massPointOwner obj
+)
+
+-- 0-based mass point of the selected sphere, -1 when no sphere is selected
+fn tagEditorSelectedMassPoint =
+(
+	if selection.count != 1 or isObjectTagContainer selection[1] then return -1
+	local owner = massPointOwner selection[1]
+	if owner == undefined then -1 else (findItem (for n in owner.physicsNodes collect n) selection[1]) - 1
+)
+
+-- Names of a physics Point's model nodes in tag order ("" for a deleted one)
+fn tagEditorModelNodeNames obj =
+(
+	local names = #()
+	if isPhysicsTagContainer obj do
+		for n in obj.modelNodes do append names (if isValidNode n then n.name else "")
+	names
 )
 
 -- Handle of the one selected node (any kind), 0 otherwise
@@ -32,7 +61,30 @@ fn tagEditorSetField obj key text =
 (
 	local i = findItem (for k in obj.fieldKeys collect k) key
 	if i == 0 then return false
-	undo "Edit Tag Field" on obj.fieldValues[i] = text
+	undo "Edit Tag Field" on
+	(
+		obj.fieldValues[i] = text
+		-- Same undo step: the mass point's sphere follows its fields
+		if isPhysicsTagContainer obj do applyPhysicsField obj key
+	)
+	true
+)
+
+-- Sets several fields as one undo step (a mass point's role); on physics, its sphere follows
+fn tagEditorSetFieldList obj keys values =
+(
+	local allKeys = for k in obj.fieldKeys collect k
+	local keyList = for k in keys collect (k as string)
+	local valueList = for v in values collect (v as string)
+	undo "Edit Tag Fields" on
+	(
+		for n = 1 to keyList.count do
+		(
+			local i = findItem allKeys keyList[n]
+			if i > 0 do obj.fieldValues[i] = valueList[n]
+		)
+		if isPhysicsTagContainer obj and keyList.count > 0 do applyPhysicsField obj keyList[1]
+	)
 	true
 )
 
@@ -41,8 +93,12 @@ fn tagEditorSetFields obj keys values =
 (
 	undo "Edit Tag Block" on
 	(
+		local oldKeys = for k in obj.fieldKeys collect k
+		local oldValues = for v in obj.fieldValues collect v
 		obj.fieldKeys = for k in keys collect (k as string)
 		obj.fieldValues = for v in values collect (v as string)
+		-- Mass points added or deleted: so are their spheres
+		if isPhysicsTagContainer obj do reconcilePhysicsMassPoints obj oldKeys oldValues
 	)
 	true
 )
@@ -139,6 +195,8 @@ fn upgradeObjectTagContainer obj =
 fn tagEditorFields obj =
 (
 	upgradeObjectTagContainer obj
+	-- Mass points moved or resized in the viewport
+	syncPhysicsFromScene obj
 	local keys = for k in obj.fieldKeys collect k
 	local values = for v in obj.fieldValues collect v
 	local contents = 0
@@ -186,6 +244,28 @@ fn tagEditorUnlinkRef obj part =
 		obj.memberNodes = for n in obj.memberNodes where isValidNode n and (findItem picked n == 0 or findItem others n > 0) collect n
 	)
 	picked.count
+)
+
+-- The tag Point among a reference's nodes (the physics tag of an object), or undefined
+fn tagEditorRefTag obj part =
+(
+	local found = undefined
+	if part == "physics" do
+		for n in tagRefNodes obj part while found == undefined do
+			if isPhysicsTagContainer n do found = n
+	found
+)
+
+fn tagEditorHasRefTag obj part = tagEditorRefTag obj part != undefined
+
+-- Selects that tag Point, so the editor shows its fields. False when there is none
+fn tagEditorOpenRef obj part =
+(
+	local refTag = tagEditorRefTag obj part
+	if refTag == undefined then return false
+	if refTag.isHidden do refTag.isHidden = false
+	select refTag
+	true
 )
 
 fn tagEditorSelectRef obj part =
