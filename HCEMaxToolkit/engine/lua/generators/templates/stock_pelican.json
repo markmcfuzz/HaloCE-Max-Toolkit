@@ -1,0 +1,453 @@
+{
+    "label": "Pelican",
+    "summary": "Exact copy of the original Pelican.",
+    "stock": true,
+    "vehicle_type": "human plane",
+    "size": [
+        10.15573,
+        7.6,
+        3.54089
+    ],
+    "vehicle": {
+        "fields": {
+            "flags": "4",
+            "maximum forward speed": "0.5",
+            "maximum reverse speed": "0.1",
+            "speed acceleration": "0.03",
+            "speed deceleration": "0.01",
+            "maximum left turn": "90",
+            "maximum right turn (negative)": "-90",
+            "wheel circumference": "0",
+            "turn rate": "180",
+            "blur speed": "0.3",
+            "A in": "33",
+            "B in": "34",
+            "C in": "35",
+            "D in": "0",
+            "maximum left slide": "0.1",
+            "maximum right slide": "0.1",
+            "slide acceleration": "0.01",
+            "slide deceleration": "0.01",
+            "minimum flipping angular velocity": "0",
+            "maximum flipping angular velocity": "0",
+            "fixed gun yaw": "0",
+            "fixed gun pitch": "-0.436332",
+            "ai sideslip distance": "0",
+            "ai destination radius": "0",
+            "ai avoidance distance": "0",
+            "ai pathfinding radius": "0",
+            "ai charge repeat timeout": "0",
+            "ai strafing abort range": "0",
+            "ai oversteering bounds": "0 0",
+            "ai steering maximum": "0",
+            "ai throttle maximum": "0",
+            "ai move-position time": "0"
+        }
+    },
+    "physics": {
+        "fields": {
+            "radius": "4",
+            "moment scale": "0.3",
+            "mass": "10000",
+            "center of mass": "-0.14326012 -0.09304353 1.9866347",
+            "density": "4",
+            "gravity scale": "1",
+            "ground friction": "0.2",
+            "ground depth": "0.2",
+            "ground damp fraction": "0.05",
+            "ground normal k1": "0.707107",
+            "ground normal k0": "0.5",
+            "water friction": "0.05",
+            "water depth": "0.25",
+            "water density": "1",
+            "air friction": "0.02",
+            "xx moment": "5160.8296",
+            "yy moment": "23439.596",
+            "zz moment": "25885.014",
+            "inertial matrix and inverse": "0"
+        },
+        "powered_mass_points": [],
+        "mass_points": [
+            {
+                "node": "frame left main engine",
+                "fields": {
+                    "name": "left front back thruster",
+                    "powered mass point": "-1",
+                    "model node": "3",
+                    "flags": "0",
+                    "relative mass": "0.5",
+                    "mass": "217.39131",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "0.85 1.94 2.06",
+                    "forward": "-0.984808 0 0.173649",
+                    "up": "-0.173649 0 -0.984808",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.6"
+                }
+            },
+            {
+                "node": "frame left main engine",
+                "fields": {
+                    "name": "left front down thruster",
+                    "powered mass point": "-1",
+                    "model node": "3",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "434.78262",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "2.05 1.6 1.5",
+                    "forward": "4.30081e-09 0.500001 -0.866025",
+                    "up": "1 0 6.93424e-09",
+                    "friction type": "3",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.95"
+                }
+            },
+            {
+                "node": "frame left main engine",
+                "fields": {
+                    "name": "left front wingtip",
+                    "powered mass point": "-1",
+                    "model node": "3",
+                    "flags": "0",
+                    "relative mass": "0.5",
+                    "mass": "217.39131",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "1.8 3 1.8",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.8"
+                }
+            },
+            {
+                "node": "frame right rear engine",
+                "fields": {
+                    "name": "right rear back thruster",
+                    "powered mass point": "-1",
+                    "model node": "6",
+                    "flags": "0",
+                    "relative mass": "0.5",
+                    "mass": "217.39131",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-4.5 -1.2 2.87405",
+                    "forward": "-1 0 0",
+                    "up": "0 0 -1",
+                    "friction type": "3",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.6"
+                }
+            },
+            {
+                "node": "frame right rear engine",
+                "fields": {
+                    "name": "right rear down thruster",
+                    "powered mass point": "-1",
+                    "model node": "6",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "434.78262",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-3.5 -1.24 2.74",
+                    "forward": "4.30081e-09 -0.500001 -0.866025",
+                    "up": "1 0 6.93424e-09",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.7"
+                }
+            },
+            {
+                "node": "frame right main engine",
+                "fields": {
+                    "name": "right front wingtip",
+                    "powered mass point": "-1",
+                    "model node": "5",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "434.78262",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "1.8 -3 1.8",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.8"
+                }
+            },
+            {
+                "node": "frame right main engine",
+                "fields": {
+                    "name": "right front back thruster",
+                    "powered mass point": "-1",
+                    "model node": "5",
+                    "flags": "0",
+                    "relative mass": "0.5",
+                    "mass": "217.39131",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "0.85 -1.94 2.06",
+                    "forward": "-0.984808 0 0.173649",
+                    "up": "-0.173649 0 -0.984808",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.6"
+                }
+            },
+            {
+                "node": "frame right main engine",
+                "fields": {
+                    "name": "right front down thruster",
+                    "powered mass point": "-1",
+                    "model node": "5",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "434.78262",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "2.05 -1.6 1.5",
+                    "forward": "4.30081e-09 -0.500001 -0.866025",
+                    "up": "1 0 6.93424e-09",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.95"
+                }
+            },
+            {
+                "node": "frame left rear engine",
+                "fields": {
+                    "name": "left rear back thruster",
+                    "powered mass point": "-1",
+                    "model node": "4",
+                    "flags": "0",
+                    "relative mass": "0.5",
+                    "mass": "217.39131",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-4.5 1.2 2.87405",
+                    "forward": "-1 0 0",
+                    "up": "0 0 -1",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.6"
+                }
+            },
+            {
+                "node": "frame left rear engine",
+                "fields": {
+                    "name": "left rear down thruster",
+                    "powered mass point": "-1",
+                    "model node": "4",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "434.78262",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-3.5 1.24 2.74",
+                    "forward": "4.30081e-09 0.500001 -0.866025",
+                    "up": "1 0 6.93424e-09",
+                    "friction type": "0",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.7"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "cockpit nose",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "2",
+                    "mass": "869.56525",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "4.25573 -3e-08 0.749109",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "3",
+                    "radius": "0.8"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "left back wingtip",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "0.5",
+                    "mass": "217.39131",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-2.16 1.28 2.74",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "3",
+                    "friction parallel scale": "3",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.75"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "tailback",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "434.78262",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-2.91554 -1.1e-07 2.53988",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "3",
+                    "radius": "0.9"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "tailend",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "2",
+                    "mass": "869.56525",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-3.96687 -1.2e-07 2.70356",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "3",
+                    "radius": "0.6"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "tailmid",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "2",
+                    "mass": "869.56525",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-1.59764 -1.1e-07 2.44561",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "3",
+                    "radius": "0.95"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "right back wingtip",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "1",
+                    "mass": "434.78262",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-2.16 -1.28 2.74",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "3",
+                    "friction parallel scale": "3",
+                    "friction perpendicular scale": "1",
+                    "radius": "0.75"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "tailfront",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "2",
+                    "mass": "869.56525",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "-0.197776 -1e-07 2.18585",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "3",
+                    "radius": "1"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "cargo",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "3",
+                    "mass": "1304.3478",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "1.23833 -7e-08 1.51245",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "3",
+                    "radius": "1.4"
+                }
+            },
+            {
+                "node": "frame hull",
+                "fields": {
+                    "name": "cockpit",
+                    "powered mass point": "-1",
+                    "model node": "0",
+                    "flags": "0",
+                    "relative mass": "2",
+                    "mass": "869.56525",
+                    "relative density": "1",
+                    "density": "4",
+                    "position": "3.00434 -5e-08 1.11153",
+                    "forward": "1 0 0",
+                    "up": "0 0 1",
+                    "friction type": "1",
+                    "friction parallel scale": "1",
+                    "friction perpendicular scale": "3",
+                    "radius": "1.15"
+                }
+            }
+        ]
+    }
+}
