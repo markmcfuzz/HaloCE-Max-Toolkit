@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.1.0] - Unreleased
+
+### Added
+
+- **Physics in the Halo Tag Editor:** view, edit and export physics tags, with their mass points as spheres in the viewport.
+- **Create Physics Tag** (`Tools` > `HCE`): create physics from templates that adapt to your model.
+  - **Stock vehicles:** Warthog, Scorpion, Ghost, Wraith, Banshee, Pelican, Dropship, Kestrel, Longsword, Lifepod and Gun Turret.
+  - **Wheeled vehicles:** from 2 to 12 wheels.
+  - **Tracked and hover vehicles.**
+  - **Aircraft:** plane, VTOL (Wasp and Hornet) and helicopter (Falcon).
+  - **Watercraft:** boat (experimental).
+  - **Loose objects:** ball, crate, tire, log and barrel.
+- **Fit to Model:** adjust physics made from a template to your model at any time.
+- **Vehicle physics:** create a vehicle's physics from its `physics` field and fill in its values automatically.
+- **Mass point roles:** choose what each mass point is (tire, tread, wing...) and its values are set for you.
+
+### Changed
+
+- **Physics Importer:** imported physics are now edited in the Halo Tag Editor.
+- **Viewport labels:** labels in the same place no longer overlap.
+
 ## [6.0.0] - 2026-11-14
 
 ### Added
