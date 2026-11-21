@@ -1,0 +1,257 @@
+{
+    "label": "Helicopter",
+    "summary": "Lifts with its rotors and hovers.",
+    "vehicle_type": "human plane",
+    "size": [
+        4.50312,
+        4.635,
+        1.671487
+    ],
+    "options": {
+        "label": "Layout",
+        "default": "falcon",
+        "items": [
+            {
+                "name": "falcon",
+                "label": "Falcon",
+                "summary": "Utility tiltrotor, heavy and steady.",
+                "size": [
+                    4.50312,
+                    4.635,
+                    1.671487
+                ],
+                "vehicle": {
+                    "fields": {
+                        "flags": 4244,
+                        "maximum forward speed": 0.32,
+                        "maximum reverse speed": 0,
+                        "speed acceleration": 0.008,
+                        "speed deceleration": 0.006,
+                        "maximum left turn": 35,
+                        "maximum right turn (negative)": -35,
+                        "wheel circumference": 0,
+                        "turn rate": 140,
+                        "blur speed": 0.1,
+                        "A in": 0,
+                        "B in": 0,
+                        "C in": 35,
+                        "D in": 0,
+                        "maximum left slide": 0,
+                        "maximum right slide": 0,
+                        "slide acceleration": 0,
+                        "slide deceleration": 0,
+                        "minimum flipping angular velocity": 0.15,
+                        "maximum flipping angular velocity": 0.6,
+                        "fixed gun yaw": 180,
+                        "fixed gun pitch": 720,
+                        "ai sideslip distance": 0,
+                        "ai destination radius": 6,
+                        "ai avoidance distance": 10,
+                        "ai pathfinding radius": 3,
+                        "ai charge repeat timeout": 10,
+                        "ai strafing abort range": 6,
+                        "ai oversteering bounds": "0.034906585 0.5235988",
+                        "ai steering maximum": 0.34906584,
+                        "ai throttle maximum": 0,
+                        "ai move-position time": 0
+                    }
+                },
+                "physics": {
+                    "fields": {
+                        "radius": {
+                            "length": -0.2442750833436854
+                        },
+                        "moment scale": 0.25,
+                        "mass": 8000,
+                        "density": 3,
+                        "gravity scale": 0.98,
+                        "ground friction": 0.3,
+                        "ground depth": 0.21,
+                        "ground normal k0": 0.3,
+                        "air friction": 0.02
+                    },
+                    "parts": [
+                        {
+                            "type": "point",
+                            "name": "nose gun",
+                            "radius": 0.046634,
+                            "x": {
+                                "of_size": 0.425263
+                            },
+                            "z": {
+                                "of_size": -0.3507
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.5,
+                                "friction perpendicular scale": 0.5
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "cockpit front",
+                            "radius": 0.061069,
+                            "x": {
+                                "of_size": 0.365895
+                            },
+                            "z": {
+                                "of_size": -0.275867
+                            },
+                            "mass_point": {
+                                "flags": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "cockpit back",
+                            "radius": 0.099931,
+                            "x": {
+                                "of_size": 0.250623
+                            },
+                            "z": {
+                                "of_size": -0.196184
+                            },
+                            "mass_point": {
+                                "flags": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "hull front",
+                            "radius": 0.124366,
+                            "x": {
+                                "of_size": 0.102805
+                            },
+                            "z": {
+                                "of_size": -0.126268
+                            },
+                            "mass_point": {
+                                "relative mass": 3,
+                                "flags": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "hull back",
+                            "radius": 0.144344,
+                            "x": {
+                                "of_size": -0.093375
+                            },
+                            "z": {
+                                "of_size": -0.072214
+                            },
+                            "mass_point": {
+                                "relative mass": 2,
+                                "flags": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "tail front",
+                            "radius": 0.077724,
+                            "x": {
+                                "of_size": -0.263375
+                            },
+                            "z": {
+                                "of_size": 0.050557
+                            },
+                            "mass_point": {
+                                "relative mass": 1.5,
+                                "flags": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "tail back",
+                            "radius": 0.09732,
+                            "half_track": 0.064725,
+                            "x": {
+                                "of_size": -0.39639
+                            },
+                            "z": {
+                                "of_size": 0.018536
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "forward": "0.965926 0 0.258819",
+                                "up": "-0.258819 0 0.965926"
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "wing",
+                            "radius": 0.10264,
+                            "half_track": 0.151025,
+                            "x": {
+                                "of_size": 0.067733
+                            },
+                            "z": {
+                                "of_size": 0.108277
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 3,
+                                "friction parallel scale": 5,
+                                "forward": "0.965926 0 0.258819",
+                                "up": "-0.258819 0 0.965926"
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "rotor",
+                            "radius": 0.166551,
+                            "half_track": 0.269687,
+                            "x": {
+                                "of_size": 0.074395
+                            },
+                            "z": {
+                                "of_size": 0.347585
+                            },
+                            "mass_point": {
+                                "flags": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "skid front",
+                            "radius": 0.055517,
+                            "x": {
+                                "of_size": 0.280919
+                            },
+                            "z": {
+                                "of_size": -0.370339
+                            },
+                            "mass_point": {
+                                "relative density": 0.5,
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.5,
+                                "up": "0 0 -1"
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "skid back",
+                            "radius": 0.071062,
+                            "half_track": 0.075512,
+                            "x": {
+                                "of_size": -0.085494
+                            },
+                            "z": {
+                                "of_size": -0.340426
+                            },
+                            "mass_point": {
+                                "relative density": 0.5,
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.5,
+                                "up": "0 0 -1"
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
