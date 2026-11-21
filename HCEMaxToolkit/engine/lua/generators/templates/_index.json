@@ -1,0 +1,178 @@
+{
+    "description": "What the Create Physics Tag tool lists: categories in order, each with its entries. An entry is a template (<name>.json in this folder, see lua/generators/physics.lua for the format); option fixes one of its options. label replaces the template's label in the choice list. fit_wheels: the dialog can put the wheels on the selected ones.",
+    "categories": [
+        {
+            "label": "Stock vehicles",
+            "choice": "Vehicle",
+            "entries": [
+                {
+                    "label": "Warthog",
+                    "template": "stock_warthog"
+                },
+                {
+                    "label": "Scorpion",
+                    "template": "stock_scorpion"
+                },
+                {
+                    "label": "Ghost",
+                    "template": "stock_ghost"
+                },
+                {
+                    "label": "Wraith",
+                    "template": "stock_wraith"
+                },
+                {
+                    "label": "Banshee",
+                    "template": "stock_banshee"
+                },
+                {
+                    "label": "Pelican",
+                    "template": "stock_pelican"
+                },
+                {
+                    "label": "Dropship",
+                    "template": "stock_dropship"
+                },
+                {
+                    "label": "Kestrel",
+                    "template": "stock_kestrel"
+                },
+                {
+                    "label": "Longsword",
+                    "template": "stock_longsword"
+                },
+                {
+                    "label": "Lifepod",
+                    "template": "stock_lifepod"
+                },
+                {
+                    "label": "Gun Turret",
+                    "template": "stock_turret"
+                }
+            ]
+        },
+        {
+            "label": "Wheeled vehicles",
+            "choice": "Wheels",
+            "fit_wheels": true,
+            "entries": [
+                {
+                    "label": "2 (bike)",
+                    "template": "bike"
+                },
+                {
+                    "label": "3 (trike)",
+                    "template": "trike"
+                },
+                {
+                    "label": "4 (2 axles)",
+                    "template": "jeep"
+                },
+                {
+                    "label": "6 (3 axles)",
+                    "template": "wheels",
+                    "option": "3"
+                },
+                {
+                    "label": "8 (4 axles)",
+                    "template": "wheels",
+                    "option": "4"
+                },
+                {
+                    "label": "10 (5 axles)",
+                    "template": "wheels",
+                    "option": "5"
+                },
+                {
+                    "label": "12 (6 axles)",
+                    "template": "wheels",
+                    "option": "6"
+                }
+            ]
+        },
+        {
+            "label": "Tracked vehicles",
+            "choice": "Treads",
+            "entries": [
+                {
+                    "label": "2 treads",
+                    "template": "tank"
+                }
+            ]
+        },
+        {
+            "label": "Hover vehicles",
+            "choice": "Kind",
+            "entries": [
+                {
+                    "label": "Antigrav",
+                    "template": "hover"
+                }
+            ]
+        },
+        {
+            "label": "Aircraft",
+            "choice": "Kind",
+            "entries": [
+                {
+                    "label": "Plane",
+                    "template": "plane"
+                },
+                {
+                    "label": "VTOL",
+                    "template": "vtol"
+                },
+                {
+                    "label": "Helicopter",
+                    "template": "helicopter"
+                }
+            ]
+        },
+        {
+            "label": "Watercraft",
+            "choice": "Kind",
+            "entries": [
+                {
+                    "label": "Boat (experimental)",
+                    "template": "boat"
+                }
+            ]
+        },
+        {
+            "label": "Loose objects",
+            "choice": "Object",
+            "entries": [
+                {
+                    "label": "Ball",
+                    "template": "ball"
+                },
+                {
+                    "label": "Crate",
+                    "template": "crate"
+                },
+                {
+                    "label": "Tire",
+                    "template": "tire"
+                },
+                {
+                    "label": "Log",
+                    "template": "log"
+                },
+                {
+                    "label": "Barrel",
+                    "template": "barrel"
+                }
+            ]
+        },
+        {
+            "label": "Other",
+            "choice": "Template",
+            "entries": [
+                {
+                    "label": "Empty (no mass points)",
+                    "template": "empty"
+                }
+            ]
+        }
+    ]
+}
