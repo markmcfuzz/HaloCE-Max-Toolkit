@@ -1,0 +1,30 @@
+{
+    "label": "Tire",
+    "summary": "A loose tire that rolls forward and lies flat when it falls.",
+    "vehicle_type": "turret",
+    "size": [
+        0.8,
+        0.3,
+        0.8
+    ],
+    "physics": {
+        "fields": {
+            "mass": 300,
+            "density": 1.2,
+            "ground friction": 0.8,
+            "ground depth": 0.05,
+            "ground damp fraction": 0.1,
+            "air friction": 0.003
+        },
+        "parts": [
+            {
+                "type": "cylinder",
+                "name": "tread",
+                "axis": "y",
+                "rings": 2,
+                "points": 12,
+                "point_ratio": 0.25
+            }
+        ]
+    }
+}
