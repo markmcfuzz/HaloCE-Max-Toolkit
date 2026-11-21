@@ -1,0 +1,16 @@
+{
+    "label": "Empty",
+    "summary": "An empty physics tag.",
+    "vehicle_type": "turret",
+    "size": [
+        1,
+        1,
+        1
+    ],
+    "physics": {
+        "fields": {
+            "mass": 1000,
+            "density": 4
+        }
+    }
+}
