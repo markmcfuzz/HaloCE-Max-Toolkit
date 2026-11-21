@@ -454,6 +454,27 @@ macroScript NewObjectTag
     )
 )
 
+macroScript NewPhysicsTag
+    category: "Halo CE"
+    toolTip: "Create Physics Tag"
+(
+    on execute do
+    (
+        local thisScript = getThisScriptFilename()
+        local leafPath = pathConfig.removePathLeaf thisScript
+        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
+        local scriptPath = pluginRoot + "\\engine\\tool_new_physics.ms"
+        if doesFileExist scriptPath then
+        (
+            fileIn scriptPath
+        )
+        else
+        (
+            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
+        )
+    )
+)
+
 macroScript PackedUvFixer
     category: "Halo CE"
     toolTip: "Packed UV Fixer"
