@@ -10,12 +10,14 @@
 --	license is available at http://www.gnu.org/licenses/gpl.txt.
 ------------------------------------------------------------------------------
 
--- Writes an object tag Point back to a tag (lua\exporters\object.lua). Called by the
+-- Writes an object or physics tag Point back to a tag (lua\exporters\object.lua). Called by the
 -- "Export Tag..." button of the tag editor.
 
 -- Returns true when the tag was written (errors are in the log)
 fn exportObjectFile container tagPath =
 (
+	-- Mass point spheres moved in the viewport since the editor last read them
+	syncPhysicsFromScene container
 	local keys = container.fieldKeys
 	local values = container.fieldValues
 	local f = luaOpenTagInput "object" 1
@@ -38,14 +40,14 @@ fn tagEditorExport container =
 	-- The Point's name; it gets the extension when it lacks it ("warthog" -> "warthog.vehicle")
 	local fileName = container.name
 	if getFilenameType fileName != ("." + group) do fileName += "." + group
-	local tagPath = getSaveFileName caption:"Export Halo CE Object Tag" \
+	local tagPath = getSaveFileName caption:("Export Halo CE " + typeName + " Tag") \
 		filename:((getFilenamePath container.tagFile) + fileName) \
 		types:(typeName + " (*." + group + ")|*." + group + "|All Files (*.*)|*.*") \
 		historyCategory:"HaloCEObject"
 	if tagPath == undefined then return undefined
 	if getFilenameType tagPath != ("." + group) do tagPath += "." + group
 
-	logger.log "=== EXPORTING OBJECT TAG ==="
+	logger.log "=== EXPORTING TAG ==="
 	local startTime = timestamp()
 	local ok = exportObjectFile container tagPath
 	local elapsedTime = (timestamp() - startTime) / 1000.
@@ -60,7 +62,7 @@ fn tagEditorExport container =
 
 	if configManager.getBool "feedback" "show_completion_dialogs" true do
 	(
-		messageBox ("Object tag exported successfully!\n\n" + \
+		messageBox ("Tag exported successfully!\n\n" + \
 					"File: " + (filenameFromPath tagPath) + "\n" + \
 					"Time: " + (formattedPrint elapsedTime format:".3f") + " seconds") \
 					title:"Export Complete" \
