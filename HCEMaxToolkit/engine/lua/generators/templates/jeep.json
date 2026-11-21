@@ -1,0 +1,81 @@
+{
+    "label": "4 wheels",
+    "summary": "Four-wheeled vehicle with two axles.",
+    "vehicle_type": "human jeep",
+    "size": [
+        2.2,
+        1.28,
+        1.1
+    ],
+    "vehicle": {
+        "fields": {
+            "flags": 3281,
+            "maximum forward speed": 0.255,
+            "maximum reverse speed": 0.1,
+            "speed acceleration": 0.00275,
+            "speed deceleration": 0.011,
+            "maximum left turn": 30,
+            "maximum right turn (negative)": -30,
+            "wheel circumference": 1,
+            "turn rate": 180,
+            "blur speed": 0.08,
+            "ai destination radius": 1.75,
+            "ai pathfinding radius": 1
+        }
+    },
+    "physics": {
+        "fields": {
+            "mass": 5000,
+            "density": 5,
+            "ground friction": 0.23
+        },
+        "powered_mass_points": [
+            {
+                "name": "front",
+                "flags": 1
+            },
+            {
+                "name": "back",
+                "flags": 1
+            }
+        ],
+        "parts": [
+            {
+                "type": "wheels",
+                "name": "tire",
+                "radius": 0.12,
+                "sink": 0.75,
+                "axles": [
+                    {
+                        "name": "front",
+                        "x": 0.3,
+                        "mass_point": {
+                            "powered mass point": 0,
+                            "relative mass": 3,
+                            "relative density": 0.5,
+                            "friction type": 1,
+                            "friction parallel scale": 0.75,
+                            "friction perpendicular scale": 0.45
+                        }
+                    },
+                    {
+                        "name": "back",
+                        "x": -0.3,
+                        "mass_point": {
+                            "powered mass point": 1,
+                            "relative mass": 1.5,
+                            "relative density": 0.5,
+                            "friction type": 1,
+                            "friction parallel scale": 0.45,
+                            "friction perpendicular scale": 0.65
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "hull",
+                "radius": 0.14
+            }
+        ]
+    }
+}
