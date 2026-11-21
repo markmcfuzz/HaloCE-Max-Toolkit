@@ -7,7 +7,8 @@ local tagFields = require "importers.shared.tag_fields"
 local readAs = tagDefs.readAs
 
 local object = {
-    groups = {biped = true, vehicle = true, weapon = true, scenery = true, device_machine = true},
+    -- physics: the same fields as text, without tag references
+    groups = {biped = true, vehicle = true, weapon = true, scenery = true, device_machine = true, physics = true},
     version = 1
 }
 
