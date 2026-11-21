@@ -41,8 +41,8 @@ include "builders\\tag\\object\\tag_editor.ms"
 
 fn isObjectTag tagPath = findItem #("bipd", "vehi", "weap", "scen", "mach") (getTagClass tagPath) > 0
 
--- Imports a tag the object refers to (relPath "" = none) with importFn; logs what is missing
-fn importReferencedTag tagsRoot relPath importFn =
+-- Full path of a tag the object refers to (relPath "" = none), or undefined; logs what is missing
+fn referencedTagPath tagsRoot relPath =
 (
     if relPath == "" then return undefined
     if tagsRoot == undefined then
@@ -57,7 +57,14 @@ fn importReferencedTag tagsRoot relPath importFn =
         return undefined
     )
     logger.log "--- Importing '{}' ---" args:#(relPath)
-    importFn fullPath
+    fullPath
+)
+
+-- Imports a tag the object refers to with importFn
+fn importReferencedTag tagsRoot relPath importFn =
+(
+    local fullPath = referencedTagPath tagsRoot relPath
+    if fullPath != undefined then importFn fullPath else undefined
 )
 
 -- Imports one file without dialogs. Returns the container, or undefined on failure.
@@ -87,7 +94,12 @@ fn importObjectFile tagPath =
         local modelHandle = getLastNodeHandle()
         importReferencedTag tagsRoot data.collisionRef importCollisionFile
         local collisionHandle = getLastNodeHandle()
-        importReferencedTag tagsRoot data.physicsRef importPhysicsFile
+        -- Mass points follow the nodes of this model (an empty list: reused skeleton, last model's)
+        local modelNodes = for n in (getNodesBetweenHandles lastHandle modelHandle) where n.layer.name == "Nodes" collect n
+        qsort modelNodes sortByHandle
+        local physicsPath = referencedTagPath tagsRoot data.physicsRef
+        if physicsPath != undefined do
+            importPhysicsFile physicsPath modelNodes:(if modelNodes.count > 0 then modelNodes else undefined)
         local physicsHandle = getLastNodeHandle()
         -- What each reference brought, for the editor's eye and link buttons
         local parts = #(getNodesBetweenHandles lastHandle modelHandle, \
