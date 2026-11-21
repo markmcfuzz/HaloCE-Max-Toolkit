@@ -1,0 +1,622 @@
+{
+    "label": "VTOL",
+    "summary": "Takes off and lands vertically, and hovers.",
+    "vehicle_type": "alien fighter",
+    "size": [
+        2.6785,
+        2.25276,
+        0.883919
+    ],
+    "options": {
+        "label": "Layout",
+        "default": "wasp",
+        "items": [
+            {
+                "name": "wasp",
+                "label": "Wasp",
+                "summary": "Agile VTOL with wide wings and fans.",
+                "size": [
+                    2.6785,
+                    2.25276,
+                    0.883919
+                ],
+                "vehicle": {
+                    "fields": {
+                        "flags": 6532,
+                        "maximum forward speed": 0.26,
+                        "maximum reverse speed": 0.001,
+                        "speed acceleration": 0.02,
+                        "speed deceleration": 0.012,
+                        "maximum left turn": 0.55,
+                        "maximum right turn (negative)": -0.55,
+                        "wheel circumference": 0,
+                        "turn rate": 0.6,
+                        "blur speed": 0,
+                        "A in": 8,
+                        "B in": 3,
+                        "C in": 35,
+                        "D in": 0,
+                        "maximum left slide": 0,
+                        "maximum right slide": 0,
+                        "slide acceleration": 0,
+                        "slide deceleration": 0,
+                        "minimum flipping angular velocity": 0.2,
+                        "maximum flipping angular velocity": 0.75,
+                        "fixed gun yaw": 0,
+                        "fixed gun pitch": 0,
+                        "ai sideslip distance": 0,
+                        "ai destination radius": 5,
+                        "ai avoidance distance": 8,
+                        "ai pathfinding radius": 1.8,
+                        "ai charge repeat timeout": 9,
+                        "ai strafing abort range": 5.5,
+                        "ai oversteering bounds": "1.5707998 2.0943952",
+                        "ai steering maximum": 2.0943952,
+                        "ai throttle maximum": 0,
+                        "ai move-position time": 0
+                    }
+                },
+                "physics": {
+                    "fields": {
+                        "mass": 4000,
+                        "density": 4
+                    },
+                    "powered_mass_points": [
+                        {
+                            "name": "body antigrav",
+                            "flags": 64,
+                            "antigrav strength": 1,
+                            "antigrav height": 0.75,
+                            "antigrav damp fraction": 0.01,
+                            "antigrav normal k1": 0.1,
+                            "antigrav normal k0": 0
+                        },
+                        {
+                            "name": "wing antigrav",
+                            "flags": 64,
+                            "antigrav strength": 1,
+                            "antigrav height": 0.25,
+                            "antigrav damp fraction": 0.01,
+                            "antigrav normal k1": 0.1,
+                            "antigrav normal k0": 0
+                        }
+                    ],
+                    "parts": [
+                        {
+                            "type": "point",
+                            "name": "nose",
+                            "radius": 0.164271,
+                            "x": {
+                                "of_size": 0.348241
+                            },
+                            "z": {
+                                "of_size": -0.225313
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "cockpit front",
+                            "radius": 0.126937,
+                            "x": {
+                                "of_size": 0.25715
+                            },
+                            "z": {
+                                "of_size": -0.038364
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "cockpit back",
+                            "radius": 0.149337,
+                            "x": {
+                                "of_size": 0.195149
+                            },
+                            "z": {
+                                "of_size": 0.005396
+                            },
+                            "mass_point": {
+                                "powered mass point": 0,
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "hull top",
+                            "radius": 0.104536,
+                            "x": {
+                                "of_size": 0.036091
+                            },
+                            "z": {
+                                "of_size": 0.225917
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "tail",
+                            "radius": 0.093336,
+                            "x": {
+                                "of_size": -0.237694
+                            },
+                            "z": {
+                                "of_size": 0.186984
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "wing front",
+                            "radius": 0.126937,
+                            "half_track": 0.230828,
+                            "x": {
+                                "of_size": 0.111947
+                            },
+                            "z": {
+                                "of_size": -0.092392
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 3,
+                                "friction parallel scale": 2,
+                                "friction perpendicular scale": 0.25
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "wing back",
+                            "radius": 0.112003,
+                            "half_track": 0.195471,
+                            "x": {
+                                "of_size": -0.101382
+                            },
+                            "z": {
+                                "of_size": -0.092392
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 3,
+                                "friction parallel scale": 2,
+                                "friction perpendicular scale": 0.25
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "wing tip",
+                            "radius": 0.093336,
+                            "half_track": 0.39951,
+                            "x": {
+                                "of_size": -0.044824
+                            },
+                            "z": {
+                                "of_size": -0.300433
+                            },
+                            "mass_point": {
+                                "powered mass point": 1,
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "hornet",
+                "label": "Hornet",
+                "summary": "Agile VTOL with skids, twin jets on top and a long tail.",
+                "size": [
+                    3.14269,
+                    2.84514,
+                    1.458873
+                ],
+                "vehicle": {
+                    "fields": {
+                        "flags": 6532,
+                        "maximum forward speed": 0.22,
+                        "maximum reverse speed": 0.001,
+                        "speed acceleration": 0.008,
+                        "speed deceleration": 0.012,
+                        "maximum left turn": 0.55,
+                        "maximum right turn (negative)": -0.55,
+                        "wheel circumference": 0,
+                        "turn rate": 0.6,
+                        "blur speed": 0,
+                        "A in": 0,
+                        "B in": 11,
+                        "C in": 36,
+                        "D in": 35,
+                        "maximum left slide": 0,
+                        "maximum right slide": 0,
+                        "slide acceleration": 0,
+                        "slide deceleration": 0,
+                        "minimum flipping angular velocity": 0.2,
+                        "maximum flipping angular velocity": 0.75,
+                        "fixed gun yaw": 0,
+                        "fixed gun pitch": 0.261799,
+                        "ai sideslip distance": 0,
+                        "ai destination radius": 5,
+                        "ai avoidance distance": 8,
+                        "ai pathfinding radius": 1.8,
+                        "ai charge repeat timeout": 9,
+                        "ai strafing abort range": 5.5,
+                        "ai oversteering bounds": "1.5707998 2.0943952",
+                        "ai steering maximum": 2.0943952,
+                        "ai throttle maximum": 0,
+                        "ai move-position time": 0
+                    }
+                },
+                "physics": {
+                    "fields": {
+                        "mass": 4000,
+                        "density": 4
+                    },
+                    "powered_mass_points": [
+                        {
+                            "name": "body antigrav",
+                            "flags": 64,
+                            "antigrav strength": 1,
+                            "antigrav height": 0.75,
+                            "antigrav damp fraction": 0.01,
+                            "antigrav normal k1": 0.1,
+                            "antigrav normal k0": 0
+                        },
+                        {
+                            "name": "wing antigrav",
+                            "flags": 64,
+                            "antigrav strength": 1,
+                            "antigrav height": 0.25,
+                            "antigrav damp fraction": 0.01,
+                            "antigrav normal k1": 0.1,
+                            "antigrav normal k0": 0
+                        }
+                    ],
+                    "parts": [
+                        {
+                            "type": "point",
+                            "name": "hull front",
+                            "radius": 0.09546,
+                            "x": {
+                                "of_size": 0.396382
+                            },
+                            "z": {
+                                "of_size": -0.178317
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "hull middle",
+                            "radius": 0.143189,
+                            "x": {
+                                "of_size": 0.242126
+                            },
+                            "z": {
+                                "of_size": -0.143756
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "body middle",
+                            "radius": 0.143189,
+                            "x": {
+                                "of_size": 0.061149
+                            },
+                            "z": {
+                                "of_size": 0.023376
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "body down",
+                            "radius": 0.09546,
+                            "x": {
+                                "of_size": 0.131324
+                            },
+                            "z": {
+                                "of_size": -0.285861
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "body front down",
+                            "radius": 0.09546,
+                            "x": {
+                                "of_size": 0.279217
+                            },
+                            "z": {
+                                "of_size": -0.338667
+                            },
+                            "mass_point": {
+                                "powered mass point": 0,
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "skid front",
+                            "radius": 0.09546,
+                            "half_track": 0.096023,
+                            "x": {
+                                "of_size": 0.214469
+                            },
+                            "z": {
+                                "of_size": -0.285861
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "skid mid front",
+                            "radius": 0.09546,
+                            "half_track": 0.125344,
+                            "x": {
+                                "of_size": 0.131324
+                            },
+                            "z": {
+                                "of_size": -0.285861
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "skid mid back",
+                            "radius": 0.09546,
+                            "half_track": 0.142622,
+                            "x": {
+                                "of_size": 0.056124
+                            },
+                            "z": {
+                                "of_size": -0.295758
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "skid back",
+                            "radius": 0.09546,
+                            "half_track": 0.15887,
+                            "x": {
+                                "of_size": -0.035965
+                            },
+                            "z": {
+                                "of_size": -0.345601
+                            },
+                            "mass_point": {
+                                "powered mass point": 1,
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "wing front",
+                            "radius": 0.09546,
+                            "half_track": 0.152081,
+                            "x": {
+                                "of_size": 0.057211
+                            },
+                            "z": {
+                                "of_size": 0.194806
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 3,
+                                "friction parallel scale": 2,
+                                "friction perpendicular scale": 0.25
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "rudder",
+                            "radius": 0.11137,
+                            "half_track": 0.15208,
+                            "x": {
+                                "of_size": -0.062903
+                            },
+                            "z": {
+                                "of_size": 0.194806
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 3,
+                                "friction parallel scale": 2,
+                                "friction perpendicular scale": 0.25
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "jet joint",
+                            "radius": 0.06364,
+                            "half_track": 0.24655,
+                            "x": {
+                                "of_size": 0.022097
+                            },
+                            "z": {
+                                "of_size": 0.268445
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "jet",
+                            "radius": 0.12728,
+                            "half_track": 0.376948,
+                            "x": {
+                                "of_size": 0.033181
+                            },
+                            "z": {
+                                "of_size": 0.311916
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "machinegun",
+                            "radius": 0.06364,
+                            "half_track": 0.079863,
+                            "x": {
+                                "of_size": 0.124612
+                            },
+                            "z": {
+                                "of_size": 0.194806
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "tail front",
+                            "radius": 0.11137,
+                            "x": {
+                                "of_size": -0.036846
+                            },
+                            "z": {
+                                "of_size": 0.13248
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "tail mid front",
+                            "radius": 0.09546,
+                            "x": {
+                                "of_size": -0.144012
+                            },
+                            "z": {
+                                "of_size": 0.193688
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "tail mid back",
+                            "radius": 0.09546,
+                            "x": {
+                                "of_size": -0.259139
+                            },
+                            "z": {
+                                "of_size": 0.280865
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        },
+                        {
+                            "type": "point",
+                            "name": "tail back",
+                            "radius": 0.11137,
+                            "x": {
+                                "of_size": -0.403128
+                            },
+                            "z": {
+                                "of_size": 0.356259
+                            },
+                            "mass_point": {
+                                "flags": 1,
+                                "friction type": 1,
+                                "friction parallel scale": 0.25,
+                                "friction perpendicular scale": 1
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
