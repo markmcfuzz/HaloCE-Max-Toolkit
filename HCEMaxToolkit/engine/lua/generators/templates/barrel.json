@@ -1,0 +1,30 @@
+{
+    "label": "Barrel",
+    "summary": "A standing barrel that tips over and rolls on its rims.",
+    "vehicle_type": "turret",
+    "size": [
+        0.6,
+        0.6,
+        0.9
+    ],
+    "physics": {
+        "fields": {
+            "mass": 400,
+            "density": 0.8,
+            "ground friction": 0.6,
+            "ground depth": 0.05,
+            "ground damp fraction": 0.1,
+            "air friction": 0.003
+        },
+        "parts": [
+            {
+                "type": "cylinder",
+                "name": "rim",
+                "axis": "z",
+                "rings": 2,
+                "points": 10,
+                "point_ratio": 0.3
+            }
+        ]
+    }
+}
