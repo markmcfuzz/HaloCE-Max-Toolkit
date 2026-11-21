@@ -1,0 +1,23 @@
+{
+    "label": "Crate (loose body)",
+    "summary": "A loose box.",
+    "vehicle_type": "turret",
+    "size": [
+        0.5,
+        0.5,
+        0.5
+    ],
+    "physics": {
+        "fields": {
+            "mass": 1000,
+            "density": 4
+        },
+        "parts": [
+            {
+                "type": "corners",
+                "radius": 0.25,
+                "radius_of": "smallest"
+            }
+        ]
+    }
+}
