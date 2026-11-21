@@ -1,0 +1,188 @@
+{
+    "label": "Ball",
+    "summary": "A ball made of a shell of mass points.",
+    "vehicle_type": "turret",
+    "size": [
+        0.5,
+        0.5,
+        0.5
+    ],
+    "physics": {
+        "fields": {
+            "mass": 500,
+            "density": 0.5,
+            "ground friction": 0.8,
+            "ground depth": 0.05,
+            "ground damp fraction": 0.1,
+            "air friction": 0.003
+        }
+    },
+    "options": {
+        "label": "Ball",
+        "default": "bouncy",
+        "items": [
+            {
+                "name": "bouncy",
+                "label": "Bouncy (12 big points, spins fast)",
+                "bounce": "About 85% (radius 0.2 wu or more)",
+                "physics": {
+                    "fields": {
+                        "ground depth": {
+                            "by_radius": [
+                                [
+                                    0.25,
+                                    0.02
+                                ],
+                                [
+                                    0.3,
+                                    0.016
+                                ],
+                                [
+                                    0.4,
+                                    0.016
+                                ],
+                                [
+                                    0.6,
+                                    0.025
+                                ]
+                            ]
+                        },
+                        "ground damp fraction": 0.02,
+                        "ground friction": {
+                            "by_radius": [
+                                [
+                                    0.25,
+                                    0.5
+                                ],
+                                [
+                                    0.35,
+                                    0.25
+                                ]
+                            ]
+                        }
+                    },
+                    "parts": [
+                        {
+                            "type": "shell",
+                            "name": "ball",
+                            "points": 12,
+                            "point_radius": 0.2,
+                            "point_ratio": [
+                                0.55,
+                                0.8
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "balanced",
+                "label": "Balanced (32 points)",
+                "bounce": "About 85% from low drops (radius 0.2 wu or more)",
+                "physics": {
+                    "fields": {
+                        "ground depth": {
+                            "by_radius": [
+                                [
+                                    0.3,
+                                    0.03
+                                ],
+                                [
+                                    0.4,
+                                    0.02
+                                ],
+                                [
+                                    0.6,
+                                    0.02
+                                ],
+                                [
+                                    1,
+                                    0.03
+                                ]
+                            ]
+                        },
+                        "ground damp fraction": 0.02,
+                        "ground friction": {
+                            "by_radius": [
+                                [
+                                    0.25,
+                                    0.3
+                                ],
+                                [
+                                    0.5,
+                                    0.5
+                                ],
+                                [
+                                    0.8,
+                                    0.8
+                                ]
+                            ]
+                        }
+                    },
+                    "parts": [
+                        {
+                            "type": "shell",
+                            "name": "ball",
+                            "points": 32,
+                            "point_radius": 0.18,
+                            "point_ratio": [
+                                0.4,
+                                0.6
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "32",
+                "label": "Smooth roll (32 points, no bounce)",
+                "bounce": "None",
+                "physics": {
+                    "parts": [
+                        {
+                            "type": "shell",
+                            "name": "ball",
+                            "points": 32,
+                            "point_ratio": [
+                                0.25,
+                                0.25
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "12",
+                "label": "Bumpy roll (12 points, no bounce)",
+                "bounce": "None",
+                "physics": {
+                    "parts": [
+                        {
+                            "type": "shell",
+                            "name": "ball",
+                            "points": 12,
+                            "point_ratio": [
+                                0.25,
+                                0.25
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "1",
+                "label": "Slide (1 point, never rolls)",
+                "bounce": "None",
+                "physics": {
+                    "parts": [
+                        {
+                            "type": "shell",
+                            "name": "ball",
+                            "points": 1
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
