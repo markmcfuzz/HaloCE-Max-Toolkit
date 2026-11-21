@@ -27,17 +27,42 @@ fn nodeLabelSize o =
 	if objClass == BoneGeometry then o.width else if objClass == Sphere then o.radius * 2.0 else 0.0
 )
 
--- Text starting at pos (world), centered on it vertically (wText takes the text's bottom left)
+-- Labels drawn in this redraw as [left, bottom, width] on screen (viewportLabelsDraw empties it)
+global viewportLabelSpots = #()
+
+-- Text starting at pos (world), centered on it vertically (wText takes the text's bottom left).
+-- A label over another one goes one line lower, so objects in one place stay readable
 fn drawLabelAt pos text textColor =
 (
 	local p = gw.wTransPoint pos
 	local textSize = gw.getTextExtent text
-	gw.wText [p.x + 4, p.y + textSize.y / 2, p.z] text color:textColor
+	local x = p.x + 4
+	local y = p.y + textSize.y / 2
+	local moved = true
+	while moved do
+	(
+		moved = false
+		for s in viewportLabelSpots where abs (s.y - y) < textSize.y and x < s.x + s.z and s.x < x + textSize.x do
+		(
+			y = s.y + textSize.y + 1
+			moved = true
+		)
+	)
+	append viewportLabelSpots [x, y, textSize.x]
+	gw.wText [x, y, p.z] text color:textColor
 )
 
--- Right of the box
-fn drawNodeLabel o boxSize screenRight =
-	drawLabelAt (o.pos + screenRight * (boxSize * 0.375)) o.name o.wirecolor
+-- Size a Point shows in the world; with Constant Screen Size it follows the zoom (as Max's
+-- point helper: size x non-scaling object size x viewport width at it / 360)
+fn pointLabelSize o nonScaling =
+(
+	if not o.constantscreensize then return o.size
+	try (o.size * nonScaling * (getScreenScaleFactor o.pos) / 360.0) catch (o.size)
+)
+
+-- Right of the box; factor: where the text starts, in box sizes from its center
+fn drawNodeLabel o boxSize screenRight factor:0.375 =
+	drawLabelAt (o.pos + screenRight * (boxSize * factor)) o.name o.wirecolor
 
 -- "bounding radius: 0.45 World Units" at the sphere's edge, with the number as in the tag
 -- (bounding_radius.ms); helpers whose Point is gone use Near / 100
@@ -52,13 +77,15 @@ fn drawBoundingRadiusLabel h screenRight =
 fn viewportLabelsDraw =
 (
 	gw.setTransform (matrix3 1)
+	viewportLabelSpots = #()
 	local screenRight = (inverse (getViewTM())).row1
+	local nonScaling = try (gw.nonScalingObjectSize()) catch (1.0)
 	for o in objects where not o.isHiddenInVpt do
 	(
 		local objClass = classOf o
 		-- A marker's box is 4 times its radius (helper_builder.ms)
 		if objClass == HaloMarker then (if showMarkerNames do drawNodeLabel o (o.markerRadius * 4.0) screenRight)
-		else if objClass == Point and isObjectTagContainer o then drawNodeLabel o o.size screenRight
+		else if objClass == Point and isObjectTagContainer o then drawNodeLabel o (pointLabelSize o nonScaling) screenRight factor:0.75
 		else if objClass == InfluenceHelper and matchPattern o.name pattern:"*.boundingRadius" then drawBoundingRadiusLabel o screenRight
 		-- Nodes by name, as the JMS exporter finds them (build_utils.ms); meshes never
 		else if showNodeNames and isNodeObject o and not (isGeometryObject o) do drawNodeLabel o (nodeLabelSize o) screenRight
