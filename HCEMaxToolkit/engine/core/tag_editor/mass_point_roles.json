@@ -1,0 +1,173 @@
+{
+    "description": "Roles of a mass point, from the stock vehicles. A role shows when the tag has its powered mass point (by name) or the one in needs. friction_type: 0 point, 1 forward, 2 left, 3 up.",
+    "roles": [
+        {
+            "label": "Body (metallic)",
+            "metallic": 1,
+            "relative_density": 1,
+            "friction_type": 0,
+            "parallel": 1,
+            "perpendicular": 1,
+            "tip": "Hull point, no motor. Slides with the vehicle chassis effect."
+        },
+        {
+            "label": "Body (soft)",
+            "metallic": 0,
+            "relative_density": 1,
+            "friction_type": 0,
+            "parallel": 1,
+            "perpendicular": 1,
+            "tip": "Hull point, no motor. Slides with the vehicle tire effect."
+        },
+        {
+            "label": "Front tire",
+            "powered": "front",
+            "metallic": 0,
+            "relative_density": 0.5,
+            "friction_type": 1,
+            "parallel": 0.75,
+            "perpendicular": 0.45,
+            "tip": "Warthog front tire: traction, steers one way."
+        },
+        {
+            "label": "Back tire",
+            "powered": "back",
+            "metallic": 0,
+            "relative_density": 0.5,
+            "friction_type": 1,
+            "parallel": 0.45,
+            "perpendicular": 0.65,
+            "tip": "Warthog back tire: traction, steers the other way."
+        },
+        {
+            "label": "Free tire (no motor)",
+            "needs": "front",
+            "metallic": 0,
+            "relative_density": 0.5,
+            "friction_type": 1,
+            "parallel": 0,
+            "perpendicular": 0.65,
+            "tip": "Rolls free and grips sideways: no traction, no steering (a middle axle)."
+        },
+        {
+            "label": "Left tread",
+            "powered": "left",
+            "metallic": 1,
+            "relative_density": 1,
+            "friction_type": 0,
+            "parallel": 1,
+            "perpendicular": 1,
+            "tip": "Scorpion left tread."
+        },
+        {
+            "label": "Right tread",
+            "powered": "right",
+            "metallic": 1,
+            "relative_density": 1,
+            "friction_type": 0,
+            "parallel": 1,
+            "perpendicular": 1,
+            "tip": "Scorpion right tread."
+        },
+        {
+            "label": "Front antigrav",
+            "powered": "front antigrav",
+            "metallic": 1,
+            "relative_density": 1,
+            "friction_type": 0,
+            "parallel": 1,
+            "perpendicular": 1,
+            "tip": "Ghost wing: hovers."
+        },
+        {
+            "label": "Back antigrav",
+            "powered": "back antigrav",
+            "metallic": 1,
+            "relative_density": 1,
+            "friction_type": 0,
+            "parallel": 1,
+            "perpendicular": 1,
+            "tip": "Ghost back seat: hovers."
+        },
+        {
+            "label": "Fighter hull",
+            "needs": "body antigrav",
+            "metallic": 1,
+            "relative_density": 1,
+            "friction_type": 1,
+            "parallel": 0.25,
+            "perpendicular": 1,
+            "tip": "Banshee hull: glides forward, grips sideways."
+        },
+        {
+            "label": "Fighter wing",
+            "needs": "wing antigrav",
+            "metallic": 1,
+            "relative_density": 1,
+            "friction_type": 3,
+            "parallel": 2,
+            "perpendicular": 0.25,
+            "tip": "Banshee wing: resists moving along its up axis."
+        },
+        {
+            "label": "Fighter body antigrav",
+            "powered": "body antigrav",
+            "metallic": 1,
+            "relative_density": 1,
+            "friction_type": 1,
+            "parallel": 0.25,
+            "perpendicular": 1,
+            "tip": "Banshee hull back: hovers (height 0.75)."
+        },
+        {
+            "label": "Fighter wing tip",
+            "powered": "wing antigrav",
+            "metallic": 1,
+            "relative_density": 1,
+            "friction_type": 1,
+            "parallel": 0.25,
+            "perpendicular": 1,
+            "tip": "Banshee wing tip: hovers (height 0.25)."
+        },
+        {
+            "label": "Boat hull side",
+            "needs": "hydrofoil + propeller",
+            "metallic": 0,
+            "relative_density": 1,
+            "friction_type": 2,
+            "parallel": 1,
+            "perpendicular": 0.5,
+            "tip": "Floats; resists moving sideways."
+        },
+        {
+            "label": "Boat propeller",
+            "powered": "hydrofoil + propeller",
+            "metallic": 0,
+            "relative_density": 4,
+            "friction_type": 1,
+            "parallel": 0.5,
+            "perpendicular": 1,
+            "tip": "Front pontoon: pushes in the water and turns with the rudder. Keep it at the front."
+        },
+        {
+            "label": "Boat front hydrofoil",
+            "powered": "hydrofoil (front)",
+            "metallic": 0,
+            "relative_density": 4,
+            "friction_type": 1,
+            "parallel": 0.5,
+            "perpendicular": 1,
+            "tip": "Middle pontoon: lift 0.003 with speed."
+        },
+        {
+            "label": "Boat back hydrofoil",
+            "powered": "hydrofoil (back)",
+            "metallic": 0,
+            "relative_density": 4,
+            "friction_type": 1,
+            "parallel": 0.5,
+            "perpendicular": 1,
+            "tip": "Rear fin: lift 0.005 with speed."
+        }
+    ]
+}
