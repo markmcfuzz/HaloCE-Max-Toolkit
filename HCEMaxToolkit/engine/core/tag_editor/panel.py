@@ -1,10 +1,12 @@
 """Panel with the fields of the selected object tag Point, in tag order. Values are read and
 written through the MAXScript functions of builders\\tag\\object\\tag_editor.ms.
 The Shaders tab (shaders.py) is the same panel showing a material's shader tag fields."""
+import re
+
 from pymxs import runtime as rt
 
 from .qt import QtCore, QtWidgets
-from . import elements, player
+from . import elements, player, physics_calc, new_physics, mass_point_roles
 from .layout import group_layout
 from .fields import ComboBox, field_editor, field_label, flat_button, ref_path, set_help, tags_root_of, to_int
 
@@ -145,6 +147,7 @@ class TagEditorPanel(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.node = None  # object tag Point shown, None in the other views
+        self.group = ""  # its tag group ("vehicle", "physics"...)
         self.handle = None  # selected node the view belongs to
         self.view_key = None  # ("node" | "list" | "shader", id): same view keeps blocks and scroll
         self.shader = None  # material shown in the Shaders tab, None in the tag editor
@@ -179,6 +182,19 @@ class TagEditorPanel(QtWidgets.QWidget):
         self.shaders_button = QtWidgets.QPushButton("Shaders")
         self.shaders_button.clicked.connect(self._open_shaders)
         self.shaders_button.setVisible(False)
+        # Physics made from a template: its mass points again on the model in the scene now
+        self.fit_button = QtWidgets.QPushButton("Fit to Model")
+        self.fit_button.setToolTip("Places the mass points again from its template on the model in the scene now:\n"
+                                   "wheels on its wheels, the rest on its body, linked to its nodes.\n"
+                                   "The tag's other fields stay.")
+        self.fit_button.clicked.connect(self._fit_to_model)
+        self.fit_button.setVisible(False)
+        # Mass point view only: back to the whole physics tag
+        self.tag_button = QtWidgets.QPushButton("Physics Tag")
+        self.tag_button.setToolTip("Selects the physics tag Point: every field of the tag")
+        self.tag_button.clicked.connect(self._select_tag)
+        self.tag_button.setVisible(False)
+        self.model_node_names = []  # physics tags: names of the model's nodes, for "model node"
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -187,6 +203,8 @@ class TagEditorPanel(QtWidgets.QWidget):
         buttons = QtWidgets.QHBoxLayout()
         buttons.addWidget(self.select_button)
         buttons.addWidget(self.shaders_button)
+        buttons.addWidget(self.tag_button)
+        buttons.addWidget(self.fit_button)
         buttons.addWidget(self.export_button)
         layout.addLayout(buttons)
         layout.addWidget(self.scroll, 1)
@@ -221,6 +239,11 @@ class TagEditorPanel(QtWidgets.QWidget):
             elif key.endswith(("object.bounding radius", "object.bounding offset")):
                 rt.applyObjectBoundingRadius(self.node)  # the Influence helper
 
+    def set_fields(self, fields):
+        """Stores several fields of the Point as one undo step and shows them."""
+        if self.node is not None and rt.tagEditorSetFieldList(self.node, list(fields), list(fields.values())):
+            self.refresh()
+
     def ref_visibility(self, part, kinds=None):
         """0 = no nodes, 1 = all hidden, 2 = some visible; kinds None = all of them."""
         if self.node is None:
@@ -254,6 +277,35 @@ class TagEditorPanel(QtWidgets.QWidget):
     def open_player(self, key):
         if self.node is not None:
             player.show(self.node, self.animation_tag_path(key))
+
+    def has_ref_tag(self, part):
+        """True when the reference has its own tag Point in the scene (the object's physics)."""
+        return self.node is not None and bool(rt.tagEditorHasRefTag(self.node, part))
+
+    def open_ref(self, part):
+        # Later: selecting the other Point rebuilds the panel, and with it the clicked button
+        node = self.node
+        if node is not None:
+            QtCore.QTimer.singleShot(0, lambda: rt.tagEditorOpenRef(node, part))
+
+    def _fit_to_model(self):
+        # Later, outside the click (pymxs inside a Qt click); then shows the new fields
+        node = self.node
+        if node is None:
+            return
+
+        def fit():
+            result = str(rt.fitPhysicsToModel(node))
+            self.refresh()
+            QtWidgets.QMessageBox.information(self, "Fit to Model", result)
+
+        QtCore.QTimer.singleShot(0, fit)
+
+    def create_physics(self):
+        # Later: the dialog changes this Point, and the panel is rebuilt
+        node = self.node
+        if node is not None:
+            QtCore.QTimer.singleShot(0, lambda: new_physics.show(target=node))
 
     def select_ref(self, part):
         if self.node is not None:
@@ -304,6 +356,8 @@ class TagEditorPanel(QtWidgets.QWidget):
         self.select_button.setVisible(False)
         self.shaders_button.setVisible(False)
         self.export_button.setVisible(False)
+        self.tag_button.setVisible(False)
+        self.fit_button.setVisible(False)
         self.scroll.setWidget(QtWidgets.QWidget())
 
     def close_shader(self):
@@ -347,8 +401,8 @@ class TagEditorPanel(QtWidgets.QWidget):
         """Shows the selected Point; called on selection change, undo and redo."""
         node = rt.tagEditorSelected()
         if node is None:
-            self._show_message("No object tag selected",
-                               "Select the Point of an imported object tag (e.g. warthog.vehicle).")
+            self._show_message("No tag selected",
+                               "Select the Point of an imported object or physics tag (e.g. warthog.vehicle).")
             return
         handle, name, group, tag_file, keys, values, contents = list(rt.tagEditorFields(node))
         try:
@@ -357,8 +411,18 @@ class TagEditorPanel(QtWidgets.QWidget):
             self._show_message(name, "Could not read the %s definitions:\n%s" % (group, error))
             return
 
-        same_node = self._set_view(("node", handle))
-        self.node, self.handle = node, handle
+        is_physics = group == "physics"
+        # A selected mass point sphere shows only its own fields
+        mass_point = int(rt.tagEditorSelectedMassPoint()) if is_physics else -1
+        if mass_point >= 0:
+            same_node = self._set_view(("massPoint", handle, mass_point))
+            self.handle = int(rt.tagEditorSelectedHandle())
+        else:
+            same_node = self._set_view(("node", handle))
+            self.handle = handle
+        self.node = node
+        self.group = group
+        self.model_node_names = list(rt.tagEditorModelNodeNames(node)) if is_physics else []
         self.values = dict(zip(list(keys), list(values)))
         self.tag_file = tag_file
         # Also after undo / redo and block changes
@@ -367,20 +431,61 @@ class TagEditorPanel(QtWidgets.QWidget):
         self.back_button.setVisible(False)
         self.title.setText(name)
         self.info.setText(tag_file or "New tag, not exported yet")
+        if mass_point >= 0:
+            self._show_mass_point(layout, mass_point, same_node)
+            return
+        self.tag_button.setVisible(False)
         self.select_button.setVisible(True)
         # New tags (and deleted imports) have nothing to select
         self.select_button.setEnabled(contents > 0)
         self.select_button.setToolTip(
-            "Selects the model, collision and physics of the tag" if contents > 0
+            ("Selects the mass points of the tag" if is_physics
+             else "Selects the model, collision and physics of the tag") if contents > 0
             else "Nothing to select: import the tag or link objects to it")
         self.export_button.setVisible(True)
+        self.fit_button.setVisible(is_physics and str(list(rt.physicsTemplateOf(node))[0]) != "")
         # Only for objects with GlyphFX materials
         self.shaders_button.setVisible(len(list(rt.shaderEditorObjectShaders(node))) > 0)
         self.shaders_button.setToolTip("Opens the Shaders tab: animation preview and the shader tags"
                                        " of the object's materials")
 
-        # Object (the first section) starts open
-        self._show_sections(layout["sections"], 0, same_node)
+        # Object (the first section) starts open; physics: what tool calculates first, closed
+        extra = []
+        if is_physics:
+            self.expanded.setdefault("Calculated", False)
+            extra = [("Calculated", lambda: physics_calc.CalcLabel(self, physics_calc.tag_text))]
+        self._show_sections(layout["sections"], 0, same_node, extra=extra)
+
+    def _show_mass_point(self, layout, index, same):
+        """Only the fields of one mass point: the selected sphere's."""
+        block = None
+        for section in layout["sections"]:
+            for field in section["fields"]:
+                if field["key"] == "mass points":
+                    block = field
+        count = self.value("mass points")
+        name = self.value("mass points[%d].name" % index)
+        self.info.setText("Mass point %d of %s: %s" % (index, count, name))
+        self.select_button.setVisible(False)
+        self.export_button.setVisible(False)
+        self.shaders_button.setVisible(False)
+        self.fit_button.setVisible(False)
+        self.tag_button.setVisible(True)
+        if block is None:
+            return
+        prefix = "mass points[%d]." % index
+        self.expanded.setdefault("Mass Point", True)
+        self.expanded.setdefault("Calculated", False)
+        calc = lambda values: physics_calc.mass_point_text(values, index)
+        self._show_sections([], 0, same, extra=[
+            ("Mass Point", lambda: self.build_fields(block["fields"], prefix)),
+            ("Calculated", lambda: physics_calc.CalcLabel(self, calc))])
+
+    def _select_tag(self):
+        # Later: the new selection rebuilds the panel, and with it the clicked button
+        node = self.node
+        if node is not None:
+            QtCore.QTimer.singleShot(0, lambda: rt.select(node))
 
     def build_fields(self, fields, prefix):
         """Form with layout fields in order; keys are prefix + field key."""
@@ -389,6 +494,9 @@ class TagEditorPanel(QtWidgets.QWidget):
         form.setContentsMargins(6, 2, 0, 2)
         form.setRowWrapPolicy(QtWidgets.QFormLayout.WrapLongRows)
         form.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
+        if self.group == "physics" and re.fullmatch(r"mass points\[\d+\]\.", prefix):
+            role_label = field_label({"name": "role", "help": "physics.mass points.role"})
+            form.addRow(role_label, mass_point_roles.RoleCombo(self, prefix))
         for field in fields:
             key = prefix + field["key"]
             if field["kind"] == "block":
