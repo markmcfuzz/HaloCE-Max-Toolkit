@@ -4,7 +4,7 @@ from pymxs import runtime as rt
 
 from .qt import QtCore, QtWidgets, shiboken, GetQMaxMainWindow
 from .panel import TagEditorPanel
-from . import tabs, player, shaders, actor
+from . import tabs, player, shaders, actor, new_physics
 
 DOCK_NAME = "HCETagEditorDock"
 
@@ -72,6 +72,11 @@ def show_model_animations(tag_path):
 def show_actor(node, variant_path):
     """Import > Tag > Actor Variant (import_actor_variant.ms): node is the unit's Point."""
     actor.show(node, variant_path, _command_panel)
+
+
+def show_new_physics():
+    """Create Physics Tag (tool_new_physics.ms)."""
+    new_physics.show()
 
 
 def _refresh(panel, force):
