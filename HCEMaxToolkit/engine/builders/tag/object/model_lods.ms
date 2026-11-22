@@ -25,7 +25,7 @@ fn modelLowerLods modelNodes =
 (
 	local lodMeshes = #()  -- #(node, permutation prefix, rank)
 	local best = dictionary #string  -- permutation prefix: its best rank
-	for n in modelNodes where isValidNode n and n.layer.name == "Geometry Model" do
+	for n in modelNodes where isValidNode n and inLayerKind n "Geometry Model" do
 	(
 		local rank = modelLodRank n
 		if rank > 0 do
