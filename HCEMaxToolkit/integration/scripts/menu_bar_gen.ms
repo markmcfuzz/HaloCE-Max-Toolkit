@@ -68,7 +68,6 @@ function menuCallback =
     
     -- Add Tools > HCE actions
     local sphereToHaloHelperId = "SphereToHaloMarkerHelper`Halo CE"
-    local modelAnimationsExtractorId = "ModelAnimationsExtractor`Halo CE"
     local nodeRenamerId = "NodeRenamer`Halo CE"
     local skinBoneLimiterId = "SkinBoneLimiter`Halo CE"
     --local quickSkinId = "QuickSkin`Halo CE"
@@ -81,7 +80,6 @@ function menuCallback =
     toolsHceMenu.CreateAction "1EED9B0E-55BC-4054-A1E7-398370A8A898" macroScriptTableId cameraTrackGeneratorId
     toolsHceMenu.CreateAction "E1B7C9A2-5D34-4F86-9C0B-7A2E6D18F453" macroScriptTableId newObjectTagId
     toolsHceMenu.CreateAction "A50144FA-4688-4897-B8EA-E83AE3614DEE" macroScriptTableId newPhysicsTagId
-    toolsHceMenu.CreateAction "7E8F9A0B-1C2D-3E4F-5A6B-7C8D9E0F1A2B" macroScriptTableId modelAnimationsExtractorId
     toolsHceMenu.CreateAction "2FFD9520-7961-4575-B7BE-C8673365D395" macroScriptTableId nodeRenamerId
     --toolsHceMenu.CreateAction "A6144B9D-A019-4F36-9844-77A1F706B556" macroScriptTableId quickSkinId
     toolsHceMenu.CreateAction "51891738-CBF2-4468-ACE3-F0EAD2094B0B" macroScriptTableId retargetingId

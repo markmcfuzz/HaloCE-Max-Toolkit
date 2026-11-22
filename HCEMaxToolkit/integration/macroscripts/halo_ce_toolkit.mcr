@@ -307,27 +307,6 @@ macroScript SphereToHaloMarkerHelper
     )
 )
 
-macroScript ModelAnimationsExtractor
-    category: "Halo CE"
-    toolTip: "Model Animations Extractor"
-(
-    on execute do 
-    (
-        local thisScript = getThisScriptFilename()
-        local leafPath = pathConfig.removePathLeaf thisScript
-        local pluginRoot = pathConfig.removePathLeaf (getFilenamePath leafPath)
-        local scriptPath = pluginRoot + "\\engine\\tool_extract_animations.ms"
-        if doesFileExist scriptPath then
-        (
-            fileIn scriptPath
-        )
-        else
-        (
-            messageBox ("Script file not found:\n" + scriptPath) title:"Error"
-        )
-    )
-)
-
 macroScript H5AnimationsImporter
     category: "Halo CE"
     toolTip: "H5 Animation Tool"

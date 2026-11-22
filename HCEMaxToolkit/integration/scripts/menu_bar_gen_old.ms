@@ -97,7 +97,6 @@ fn createHaloCEToolkitMenu =
         addMacroToMenu toolsHceMenu "Halo CE" "CameraTrackGenerator" mm displayName:"Camera Track Builder"
         addMacroToMenu toolsHceMenu "Halo CE" "NewObjectTag" mm displayName:"Create Object Tag"
         addMacroToMenu toolsHceMenu "Halo CE" "NewPhysicsTag" mm displayName:"Create Physics Tag"
-        addMacroToMenu toolsHceMenu "Halo CE" "ModelAnimationsExtractor" mm displayName:"Model Animations Extractor"
         addMacroToMenu toolsHceMenu "Halo CE" "NodeRenamer" mm displayName:"Node Renamer"
         --addMacroToMenu toolsHceMenu "Halo CE" "QuickSkin" mm displayName:"Quick Skin"
         addMacroToMenu toolsHceMenu "Halo CE" "Retargeting" mm displayName:"Retargeting"
