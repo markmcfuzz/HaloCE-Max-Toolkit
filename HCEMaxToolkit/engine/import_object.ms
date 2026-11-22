@@ -87,6 +87,8 @@ fn importObjectFile tagPath =
     local container
     with undo off
     (
+        -- Before the handles, so it doesn't count as part of the object
+        haloObjectRoot()
         -- Model first: collision and physics attach to its nodes
         local lastHandle = getLastNodeHandle()
         local tagsRoot = getTagsRootFromTagPath tagPath
@@ -97,26 +99,26 @@ fn importObjectFile tagPath =
         -- Mass points follow the nodes of this model (an empty list: reused skeleton, last model's)
         local modelNodes = for n in (getNodesBetweenHandles lastHandle modelHandle) where n.layer.name == "Nodes" collect n
         qsort modelNodes sortByHandle
-        local physicsPath = referencedTagPath tagsRoot data.physicsRef
+        -- Only vehicles have physics; other objects keep the path in their field
+        local physicsPath = if data.group == "vehicle" then referencedTagPath tagsRoot data.physicsRef else undefined
+        local physicsPoint = undefined
         if physicsPath != undefined do
-            importPhysicsFile physicsPath modelNodes:(if modelNodes.count > 0 then modelNodes else undefined)
-        local physicsHandle = getLastNodeHandle()
+            physicsPoint = importPhysicsFile physicsPath modelNodes:(if modelNodes.count > 0 then modelNodes else undefined)
         -- What each reference brought, for the editor's eye and link buttons
         local parts = #(getNodesBetweenHandles lastHandle modelHandle, \
-                        getNodesBetweenHandles modelHandle collisionHandle, \
-                        getNodesBetweenHandles collisionHandle physicsHandle)
+                        getNodesBetweenHandles modelHandle collisionHandle)
         logger.info "Hidden LOD meshes: {}" args:#(hideModelLods parts[1])
         -- Markers start hidden too, as the editor's eye menu shows them (fields.py)
         local markers = for n in parts[1] where n.layer.name == "Markers" collect n
         for n in markers do n.isHidden = true
         logger.info "Hidden markers: {}" args:#(markers.count)
 
-        -- Created last, so physics doesn't count it among the model nodes
-        local memberNodes = getNodesAfterHandle lastHandle
-        append memberNodes (createBoundingRadiusHelper data.keys data.values (filenameFromPath tagPath))
+        local memberNodes = parts[1] + parts[2]
+        local radiusHelper = createBoundingRadiusHelper data.keys data.values (filenameFromPath tagPath)
         container = createObjectContainer data tagPath memberNodes parts:parts
+        organizeObjectParts container physicsPoint radiusHelper
         logger.info "Change colors on {} materials" args:#(applyObjectChangeColors container)
-        logger.info "Container '{}' with {} objects" args:#(container.name, memberNodes.count)
+        logger.info "Container '{}' with {} objects" args:#(container.name, (tagContentNodes container).count)
     )
 
     completeRedraw()
@@ -166,7 +168,7 @@ fn ImportObject =
     (
         messageBox ("Object tag imported successfully!\n\n" + \
                     "File: " + (filenameFromPath tagPath) + "\n" + \
-                    "Objects created: " + (container.memberNodes.count as string) + "\n" + \
+                    "Objects created: " + ((tagContentNodes container).count as string) + "\n" + \
                     "Time: " + (formattedPrint elapsedTime format:".3f") + " seconds") \
                     title:"Import Complete" \
                     beep:false
