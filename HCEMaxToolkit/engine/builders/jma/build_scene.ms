@@ -45,6 +45,11 @@ fn applyAnimationToScene jmaData =
 			-- Store as undefined for hidden nodes (skip silently)
 			append nodeCache undefined
 		)
+		else if classOf sceneNode.controller != prs then
+		(
+			append nodeCache undefined
+			logger.warn "Node '{}' can't take keys (it has a constraint or another controller)" args:#(nodeName)
+		)
 		else
 		(
 			-- Store visible node reference
@@ -52,71 +57,37 @@ fn applyAnimationToScene jmaData =
 		)
 	)
 	
-	-- Remove keys left by a previous import. Otherwise each new rotation is
-	-- converted to Euler angles close to the OLD animation's value at that frame,
-	-- so neighbouring keys can end up 360 degrees apart and the bone spins
-	-- between frames during playback.
-	for sceneNode in nodeCache where sceneNode != undefined do
-		deleteKeys sceneNode.controller #allKeys
-
-	-- Set frame rate first so the range and keys use the file's frames
-	frameRate = jmaData.frameRate
-
-	-- Set animation range (0-based frame indices)
-	animationRange = interval 0 (jmaData.frameCount - 1)
-
-	-- Set animation mode
-	max tool animmode
-	set animate on
-	
-	-- Process each frame
-	for f = 1 to jmaData.frameCount do
+	-- Checked before the keys of a previous import are replaced
+	local inverted = boneKeysInverted nodeCache
+	with redraw off
 	(
-		local frameData = jmaData.frames[f]
-		local frameIdx = f - 1  -- Convert to 0-based for 3ds Max timeline
-		
-		-- Process each node in this frame
-		for n = 1 to jmaData.nodeCount do
+		with undo off
 		(
-			local sceneNode = nodeCache[n]
-			
-			if sceneNode != undefined then
+			-- Frame rate first so the range and keys use the file's frames
+			frameRate = jmaData.frameRate
+			animationRange = interval 0 (jmaData.frameCount - 1)
+			for n = 1 to jmaData.nodeCount where nodeCache[n] != undefined do
 			(
-				-- Only process visible nodes (hidden nodes are cached as undefined)
-				local nodeFrame = frameData.nodeFrames[n]
-				
-				-- Convert rotation (negate i, j, k for Halo to 3ds Max conversion)
-				local nodeRotation = quat \
-					-nodeFrame.rotation.x \
-					-nodeFrame.rotation.y \
-					-nodeFrame.rotation.z \
-					nodeFrame.rotation.w
-				
-				-- Get translation
-				local nodeTranslation = nodeFrame.translation
-				
-				-- Get uniform scale as point3
-				local nodeScale = [nodeFrame.scale, nodeFrame.scale, nodeFrame.scale]
-				
-				-- Add keyframes
-				addNewKey sceneNode.rotation.controller frameIdx
-				at time frameIdx (in coordsys parent sceneNode.rotation = nodeRotation)
-				
-				addNewKey sceneNode.position.controller frameIdx
-				at time frameIdx (in coordsys parent sceneNode.position = nodeTranslation)
-				
-				addNewKey sceneNode.scale.controller frameIdx
-				at time frameIdx (in coordsys parent sceneNode.scale = nodeScale)
+				local rotations = #()
+				local positions = #()
+				local scales = #()
+				for f = 1 to jmaData.frameCount do
+				(
+					local nodeFrame = jmaData.frames[f].nodeFrames[n]
+					local r = nodeFrame.rotation
+					-- Negate i, j, k for Halo to 3ds Max conversion
+					append rotations (quat (-r.x) (-r.y) (-r.z) r.w)
+					append positions nodeFrame.translation
+					append scales nodeFrame.scale
+				)
+				boneKeysWrite nodeCache[n] rotations positions scales inverted
 			)
 		)
 	)
-	
-	-- Exit animation mode
-	max tool animmode
-	set animate off
 
 	-- Start the new animation at its first frame
 	sliderTime = 0
+	redrawViews()
 	
 	-- Report results
 	if missingNodeIndices.count > 0 then
