@@ -17,6 +17,9 @@ EDITOR_DOCK_NAME = "HCETagEditorDock"  # see __init__.py
 # Max's real-time playback speeds (timeConfiguration.playbackSpeed 1 to 5)
 SPEEDS = ["¼×", "½×", "1×", "2×", "4×"]
 
+# List item data: True when the animation can be extracted in place
+IN_PLACE_ROLE = QtCore.Qt.UserRole + 1
+
 # Open panels by dock name
 _panels = {}
 
@@ -65,6 +68,7 @@ class AnimationPlayerPanel(QtWidgets.QWidget):
         self.tag_path = ""
         self.point_name = ""
         self.playing = False
+        self.applied = None  # 1-based index of the animation on the bones
         color = self.palette().color(QtGui.QPalette.ButtonText)
         self.icons = {kind: media_icon(kind, color) for kind in ("play", "pause", "stop", "loop")}
         layout = QtWidgets.QVBoxLayout(self)
@@ -102,6 +106,16 @@ class AnimationPlayerPanel(QtWidgets.QWidget):
         self.speed.setCurrentIndex(2)
         self.speed.setToolTip("Playback speed")
         self.speed.currentIndexChanged.connect(self._playback_changed)
+        self.in_place_check = QtWidgets.QCheckBox("In Place")
+        self.in_place_check.setToolTip("Plays move-front, back, left and right animations\n"
+                                       "without their displacement. Extract All saves them as JMM")
+        self.in_place_check.toggled.connect(self._in_place_toggled)
+        self.in_place_check.toggled.connect(self._update_extract_all)
+        self.extract_all_button = QtWidgets.QPushButton("Extract All")
+        self.extract_all_button.setEnabled(False)
+        self.extract_all_button.setToolTip("Extracts every animation of this tag to a folder you pick.\n"
+                                           "With In Place on, move animations are saved as JMM")
+        self.extract_all_button.clicked.connect(self._extract_all)
         self.frame_label = QtWidgets.QLabel("0 / 0")
         self.frame_label.setToolTip("Frame / last frame")
         self.frame_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
@@ -117,12 +131,13 @@ class AnimationPlayerPanel(QtWidgets.QWidget):
         layout.addWidget(self.list, 1)
         layout.addWidget(self.count)
         row = QtWidgets.QHBoxLayout()
-        for widget in (self.play_button, self.stop_button, self.loop_button, self.speed):
+        for widget in (self.play_button, self.stop_button, self.loop_button, self.speed, self.in_place_check):
             row.addWidget(widget)
         row.addStretch(1)
         row.addWidget(self.frame_label)
         layout.addLayout(row)
         layout.addWidget(self.slider)
+        layout.addWidget(self.extract_all_button)
         layout.addWidget(self.status)
         # Follows Max's time a few times per second (also when it plays or is scrubbed there)
         self.timer = QtCore.QTimer(self)
@@ -158,6 +173,8 @@ class AnimationPlayerPanel(QtWidgets.QWidget):
         self.node = node
         self.tag_path = tag_path
         self.point_name = "the scene" if node is None else str(node.name)
+        self.applied = None
+        self.extract_all_button.setEnabled(False)
         self.list.clear()
         self.status.setText("")
         self.title.setText(tag_path.replace("/", "\\").rsplit("\\", 1)[-1] if tag_path else "Animation Player")
@@ -167,7 +184,7 @@ class AnimationPlayerPanel(QtWidgets.QWidget):
         try:
             result = rt.animPlayerOpen(node, tag_path)
             if not isinstance(result, str):
-                tag_name, names, exts, frames, found, total = list(result)
+                tag_name, names, exts, frames, found, total, moves = list(result)
         except Exception as error:
             # Shown here and in the Listener, instead of a panel stuck on "Loading"
             traceback.print_exc()
@@ -187,13 +204,15 @@ class AnimationPlayerPanel(QtWidgets.QWidget):
             model = "the scene" if node is None else "%s's model" % self.point_name
             bones = "None of the %d animated bones are in %s" % (total, model)
         self.info.setText("%s\n%d animations of %s" % (bones, len(names), tag_name))
-        for i, (name, ext, frame_count) in enumerate(zip(names, exts, frames)):
+        for i, (name, ext, frame_count, move) in enumerate(zip(names, exts, frames, moves)):
             item = QtWidgets.QListWidgetItem("%s  (%s · %d frames)" % (name, ext, frame_count))
             item.setData(QtCore.Qt.UserRole, i + 1)  # 1-based, as in MAXScript
+            item.setData(IN_PLACE_ROLE, bool(move) and str(ext) == "JMA")
             if frame_count == 0:
                 item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEnabled)
                 item.setToolTip("Could not be read (see the Max log)")
             self.list.addItem(item)
+        self.extract_all_button.setEnabled(self.list.count() > 0)
         self._filter()
 
     def _filter(self):
@@ -219,26 +238,63 @@ class AnimationPlayerPanel(QtWidgets.QWidget):
             return
         what = "animation" if len(items) == 1 else "%d animations" % len(items)
         menu = QtWidgets.QMenu(self)
-        to_data = menu.addAction("Extract %s to data folder" % what)
-        to_data.setToolTip(str(rt.animPlayerDataFolder(self.tag_path) or ""))
         menu.setToolTipsVisible(True)
-        menu.addAction("Extract %s to..." % what)
-        chosen = menu.exec_(self.list.viewport().mapToGlobal(pos))
-        if chosen is not None:
-            self._extract(items, chosen is to_data)
+        data_folder = str(rt.animPlayerDataFolder(self.tag_path) or "")
 
-    def _extract(self, items, to_data):
+        def add_extract(text, picked, to_data, in_place=False):
+            action = menu.addAction(text)
+            if to_data:
+                action.setToolTip(data_folder)
+            # After the menu closes: Max calls inside its click break the QActions
+            action.triggered.connect(lambda checked=False: QtCore.QTimer.singleShot(
+                0, lambda: self._extract(picked, to_data, in_place)))
+
+        add_extract("Extract %s to data folder" % what, items, True)
+        add_extract("Extract %s to..." % what, items, False)
+        # Only the move animations of the selection can go in place
+        move_items = [item for item in items if item.data(IN_PLACE_ROLE)]
+        if move_items:
+            moves = "move animation" if len(move_items) == 1 else "%d move animations" % len(move_items)
+            menu.addSeparator()
+            add_extract("Extract %s in place to data folder" % moves, move_items, True, True)
+            add_extract("Extract %s in place to..." % moves, move_items, False, True)
+        menu.exec_(self.list.viewport().mapToGlobal(pos))
+        menu.deleteLater()
+
+    def _update_extract_all(self, in_place):
+        self.extract_all_button.setText("Extract All (Move In Place)" if in_place else "Extract All")
+
+    def _extract_all(self, *args):
+        """Every animation, also those hidden by the search, to a folder the user picks."""
+        items = [self.list.item(row) for row in range(self.list.count())]
+        if items:
+            self._extract(items, False, self.in_place_check.isChecked())
+
+    def _extract(self, items, to_data, in_place=False):
         indices = ",".join(str(item.data(QtCore.Qt.UserRole)) for item in items)
         what = "1 animation" if len(items) == 1 else "%d animations" % len(items)
+        warning = ""
         if to_data:  # "to..." opens a folder dialog first
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         try:
-            folder = rt.animPlayerExtract(self.tag_path, indices, to_data)
+            extract = rt.animPlayerExtractInPlace if in_place else rt.animPlayerExtract
+            folder = extract(self.tag_path, indices, to_data)
             if folder is None:
                 self.status.setText("Could not extract (see the Max log)")
             elif folder:
-                # Long paths are cut in the middle; the full one is in the tooltip
-                text = "Extracted %s to %s" % (what, folder)
+                skipped = int(rt.animPlayerExtractSkipped)
+                if skipped:
+                    text = "Extracted %d, skipped %d (see the Max log)" % (len(items) - skipped, skipped)
+                    warning = ("%d of %d animations were not extracted.\n\n"
+                               "The usual cause is another version with the same name "
+                               "(.JMA or .JMM) already in this folder. It was not replaced.\n\n"
+                               "Pick an empty folder or move those files out:\n%s"
+                               % (skipped, len(items), folder))
+                else:
+                    moved = sum(1 for item in items if item.data(IN_PLACE_ROLE)) if in_place else 0
+                    how = "" if not moved else " in place" if moved == len(items) else " (%d in place)" % moved
+                    # Long paths are cut in the middle; the full one is in the tooltip
+                    text = "Extracted %s%s to %s" % (what, how, folder)
                 metrics = self.status.fontMetrics()
                 self.status.setText(metrics.elidedText(text, QtCore.Qt.ElideMiddle, self.width() - 12))
                 self.status.setToolTip(str(folder))
@@ -248,6 +304,8 @@ class AnimationPlayerPanel(QtWidgets.QWidget):
         finally:
             if to_data:
                 QtWidgets.QApplication.restoreOverrideCursor()
+        if warning:
+            QtWidgets.QMessageBox.warning(self, "Extract Animations", warning)
 
     def _apply(self, item):
         if not self._node_ok():
@@ -256,10 +314,35 @@ class AnimationPlayerPanel(QtWidgets.QWidget):
         QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         try:
             self.status.setToolTip("")
-            ms = rt.animPlayerApply(self.node, item.data(QtCore.Qt.UserRole))
+            index = item.data(QtCore.Qt.UserRole)
+            ms = rt.animPlayerApply(self.node, index, inPlace=self.in_place_check.isChecked())
             self.status.setText("Could not apply it (see the Max log)" if ms < 0 else "Applied in %d ms" % ms)
             if ms >= 0:
+                self.applied = index
                 rt.animPlayerPlay(self.loop_button.isChecked(), self.speed.currentIndex() + 1)
+        except Exception as error:
+            traceback.print_exc()
+            self.status.setText("Could not apply it: %s" % error)
+        finally:
+            QtWidgets.QApplication.restoreOverrideCursor()
+
+    def _in_place_toggled(self, in_place):
+        """Rewrites the animation on the bones, staying on the same frame."""
+        if self.applied is None or not self._node_ok():
+            return
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        try:
+            # Another panel may have loaded a different tag
+            if isinstance(rt.animPlayerOpen(self.node, self.tag_path), str):
+                self.status.setText("Could not read the animations (see the Max log)")
+            elif rt.animPlayerHasMove(self.applied):
+                frame, _, _, playing = list(rt.animPlayerTimeState())
+                ms = rt.animPlayerApply(self.node, self.applied, inPlace=in_place)
+                self.status.setText("Could not apply it (see the Max log)" if ms < 0 else "Applied in %d ms" % ms)
+                if ms >= 0:
+                    rt.animPlayerSetFrame(frame)
+                    if playing:
+                        rt.animPlayerPlay(self.loop_button.isChecked(), self.speed.currentIndex() + 1)
         except Exception as error:
             traceback.print_exc()
             self.status.setText("Could not apply it: %s" % error)
@@ -313,6 +396,7 @@ class AnimationPlayerPanel(QtWidgets.QWidget):
         except Exception as error:
             traceback.print_exc()
             self.status.setText("Could not stop: %s" % error)
+        self.applied = None
         self.list.clearSelection()
 
 
