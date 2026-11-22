@@ -121,29 +121,6 @@ fn animPlayerNodes obj =
 	)
 )
 
-fn animPlayerQuatDot a b = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
-
--- True when the rotation controller's value is the inverse of "in coordsys parent rotation".
--- Checked on the node where the two differ most, not assumed
-fn animPlayerControllerInverted nodes =
-(
-	local inverted = true
-	local clearest = 0.0
-	for n in nodes where n != undefined do
-	(
-		local parentRot = in coordsys parent n.rotation
-		local ctrlRot = n.rotation.controller.value
-		local same = abs (animPlayerQuatDot parentRot ctrlRot)
-		local opposite = abs (animPlayerQuatDot parentRot (inverse ctrlRot))
-		if abs (same - opposite) > clearest do
-		(
-			clearest = abs (same - opposite)
-			inverted = opposite > same
-		)
-	)
-	inverted
-)
-
 -- Pose and timeline before the player first touched a Point's bones, for Stop.
 -- Per Point handle (0 = scene bones): #(nodes, rotations, positions, scales, animation range, slider time)
 global animPlayerRestHandles = #()
@@ -151,10 +128,30 @@ global animPlayerRestPoses = #()
 
 fn animPlayerRestKey obj = if obj == undefined then 0 else obj.inode.handle
 
+-- Bones hanging from these nodes outside the tag (a held weapon): the weapon IK keys them
+fn animPlayerHeldNodes nodes =
+(
+	local held = #()
+	local pending = for n in nodes collect n
+	while pending.count > 0 do
+	(
+		local n = pending[pending.count]
+		deleteItem pending pending.count
+		for c in n.children where inLayerKind c "Nodes" and classOf c.controller == prs \
+			and findItem nodes c == 0 and findItem held c == 0 do
+		(
+			append held c
+			append pending c
+		)
+	)
+	held
+)
+
 fn animPlayerSaveRest obj nodes =
 (
 	if findItem animPlayerRestHandles (animPlayerRestKey obj) > 0 then return ok
 	local kept = for n in nodes where n != undefined collect n
+	if obj != undefined do join kept (animPlayerHeldNodes kept)
 	local rotations = for n in kept collect n.rotation.controller.value
 	local positions = for n in kept collect n.position.controller.value
 	local scales = for n in kept collect n.scale.controller.value
@@ -166,6 +163,21 @@ fn animPlayerSaveRest obj nodes =
 callbacks.removeScripts id:#hceAnimPlayer
 for e in #(#filePostOpen, #systemPostReset, #systemPostNew) do
 	callbacks.addScript e "animPlayerRestHandles = #(); animPlayerRestPoses = #()" id:#hceAnimPlayer
+
+-- Bones an earlier animation or the IK keyed and this one doesn't: no keys, back to rest
+fn animPlayerResetOthers obj applied =
+(
+	local rest = animPlayerRestPoses[findItem animPlayerRestHandles (animPlayerRestKey obj)]
+	with animate off
+		for k = 1 to rest[1].count where isValidNode rest[1][k] and findItem applied rest[1][k] == 0 do
+		(
+			local n = rest[1][k]
+			deleteKeys n.controller #allKeys
+			n.rotation.controller.value = rest[2][k]
+			n.position.controller.value = rest[3][k]
+			n.scale.controller.value = rest[4][k]
+		)
+)
 
 -- Keys of animation i (1-based) on the Point's bones from frame 0, replacing theirs (not
 -- undoable). Returns the time it took in ms, or -1 when it can't be applied
@@ -181,7 +193,8 @@ fn animPlayerApply obj i =
 	local nodes = animPlayerNodes obj
 	if poses == undefined then return -1
 	animPlayerSaveRest obj nodes
-	local inverted = animPlayerControllerInverted nodes
+	local inverted = boneKeysInverted nodes
+	local applied = for n = 1 to data.nodeCounts[i] where nodes[n] != undefined collect nodes[n]
 	stopAnimation()
 	with redraw off
 	(
@@ -189,26 +202,8 @@ fn animPlayerApply obj i =
 		(
 			frameRate = 30
 			animationRange = interval 0 (frameCount - 1)
-			for n = 1 to data.nodeCounts[i] where nodes[n] != undefined do
-			(
-				local sceneNode = nodes[n]
-				deleteKeys sceneNode.controller #allKeys
-				-- Straight on the PRS controllers (no coordsys work per key)
-				local rotationCtrl = sceneNode.rotation.controller
-				local positionCtrl = sceneNode.position.controller
-				local scaleCtrl = sceneNode.scale.controller
-				local rotations = poses[2][n]
-				local scaled = false
-				for s in poses[3][n] while not scaled do scaled = abs (s - 1.0) > 0.0001
-				with animate on
-					for fr = 1 to frameCount do at time (fr - 1)
-					(
-						rotationCtrl.value = if inverted then inverse rotations[fr] else rotations[fr]
-						positionCtrl.value = poses[1][n][fr]
-						if scaled do scaleCtrl.value = [1, 1, 1] * poses[3][n][fr]
-					)
-				if not scaled do scaleCtrl.value = [1, 1, 1]
-			)
+			animPlayerResetOthers obj applied
+			for n = 1 to data.nodeCounts[i] where nodes[n] != undefined do boneKeysWrite nodes[n] poses[2][n] poses[1][n] poses[3][n] inverted
 		)
 	)
 	sliderTime = 0
