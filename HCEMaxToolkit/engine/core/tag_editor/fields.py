@@ -676,6 +676,8 @@ def ref_edit(panel, key, allowed, accepts):
     button.clicked.connect(browse)
     edit.editingFinished.connect(commit)
     part = eye_part(key)
+    if part == "physics" and panel.group != "vehicle":
+        part = None  # only vehicles have physics
     if part == "animation":
         buttons = [PlayerButton(panel, key)]
     else:
