@@ -19,8 +19,9 @@ fileIn (rootEngine + "builders\\tag\\object\\object_tag_ca.ms")
 fileIn (rootEngine + "builders\\tag\\physics\\mass_points.ms")
 
 -- data: PhysicsTagData (lua_reader.ms); modelNodes: the model's nodes in tag order, undefined =
--- those of the last model imported. Returns the Point; its spheres are in physicsNodes
-fn createPhysicsContainer data tagPath modelNodes:undefined =
+-- those of the last model imported; owner: its object's Point (undefined = in haloCE.Object).
+-- Returns the Point; its spheres are in physicsNodes
+fn createPhysicsContainer data tagPath modelNodes:undefined owner:undefined =
 (
 	if modelNodes == undefined do modelNodes = sceneModelNodes()
 	local container = Point name:(filenameFromPath tagPath) size:30 box:false cross:false \
@@ -31,7 +32,8 @@ fn createPhysicsContainer data tagPath modelNodes:undefined =
 	tagAttributes.tagFile = tagPath
 	tagAttributes.fieldKeys = data.keys
 	tagAttributes.fieldValues = data.values
-	tagAttributes.partsVersion = 1
+	tagAttributes.partsVersion = 2
+	placePhysicsPoint container owner
 	-- Spheres follow their model node (the tag says which one) from its pose now
 	tagAttributes.modelNodes = modelNodes
 	storePhysicsNodeRests container
