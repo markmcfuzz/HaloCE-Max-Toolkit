@@ -103,9 +103,36 @@ fn tagEditorSetFields obj keys values =
 	true
 )
 
+-- The Influence helper of the bounding radius (bounding_radius.ms), a child of the Point
+fn boundingRadiusHelpers obj =
+	for c in obj.children where classOf c == InfluenceHelper and matchPattern c.name pattern:"*.boundingRadius" collect c
+
+fn objectPhysicsPoints obj = for c in obj.children where isPhysicsTagContainer c collect c
+
+-- A vehicle's physics: the physics Points linked under it, each with its spheres
+fn objectPhysicsParts obj =
+(
+	local parts = #()
+	for p in objectPhysicsPoints obj do
+	(
+		append parts p
+		for n in p.physicsNodes where isValidNode n do append parts n
+	)
+	parts
+)
+
+-- Everything the Point contains: its lists plus its child dummies
+fn tagContentNodes obj =
+(
+	local nodes = for n in obj.memberNodes where isValidNode n collect n
+	join nodes (objectPhysicsParts obj)
+	join nodes (boundingRadiusHelpers obj)
+	nodes
+)
+
 fn tagEditorSelectContents obj =
 (
-	if isObjectTagContainer obj do select (for n in obj.memberNodes where isValidNode n collect n)
+	if isObjectTagContainer obj do select (tagContentNodes obj)
 )
 
 -- Layers where the importers put what each reference brings ("animation": nothing imported yet)
@@ -120,10 +147,6 @@ fn tagRefLayers part = case part of
 -- False for Points saved before the reference lists (object_tag_ca.ms)
 fn hasTagParts obj = try (obj.partsVersion != undefined) catch (false)
 
--- The Influence helper made on import for the bounding radius (bounding_radius.ms)
-fn boundingRadiusHelpers obj =
-	for n in obj.memberNodes where isValidNode n and classOf n == InfluenceHelper and matchPattern n.name pattern:"*.boundingRadius" collect n
-
 -- Nodes of a reference ("model", "collision", "physics"; "boundingRadius" = its helper)
 fn tagRefNodes obj part =
 (
@@ -133,7 +156,7 @@ fn tagRefNodes obj part =
 	(
 		"model": obj.modelNodes
 		"collision": obj.collisionNodes
-		"physics": obj.physicsNodes
+		"physics": objectPhysicsParts obj
 		default: #()
 	)
 	for n in list where isValidNode n collect n
@@ -146,7 +169,7 @@ fileIn (rootEngine + "builders\\tag\\object\\model_lods.ms")
 -- objects in other layers count as "Geometry"). Lower LODs are told apart in tagRefKindNodes
 fn tagRefNodeKind part n =
 (
-	local layerName = n.layer.name
+	local layerName = baseLayerName n.layer.name
 	case part of
 	(
 		"model": if layerName == "Nodes" or layerName == "Markers" then layerName else "Geometry"
@@ -173,20 +196,38 @@ fn setTagRefNodes obj part nodes = case part of
 	"physics": obj.physicsNodes = nodes
 )
 
--- Older Points get the new definition, and their lists are filled once from the layers
+-- Points before version 2 listed their dummies: out of the lists first, then linked
+fn moveListedDummies obj =
+(
+	local physicsPoints = for n in obj.physicsNodes where isPhysicsTagContainer n collect n
+	local radiusHelpers = for n in obj.memberNodes where isValidNode n and classOf n == InfluenceHelper \
+		and matchPattern n.name pattern:"*.boundingRadius" collect n
+	local dummies = physicsPoints + radiusHelpers
+	for p in physicsPoints do
+		for n in p.physicsNodes where isValidNode n do append dummies n
+	obj.memberNodes = for n in obj.memberNodes where isValidNode n and findItem dummies n == 0 collect n
+	obj.physicsNodes = #()
+	local owner = if obj.tagGroup == "vehicle" then obj else undefined
+	for p in physicsPoints do placePhysicsPoint p owner
+	for h in radiusHelpers do placeBoundingRadius h obj
+)
+
+-- Older Points get the new definition, their lists filled once from the layers and their dummies linked
 fn upgradeObjectTagContainer obj =
 (
 	if not (hasTagParts obj) do fileIn (rootEngine + "builders\\tag\\object\\object_tag_ca.ms")
-	if not (hasTagParts obj) or obj.partsVersion >= 1 then return ok
+	if not (hasTagParts obj) or obj.partsVersion >= 2 then return ok
 	with undo off
 	(
-		for part in #("model", "collision", "physics") do
-		(
-			local layers = tagRefLayers part
-			local nodes = for n in obj.memberNodes where isValidNode n and findItem layers n.layer.name > 0 collect n
-			setTagRefNodes obj part nodes
-		)
-		obj.partsVersion = 1
+		if obj.partsVersion < 1 do
+			for part in #("model", "collision", "physics") do
+			(
+				local layers = tagRefLayers part
+				local nodes = for n in obj.memberNodes where isValidNode n and findItem layers (baseLayerName n.layer.name) > 0 collect n
+				setTagRefNodes obj part nodes
+			)
+		if not (isPhysicsTagContainer obj) do moveListedDummies obj
+		obj.partsVersion = 2
 	)
 )
 
@@ -199,9 +240,7 @@ fn tagEditorFields obj =
 	syncPhysicsFromScene obj
 	local keys = for k in obj.fieldKeys collect k
 	local values = for v in obj.fieldValues collect v
-	local contents = 0
-	for n in obj.memberNodes where isValidNode n do contents += 1
-	#(obj.inode.handle, obj.name, obj.tagGroup, obj.tagFile, keys, values, contents)
+	#(obj.inode.handle, obj.name, obj.tagGroup, obj.tagFile, keys, values, (tagContentNodes obj).count)
 )
 
 -- Select From Scene filters take only the node, so they read these globals
@@ -209,20 +248,30 @@ global tagEditorPickPoint
 global tagEditorPickNodes = #()
 fn tagEditorCanLink n = n != tagEditorPickPoint and findItem tagEditorPickNodes n == 0
 fn tagEditorCanUnlink n = findItem tagEditorPickNodes n > 0
+-- Physics links only physics Points, which become children of the vehicle
+fn tagEditorCanLinkPhysics n = isPhysicsTagContainer n and n.parent != tagEditorPickPoint
 
 -- Adds scene objects picked in Select From Scene to a reference (undoable). Returns how many
 fn tagEditorLinkRef obj part =
 (
 	tagEditorPickPoint = obj
 	tagEditorPickNodes = tagRefNodes obj part
-	local picked = selectByName title:("Link to " + part) buttonText:"Link" filter:tagEditorCanLink showHidden:true
+	local canLink = if part == "physics" then tagEditorCanLinkPhysics else tagEditorCanLink
+	local picked = selectByName title:("Link to " + part) buttonText:"Link" filter:canLink showHidden:true
 	if picked == undefined or picked.count == 0 then return 0
 	undo "Link Tag Nodes" on
 	(
-		setTagRefNodes obj part (tagEditorPickNodes + picked)
-		local members = for n in obj.memberNodes where isValidNode n collect n
-		for n in picked do appendIfUnique members n
-		obj.memberNodes = members
+		if part == "physics" then
+		(
+			for n in picked do placePhysicsPoint n obj
+		)
+		else
+		(
+			setTagRefNodes obj part (tagEditorPickNodes + picked)
+			local members = for n in obj.memberNodes where isValidNode n collect n
+			for n in picked do appendIfUnique members n
+			obj.memberNodes = members
+		)
 	)
 	picked.count
 )
@@ -230,18 +279,25 @@ fn tagEditorLinkRef obj part =
 -- Takes picked objects out of a reference (undoable); they stay in the scene. Returns how many
 fn tagEditorUnlinkRef obj part =
 (
-	tagEditorPickNodes = tagRefNodes obj part
+	tagEditorPickNodes = if part == "physics" then objectPhysicsPoints obj else tagRefNodes obj part
 	if tagEditorPickNodes.count == 0 then return 0
 	local picked = selectByName title:("Unlink from " + part) buttonText:"Unlink" filter:tagEditorCanUnlink showHidden:true
 	if picked == undefined or picked.count == 0 then return 0
 	undo "Unlink Tag Nodes" on
 	(
-		local kept = for n in tagEditorPickNodes where findItem picked n == 0 collect n
-		setTagRefNodes obj part kept
-		-- Out of the Point's contents too, unless another reference still has them
-		local others = #()
-		for p in #("model", "collision", "physics") where p != part do join others (tagRefNodes obj p)
-		obj.memberNodes = for n in obj.memberNodes where isValidNode n and (findItem picked n == 0 or findItem others n > 0) collect n
+		-- A physics dummy goes back directly under haloCE.Object
+		if part == "physics" then
+		(
+			for n in picked do placePhysicsPoint n undefined
+		)
+		else
+		(
+			local kept = for n in tagEditorPickNodes where findItem picked n == 0 collect n
+			setTagRefNodes obj part kept
+			-- Out of the Point's contents too, unless the other reference still has them
+			local others = tagRefNodes obj (if part == "model" then "collision" else "model")
+			obj.memberNodes = for n in obj.memberNodes where isValidNode n and (findItem picked n == 0 or findItem others n > 0) collect n
+		)
 	)
 	picked.count
 )
