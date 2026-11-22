@@ -15,7 +15,8 @@
 
 -- outputDir: when given (e.g. by a test script), no folder dialog and no completion dialog.
 -- only: "3,7,12" extracts only those animations (1-based); "" extracts all
-fn extractModelAnimations tagPath outputDir:undefined only:"" =
+-- inPlace: move animations as JMM without displacement. counts: array that gets extracted, skipped
+fn extractModelAnimations tagPath outputDir:undefined only:"" inPlace:false counts:undefined =
 (
     local askedForFolder = outputDir == undefined
     if askedForFolder do
@@ -33,7 +34,9 @@ fn extractModelAnimations tagPath outputDir:undefined only:"" =
     outputDir = trimRight outputDir "\\"
 
     local startTime = timestamp()
-    local f = luaExportTag "model_animations" 2 tagPath options:#(outputDir, only)
+    local luaOptions = #(outputDir, only)
+    if inPlace do append luaOptions "inplace"
+    local f = luaExportTag "model_animations" 2 tagPath options:luaOptions
     if f == undefined then
     (
         logger.error "Lua extractor failed | cannot extract animations."
@@ -45,6 +48,7 @@ fn extractModelAnimations tagPath outputDir:undefined only:"" =
     local animCount = luaReadInt f
     local extracted = luaReadInt f
     local skipped   = luaReadInt f
+    if counts != undefined do join counts #(extracted, skipped)
     logger.info "Nodes: {}, Animations: {}\n" args:#(nodeCount, animCount)
 
     -- Messages from Lua: 1 info, 2 warning, 3 error
