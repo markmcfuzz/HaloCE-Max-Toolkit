@@ -19,7 +19,7 @@ fileIn (rootEngine + "builders\\tag\\physics\\lua_reader.ms")
 fileIn (rootEngine + "builders\\tag\\physics\\build_scene.ms")
 
 -- Not mass point spheres or tag Points
-fn newPhysicsModelObject o = o.layer.name != "Physics" and not (isObjectTagContainer o)
+fn newPhysicsModelObject o = not (inLayerKind o "Physics") and not (isObjectTagContainer o)
 
 -- The model's nodes: sceneModelNodes (an imported model, in tag order), else the nodes the JMS
 -- exporter finds by name (a model made in Max), in the order they were created
@@ -248,14 +248,6 @@ fn newVehicleValuesWithLua templateName option wheelsText =
 	#(keys, values)
 )
 
--- The physics Point and its spheres: what an object's physics reference brings
-fn newPhysicsParts physicsPoint =
-(
-	local parts = #(physicsPoint)
-	for n in physicsPoint.physicsNodes where isValidNode n do append parts n
-	parts
-)
-
 -- Sets the template's .vehicle values on an existing vehicle Point; false on error
 fn fillVehicleFromTemplate vehicle templateName option wheelsText =
 (
@@ -321,7 +313,7 @@ fn physicsTemplateOf obj =
 -- A physics Point from a template ("ball") and option ("bouncy", or ""), as
 -- newPhysicsFromTemplate. wheelWords: "" when its wheels don't go on the model's (kept for Fit
 -- to Model). target: an existing vehicle Point (the tag editor's "+"): it gets the template's
--- fields and the physics linked, and stays selected; undefined: the physics is selected.
+-- fields and the physics as its child, and stays selected; undefined: the physics is selected.
 -- Undefined on error (details in the log)
 fn createFromTemplate templateName option tagName wheelsText wheelWords target =
 (
@@ -331,19 +323,10 @@ fn createFromTemplate templateName option tagName wheelsText wheelWords target =
 	local filled = true
 	undo "Create Physics Tag" on
 	(
-		physicsPoint = createPhysicsContainer data (tagName + ".physics") modelNodes:(newPhysicsModelNodes())
+		physicsPoint = createPhysicsContainer data (tagName + ".physics") modelNodes:(newPhysicsModelNodes()) owner:target
 		physicsPoint.tagFile = ""  -- not exported yet
 		setPhysicsTemplate physicsPoint templateName option wheelWords
-		if target != undefined do
-		(
-			filled = fillVehicleFromTemplate target templateName option wheelsText
-			-- The physics pencil of the vehicle opens the new physics
-			for n in newPhysicsParts physicsPoint do
-			(
-				append target.physicsNodes n
-				append target.memberNodes n
-			)
-		)
+		if target != undefined do filled = fillVehicleFromTemplate target templateName option wheelsText
 	)
 	logger.info "New physics tag '{}' from template '{}': {} mass points" args:#(physicsPoint.name, templateName, physicsPoint.physicsNodes.count)
 	if not filled do logger.error "Could not fill '{}' from template '{}'" args:#(target.name, templateName)
@@ -418,15 +401,6 @@ fn fitPhysicsToModel obj =
 		obj.fieldKeys = merged[1]
 		obj.fieldValues = merged[2]
 		reconcilePhysicsMassPoints obj oldKeys oldValues
-		-- Linked vehicles: their physics part is the Point and its new spheres
-		local parts = newPhysicsParts obj
-		for o in objects where o != obj and isObjectTagContainer o and (try (findItem o.physicsNodes obj > 0) catch (false)) do
-		(
-			o.physicsNodes = parts
-			local members = for n in o.memberNodes where isValidNode n collect n
-			for n in parts where findItem members n == 0 do append members n
-			o.memberNodes = members
-		)
 	)
 	redrawViews()
 	local count = obj.physicsNodes.count
