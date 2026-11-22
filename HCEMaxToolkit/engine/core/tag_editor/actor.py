@@ -35,6 +35,8 @@ class ActorPanel(player.AnimationPlayerPanel):
         self.names = []  # animation names as the player lists them
         self.turn = {}  # behavior name -> permutation played last
         self.search.setPlaceholderText("search behaviors...")
+        self.in_place_check.setVisible(False)
+        self.extract_all_button.setVisible(False)
         self.list.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.mode = ComboBox()
         self.mode.setToolTip(MODE_TIP)
