@@ -15,8 +15,8 @@
 -- bones of an object tag Point's model, or (obj undefined: Import > Tag > Model Animations) on
 -- the scene nodes with the same names. Loaded by tag_editor.ms (uses tagRefNodes).
 
-struct AnimPlayerTagData (tagPath, modDate, dataPath, nodeNames, names, exts, frameCounts, nodeCounts, offsets)
-global animPlayerTag
+struct AnimPlayerTagData (tagPath, modDate, dataPath, nodeNames, names, exts, frameCounts, nodeCounts, moves, offsets)
+global animPlayerTag = undefined
 
 -- Decodes the tag (one LuaJIT run), unless it is the one already loaded. Returns an
 -- AnimPlayerTagData (also in animPlayerTag), or undefined on error (see the log)
@@ -26,7 +26,7 @@ fn animPlayerLoadTag tagPath =
 	if animPlayerTag != undefined and animPlayerTag.tagPath == tagPath and animPlayerTag.modDate == modDate \
 		and doesFileExist animPlayerTag.dataPath then return animPlayerTag
 	animPlayerTag = undefined
-	local f = luaExportTag "animation_player" 1 tagPath
+	local f = luaExportTag "animation_player" 2 tagPath
 	if f == undefined then return undefined
 	local nodeCount = luaReadInt f
 	local nodeNames = for i = 1 to nodeCount collect readString f
@@ -35,12 +35,14 @@ fn animPlayerLoadTag tagPath =
 	local exts = #()
 	local frameCounts = #()
 	local nodeCounts = #()
+	local moves = #()
 	for i = 1 to count do
 	(
 		append names (readString f)
 		append exts (readString f)
 		append frameCounts (luaReadInt f)
 		append nodeCounts (luaReadInt f)
+		append moves ((luaReadInt f) == 1)
 	)
 	local messageCount = luaReadInt f
 	for i = 1 to messageCount do
@@ -49,22 +51,29 @@ fn animPlayerLoadTag tagPath =
 		local text = readString f
 		if level >= 2 then logger.warn "{}" args:#(text) else logger.debug "{}" args:#(text)
 	)
-	-- The poses follow: 8 floats (32 bytes) per node and frame
+	-- The poses follow: 8 floats (32 bytes) per node and frame, then 12 bytes per frame if it moves
 	local offsets = #()
 	local offset = ftell f
 	for i = 1 to count do
 	(
 		append offsets offset
 		offset += frameCounts[i] * nodeCounts[i] * 32
+		if moves[i] do offset += frameCounts[i] * 12
 	)
 	fclose f
 	animPlayerTag = AnimPlayerTagData tagPath:tagPath modDate:modDate dataPath:(luaExportPath "animation_player") \
-		nodeNames:nodeNames names:names exts:exts frameCounts:frameCounts nodeCounts:nodeCounts offsets:offsets
+		nodeNames:nodeNames names:names exts:exts frameCounts:frameCounts nodeCounts:nodeCounts moves:moves offsets:offsets
+)
+
+-- True when animation i is a move-front/back/left/right with its own displacement
+fn animPlayerHasMove i =
+(
+	animPlayerTag != undefined and i >= 1 and i <= animPlayerTag.moves.count and animPlayerTag.moves[i]
 )
 
 -- Poses of animation i: #(positions, rotations, scales), each per node then frame. Rotations
 -- as "in coordsys parent node.rotation" takes them (i, j, k negated, as the JMA importer does)
-fn animPlayerRead i =
+fn animPlayerRead i inPlace:false =
 (
 	local data = animPlayerTag
 	local frameCount = data.frameCounts[i]
@@ -89,6 +98,9 @@ fn animPlayerRead i =
 			append rotations[n] (quat (-qi) (-qj) (-qk) qw)
 			append scales[n] (readFloat f)
 		)
+	-- In place: the root without the animation's displacement (it keeps its turn)
+	if inPlace and data.moves[i] do
+		for fr = 1 to frameCount do positions[1][fr] = luaReadPoint3 f
 	fclose f
 	#(positions, rotations, scales)
 )
@@ -180,8 +192,8 @@ fn animPlayerResetOthers obj applied =
 )
 
 -- Keys of animation i (1-based) on the Point's bones from frame 0, replacing theirs (not
--- undoable). Returns the time it took in ms, or -1 when it can't be applied
-fn animPlayerApply obj i =
+-- undoable). inPlace: move animations without displacement. Returns ms, or -1 if it can't apply
+fn animPlayerApply obj i inPlace:false =
 (
 	local data = animPlayerTag
 	if data == undefined or i < 1 or i > data.names.count then return -1
@@ -189,7 +201,7 @@ fn animPlayerApply obj i =
 	local frameCount = data.frameCounts[i]
 	if frameCount == 0 then return -1
 	local startTime = timestamp()
-	local poses = animPlayerRead i
+	local poses = animPlayerRead i inPlace:inPlace
 	local nodes = animPlayerNodes obj
 	if poses == undefined then return -1
 	animPlayerSaveRest obj nodes
@@ -276,8 +288,8 @@ fn animPlayerStopAll =
 	count
 )
 
--- For the panel: #(tag name, names, exts, frame counts, bones found, tag node count), or the
--- error text. obj undefined: the scene bones
+-- For the panel: #(tag name, names, exts, frame counts, bones found, tag node count, moves),
+-- or the error text. obj undefined: the scene bones
 fn animPlayerOpen obj tagPath =
 (
 	if obj != undefined and not (isObjectTagContainer obj) then return "The object tag Point is gone"
@@ -286,7 +298,7 @@ fn animPlayerOpen obj tagPath =
 	if data == undefined then return "Could not read the animations (see the Max log)"
 	local found = 0
 	for n in animPlayerNodes obj where n != undefined do found += 1
-	#(filenameFromPath tagPath, data.names, data.exts, data.frameCounts, found, data.nodeNames.count)
+	#(filenameFromPath tagPath, data.names, data.exts, data.frameCounts, found, data.nodeNames.count, data.moves)
 )
 
 -- Playback, on Max's own timeline. The panel reads this a few times per second:
@@ -316,7 +328,7 @@ fn animPlayerSetPlayback loop speedIndex =
 	timeConfiguration.playbackSpeed = speedIndex
 )
 
--- Extraction, by the Extract Animations tool (lua\importers\model_animations.lua)
+-- Extraction (lua\importers\model_animations.lua)
 fileIn (rootEngine + "pipeline\\extract_model_animations\\animation_extractor.ms")
 
 -- "D:\halo\tags\characters\cyborg\cyborg.model_animations" -> "D:\halo\data\characters\cyborg\animations"
@@ -330,10 +342,12 @@ fn animPlayerDataFolder tagPath =
 
 -- Last folder picked in "Extract to..."
 global animPlayerExtractDir
+-- Animations the last extraction left out
+global animPlayerExtractSkipped = 0
 
 -- indexText: "3,7,12" (1-based). toData: to the tag's data folder, else asks for one.
--- Returns the folder, "" when cancelled, or undefined on error (see the log)
-fn animPlayerExtract tagPath indexText toData =
+-- inPlace: as JMM without displacement. Returns the folder, "" if cancelled, undefined on error
+fn animPlayerExtract tagPath indexText toData inPlace:false =
 (
 	local folder = animPlayerDataFolder tagPath
 	if not toData do
@@ -344,8 +358,13 @@ fn animPlayerExtract tagPath indexText toData =
 		animPlayerExtractDir = folder
 	)
 	if folder == undefined then return undefined
-	if extractModelAnimations tagPath outputDir:folder only:indexText then folder else undefined
+	local counts = #()
+	local done = extractModelAnimations tagPath outputDir:folder only:indexText inPlace:inPlace counts:counts
+	animPlayerExtractSkipped = if counts.count == 2 then counts[2] else 0
+	if done then folder else undefined
 )
+
+fn animPlayerExtractInPlace tagPath indexText toData = animPlayerExtract tagPath indexText toData inPlace:true
 
 scriptName = getFilenameFile (getThisScriptFilename()) + getFilenameType (getThisScriptFilename())
 logger.info "{} loaded." args:#(scriptName)
