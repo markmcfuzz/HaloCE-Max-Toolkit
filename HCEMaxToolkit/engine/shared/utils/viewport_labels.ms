@@ -57,12 +57,13 @@ fn drawLabelAt pos text textColor =
 fn pointLabelSize o nonScaling =
 (
 	if not o.constantscreensize then return o.size
-	try (o.size * nonScaling * (getScreenScaleFactor o.pos) / 360.0) catch (o.size)
+	try (o.size * nonScaling * (getScreenScaleFactor o.transform.row4) / 360.0) catch (o.size)
 )
 
--- Right of the box; factor: where the text starts, in box sizes from its center
+-- Right of the box; factor: where the text starts, in box sizes from its center.
+-- From the transform: .pos is wrong on a Point with a Link Constraint (a held weapon)
 fn drawNodeLabel o boxSize screenRight factor:0.375 =
-	drawLabelAt (o.pos + screenRight * (boxSize * factor)) o.name o.wirecolor
+	drawLabelAt (o.transform.row4 + screenRight * (boxSize * factor)) o.name o.wirecolor
 
 -- "bounding radius: 0.45 World Units" at the sphere's edge, with the number as in the tag
 -- (bounding_radius.ms); helpers whose Point is gone use Near / 100
@@ -71,7 +72,7 @@ fn drawBoundingRadiusLabel h screenRight =
 	local tagPoint = getNodeByName (substring h.name 1 (h.name.count - ".boundingRadius".count))
 	local radiusText = if isObjectTagContainer tagPoint then objectFieldText tagPoint.fieldKeys tagPoint.fieldValues "bounding radius" else undefined
 	if radiusText == undefined do radiusText = (h.nearDist / 100.0) as string
-	drawLabelAt (h.pos + screenRight * h.nearDist) ("bounding radius: " + radiusText + " World Units") h.nearColor
+	drawLabelAt (h.transform.row4 + screenRight * h.nearDist) ("bounding radius: " + radiusText + " World Units") h.nearColor
 )
 
 fn viewportLabelsDraw =
