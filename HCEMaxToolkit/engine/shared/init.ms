@@ -31,6 +31,7 @@ fileIn (scriptDir + "utils\\lua_bridge.ms")
 fileIn (scriptDir + "utils\\mesh_normals.ms")
 fileIn (scriptDir + "utils\\build_utils.ms")
 fileIn (scriptDir + "utils\\text_utils.ms")
+fileIn (scriptDir + "utils\\bone_keys.ms")
 -- Opens the tag editor whenever an object tag Point is selected
 fileIn (rootEngine + "builders\\tag\\object\\tag_editor.ms")
 -- Physics and .vehicle Points from templates (after tag_editor.ms: uses sceneModelNodes)
