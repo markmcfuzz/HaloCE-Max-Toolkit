@@ -1,12 +1,13 @@
 -- Every animation of a model_animations tag for the Animation Player, decoded once
 -- (builders\tag\model_animations\animation_player.ms reads it). Layout:
---   node count, node names; animation count, per animation: name, ext, frame count, node count;
---   message count, per message: level, text; then each animation's poses.
+--   node count, node names; animation count, per animation: name, ext, frame count, node count,
+--   moves (0/1); message count, per message: level, text; then each animation's poses.
 -- Poses: per frame and node, 8 floats: translation (JMA units), rotation i j k w (as in the
 -- JMA), scale. Same poses the extracted JMA files have.
+-- After the poses of a moves animation: per frame, its root translation without displacement.
 local modelAnimations = require "importers.model_animations"
 
-local animationPlayer = {group = "model_animations", version = 1}
+local animationPlayer = {group = "model_animations", version = 2}
 
 local identity = {trans = {0, 0, 0}, rot = {0, 0, 0, 1}, scale = 1}
 
@@ -25,7 +26,7 @@ function animationPlayer.write(root, output, options, tag)
     for _, anim in ipairs(animations) do
         output:string(anim.name)
         output:string(anim.ext)
-        output:ints({#anim.keyframes, anim.nodeCount})
+        output:ints({#anim.keyframes, anim.nodeCount, anim.moves and 1 or 0})
     end
     output:int(#messages)
     for _, message in ipairs(messages) do
@@ -45,6 +46,11 @@ function animationPlayer.write(root, output, options, tag)
                 n = n + 8
             end
             output:floats(values, n)
+        end
+        if anim.moves then
+            for _, frame in ipairs(anim.keyframes) do
+                output:floats(frame[1].inPlaceTrans, 3)
+            end
         end
     end
 end
