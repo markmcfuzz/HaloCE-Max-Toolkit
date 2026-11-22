@@ -18,7 +18,7 @@ fn findTagMarker container markerName =
 (
 	if markerName == "" then return undefined
 	local found = undefined
-	for n in container.modelNodes where found == undefined and isValidNode n and n.layer.name == "Markers" do
+	for n in container.modelNodes where found == undefined and isValidNode n and inLayerKind n "Markers" do
 		if stricmp n.name ("#" + markerName) == 0 do found = n
 	found
 )
@@ -27,7 +27,7 @@ fn findTagMarker container markerName =
 fn findTagRootNode container =
 (
 	local found = undefined
-	for n in container.modelNodes where found == undefined and isValidNode n and n.layer.name == "Nodes" do
+	for n in container.modelNodes where found == undefined and isValidNode n and inLayerKind n "Nodes" do
 		if n.parent == undefined do found = n
 	found
 )
@@ -51,6 +51,12 @@ fn attachWeaponToUnit unitPoint weaponPoint handMarker gripMarker =
 		n.transform = n.transform * moveTM
 		n.parent = handNode
 	)
+	-- Its Point stays in haloCE.Object and follows the hand, with its physics and bounding radius
+	local pointTM = weaponPoint.transform * moveTM
+	local follow = Link_Constraint()
+	weaponPoint.transform.controller = follow
+	follow.addTarget handNode (animationRange.start.frame as integer)
+	weaponPoint.transform = pointTM
 	handNode
 )
 
