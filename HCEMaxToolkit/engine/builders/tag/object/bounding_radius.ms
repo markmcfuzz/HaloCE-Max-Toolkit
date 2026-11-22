@@ -42,10 +42,14 @@ fn setBoundingRadiusHelper h keys values =
 	local radius = if radiusText != undefined then radiusText as float else undefined
 	if radius == undefined do radius = 0.0
 	local nearDist = radius * 100.0
-	local pos = (tagTextToPoint3 (objectFieldText keys values "bounding offset")) * 100.0
-	if abs (h.nearDist - nearDist) < 0.0001 and distance h.pos pos < 0.0001 then return false
+	-- The offset is from its object's Point, which may be following a hand
+	local parentTM = if h.parent != undefined then h.parent.transform else matrix3 1
+	local pos = (tagTextToPoint3 (objectFieldText keys values "bounding offset")) * 100.0 * parentTM
+	local tm = h.transform
+	if abs (h.nearDist - nearDist) < 0.0001 and distance tm.row4 pos < 0.0001 then return false
 	h.nearDist = nearDist
-	h.pos = pos
+	tm.row4 = pos
+	h.transform = tm
 	true
 )
 
@@ -75,9 +79,8 @@ fn tagEditorAddBoundingRadius obj =
 	undo "Add Bounding Radius" on
 	(
 		local h = createBoundingRadiusHelper obj.fieldKeys obj.fieldValues obj.name
-		local members = for n in obj.memberNodes where isValidNode n collect n
-		append members h
-		obj.memberNodes = members
+		placeBoundingRadius h obj
+		setBoundingRadiusHelper h obj.fieldKeys obj.fieldValues
 	)
 	redrawViews()
 	true
