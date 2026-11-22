@@ -1,6 +1,6 @@
 -- model_animations -> JMA/JMO/JMR/... source files, one per animation (same output as the
--- previous MAXScript extractor). options: { output folder [, "3,7,12": only those (1-based)] }.
--- Writes a summary that
+-- previous MAXScript extractor). options: { output folder [, "3,7,12": only those (1-based)
+-- [, "inplace": move animations as JMM without displacement]] }. Writes a summary that
 -- pipeline\extract_model_animations\animation_extractor.ms reads.
 -- Math is rounded to 32-bit floats like MAXScript, so the text matches the old files.
 local bit = require "bit" -- LuaJIT: bit operations on 32-bit integers
@@ -551,9 +551,28 @@ local function keyframe(frame, nodeCount, totalX, totalY, totalZ, totalYaw)
                 rot = quatMul(yawQuat(totalYaw), rot)
             end
         end
-        out[nodeIndex] = {trans = trans, rot = rot, scale = pose.scale}
+        out[nodeIndex] = {
+            trans = trans,
+            rot = rot,
+            scale = pose.scale,
+            inPlaceTrans = nodeIndex == 1 and pose.trans or nil
+        }
     end
     return out
+end
+
+-- Base move-front/back/left/right animations that carry their own displacement
+local function isMoveAnimation(anim)
+    if anim.type ~= animationTypes.base or anim.frameInfoType == frameInfoTypes.none then
+        return false
+    end
+    local name = anim.name:lower()
+    for _, side in ipairs({"front", "back", "left", "right"}) do
+        if name:find("move-" .. side, 1, true) then
+            return true
+        end
+    end
+    return false
 end
 
 -------------------------------------------------------------------------------
@@ -658,10 +677,41 @@ local function animationKeyframes(anim, animations, log)
     return keyframes
 end
 
+-- Move animations with plain displacement: the ones that can be written as JMM
+local function canGoInPlace(anim)
+    return isMoveAnimation(anim) and anim.frameInfoType == frameInfoTypes.dxdy
+end
+
+local function outputExtension(anim, inPlace)
+    return inPlace and canGoInPlace(anim) and "JMM" or extension(anim)
+end
+
+-- Why a move animation can't be written, or nil. Its other version (JMA / JMM) in the
+-- folder would reach Tool as the same animation twice
+local function versionClash(anim, ext, outDir)
+    if not canGoInPlace(anim) then
+        return nil
+    end
+    for _, other in ipairs({"JMA", "JMM", "JMT", "JMZ", "JMW", "JMO", "JMR"}) do
+        local file = other ~= ext and io.open(outDir .. "\\" .. anim.name .. "." .. other, "rb")
+        if file then
+            file:close()
+            return ("Skipping '%s': '%s.%s' is already in that folder."):format(anim.name, anim.name, other)
+        end
+    end
+    return nil
+end
+
 -- Writes one animation's file; returns true when written
-local function extractOne(anim, animations, nodes, outDir, log)
+local function extractOne(anim, animations, nodes, outDir, log, inPlace)
     local keyframes = animationKeyframes(anim, animations, log)
-    local path = outDir .. "\\" .. anim.name .. "." .. extension(anim)
+    local ext = outputExtension(anim, inPlace)
+    if inPlace and canGoInPlace(anim) then
+        for _, frame in ipairs(keyframes) do
+            frame[1].trans = frame[1].inPlaceTrans
+        end
+    end
+    local path = outDir .. "\\" .. anim.name .. "." .. ext
     return writeJma(path, anim, nodes, keyframes)
 end
 
@@ -699,14 +749,20 @@ local function readAnimations(root)
 end
 
 -- For the Animation Player (importers\animation_player.lua): the nodes, and per animation
--- { name, ext, nodeCount, keyframes } (no keyframes when it can't be read)
+-- { name, ext, nodeCount, moves, keyframes } (no keyframes when it can't be read)
 function modelAnimations.decodeAll(root, tag, log)
     dataReader = tagReader.openBytes(tag.bytes)
     local animations = readAnimations(root)
     local nodes = tagNodes(root, animations, log)
     local decoded = {}
     for i, anim in ipairs(animations) do
-        local entry = {name = anim.name, ext = extension(anim), nodeCount = anim.nodeCount, keyframes = {}}
+        local entry = {
+            name = anim.name,
+            ext = extension(anim),
+            nodeCount = anim.nodeCount,
+            moves = isMoveAnimation(anim),
+            keyframes = {}
+        }
         if #nodes > 0 and anim.nodeCount > 0 then
             local ok, result = pcall(animationKeyframes, anim, animations, log)
             if ok then
@@ -732,6 +788,7 @@ function modelAnimations.write(root, output, options, tag)
         only = {}
         for index in options[2]:gmatch("%d+") do only[tonumber(index)] = true end
     end
+    local inPlace = options[3] == "inplace"
 
     local messages = {}
     local function log(level, text)
@@ -745,13 +802,17 @@ function modelAnimations.write(root, output, options, tag)
     local hasNodes = #nodes > 0
     local extracted, skipped = 0, 0
     for i, anim in ipairs(hasNodes and animations or {}) do
+        local problem = (not only or only[i]) and versionClash(anim, outputExtension(anim, inPlace), outDir)
         if only and not only[i] then
             -- Not picked in the Animation Player
         elseif anim.nodeCount == 0 then
             log(logLevel.warning, ("Skipping '%s': nodeCount is 0."):format(anim.name))
             skipped = skipped + 1
+        elseif problem then
+            log(logLevel.warning, problem)
+            skipped = skipped + 1
         else
-            local ok, result = pcall(extractOne, anim, animations, nodes, outDir, log)
+            local ok, result = pcall(extractOne, anim, animations, nodes, outDir, log, inPlace)
             if ok and result then
                 extracted = extracted + 1
             else
