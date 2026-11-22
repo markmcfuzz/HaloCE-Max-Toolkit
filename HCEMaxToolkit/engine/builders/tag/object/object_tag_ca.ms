@@ -22,13 +22,14 @@ global haloTagAttributeDef = attributes "Halo Object Tag" attribID:#(0x4A7C1E35,
 		tagFile type:#string default:""
 		fieldKeys type:#stringTab tabSizeVariable:true
 		fieldValues type:#stringTab tabSizeVariable:true
-		-- Everything imported or linked (Select Contents, change colors, bounding radius helper)
+		-- Imported or linked nodes. Never its child dummies: Max would see a dependency loop
 		memberNodes type:#nodeTab tabSizeVariable:true
 		-- Nodes of each reference, imported or linked by hand (eye and link buttons)
 		modelNodes type:#nodeTab tabSizeVariable:true
 		collisionNodes type:#nodeTab tabSizeVariable:true
+		-- Physics Point: its spheres. Objects find their physics Point among their children
 		physicsNodes type:#nodeTab tabSizeVariable:true
-		-- 0: Point from before the lists above, they are filled from the layers once
+		-- 0: lists not filled yet; 1: they still hold the dummies; 2: current
 		partsVersion type:#integer default:0
 	)
 
