@@ -13,6 +13,9 @@
 -- Mass point spheres of a physics tag Point, in its physicsNodes in tag order; each one is a child
 -- of its "model node" (the Point's modelNodes) or of the Point. Fields <-> spheres both ways.
 
+-- baseLayerName, inLayerKind, placePhysicsPoint
+fileIn (rootEngine + "builders\\tag\\object\\object_hierarchy.ms")
+
 -- True for the Point of an imported physics tag
 fn isPhysicsTagContainer obj = isValidNode obj and (try (obj.tagGroup == "physics") catch (false))
 
@@ -92,7 +95,7 @@ fn sortByHandle a b = a.inode.handle - b.inode.handle
 -- Nodes of the last imported model, in tag order (the gbxmodel importer makes them in that order)
 fn sceneModelNodes =
 (
-	local nodes = for o in objects where o.layer.name == "Nodes" collect o
+	local nodes = for o in objects where inLayerKind o "Nodes" collect o
 	qsort nodes sortByHandle
 	nodes
 )
@@ -128,6 +131,18 @@ fn massPointNodeIndex obj index indices =
 	if isValidNode obj.modelNodes[nodeIndex + 1] then nodeIndex + 1 else 0
 )
 
+-- Max won't link a sphere to the Point that lists it: out of its lists while linking
+fn linkSphereToPoint obj sphereNode =
+(
+	local listed = for n in obj.physicsNodes collect n
+	local members = for n in obj.memberNodes collect n
+	obj.physicsNodes = for n in listed where n != sphereNode collect n
+	obj.memberNodes = for n in members where n != sphereNode collect n
+	sphereNode.parent = obj
+	obj.physicsNodes = listed
+	obj.memberNodes = members
+)
+
 -- Fields -> sphere: parent, place, size, color and name of one mass point
 fn applyMassPointSphere obj sphereNode index indices =
 (
@@ -149,7 +164,7 @@ fn applyMassPointSphere obj sphereNode index indices =
 	)
 	else
 	(
-		sphereNode.parent = obj
+		if sphereNode.parent != obj do linkSphereToPoint obj sphereNode
 		sphereNode.transform = restTm
 	)
 	if isProperty sphereNode #radius do sphereNode.radius = radius * 100.0
@@ -218,8 +233,9 @@ fn syncPhysicsFromScene obj =
 fn createMassPointSphere obj =
 (
 	local newSphere = sphere radius:10 smooth:on name:"+mass point"
-	local physicsLayer = LayerManager.getLayerFromName "Physics"
-	if physicsLayer == undefined do physicsLayer = LayerManager.newLayerFromName "Physics"
+	-- The Point's layer; Points from older scenes aren't in a physics layer
+	local physicsLayer = obj.layer
+	if baseLayerName physicsLayer.name != "Physics" do physicsLayer = haloLayer "Physics" undefined
 	physicsLayer.addNode newSphere
 	newSphere.parent = obj
 	newSphere
