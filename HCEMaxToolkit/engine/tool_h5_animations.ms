@@ -353,6 +353,122 @@ include "builders\\jma\\build_scene.ms"
     -- ANIMATION IMPORT
     -------------------------------------------------------
 
+    -- Keys straight on the scene bones, as this tool always did (not the shared bone_keys.ms)
+    fn h5ApplyAnimation jmaData =
+    (
+    	local result = #(true, #())  -- [success, missingNodes]
+    	local missingNodeIndices = #()
+	
+    	logger.log "=== APPLYING ANIMATION ==="
+    	logger.info "Frames: {}" args:#(jmaData.frameCount)
+    	logger.info "Frame Rate: {}" args:#(jmaData.frameRate)
+    	logger.info "Nodes: {}" args:#(jmaData.nodeCount)
+	
+    	-- Pre-cache scene nodes and visibility (do this ONCE, not per frame)
+    	local nodeCache = #()
+    	for n = 1 to jmaData.nodeCount do
+    	(
+    		local nodeName = jmaData.nodes[n].nodeName
+    		local sceneNode = getNodeByName nodeName
+		
+    		if sceneNode == undefined then
+    		(
+    			append nodeCache undefined
+    			append missingNodeIndices n
+    			append result[2] nodeName
+    			logger.warn "Node not found in scene: '{}'" args:#(nodeName)
+    		)
+    		else if sceneNode.isHidden then
+    		(
+    			-- Store as undefined for hidden nodes (skip silently)
+    			append nodeCache undefined
+    		)
+    		else
+    		(
+    			-- Store visible node reference
+    			append nodeCache sceneNode
+    		)
+    	)
+	
+    	-- Remove keys left by a previous import. Otherwise each new rotation is
+    	-- converted to Euler angles close to the OLD animation's value at that frame,
+    	-- so neighbouring keys can end up 360 degrees apart and the bone spins
+    	-- between frames during playback.
+    	for sceneNode in nodeCache where sceneNode != undefined do
+    		deleteKeys sceneNode.controller #allKeys
+
+    	-- Set frame rate first so the range and keys use the file's frames
+    	frameRate = jmaData.frameRate
+
+    	-- Set animation range (0-based frame indices)
+    	animationRange = interval 0 (jmaData.frameCount - 1)
+
+    	-- Set animation mode
+    	max tool animmode
+    	set animate on
+	
+    	-- Process each frame
+    	for f = 1 to jmaData.frameCount do
+    	(
+    		local frameData = jmaData.frames[f]
+    		local frameIdx = f - 1  -- Convert to 0-based for 3ds Max timeline
+		
+    		-- Process each node in this frame
+    		for n = 1 to jmaData.nodeCount do
+    		(
+    			local sceneNode = nodeCache[n]
+			
+    			if sceneNode != undefined then
+    			(
+    				-- Only process visible nodes (hidden nodes are cached as undefined)
+    				local nodeFrame = frameData.nodeFrames[n]
+				
+    				-- Convert rotation (negate i, j, k for Halo to 3ds Max conversion)
+    				local nodeRotation = quat \
+    					-nodeFrame.rotation.x \
+    					-nodeFrame.rotation.y \
+    					-nodeFrame.rotation.z \
+    					nodeFrame.rotation.w
+				
+    				-- Get translation
+    				local nodeTranslation = nodeFrame.translation
+				
+    				-- Get uniform scale as point3
+    				local nodeScale = [nodeFrame.scale, nodeFrame.scale, nodeFrame.scale]
+				
+    				-- Add keyframes
+    				addNewKey sceneNode.rotation.controller frameIdx
+    				at time frameIdx (in coordsys parent sceneNode.rotation = nodeRotation)
+				
+    				addNewKey sceneNode.position.controller frameIdx
+    				at time frameIdx (in coordsys parent sceneNode.position = nodeTranslation)
+				
+    				addNewKey sceneNode.scale.controller frameIdx
+    				at time frameIdx (in coordsys parent sceneNode.scale = nodeScale)
+    			)
+    		)
+    	)
+	
+    	-- Exit animation mode
+    	max tool animmode
+    	set animate off
+
+    	-- Start the new animation at its first frame
+    	sliderTime = 0
+	
+    	-- Report results
+    	if missingNodeIndices.count > 0 then
+    	(
+    		logger.warn "Animation applied with {} missing node(s)" args:#(missingNodeIndices.count)
+    	)
+    	else
+    	(
+    		logger.info "Animation applied successfully to all nodes!"
+    	)
+	
+    	return result
+    )
+
     fn importAnimationFile filePath =
     (
         local jmaData = readJmaFile filePath
@@ -367,7 +483,7 @@ include "builders\\jma\\build_scene.ms"
                 local sceneNode = getNodeByName nd.nodeName
                 if isValidNode sceneNode then deleteKeys sceneNode.controller #allKeys
             )
-            buildJmaAnimation jmaData
+            if jmaData.frameCount > 0 and jmaData.nodeCount > 0 do h5ApplyAnimation jmaData
         )
         sliderTime = 0
         if missing.count > 0 then
