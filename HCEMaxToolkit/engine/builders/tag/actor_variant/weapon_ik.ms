@@ -62,7 +62,7 @@ fn solveArmIk desired shoulder elbow hand =
 
 -- Bones of the unit's model that hang from a node, except one
 fn ikOtherChildren parentNode except =
-	for c in parentNode.children where c != except and c.layer.name == "Nodes" collect c
+	for c in parentNode.children where c != except and inLayerKind c "Nodes" collect c
 
 -- Keys on the timeline's frames so each unit marker follows its weapon marker ("a|b" lists of
 -- names, the weapon class "ik points"). Returns how many pairs were found in the scene
@@ -119,6 +119,12 @@ fn actorWeaponIk unitPoint markerList attachList =
 			)
 		)
 	)
+	-- The IK rewrote the arms' keys (the held weapon is not a bone of the tag)
+	local tagBones = animPlayerNodes unitPoint
+	local ikBones = #()
+	for chain in chains do
+		for n in (#(chain[3], chain[4], chain[5]) + chain[6]) where findItem tagBones n > 0 do appendIfUnique ikBones n
+	with redraw off (with undo off (for n in ikBones do boneKeysFixAngles n))
 	redrawViews()
 	chains.count
 )
