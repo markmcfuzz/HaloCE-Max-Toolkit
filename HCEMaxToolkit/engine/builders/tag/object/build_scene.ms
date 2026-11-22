@@ -11,8 +11,8 @@
 ------------------------------------------------------------------------------
 
 -- Container of an imported object tag: a Point helper holding every tag field as text; they are
--- edited in the Qt tag editor (tag_editor.ms). It is not the parent of what it contains: the JMS
--- exporter needs the frame root without a parent.
+-- edited in the Qt tag editor (tag_editor.ms). It is the parent of its dummies only (physics,
+-- bounding radius): the JMS exporter needs the frame root without a parent.
 
 -- haloTagAttributeDef
 fileIn (rootEngine + "builders\\tag\\object\\object_tag_ca.ms")
@@ -25,15 +25,13 @@ fn getLastNodeHandle =
 	lastHandle
 )
 
-fn getNodesAfterHandle lastHandle = for o in objects where o.inode.handle > lastHandle collect o
-
 -- Nodes created between two getLastNodeHandle calls
 fn getNodesBetweenHandles firstHandle lastHandle =
 	for o in objects where o.inode.handle > firstHandle and o.inode.handle <= lastHandle collect o
 
--- data: ObjectTagData (lua_reader.ms), memberNodes: everything imported
--- parts: #(model nodes, collision nodes, physics nodes)
-fn createObjectContainer data tagPath memberNodes parts:#(#(), #(), #()) =
+-- data: ObjectTagData (lua_reader.ms), memberNodes: what it imported, without its dummies
+-- parts: #(model nodes, collision nodes)
+fn createObjectContainer data tagPath memberNodes parts:#(#(), #()) =
 (
 	local container = Point name:(filenameFromPath tagPath) size:30 box:true cross:false \
 		axistripod:false centermarker:false constantscreensize:true drawontop:true wirecolor:(color 80 230 40)
@@ -46,9 +44,19 @@ fn createObjectContainer data tagPath memberNodes parts:#(#(), #(), #()) =
 	tagAttributes.memberNodes = memberNodes
 	tagAttributes.modelNodes = parts[1]
 	tagAttributes.collisionNodes = parts[2]
-	tagAttributes.physicsNodes = parts[3]
-	tagAttributes.partsVersion = 1
+	tagAttributes.partsVersion = 2
+	placeObjectPoint container
 	container
+)
+
+-- After an import: its dummies under the Point and everything in the layers of its type.
+-- physicsPoint: undefined when it has none
+fn organizeObjectParts container physicsPoint radiusHelper =
+(
+	if physicsPoint != undefined do placePhysicsPoint physicsPoint container
+	placeBoundingRadius radiusHelper container
+	moveToObjectLayers container.memberNodes container.tagGroup
+	deleteEmptyImportLayers()
 )
 
 scriptName = getFilenameFile (getThisScriptFilename()) + getFilenameType (getThisScriptFilename())
