@@ -24,6 +24,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Physics Importer:** imported physics are now edited in the Halo Tag Editor.
 - **Viewport labels:** labels in the same place no longer overlap.
+- **Scene organization:** object tags are grouped under a `haloCE.Object` dummy, with their physics and bounding radius inside them.
+- **Layers:** objects are sorted into nested layers by type, with their model and collision inside.
+- **Linking physics:** drag a physics dummy into its vehicle, or link it from the tag, in any order.
+- **Object physics:** only vehicles can have physics.
+- **JMA Importer, Animation Player and Actor panel:** animations apply much faster.
+
+### Fixed
+
+- **JMA Importer, Animation Player and Actor panel:** bones no longer spin between frames, which depended on what was played before.
+- **Actor panel:** changing animations no longer leaves frames from the previous one on the held weapon.
 
 ## [6.0.0] - 2026-11-14
 
