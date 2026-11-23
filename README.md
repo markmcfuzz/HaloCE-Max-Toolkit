@@ -21,14 +21,17 @@ If you want to learn more in depth about the features and roadmap, check the [**
 ### Import:
   - **Tag:**
     - `Gbxmodel`/`Model`
-    - `Physics Mass Points`
+    - `Physics`
+      - Imports the mass points as spheres, ready to edit in the Halo Tag Editor.
     - `Model Collision Geometry`
     - `Camera Track`
     - `Scenario Structure BSP`
     - `Object` (`biped`, `vehicle`, `weapon`, `scenery`, `device_machine`)
       - Imports the object with its model, collision and physics, under a Point that keeps all the tag's fields.
     - `Model Animations`
-      - Plays the tag's animations on the scene bones, picked from a list. Also extracts the selected animations to source files.
+      - Plays the tag's animations on the scene bones, picked from a list, with `In Place` for `move` animations. Also extracts the selected animations or all of them to source files.
+    - `Actor Variant`
+      - Imports the character with its variant colors and its weapon in the hand.
   - **Source:**
     - `Animation Data (JMA)`
     - `Jointed Model Skeleton (JMS)`
@@ -41,8 +44,6 @@ If you want to learn more in depth about the features and roadmap, check the [**
   - **HCE:**
     - `Sphere to Helper Converter`
       - Change the spheres with symbol `#` to new Halo Marker helpers.
-    - `Model Animations Extractor`
-      - Extracts all animation source from a `.model_animations` tag.
     - `Node Renamer`
       - Batch-renames nodes in JMS and JMA files to follow Halo CE naming.
     - `Bone Weight Limiter`
@@ -53,6 +54,8 @@ If you want to learn more in depth about the features and roadmap, check the [**
       - Transfers animations between different skeletons, even when bone names, axes or rest poses differ.
     - `Create Object Tag`
       - Creates an empty object tag to fill in the Halo Tag Editor and export.
+    - `Create Physics Tag`
+      - Creates physics from templates that adapt to your model: stock vehicles, wheeled, tracked, hover, aircraft, watercraft and loose objects.
   - **CER:**
     - `Packed UV Fixer`
       - Fixes UVs of Halo Campaign Evolved models with horizontally packed textures.
@@ -64,7 +67,9 @@ If you want to learn more in depth about the features and roadmap, check the [**
   - Shows or hides the model, collision and physics of each reference, and links scene objects to them.
   - `Export Tag...` writes the tag.
   - **Shaders:** edits every field of the object's GlyphFX shaders with live viewport preview, and exports them as tags.
-  - **Animation Player:** plays the object's animations on its model (play/pause, loop, speed, timeline slider) and extracts the selected ones to source files.
+  - **Physics:** views, edits and exports physics tags, with their mass points as spheres in the viewport. `Fit to Model` adjusts template physics to your model, and mass point roles (tire, tread, wing...) set their values for you.
+  - **Animation Player:** plays the object's animations on its model (play/pause, loop, speed, timeline slider, `In Place`) and extracts the selected ones or all of them (`Extract All`) to source files, with `move` animations in place if you choose.
+  - **Actor:** lists the unit states and AI impulses of each actor mode with the animation the game plays, and plays them with the game's weapon IK.
 ### Settings:
   - **Import Settings:**
     - `GBXModel Importer`
@@ -95,6 +100,7 @@ If you want to learn more in depth about the features and roadmap, check the [**
   - Improved performance for large models and animations compared to bluestreak; tags, JMS and JMA files are read and written with LuaJIT.
   - [**GlyphFX**](https://github.com/markmcfuzz/GlyphFX) integration to have Halo CE shaders in 3ds max, animated with the timeline like in game.
   - No external tools needed: tags are written by the toolkit itself.
+  - Imported objects are organized under a `haloCE.Object` dummy and in nested layers by type.
   - Adds a new **Halo CE Toolkit** menu bar section inside 3ds Max for quick access to import/export/tools.
   - Executable installer for easy installation and uninstallation of the toolkit.
 
